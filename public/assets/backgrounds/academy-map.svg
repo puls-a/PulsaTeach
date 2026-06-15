@@ -1,0 +1,23 @@
+<svg width="980" height="620" viewBox="0 0 980 620" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Pulsa Academy world map</title>
+  <desc id="desc">A colorful map of coding learning zones.</desc>
+  <rect width="980" height="620" rx="44" fill="#EEF2FF"/>
+  <path d="M72 512C180 432 225 291 361 313C498 335 516 457 653 407C750 371 776 237 913 200" stroke="#1E1B4B" stroke-width="12" stroke-linecap="round" stroke-dasharray="20 24"/>
+  <circle cx="154" cy="474" r="58" fill="#F97316" stroke="#1E1B4B" stroke-width="8"/>
+  <circle cx="306" cy="328" r="54" fill="#22C55E" stroke="#1E1B4B" stroke-width="8"/>
+  <circle cx="471" cy="360" r="55" fill="#06B6D4" stroke="#1E1B4B" stroke-width="8"/>
+  <circle cx="629" cy="426" r="52" fill="#FACC15" stroke="#1E1B4B" stroke-width="8"/>
+  <circle cx="772" cy="279" r="54" fill="#FB7185" stroke="#1E1B4B" stroke-width="8"/>
+  <circle cx="887" cy="188" r="50" fill="#4F46E5" stroke="#1E1B4B" stroke-width="8"/>
+  <path d="M140 454H168V495H140V454Z" fill="#FFF7ED" stroke="#1E1B4B" stroke-width="6"/>
+  <path d="M282 337L306 292L331 337H282Z" fill="#EEF2FF" stroke="#1E1B4B" stroke-width="6"/>
+  <path d="M445 335H497V386H445V335Z" fill="#EEF2FF" stroke="#1E1B4B" stroke-width="6"/>
+  <path d="M601 435L630 390L659 435H601Z" fill="#FFF7ED" stroke="#1E1B4B" stroke-width="6"/>
+  <path d="M751 259H794V302H751V259Z" fill="#EEF2FF" stroke="#1E1B4B" stroke-width="6"/>
+  <path d="M867 168H906V207H867V168Z" fill="#FACC15" stroke="#1E1B4B" stroke-width="6"/>
+  <circle cx="114" cy="158" r="35" fill="#FACC15" stroke="#1E1B4B" stroke-width="7"/>
+  <circle cx="211" cy="122" r="22" fill="#06B6D4" stroke="#1E1B4B" stroke-width="6"/>
+  <circle cx="825" cy="502" r="32" fill="#22C55E" stroke="#1E1B4B" stroke-width="7"/>
+  <path d="M86 220H187" stroke="#1E1B4B" stroke-width="8" stroke-linecap="round"/>
+  <path d="M790 110H910" stroke="#1E1B4B" stroke-width="8" stroke-linecap="round"/>
+</svg>

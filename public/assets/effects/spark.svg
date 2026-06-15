@@ -1,0 +1,7 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Success spark</title>
+  <desc id="desc">A success sparkle used for completed missions.</desc>
+  <path d="M64 9L76 48L118 64L76 80L64 119L52 80L10 64L52 48L64 9Z" fill="#FACC15" stroke="#1E1B4B" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M30 19L35 36L52 42L35 48L30 65L25 48L8 42L25 36L30 19Z" fill="#06B6D4" stroke="#1E1B4B" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M101 80L106 95L121 101L106 107L101 122L96 107L81 101L96 95L101 80Z" fill="#FB7185" stroke="#1E1B4B" stroke-width="5" stroke-linejoin="round"/>
+</svg>

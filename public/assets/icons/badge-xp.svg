@@ -1,0 +1,7 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">XP badge</title>
+  <desc id="desc">A PulsaTeach XP badge.</desc>
+  <path d="M90 14L116 42L154 47L135 82L142 121L106 138L90 173L74 138L38 121L45 82L26 47L64 42L90 14Z" fill="#FACC15" stroke="#1E1B4B" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M63 103L80 78L62 54H82L91 69L101 54H121L102 79L119 103H99L90 89L82 103H63Z" fill="#4F46E5"/>
+  <path d="M123 103V54H147C159 54 166 61 166 72C166 83 159 90 147 90H141V103H123ZM141 75H146C149 75 151 74 151 72C151 69 149 68 146 68H141V75Z" fill="#4F46E5"/>
+</svg>

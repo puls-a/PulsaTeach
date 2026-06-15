@@ -1,0 +1,31 @@
+{
+  "name": "pulsateach",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "server": "node server/index.js",
+    "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
+    "build": "vite build",
+    "smoke": "node scripts/smoke.mjs",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.105.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "lucide-react": "^0.562.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "vite": "^7.2.7"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.23",
+    "concurrently": "^9.2.1",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.18"
+  }
+}

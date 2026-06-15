@@ -1,0 +1,66 @@
+const frontend = process.env.FRONTEND_URL || "http://127.0.0.1:5173";
+const api = process.env.API_URL || "http://127.0.0.1:4174";
+
+const routes = [
+  "",
+  "catalog",
+  "learn/html/html-foundations/html-01-document-skeleton",
+  "path",
+  "dashboard",
+  "profile",
+  "projects",
+  "certification",
+  "playground",
+  "world",
+  "flexbox-arena",
+  "js-arena",
+  "studio",
+  "author",
+  "analytics",
+  "admin",
+  "roadmap",
+  "settings",
+  "auth",
+  "signup"
+];
+
+const endpoints = [
+  "/api/health",
+  "/api/catalog",
+  "/api/roadmap",
+  "/api/stats",
+  "/api/analytics",
+  "/api/path/smoke-user",
+  "/api/profile/smoke-user",
+  "/api/users/smoke-user",
+  "/api/certificates/smoke-user",
+  "/api/submissions?userId=smoke-user",
+  "/api/lesson-drafts",
+  "/api/supabase/status"
+];
+
+const failures = [];
+
+for (const route of routes) {
+  await check(`${frontend}/#/${route}`, `route ${route || "home"}`);
+}
+
+for (const endpoint of endpoints) {
+  await check(`${api}${endpoint}`, endpoint);
+}
+
+if (failures.length) {
+  console.error(`Smoke test failed:\n${failures.join("\n")}`);
+  process.exit(1);
+}
+
+console.log(`Smoke test passed: ${routes.length} routes and ${endpoints.length} API endpoints.`);
+
+async function check(url, label) {
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!response.ok) failures.push(`${label}: HTTP ${response.status}`);
+  } catch (error) {
+    failures.push(`${label}: ${error.message}`);
+  }
+}

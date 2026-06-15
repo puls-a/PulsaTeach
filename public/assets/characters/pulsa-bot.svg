@@ -1,0 +1,19 @@
+<svg width="220" height="220" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">PulsaTeach guide bot</title>
+  <desc id="desc">A rounded academy coding bot with a cheerful visor.</desc>
+  <rect x="36" y="56" width="148" height="126" rx="38" fill="#EEF2FF" stroke="#1E1B4B" stroke-width="8"/>
+  <rect x="54" y="78" width="112" height="54" rx="24" fill="#4F46E5" stroke="#1E1B4B" stroke-width="7"/>
+  <circle cx="88" cy="105" r="9" fill="#FACC15"/>
+  <circle cx="132" cy="105" r="9" fill="#FACC15"/>
+  <path d="M91 149C102 158 118 158 130 149" stroke="#1E1B4B" stroke-width="7" stroke-linecap="round"/>
+  <path d="M68 56L55 32" stroke="#1E1B4B" stroke-width="8" stroke-linecap="round"/>
+  <path d="M152 56L165 32" stroke="#1E1B4B" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="51" cy="26" r="12" fill="#06B6D4" stroke="#1E1B4B" stroke-width="7"/>
+  <circle cx="169" cy="26" r="12" fill="#FB7185" stroke="#1E1B4B" stroke-width="7"/>
+  <rect x="13" y="98" width="32" height="52" rx="16" fill="#F97316" stroke="#1E1B4B" stroke-width="7"/>
+  <rect x="175" y="98" width="32" height="52" rx="16" fill="#22C55E" stroke="#1E1B4B" stroke-width="7"/>
+  <path d="M76 183V200" stroke="#1E1B4B" stroke-width="8" stroke-linecap="round"/>
+  <path d="M144 183V200" stroke="#1E1B4B" stroke-width="8" stroke-linecap="round"/>
+  <path d="M68 202H91" stroke="#1E1B4B" stroke-width="8" stroke-linecap="round"/>
+  <path d="M129 202H152" stroke="#1E1B4B" stroke-width="8" stroke-linecap="round"/>
+</svg>

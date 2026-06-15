@@ -1,0 +1,49 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: #f8fafc;
+    color: #172033;
+    font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  a, button { transition: color .18s ease, background-color .18s ease, border-color .18s ease, opacity .18s ease, transform .18s ease; }
+  :focus-visible { outline: 3px solid rgba(79, 70, 229, .35); outline-offset: 3px; }
+}
+
+@layer components {
+  .nav-item { @apply inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 hover:text-ink; }
+  .icon-button { @apply inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-ink; }
+  .primary-button { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-indigoPop px-5 py-3 font-bold text-white hover:bg-indigo-700; }
+  .secondary-button { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 font-bold text-ink hover:border-slate-400 hover:bg-slate-50; }
+  .eyebrow { @apply text-sm font-bold uppercase tracking-[.16em] text-indigoPop; }
+  .nav-trigger { @apply inline-flex min-h-10 items-center gap-2 rounded-xl px-3.5 text-sm font-bold text-slate-600 hover:bg-slate-100 hover:text-ink; }
+  .nav-icon-button { @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigoPop; }
+  .nav-account-button { @apply inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-2 pr-3 text-sm font-bold text-slate-700 hover:border-indigo-200 hover:bg-indigo-50; }
+  .nav-dropdown { @apply absolute top-[calc(100%+12px)] grid gap-1 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl shadow-slate-900/10; }
+
+  /* Legacy components keep working while sharing the calmer visual system. */
+  .clay, .clay-soft {
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 12px 30px rgba(15, 23, 42, .05);
+    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+  .hero-stage { background: #f8fafc; }
+  .mission-enter { animation: missionEnter .25s ease both; }
+}
+
+@keyframes missionEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

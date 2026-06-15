@@ -1,0 +1,8 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Mission target</title>
+  <desc id="desc">A bold circular target for coding challenges.</desc>
+  <circle cx="90" cy="90" r="74" fill="#EEF2FF" stroke="#1E1B4B" stroke-width="8"/>
+  <circle cx="90" cy="90" r="52" fill="#FB7185" stroke="#1E1B4B" stroke-width="7"/>
+  <circle cx="90" cy="90" r="30" fill="#FACC15" stroke="#1E1B4B" stroke-width="7"/>
+  <circle cx="90" cy="90" r="11" fill="#4F46E5" stroke="#1E1B4B" stroke-width="6"/>
+</svg>

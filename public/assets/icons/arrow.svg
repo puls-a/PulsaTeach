@@ -1,0 +1,8 @@
+<svg width="190" height="72" viewBox="0 0 190 72" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Coding arrow</title>
+  <desc id="desc">A bright arrow projectile for JavaScript missions.</desc>
+  <path d="M13 36H146" stroke="#1E1B4B" stroke-width="14" stroke-linecap="round"/>
+  <path d="M118 11L175 36L118 61L130 36L118 11Z" fill="#F97316" stroke="#1E1B4B" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M22 18L6 36L22 54" stroke="#06B6D4" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M45 18L29 36L45 54" stroke="#22C55E" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
