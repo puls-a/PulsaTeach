@@ -549,17 +549,17 @@ export const learningTracks = [
     level: { fr: "Débutant à intermédiaire", en: "Beginner to intermediate" },
     prerequisites: { fr: ["Connaître les bases du HTML", "Savoir lire une structure de page"], en: ["Know HTML basics", "Know how to read a page structure"] },
     outcomes: {
-      fr: ["Construire un système visuel cohérent", "Maîtriser Flexbox et Grid", "Créer des interfaces responsive", "Gérer les interactions et préférences de mouvement"],
-      en: ["Build a coherent visual system", "Master Flexbox and Grid", "Create responsive interfaces", "Handle interactions and motion preferences"]
+      fr: ["Construire un système visuel cohérent", "Maîtriser Flexbox et Grid", "Créer des interfaces responsive modernes", "Gérer les interactions et préférences de mouvement", "Auditer une interface sur plusieurs contraintes réelles"],
+      en: ["Build a coherent visual system", "Master Flexbox and Grid", "Create modern responsive interfaces", "Handle interactions and motion preferences", "Audit an interface across real constraints"]
     },
-    capstone: { fr: "Landing page responsive complète", en: "Complete responsive landing page" },
+    capstone: { fr: "Landing page et audit responsive complet", en: "Landing page and complete responsive audit" },
     profession: {
       fr: "CSS est au coeur du travail des développeurs front-end, intégrateurs web et designers UI. Cette compétence transforme une structure HTML en interface lisible, cohérente, responsive et accessible, capable de résister aux vrais contenus.",
       en: "CSS is central to front-end development, web integration, and UI design. It turns HTML structure into readable, coherent, responsive, and accessible interfaces."
     },
     certification: {
-      fr: ["Valider toutes les leçons et le quiz CSS", "Livrer une navbar Flexbox responsive", "Justifier les choix de layout et de mouvement", "Livrer la landing finale sans débordement, navigable au clavier et compatible reduced-motion"],
-      en: ["Pass every CSS lesson and quiz", "Ship a responsive Flexbox navbar", "Justify layout and motion choices", "Ship the final landing without overflow, keyboard accessible, and reduced-motion compatible"]
+      fr: ["Valider toutes les leçons et le quiz CSS", "Livrer une navbar Flexbox responsive", "Justifier les choix de layout, mouvement et fluidité", "Livrer la landing finale sans débordement", "Réussir l'audit responsive avancé avec container queries et médias robustes"],
+      en: ["Pass every CSS lesson and quiz", "Ship a responsive Flexbox navbar", "Justify layout, motion, and fluidity choices", "Ship the final landing without overflow", "Pass the advanced responsive audit with container queries and robust media"]
     },
     modules: [
       module("css-selectors", "Sélecteurs", "Selectors", [
@@ -620,6 +620,22 @@ export const learningTracks = [
           solution: ".panel {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));\n  gap: 18px;\n}\n.card {\n  padding: 24px;\n  border-radius: 20px;\n  box-shadow: 6px 8px 0 rgba(30, 27, 75, .18);\n}\n.toolbar button {\n  transition: transform .2s ease;\n}\n.toolbar button:hover {\n  transform: translateY(-3px);\n}",
           tests: [test("contains", "grid", "display: grid"), test("contains", "responsive columns", "auto-fit"), test("contains", "card padding", "padding"), test("contains", "hover", ":hover"), test("contains", "transition", "transition")],
           xp: 90
+        })
+      ]),
+      module("css-advanced-responsive", "Responsive avancé", "Advanced responsive", [
+        cssLesson("css-07-fluid-type", ["Typographie fluide", "Fluid typography"], "Utilise clamp() pour faire grandir le texte sans casser les petits écrans.", ".demo-surface {\n  /* échelle fluide */\n}", ".demo-surface", ["font-size", "clamp("], 40),
+        cssLesson("css-07-fluid-spacing", ["Espacements fluides", "Fluid spacing"], "Crée un rythme d'espacement avec une variable --space qui utilise clamp().", ":root {\n  /* variable fluide */\n}\n\n.card {\n  /* espace fluide */\n}", ":root", ["--space", "clamp(", "padding: var(--space)"], 40),
+        cssLesson("css-07-responsive-images", ["Images adaptatives", "Responsive images"], "Empêche les médias de déborder avec max-width, aspect-ratio et object-fit.", ".card img {\n  /* image robuste */\n}", ".card img", ["max-width", "aspect-ratio", "object-fit"], 45),
+        cssLesson("css-07-container-queries", ["Container queries", "Container queries"], "Adapte une carte selon la largeur de son conteneur, pas selon toute la fenêtre.", ".card {\n  /* prépare le conteneur */\n}\n\n/* container query ici */", ".card", ["container-type", "@container", "grid-template-columns"], 55),
+        cssLesson("css-07-responsive-navigation", ["Navigation adaptative", "Adaptive navigation"], "Construis une navigation qui scrolle horizontalement sur petit écran puis devient distribuée sur grand écran.", ".toolbar {\n  /* base mobile */\n}\n\n@media (min-width: 760px) {\n  .toolbar {\n    /* grand écran */\n  }\n}", ".toolbar", ["display: flex", "overflow-x", "@media", "justify-content"], 50),
+        projectLesson({
+          id: "css-07-responsive-audit-project",
+          title: ["Projet : audit responsive complet", "Project: complete responsive audit"],
+          brief: ["Renforce une interface pour qu'elle survive aux textes longs, images variables, petits écrans, grands écrans et conteneurs étroits.", "Strengthen an interface so it survives long text, variable images, small screens, large screens, and narrow containers."],
+          starterCode: ":root {\n}\n\n.demo-surface {\n}\n\n.panel {\n}\n\n.card {\n}\n\n.card img {\n}\n\n.toolbar {\n}\n",
+          solution: ":root {\n  --space: clamp(1rem, 2vw, 2rem);\n}\n\n.demo-surface {\n  width: min(100% - 2rem, 72rem);\n  margin-inline: auto;\n  font-size: clamp(1rem, 0.7rem + 1vw, 1.25rem);\n}\n\n.panel {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));\n  gap: var(--space);\n}\n\n.card {\n  container-type: inline-size;\n  padding: var(--space);\n  overflow-wrap: anywhere;\n}\n\n.card img {\n  max-width: 100%;\n  aspect-ratio: 16 / 9;\n  object-fit: cover;\n}\n\n.toolbar {\n  display: flex;\n  gap: 1rem;\n  overflow-x: auto;\n}\n\n@container (min-width: 26rem) {\n  .card {\n    display: grid;\n    grid-template-columns: 1fr 2fr;\n  }\n}\n\n@media (min-width: 760px) {\n  .toolbar {\n    justify-content: space-between;\n    overflow-x: visible;\n  }\n}",
+          tests: [test("contains", "fluid type", "clamp("), test("contains", "responsive grid", "auto-fit"), test("contains", "container queries", "@container"), test("contains", "container setup", "container-type"), test("contains", "responsive media", "object-fit"), test("contains", "horizontal safety", "overflow-x"), test("contains", "large screen media query", "@media")],
+          xp: 120
         })
       ])
     ]
@@ -888,6 +904,13 @@ function moduleLearningMeta(id) {
       vocabulary: ["media query", "breakpoint", "mobile-first", "transition", "transform", "prefers-reduced-motion"],
       mastery: { fr: ["Aucun débordement aux largeurs testées", "Les actions clavier restent visibles", "Le mouvement respecte reduced-motion", "Le projet final utilise un système cohérent"], en: ["No overflow at tested widths", "Keyboard actions remain visible", "Motion respects reduced-motion", "Final project uses a coherent system"] }
     },
+    "css-advanced-responsive": {
+      importance: { fr: "Les interfaces modernes ne s'adaptent pas seulement à la fenêtre : elles doivent réagir à leur conteneur, aux médias, aux textes longs et aux variations de densité.", en: "Modern interfaces adapt not only to the viewport but also to containers, media, long text, and density changes." },
+      prerequisites: { fr: ["Grid", "Flexbox", "mobile-first", "variables CSS"], en: ["Grid", "Flexbox", "mobile-first", "CSS variables"] },
+      outcomes: { fr: ["Créer une échelle fluide avec clamp", "Stabiliser images et médias", "Utiliser les container queries", "Auditer une interface à plusieurs breakpoints"], en: ["Create a fluid scale with clamp", "Stabilize images and media", "Use container queries", "Audit an interface across breakpoints"] },
+      vocabulary: ["clamp", "aspect-ratio", "object-fit", "container-type", "@container", "audit responsive"],
+      mastery: { fr: ["Le texte reste lisible sans saut brutal", "Les images ne déforment pas le layout", "Les cartes s'adaptent à leur conteneur", "L'audit couvre petit écran, grand écran et contenu extrême"], en: ["Text remains readable without abrupt jumps", "Images do not distort layout", "Cards adapt to their container", "The audit covers small screens, large screens, and extreme content"] }
+    },
     "js-basics": {
       importance: { fr: "Les valeurs, types et conditions forment le vocabulaire minimal nécessaire pour exprimer une règle dans un programme.", en: "Values, types, and conditions form the minimum vocabulary needed to express a program rule." },
       prerequisites: { fr: ["Aucun prérequis JavaScript", "Savoir utiliser la console du lab"], en: ["No JavaScript prerequisites", "Know how to use the lab console"] },
@@ -938,6 +961,7 @@ function moduleMeta(id) {
     "css-flexbox": ["Aligner et distribuer des composants sur un axe.", "Align and distribute components on one axis.", "Une navbar responsive", "A responsive navbar"],
     "css-grid": ["Composer des mises en page bidimensionnelles adaptatives.", "Compose adaptive two-dimensional layouts.", "Une galerie responsive", "A responsive gallery"],
     "css-responsive-motion": ["Adapter l'interface aux écrans et préférences utilisateur.", "Adapt the interface to screens and user preferences.", "Une landing page responsive", "A responsive landing page"],
+    "css-advanced-responsive": ["Maîtriser les techniques responsive modernes : clamp, médias fluides, container queries et audit multi-breakpoints.", "Master modern responsive techniques: clamp, fluid media, container queries, and multi-breakpoint audits.", "Un audit responsive complet", "A complete responsive audit"],
     "js-basics": ["Manipuler valeurs, conditions, chaînes et outils de debug.", "Work with values, conditions, strings, and debugging tools.", "Une logique simple et vérifiable", "Simple verifiable logic"],
     "js-functions": ["Encapsuler la logique dans des fonctions et objets réutilisables.", "Encapsulate logic in reusable functions and objects.", "Une petite API métier", "A small domain API"],
     "js-arrays": ["Transformer, chercher et agréger des collections de données.", "Transform, search, and aggregate data collections.", "Un catalogue filtrable", "A filterable catalog"],
@@ -1035,7 +1059,7 @@ function skillsFor(id) {
 
   if (id.startsWith("html-12") || id.includes("final-project")) return groups.project;
   if (id.startsWith("html")) return groups.html;
-  if (id.startsWith("css-06")) return groups.project;
+  if (id.startsWith("css-06") || id.includes("responsive-audit-project")) return groups.project;
   if (id.startsWith("css")) return groups.css;
   if (id.startsWith("js-07")) return groups.project;
   if (id.startsWith("js")) return groups.js;
@@ -1061,6 +1085,7 @@ function durationFor(id) {
 
 function projectDurationFor(id) {
   if (id.includes("final-project") || id === "js-07-final-project") return 180;
+  if (id.includes("responsive-audit-project")) return 150;
   if (id.includes("accessibility-audit")) return 120;
   return 90;
 }
@@ -1353,6 +1378,7 @@ function projectRubricFor(id) {
     "html-12-final-project": ["Toutes les zones du cahier des charges sont présentes.", "La navigation, le tableau et le formulaire sont accessibles.", "Les métadonnées décrivent précisément PulsaConf.", "Le projet passe une relecture clavier, contenu et SEO."],
     "css-03-mini-project-navbar": ["La navbar aligne et distribue correctement ses groupes.", "Toutes les actions restent visibles sur petit écran.", "Les zones cliquables et le focus sont clairement perceptibles.", "Aucune largeur fixe fragile n'est utilisée."],
     "css-06-final-project": ["La landing utilise un système visuel cohérent.", "Le layout reste lisible sans débordement aux largeurs testées.", "Les états hover et focus communiquent clairement l'interaction.", "Le mouvement respecte prefers-reduced-motion."],
+    "css-07-responsive-audit-project": ["Le texte utilise une échelle fluide bornée.", "Les cartes résistent aux contenus longs et aux conteneurs étroits.", "Les images conservent un ratio stable sans débordement.", "La navigation reste accessible sur petit écran.", "Les container queries améliorent le composant sans dépendre seulement de la fenêtre."],
     "js-04-mini-project-counter": ["L'état count reste l'unique source de vérité.", "Les actions modifient l'état avant le rendu.", "Le rendu synchronise correctement le DOM.", "Les limites et cas de remise à zéro sont vérifiés."],
     "js-07-final-project": ["L'état central représente toutes les tâches.", "Ajout, complétion et suppression gèrent leurs cas limites.", "Chaque modification déclenche sauvegarde et rendu.", "Une sauvegarde absente ou invalide ne bloque pas l'application."]
   };
@@ -1389,7 +1415,7 @@ function cssLesson(id, title, brief, starterCode, target, checks, xp) {
 </main>`,
     tests: [
       test("contains", "target selector", target),
-      ...checks.map((check) => check.includes(":") || check === ":hover" || check === "@media" || check === "repeat" || check === "minmax" || (id === "css-05-motion" && check === "transform")
+      ...checks.map((check) => isCssConceptCheck(id, check)
         ? test("contains", check, check)
         : test("cssDeclaration", check, { selector: target, property: check }))
     ],
@@ -1398,7 +1424,72 @@ function cssLesson(id, title, brief, starterCode, target, checks, xp) {
   };
 }
 
+function isCssConceptCheck(id, check) {
+  return check.includes(":")
+    || check === ":hover"
+    || check === "@media"
+    || check === "@container"
+    || check === "repeat"
+    || check === "minmax"
+    || check === "clamp("
+    || check === "padding: var(--space)"
+    || (id === "css-05-motion" && check === "transform");
+}
+
 function cssSolution(id, target, checks) {
+  if (id === "css-07-fluid-type") {
+    return `.demo-surface {
+  font-size: clamp(1rem, 0.75rem + 1vw, 1.25rem);
+  line-height: 1.65;
+}`;
+  }
+
+  if (id === "css-07-fluid-spacing") {
+    return `:root {
+  --space: clamp(1rem, 2vw, 2rem);
+}
+
+.card {
+  padding: var(--space);
+}`;
+  }
+
+  if (id === "css-07-responsive-images") {
+    return `.card img {
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}`;
+  }
+
+  if (id === "css-07-container-queries") {
+    return `.card {
+  container-type: inline-size;
+}
+
+@container (min-width: 28rem) {
+  .card {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+  }
+}`;
+  }
+
+  if (id === "css-07-responsive-navigation") {
+    return `.toolbar {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+}
+
+@media (min-width: 760px) {
+  .toolbar {
+    justify-content: space-between;
+    overflow-x: visible;
+  }
+}`;
+  }
+
   if (id === "css-04-grid") {
     return `.gallery {
   display: grid;
@@ -1481,6 +1572,10 @@ function cssPropertyLine(check) {
   if (check === "margin") return "margin: 0 auto;";
   if (check === "overflow") return "overflow: auto;";
   if (check === "overflow-wrap") return "overflow-wrap: anywhere;";
+  if (check === "overflow-x") return "overflow-x: auto;";
+  if (check === "aspect-ratio") return "aspect-ratio: 16 / 9;";
+  if (check === "object-fit") return "object-fit: cover;";
+  if (check === "container-type") return "container-type: inline-size;";
   if (check === "outline") return "outline: 3px solid #4f46e5;";
   if (check === "outline-offset") return "outline-offset: 3px;";
   if (check === "grid-template-columns") return "grid-template-columns: repeat(3, minmax(0, 1fr));";
