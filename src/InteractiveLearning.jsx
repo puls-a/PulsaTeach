@@ -661,6 +661,7 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
         <TheoryCard theory={lesson.theory} locale={locale} />
         <NotesPanel lessonId={lesson.id} locale={locale} note={note} setNote={setNote} />
       </div>
+      <LessonGuide guide={lesson.guide} locale={locale} />
       {lesson.type === "project" && <ProjectRubric lesson={lesson} locale={locale} />}
       {result?.every((check) => check.pass) && (
         <CompletionBanner locale={locale} onNext={onNext} hasNext={hasNext} />
@@ -859,6 +860,29 @@ function TheoryCard({ theory, locale }) {
         <pre className="mt-4 overflow-x-auto rounded-lg bg-ink p-3 font-mono text-xs text-indigo-100">{localized.example}</pre>
       )}
     </details>
+  );
+}
+
+function LessonGuide({ guide, locale }) {
+  if (!guide) return null;
+  const localized = guide[locale] || guide.en;
+  const sections = [
+    { title: locale === "fr" ? "Objectifs" : "Objectives", items: localized.objectives, tone: "bg-indigo-50 text-indigo-700" },
+    { title: locale === "fr" ? "Méthode" : "Method", items: localized.steps, tone: "bg-green-50 text-green-700" },
+    { title: locale === "fr" ? "Erreurs fréquentes" : "Common mistakes", items: localized.mistakes, tone: "bg-amber-50 text-amber-800" }
+  ];
+
+  return (
+    <section className="mt-4 grid gap-3 lg:grid-cols-3" aria-label={locale === "fr" ? "Guide de leçon" : "Lesson guide"}>
+      {sections.map((section) => (
+        <article className="rounded-xl border border-slate-200 bg-white p-4" key={section.title}>
+          <h4 className={`inline-flex rounded-lg px-2.5 py-1 text-xs font-bold uppercase tracking-[.08em] ${section.tone}`}>{section.title}</h4>
+          <ol className="mt-3 grid gap-2 text-sm leading-6 text-slate-600">
+            {section.items.map((item, index) => <li className="flex gap-2" key={item}><span className="font-bold text-slate-400">{index + 1}.</span><span>{item}</span></li>)}
+          </ol>
+        </article>
+      ))}
+    </section>
   );
 }
 

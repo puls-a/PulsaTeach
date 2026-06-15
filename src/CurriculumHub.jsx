@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowRight, BookOpen, Check, ChevronDown, Code2, LockKeyhole, Plus, Trophy } from "lucide-react";
+import { ArrowRight, BookOpen, Check, ChevronDown, Clock3, Code2, Flag, GraduationCap, Plus, Trophy } from "lucide-react";
 import { useSupabaseSession } from "./authState.js";
 import { learningTracks } from "./learningContent.js";
 
@@ -108,6 +108,8 @@ function TrackCard({ track, locale, progress, open, onToggle }) {
   const percent = lessons ? Math.round((completed / lessons) * 100) : 0;
   const firstModule = track.modules[0];
   const firstLesson = firstModule?.lessons[0];
+  const totalMinutes = track.modules.reduce((sum, module) => sum + module.totalMinutes, 0);
+  const projects = track.modules.flatMap((module) => module.lessons).filter((lesson) => lesson.type === "project").length;
 
   return (
     <article className="overflow-hidden border border-slate-300 bg-white">
@@ -115,7 +117,7 @@ function TrackCard({ track, locale, progress, open, onToggle }) {
         <span className="grid size-12 shrink-0 place-items-center border border-slate-300 bg-slate-100 text-ink"><Icon className="size-6" /></span>
         <span className="min-w-0 flex-1">
           <span className="block font-display text-lg font-bold sm:text-xl">{track.title[locale]}</span>
-          <span className="mt-1 block text-sm text-slate-500">{track.modules.length} modules · {lessons} leçons · {completed} terminées</span>
+          <span className="mt-1 block text-sm text-slate-500">{track.level?.[locale]} · {track.modules.length} modules · {lessons} leçons · {completed} terminées</span>
           <span className="mt-3 block h-1.5 rounded-full bg-slate-200"><span className="block h-full rounded-full bg-indigoPop" style={{ width: `${percent}%` }} /></span>
         </span>
         <span className="text-sm font-bold text-slate-500">{percent}%</span>
@@ -125,6 +127,25 @@ function TrackCard({ track, locale, progress, open, onToggle }) {
       {open && (
         <div className="border-t border-slate-200 bg-slate-50 p-4 sm:p-5">
           <p className="mb-5 max-w-2xl leading-7 text-slate-600">{track.summary[locale]}</p>
+          <div className="mb-5 grid gap-3 sm:grid-cols-3">
+            <CourseFact icon={Clock3} value={`${Math.ceil(totalMinutes / 60)} h`} label={locale === "fr" ? "de pratique guidée" : "guided practice"} />
+            <CourseFact icon={Code2} value={lessons} label={locale === "fr" ? "leçons interactives" : "interactive lessons"} />
+            <CourseFact icon={Flag} value={projects} label={locale === "fr" ? "projets évalués" : "assessed projects"} />
+          </div>
+          <div className="mb-5 grid gap-4 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-2">
+            <div>
+              <h3 className="flex items-center gap-2 text-sm font-bold text-ink"><GraduationCap className="size-4 text-indigoPop" />{locale === "fr" ? "À la fin, tu sauras" : "By the end, you will"}</h3>
+              <ul className="mt-3 grid gap-2 text-sm text-slate-600">
+                {(track.outcomes?.[locale] || []).map((item) => <li className="flex gap-2" key={item}><Check className="mt-0.5 size-4 shrink-0 text-green-600" />{item}</li>)}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-ink">{locale === "fr" ? "Projet final" : "Capstone project"}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{track.capstone?.[locale]}</p>
+              <h3 className="mt-4 text-sm font-bold text-ink">{locale === "fr" ? "Prérequis" : "Prerequisites"}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{(track.prerequisites?.[locale] || []).join(" · ")}</p>
+            </div>
+          </div>
           <div className="grid gap-2">
             {track.modules.map((module, index) => {
               const moduleCompleted = module.lessons.filter((lesson) => progress.completed?.[lesson.id]).length;
@@ -134,8 +155,12 @@ function TrackCard({ track, locale, progress, open, onToggle }) {
                   <span className={`grid size-8 shrink-0 place-items-center rounded-full text-sm font-bold ${moduleCompleted === module.lessons.length ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"}`}>
                     {moduleCompleted === module.lessons.length ? <Check className="size-4" /> : index + 1}
                   </span>
-                  <span className="min-w-0 flex-1 font-bold">{module.title[locale]}</span>
-                  <span className="text-xs font-semibold text-slate-500">{moduleCompleted}/{module.lessons.length}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-bold">{module.title[locale]}</span>
+                    <span className="mt-1 block text-xs leading-5 text-slate-500">{module.description?.[locale]}</span>
+                    <span className="mt-1 block text-xs font-semibold text-indigoPop">{locale === "fr" ? "Livrable :" : "Deliverable:"} {module.deliverable?.[locale]}</span>
+                  </span>
+                  <span className="text-xs font-semibold text-slate-500">{module.totalMinutes} min · {moduleCompleted}/{module.lessons.length}</span>
                 </a>
               );
             })}
@@ -147,6 +172,16 @@ function TrackCard({ track, locale, progress, open, onToggle }) {
         </div>
       )}
     </article>
+  );
+}
+
+function CourseFact({ icon: Icon, value, label }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <Icon className="size-4 text-indigoPop" />
+      <p className="mt-2 font-display text-xl font-bold text-ink">{value}</p>
+      <p className="mt-1 text-xs font-semibold text-slate-500">{label}</p>
+    </div>
   );
 }
 

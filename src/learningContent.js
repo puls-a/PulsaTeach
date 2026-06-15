@@ -19,6 +19,13 @@ export const learningTracks = [
       fr: "Structure, sémantique, formulaires, accessibilité et SEO avec tests DOM.",
       en: "Structure, semantics, forms, accessibility, and SEO with DOM tests."
     },
+    level: { fr: "Débutant", en: "Beginner" },
+    prerequisites: { fr: ["Aucun prérequis", "Savoir utiliser un navigateur et un clavier"], en: ["No prerequisites", "Know how to use a browser and keyboard"] },
+    outcomes: {
+      fr: ["Structurer une page complète et sémantique", "Créer des formulaires accessibles", "Auditer le HTML, l'accessibilité et le SEO", "Livrer un site événementiel prêt pour un portfolio"],
+      en: ["Structure a complete semantic page", "Create accessible forms", "Audit HTML, accessibility, and SEO", "Ship a portfolio-ready event website"]
+    },
+    capstone: { fr: "PulsaConf : site événementiel accessible", en: "PulsaConf: accessible event website" },
     modules: [
       module("html-foundations", "Fondations", "Foundations", [
         lesson({
@@ -90,6 +97,24 @@ export const learningTracks = [
           tests: [test("selector", "details", "details"), test("selector", "summary", "summary"), test("selector", "answer paragraph", "details p")],
           hint: ["summary est le titre cliquable du bloc details.", "summary is the clickable title inside details."],
           xp: 20
+        }),
+        lesson({
+          id: "html-02-comments-entities",
+          title: ["Commentaires et caractères spéciaux", "Comments and special characters"],
+          brief: ["Documente une section avec un commentaire et affiche correctement les caractères <, >, & et ©.", "Document a section with a comment and correctly display <, >, &, and ©."],
+          starterCode: htmlShell(`    <section>
+      <h1>Référence HTML</h1>
+      <p>Affiche les symboles demandés ici.</p>
+    </section>`),
+          solution: htmlShell(`    <!-- Référence rapide pour les apprenants -->
+    <section>
+      <h1>Référence HTML</h1>
+      <p>&lt;section&gt; utilise &amp; pour relier des concepts.</p>
+      <p>&copy; PulsaTeach</p>
+    </section>`),
+          tests: [test("contains", "HTML comment", "<!--"), test("contains", "less-than entity", "&lt;"), test("contains", "ampersand entity", "&amp;"), test("contains", "copyright entity", "&copy;")],
+          hint: ["Une entité commence par & et se termine par ;.", "An entity starts with & and ends with ;."],
+          xp: 20
         })
       ]),
       module("html-content-navigation", "Contenu et navigation", "Content and navigation", [
@@ -160,6 +185,40 @@ export const learningTracks = [
           tests: [test("selector", "article", "article.course-card"), test("selector", "data level", "[data-level]"), test("selector", "time datetime", "time[datetime]"), test("selector", "course link", "a[href=\"#learn\"]")],
           hint: ["Les attributs data-* stockent une petite information utilisable en CSS ou JS.", "data-* attributes store small bits of information for CSS or JS."],
           xp: 25
+        }),
+        lesson({
+          id: "html-05-audio-video",
+          title: ["Audio et vidéo accessibles", "Accessible audio and video"],
+          brief: ["Ajoute une vidéo contrôlable avec sous-titres et une solution de repli textuelle.", "Add a controllable video with captions and a textual fallback."],
+          starterCode: htmlShell(`    <section>
+      <h2>Présentation du cours</h2>
+      <!-- Média accessible -->
+    </section>`),
+          solution: htmlShell(`    <section>
+      <h2>Présentation du cours</h2>
+      <video controls>
+        <source src="intro.mp4" type="video/mp4" />
+        <track kind="captions" src="intro-fr.vtt" srclang="fr" label="Français" />
+        <p>La vidéo présente le programme de la formation.</p>
+      </video>
+    </section>`),
+          tests: [test("selector", "video controls", "video[controls]"), test("selector", "video source", "video source[type]"), test("selector", "captions track", "track[kind=\"captions\"]"), test("selector", "text fallback", "video p")],
+          hint: ["controls rend la lecture pilotable et track fournit les sous-titres.", "controls makes playback operable and track provides captions."],
+          xp: 30
+        }),
+        projectLesson({
+          id: "html-05-mini-project-profile",
+          title: ["Mini-projet : page profil", "Mini project: profile page"],
+          brief: ["Assemble une page profil avec navigation, biographie, compétences, média et liens utiles.", "Assemble a profile page with navigation, biography, skills, media, and useful links."],
+          starterCode: htmlShell(`    <!-- Construis le profil de Sam ici -->`),
+          solution: htmlShell(`    <header><h1>Sam développeuse web</h1><nav><a href="#about">À propos</a><a href="#skills">Compétences</a></nav></header>
+    <main>
+      <section id="about"><h2>À propos</h2><figure><img src="sam.jpg" alt="Portrait de Sam" /><figcaption>Sam apprend le développement web</figcaption></figure><p>Je construis des interfaces accessibles.</p></section>
+      <section id="skills"><h2>Compétences</h2><ul><li>HTML</li><li>Accessibilité</li><li>Git</li></ul></section>
+    </main>
+    <footer><a href="mailto:sam@example.com">Contacter Sam</a></footer>`),
+          tests: [test("selector", "page header", "header"), test("selector", "navigation", "nav"), test("minSelector", "content sections", "section", 2), test("selector", "profile image alt", "img[alt]"), test("selector", "skills list", "ul"), test("selector", "contact link", "a[href^=\"mailto:\"]"), test("selector", "footer", "footer")],
+          xp: 70
         })
       ]),
       module("html-forms-seo", "Données, formulaires, SEO", "Data, forms, SEO", [
@@ -210,6 +269,44 @@ export const learningTracks = [
           tests: [test("selector", "header", "header"), test("selector", "nav", "nav"), test("selector", "main", "main"), test("selector", "section", "section"), test("selector", "footer", "footer")],
           hint: ["La sémantique décrit le rôle du bloc.", "Semantics describe the role of the block."],
           xp: 35
+        }),
+        lesson({
+          id: "html-09-fieldset-groups",
+          title: ["Regrouper les champs", "Group form fields"],
+          brief: ["Structure un formulaire de préférences avec fieldset, legend, radios et noms cohérents.", "Structure a preferences form with fieldset, legend, radio buttons, and coherent names."],
+          starterCode: htmlShell(`    <form>
+      <!-- Choix du rythme d'apprentissage -->
+    </form>`),
+          solution: htmlShell(`    <form>
+      <fieldset>
+        <legend>Rythme d'apprentissage</legend>
+        <label><input type="radio" name="pace" value="calm" /> Calme</label>
+        <label><input type="radio" name="pace" value="intensive" /> Intensif</label>
+      </fieldset>
+      <button type="submit">Sauvegarder</button>
+    </form>`),
+          tests: [test("selector", "fieldset", "fieldset"), test("selector", "legend", "legend"), test("minSelector", "two radio choices", "input[type=\"radio\"]", 2), test("selector", "named radio group", "input[type=\"radio\"][name=\"pace\"]"), test("selector", "submit button", "button[type=\"submit\"]")],
+          hint: ["Tous les boutons radio d'un même choix partagent le même name.", "All radio buttons in one choice share the same name."],
+          xp: 35
+        }),
+        lesson({
+          id: "html-09-native-validation",
+          title: ["Validation HTML native", "Native HTML validation"],
+          brief: ["Ajoute des contraintes utiles avec required, minlength, maxlength et pattern.", "Add useful constraints with required, minlength, maxlength, and pattern."],
+          starterCode: htmlShell(`    <form>
+      <label for="username">Identifiant</label>
+      <input id="username" name="username" />
+      <button type="submit">Créer le compte</button>
+    </form>`),
+          solution: htmlShell(`    <form>
+      <label for="username">Identifiant</label>
+      <input id="username" name="username" required minlength="3" maxlength="20" pattern="[a-z0-9-]+" aria-describedby="username-help" />
+      <p id="username-help">3 à 20 caractères : lettres minuscules, chiffres et tirets.</p>
+      <button type="submit">Créer le compte</button>
+    </form>`),
+          tests: [test("selector", "required username", "input[required]"), test("selector", "minimum length", "input[minlength]"), test("selector", "maximum length", "input[maxlength]"), test("selector", "validation pattern", "input[pattern]"), test("selector", "described help", "input[aria-describedby]")],
+          hint: ["Explique toujours les contraintes avant que la validation échoue.", "Always explain constraints before validation fails."],
+          xp: 40
         })
       ]),
       module("html-a11y-final", "Accessibilité et projet final", "Accessibility and final project", [
@@ -298,6 +395,47 @@ export const learningTracks = [
           hint: ["La meta description résume la page pour les moteurs et les humains.", "The meta description summarizes the page for search engines and humans."],
           xp: 30
         }),
+        lesson({
+          id: "html-11-landmarks-skip-link",
+          title: ["Landmarks et lien d'évitement", "Landmarks and skip link"],
+          brief: ["Ajoute un lien d'évitement et des zones header, nav, main et footer clairement identifiables.", "Add a skip link and clearly identifiable header, nav, main, and footer regions."],
+          starterCode: htmlShell(`    <header><h1>Documentation</h1></header>
+    <nav><a href="#guide">Guide</a></nav>
+    <main><section id="guide"><h2>Guide</h2></section></main>
+    <footer>Aide</footer>`),
+          solution: htmlShell(`    <a href="#main-content">Aller au contenu principal</a>
+    <header><h1>Documentation</h1></header>
+    <nav aria-label="Navigation principale"><a href="#guide">Guide</a></nav>
+    <main id="main-content"><section id="guide"><h2>Guide</h2></section></main>
+    <footer>Aide</footer>`),
+          tests: [test("selector", "skip link", "a[href=\"#main-content\"]"), test("selector", "main target", "main#main-content"), test("selector", "named navigation", "nav[aria-label]"), test("selector", "footer landmark", "footer")],
+          hint: ["Le href du lien d'évitement doit viser l'id du contenu principal.", "The skip link href must target the main content id."],
+          xp: 35
+        }),
+        projectLesson({
+          id: "html-11-accessibility-audit",
+          title: ["Audit : corriger une page", "Audit: fix a page"],
+          brief: ["Corrige une page volontairement mauvaise : langue, hiérarchie, image, navigation, formulaire et bouton.", "Fix an intentionally poor page: language, hierarchy, image, navigation, form, and button."],
+          starterCode: `<html>
+  <body>
+    <div>Mon service</div>
+    <div><a href="#">Clique ici</a></div>
+    <div><img src="team.jpg" /></div>
+    <div><input type="email" placeholder="Email" /><div>Envoyer</div></div>
+  </body>
+</html>`,
+          solution: `<!doctype html>
+<html lang="fr">
+  <head><meta charset="UTF-8" /><title>Mon service accessible</title></head>
+  <body>
+    <header><h1>Mon service</h1></header>
+    <nav aria-label="Navigation principale"><a href="#team">Découvrir l'équipe</a></nav>
+    <main id="main-content"><section id="team"><h2>Notre équipe</h2><img src="team.jpg" alt="Équipe réunie dans le bureau" /></section><form><label for="email">Email</label><input id="email" type="email" required /><button type="submit">Envoyer</button></form></main>
+  </body>
+</html>`,
+          tests: [test("contains", "doctype", "<!doctype html>"), test("contains", "document language", "lang=\"fr\""), test("selector", "main heading", "h1"), test("selector", "descriptive image", "img[alt]"), test("selector", "form label", "label[for]"), test("selector", "real button", "button[type=\"submit\"]")],
+          xp: 80
+        }),
         projectLesson({
           id: "html-12-final-project",
           title: ["Projet PulsaConf", "PulsaConf project"],
@@ -329,10 +467,18 @@ export const learningTracks = [
       fr: "Sélecteurs, box model, Flexbox, Grid, responsive et animations avec rendu visuel.",
       en: "Selectors, box model, Flexbox, Grid, responsive, and motion with visual output."
     },
+    level: { fr: "Débutant à intermédiaire", en: "Beginner to intermediate" },
+    prerequisites: { fr: ["Connaître les bases du HTML", "Savoir lire une structure de page"], en: ["Know HTML basics", "Know how to read a page structure"] },
+    outcomes: {
+      fr: ["Construire un système visuel cohérent", "Maîtriser Flexbox et Grid", "Créer des interfaces responsive", "Gérer les interactions et préférences de mouvement"],
+      en: ["Build a coherent visual system", "Master Flexbox and Grid", "Create responsive interfaces", "Handle interactions and motion preferences"]
+    },
+    capstone: { fr: "Landing page responsive complète", en: "Complete responsive landing page" },
     modules: [
       module("css-selectors", "Sélecteurs", "Selectors", [
         cssLesson("css-01-selectors", ["Selector Quest", "Selector Quest"], "Cible uniquement les cartes de cours avec la classe .course-card.", ".course-card {\n  /* écris ici */\n}", ".course-card", ["background", "border"], 25),
         cssLesson("css-01-combinators", ["Sélecteur direct", "Direct selector"], "Cible seulement les boutons directement dans .toolbar avec le combinateur >.", ".toolbar > button {\n  /* style direct */\n}", ".toolbar > button", ["background", "border-radius"], 25),
+        cssLesson("css-01-states", ["États interactifs", "Interactive states"], "Ajoute un état :focus-visible clair aux boutons pour la navigation clavier.", ".toolbar button {\n  /* style de base */\n}\n\n.toolbar button:focus-visible {\n  /* focus ici */\n}", ".toolbar button:focus-visible", ["outline", "outline-offset"], 30),
         quizLesson({
           id: "css-01-specificity-quiz",
           title: ["Quiz spécificité", "Specificity quiz"],
@@ -351,22 +497,34 @@ export const learningTracks = [
       module("css-box-model", "Box model", "Box model", [
         cssLesson("css-02-box-model", ["Carte produit", "Product card"], "Transforme la carte en bloc lisible avec padding, border-radius et shadow.", ".card {\n  /* espace, coins, ombre */\n}", ".card", ["padding", "border-radius", "box-shadow"], 30),
         cssLesson("css-02-typography", ["Typographie lisible", "Readable typography"], "Améliore la lisibilité avec font-size, line-height et max-width.", ".demo-surface {\n  /* typo ici */\n}", ".demo-surface", ["font-size", "line-height", "max-width"], 25),
-        cssLesson("css-02-custom-properties", ["Variables CSS", "CSS variables"], "Déclare une variable --accent puis utilise-la pour colorer les cartes.", ":root {\n  /* variable ici */\n}\n\n.card {\n  /* utilise la variable */\n}", ":root", ["--accent", "background: var(--accent)"], 35)
+        cssLesson("css-02-custom-properties", ["Variables CSS", "CSS variables"], "Déclare une variable --accent puis utilise-la pour colorer les cartes.", ":root {\n  /* variable ici */\n}\n\n.card {\n  /* utilise la variable */\n}", ":root", ["--accent", "background: var(--accent)"], 35),
+        cssLesson("css-02-sizing", ["Tailles fluides", "Fluid sizing"], "Donne à la surface une largeur fluide avec width, max-width et margin auto.", ".demo-surface {\n  /* largeur fluide */\n}", ".demo-surface", ["width", "max-width", "margin"], 30),
+        cssLesson("css-02-overflow", ["Contrôler le débordement", "Control overflow"], "Empêche le contenu long de casser la carte avec overflow-wrap et overflow.", ".card {\n  /* protège le layout */\n}", ".card", ["overflow", "overflow-wrap"], 30)
       ]),
       module("css-flexbox", "Flexbox", "Flexbox", [
         cssLesson("css-03-flexbox", ["Flex Rescue", "Flex Rescue"], "Aligne les boutons sur une ligne avec display flex, gap et align-items.", ".toolbar {\n  /* flex ici */\n}", ".toolbar", ["display: flex", "gap", "align-items"], 35),
         cssLesson("css-03-flex-wrap", ["Wrap Lab", "Wrap Lab"], "Autorise les cartes à revenir à la ligne avec flex-wrap.", ".panel {\n  display: flex;\n  /* wrap ici */\n}", ".panel", ["display: flex", "flex-wrap", "gap"], 30),
-        cssLesson("css-03-space-between", ["Navbar flex", "Navbar flex"], "S?pare le logo et les actions avec justify-content: space-between.", ".toolbar {\n  display: flex;\n  /* distribution ici */\n}", ".toolbar", ["display: flex", "justify-content: space-between", "align-items"], 30)
+        cssLesson("css-03-space-between", ["Navbar flex", "Navbar flex"], "Sépare le logo et les actions avec justify-content: space-between.", ".toolbar {\n  display: flex;\n  /* distribution ici */\n}", ".toolbar", ["display: flex", "justify-content: space-between", "align-items"], 30),
+        projectLesson({
+          id: "css-03-mini-project-navbar",
+          title: ["Mini-projet : navbar responsive", "Mini project: responsive navbar"],
+          brief: ["Construis le CSS d'une navbar qui aligne, espace et replie correctement ses actions.", "Build CSS for a navbar that aligns, spaces, and wraps its actions correctly."],
+          starterCode: ".toolbar {\n}\n\n.toolbar button {\n}\n",
+          solution: ".toolbar {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  flex-wrap: wrap;\n  gap: 16px;\n}\n\n.toolbar button {\n  padding: 12px 16px;\n  border-radius: 10px;\n}",
+          tests: [test("contains", "flex layout", "display: flex"), test("contains", "vertical alignment", "align-items"), test("contains", "distributed space", "justify-content"), test("contains", "wrapping", "flex-wrap"), test("contains", "spacing", "gap")],
+          xp: 70
+        })
       ]),
       module("css-grid", "Grid", "Grid", [
         cssLesson("css-04-grid", ["Grid Builder", "Grid Builder"], "Crée une grille responsive avec display grid, repeat et minmax.", ".gallery {\n  /* grid ici */\n}", ".gallery", ["display: grid", "repeat", "minmax"], 35),
         cssLesson("css-04-grid-gap", ["Gallery spacing", "Gallery spacing"], "Ajoute un gap clair et une grille en trois colonnes.", ".gallery {\n  /* grille fixe */\n}", ".gallery", ["display: grid", "grid-template-columns", "gap"], 30),
-        cssLesson("css-04-place-items", ["Centrage grid", "Grid centering"], "Centre les ?l?ments de la galerie avec place-items.", ".gallery {\n  display: grid;\n  /* centrage ici */\n}", ".gallery", ["display: grid", "place-items", "min-height"], 30)
+        cssLesson("css-04-place-items", ["Centrage grid", "Grid centering"], "Centre les éléments de la galerie avec place-items.", ".gallery {\n  display: grid;\n  /* centrage ici */\n}", ".gallery", ["display: grid", "place-items", "min-height"], 30)
       ]),
       module("css-responsive-motion", "Responsive et motion", "Responsive and motion", [
         cssLesson("css-05-responsive", ["Puzzle responsive", "Responsive puzzle"], "Ajoute une media query qui transforme .panel en grille à partir de 700px.", ".panel {\n  display: block;\n}\n\n/* media query ici */", "@media", ["@media", "min-width", "display: grid"], 40),
+        cssLesson("css-05-mobile-first", ["Approche mobile-first", "Mobile-first approach"], "Définis une colonne par défaut puis passe à trois colonnes à partir de 700px.", ".panel {\n  /* mobile */\n}\n\n@media (min-width: 700px) {\n  .panel {\n    /* grand écran */\n  }\n}", ".panel", ["display: grid", "grid-template-columns"], 40),
         cssLesson("css-05-motion", ["Micro-interaction", "Micro-interaction"], "Ajoute une transition et un état hover sur les boutons.", ".toolbar button {\n  /* interaction ici */\n}", ".toolbar button", ["transition", ":hover", "transform"], 35),
-        cssLesson("css-05-reduced-motion", ["Motion responsable", "Responsible motion"], "Ajoute une media query prefers-reduced-motion qui d?sactive les transitions.", "@media (prefers-reduced-motion: reduce) {\n  /* stop motion */\n}", "@media", ["prefers-reduced-motion", "transition: none"], 35),
+        cssLesson("css-05-reduced-motion", ["Motion responsable", "Responsible motion"], "Ajoute une media query prefers-reduced-motion qui désactive les transitions.", "@media (prefers-reduced-motion: reduce) {\n  /* stop motion */\n}", "@media", ["prefers-reduced-motion", "transition: none"], 35),
         projectLesson({
           id: "css-06-final-project",
           title: ["Projet landing responsive", "Responsive landing project"],
@@ -388,10 +546,19 @@ export const learningTracks = [
       fr: "Logique, fonctions, tableaux, DOM, événements, API, localStorage et debugging.",
       en: "Logic, functions, arrays, DOM, events, APIs, localStorage, and debugging."
     },
+    level: { fr: "Débutant à intermédiaire", en: "Beginner to intermediate" },
+    prerequisites: { fr: ["Connaître HTML et CSS", "Être à l'aise avec l'éditeur du lab"], en: ["Know HTML and CSS", "Be comfortable with the lab editor"] },
+    outcomes: {
+      fr: ["Modéliser une logique avec fonctions et données", "Transformer des tableaux", "Créer des interactions DOM", "Charger et sauvegarder des données"],
+      en: ["Model logic with functions and data", "Transform arrays", "Create DOM interactions", "Load and save data"]
+    },
+    capstone: { fr: "Dashboard de tâches persistant", en: "Persistent task dashboard" },
     modules: [
       module("js-basics", "Bases du langage", "Language basics", [
         jsLesson("js-01-variables", ["Variables et calcul", "Variables and calculation"], "Crée une constante price, une constante quantity et une constante total.", "const price = 12;\n// ajoute quantity et total", ["const quantity", "const total", "price * quantity"], 25),
         jsLesson("js-01-conditionals", ["Conditions", "Conditionals"], "Crée une fonction canStart(age) qui retourne true si age est au moins 13.", "function canStart(age) {\n  // retourne true ou false\n}", ["function canStart", "return", "age >= 13"], 30),
+        jsLesson("js-01-strings-template", ["Chaînes et template literals", "Strings and template literals"], "Crée un message qui combine name et xp avec un template literal.", "const name = 'Maya';\nconst xp = 120;\n// crée message", ["const message", "`", "${name}", "${xp}"], 30),
+        jsLesson("js-01-errors-console", ["Lire et produire des logs", "Read and produce logs"], "Affiche une information avec console.log et un avertissement avec console.warn.", "const lesson = 'JavaScript';\n// ajoute deux logs utiles", ["console.log", "console.warn", "lesson"], 25),
         quizLesson({
           id: "js-01-types-quiz",
           title: ["Quiz types", "Types quiz"],
@@ -409,12 +576,16 @@ export const learningTracks = [
       ]),
       module("js-functions", "Fonctions", "Functions", [
         jsLesson("js-02-functions", ["Function Forge", "Function Forge"], "Complète une fonction getLevel(score) qui retourne Starter, Builder ou Pre-junior.", "function getLevel(score) {\n  // if score < 100 -> Starter\n  // if score < 500 -> Builder\n  // sinon -> Pre-junior\n}", ["function getLevel", "return", "Starter", "Builder", "Pre-junior"], 35),
-        jsLesson("js-02-parameters", ["Paramètres", "Parameters"], "Crée une fonction makeBadge(name, xp) qui retourne une phrase avec le nom et l'XP.", "function makeBadge(name, xp) {\n  // retourne une phrase\n}", ["function makeBadge", "name", "xp", "return"], 30)
+        jsLesson("js-02-parameters", ["Paramètres", "Parameters"], "Crée une fonction makeBadge(name, xp) qui retourne une phrase avec le nom et l'XP.", "function makeBadge(name, xp) {\n  // retourne une phrase\n}", ["function makeBadge", "name", "xp", "return"], 30),
+        jsLesson("js-02-default-parameters", ["Paramètres par défaut", "Default parameters"], "Crée greet(name = 'apprenant') pour toujours retourner un message valide.", "function greet(name) {\n  // message ici\n}", ["function greet", "=", "return"], 30),
+        jsLesson("js-02-object-method", ["Méthode d'objet", "Object method"], "Ajoute une méthode complete à lesson qui passe done à true.", "const lesson = {\n  title: 'Fonctions',\n  done: false\n  // méthode ici\n};", ["complete", "this.done", "true"], 35)
       ]),
       module("js-arrays", "Tableaux et objets", "Arrays and objects", [
         jsLesson("js-03-arrays", ["Catalogue filtrable", "Filterable catalog"], "Utilise filter pour garder les cours dont track vaut 'html'.", "const courses = [{ track: 'html' }, { track: 'css' }];\nconst htmlCourses = courses", [".filter", "track", "html"], 35),
         jsLesson("js-03-map", ["Transformer une liste", "Transform a list"], "Utilise map pour extraire les titres des cours.", "const courses = [{ title: 'HTML' }, { title: 'CSS' }];\nconst titles = courses", [".map", "title"], 30),
-        jsLesson("js-03-reduce-xp", ["Additionner l'XP", "Sum XP"], "Utilise reduce pour calculer totalXp depuis une liste de le?ons.", "const lessons = [{ xp: 20 }, { xp: 35 }, { xp: 45 }];\nconst totalXp = lessons", [".reduce", "xp", "totalXp"], 40)
+        jsLesson("js-03-reduce-xp", ["Additionner l'XP", "Sum XP"], "Utilise reduce pour calculer totalXp depuis une liste de leçons.", "const lessons = [{ xp: 20 }, { xp: 35 }, { xp: 45 }];\nconst totalXp = lessons", [".reduce", "xp", "totalXp"], 40),
+        jsLesson("js-03-find", ["Trouver un élément", "Find an item"], "Utilise find pour récupérer le cours dont l'id vaut css.", "const courses = [{ id: 'html' }, { id: 'css' }, { id: 'js' }];\nconst cssCourse = courses", [".find", "id", "css"], 35),
+        jsLesson("js-03-some", ["Vérifier une collection", "Check a collection"], "Utilise some pour savoir si au moins une leçon est terminée.", "const lessons = [{ done: false }, { done: true }];\nconst hasCompleted = lessons", [".some", "done", "hasCompleted"], 35)
       ]),
       module("js-dom-events", "DOM et événements", "DOM and events", [
         domLesson("js-04-dom-events", ["Bouton compteur", "Counter button"], "Sélectionne #count et augmente son texte quand #plus est cliqué.", `<button id="plus">+1</button>
@@ -426,12 +597,26 @@ export const learningTracks = [
 <article class="card">Carte</article>
 <script>
   // ton JS ici
-</script>`, ["querySelector", "addEventListener", "classList.toggle"], 40)
+</script>`, ["querySelector", "addEventListener", "classList.toggle"], 40),
+        domLesson("js-04-form-submit", ["Intercepter un formulaire", "Handle form submission"], "Intercepte submit, empêche le rechargement et lis la valeur du champ #task.", `<form id="task-form"><input id="task" /><button>Ajouter</button></form>
+<script>
+  // ton JS ici
+</script>`, ["querySelector", "addEventListener", "submit", "preventDefault", ".value"], 45),
+        projectLesson({
+          id: "js-04-mini-project-counter",
+          title: ["Mini-projet : compteur interactif", "Mini project: interactive counter"],
+          brief: ["Crée la logique d'un compteur avec état, incrémentation, décrémentation et rendu.", "Create counter logic with state, increment, decrement, and rendering."],
+          starterCode: "let count = 0;\n\nfunction render() {\n}\n\nfunction increment() {\n}\n\nfunction decrement() {\n}\n",
+          solution: "let count = 0;\n\nfunction render() {\n  document.querySelector('#count').textContent = count;\n}\n\nfunction increment() {\n  count += 1;\n  render();\n}\n\nfunction decrement() {\n  count -= 1;\n  render();\n}",
+          tests: [test("contains", "state", "let count"), test("contains", "render function", "function render"), test("contains", "increment function", "function increment"), test("contains", "decrement function", "function decrement"), test("contains", "DOM update", "textContent")],
+          xp: 75
+        })
       ]),
       module("js-storage-async", "API, stockage, debug", "API, storage, debug", [
         jsLesson("js-05-storage", ["Sauvegarde locale", "Local save"], "Sauvegarde le thème 'happy' dans localStorage avec la clé pulsa-theme.", "const theme = 'happy';\n// sauvegarde ici", ["localStorage.setItem", "pulsa-theme", "theme"], 30),
         jsLesson("js-05-json-settings", ["JSON settings", "JSON settings"], "Transforme settings en JSON puis relis-le dans parsedSettings.", "const settings = { theme: 'happy', minutes: 30 };\n// stringify puis parse", ["JSON.stringify", "JSON.parse", "parsedSettings"], 35),
         jsLesson("js-06-fetch", ["Fetch mental model", "Fetch mental model"], "Écris une fonction async loadCourses qui appelle fetch('/api/courses') puis response.json().", "async function loadCourses() {\n  // fetch ici\n}", ["async function", "await fetch", "response.json"], 40),
+        jsLesson("js-06-fetch-errors", ["Gérer les erreurs réseau", "Handle network errors"], "Entoure un appel fetch avec try/catch et vérifie response.ok.", "async function loadProfile() {\n  // appel robuste ici\n}", ["try", "catch", "await fetch", "response.ok", "throw"], 45),
         projectLesson({
           id: "js-07-final-project",
           title: ["Projet dashboard", "Dashboard project"],
@@ -447,7 +632,32 @@ export const learningTracks = [
 ];
 
 function module(id, fr, en, lessons) {
-  return { id, title: { fr, en }, lessons };
+  const totalMinutes = lessons.reduce((sum, item) => sum + item.durationMin, 0);
+  return { id, title: { fr, en }, lessons, totalMinutes, ...moduleMeta(id) };
+}
+
+function moduleMeta(id) {
+  const metadata = {
+    "html-foundations": ["Comprendre la structure d'un document et écrire un contenu textuel propre.", "Understand document structure and write clean text content.", "Une page HTML valide et documentée", "A valid documented HTML page"],
+    "html-content-navigation": ["Organiser un site navigable avec liens, listes, médias et métadonnées.", "Organize a navigable site with links, lists, media, and metadata.", "Une page profil complète", "A complete profile page"],
+    "html-forms-seo": ["Présenter des données et collecter des informations avec des formulaires robustes.", "Present data and collect information with robust forms.", "Un formulaire structuré et validé", "A structured validated form"],
+    "html-a11y-final": ["Auditer, corriger et livrer une page accessible et bien référencée.", "Audit, fix, and ship an accessible well-indexed page.", "Le site événementiel PulsaConf", "The PulsaConf event website"],
+    "css-selectors": ["Cibler précisément les éléments et gérer les états interactifs.", "Target elements precisely and handle interactive states.", "Des composants ciblés sans effets de bord", "Targeted components without side effects"],
+    "css-box-model": ["Construire une base visuelle stable, lisible et fluide.", "Build a stable, readable, fluid visual foundation.", "Un système de cartes robuste", "A robust card system"],
+    "css-flexbox": ["Aligner et distribuer des composants sur un axe.", "Align and distribute components on one axis.", "Une navbar responsive", "A responsive navbar"],
+    "css-grid": ["Composer des mises en page bidimensionnelles adaptatives.", "Compose adaptive two-dimensional layouts.", "Une galerie responsive", "A responsive gallery"],
+    "css-responsive-motion": ["Adapter l'interface aux écrans et préférences utilisateur.", "Adapt the interface to screens and user preferences.", "Une landing page responsive", "A responsive landing page"],
+    "js-basics": ["Manipuler valeurs, conditions, chaînes et outils de debug.", "Work with values, conditions, strings, and debugging tools.", "Une logique simple et vérifiable", "Simple verifiable logic"],
+    "js-functions": ["Encapsuler la logique dans des fonctions et objets réutilisables.", "Encapsulate logic in reusable functions and objects.", "Une petite API métier", "A small domain API"],
+    "js-arrays": ["Transformer, chercher et agréger des collections de données.", "Transform, search, and aggregate data collections.", "Un catalogue filtrable", "A filterable catalog"],
+    "js-dom-events": ["Relier état, événements utilisateur et rendu DOM.", "Connect state, user events, and DOM rendering.", "Un compteur interactif", "An interactive counter"],
+    "js-storage-async": ["Persister des données et communiquer avec une API de façon robuste.", "Persist data and communicate with an API robustly.", "Un dashboard de tâches persistant", "A persistent task dashboard"]
+  };
+  const [frDescription, enDescription, frDeliverable, enDeliverable] = metadata[id] || ["Mettre en pratique les notions du module.", "Practice the module concepts.", "Un exercice validé", "A validated exercise"];
+  return {
+    description: { fr: frDescription, en: enDescription },
+    deliverable: { fr: frDeliverable, en: enDeliverable }
+  };
 }
 
 function lesson({ id, title, brief, starterCode, solution, tests, hint, xp }) {
@@ -457,6 +667,7 @@ function lesson({ id, title, brief, starterCode, solution, tests, hint, xp }) {
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief[0], en: brief[1] },
     theory: theoryFor(id),
+    guide: guideFor(id, "html"),
     skills: skillsFor(id),
     difficulty: difficultyFor(id),
     durationMin: durationFor(id),
@@ -475,6 +686,7 @@ function quizLesson({ id, title, brief, question, options, answer, explanation, 
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief[0], en: brief[1] },
     theory: theoryFor(id),
+    guide: guideFor(id, "quiz"),
     skills: skillsFor(id),
     difficulty: difficultyFor(id),
     durationMin: durationFor(id),
@@ -500,6 +712,7 @@ function projectLesson({ id, title, brief, starterCode, solution, tests, xp }) {
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief[0], en: brief[1] },
     theory: theoryFor(id),
+    guide: guideFor(id, "project"),
     skills: skillsFor(id),
     difficulty: "project",
     durationMin: 45,
@@ -613,7 +826,119 @@ function theoryFor(id) {
     }
   };
 
-  return lessons[id] || generic;
+  const topicTheories = [
+    {
+      match: ["form", "fieldset", "validation"],
+      theory: {
+        fr: { points: ["Un formulaire accessible associe chaque contrôle à un nom visible.", "Les attributs natifs réduisent le JavaScript nécessaire et améliorent la saisie.", "Les contraintes doivent être expliquées avant l'erreur."], example: "<label for=\"email\">Email</label>\n<input id=\"email\" type=\"email\" required />" },
+        en: { points: ["An accessible form associates every control with a visible name.", "Native attributes reduce required JavaScript and improve input.", "Constraints must be explained before an error."], example: "<label for=\"email\">Email</label>\n<input id=\"email\" type=\"email\" required />" }
+      }
+    },
+    {
+      match: ["accessibility", "aria", "landmarks", "audit"],
+      theory: {
+        fr: { points: ["L'accessibilité commence par un HTML natif et sémantique.", "Le clavier, les lecteurs d'écran et le zoom doivent rester utilisables.", "ARIA complète le HTML mais ne remplace pas un élément natif correct."], example: "<nav aria-label=\"Navigation principale\">...</nav>" },
+        en: { points: ["Accessibility starts with native semantic HTML.", "Keyboard, screen readers, and zoom must remain usable.", "ARIA complements HTML but does not replace the correct native element."], example: "<nav aria-label=\"Main navigation\">...</nav>" }
+      }
+    },
+    {
+      match: ["flex", "grid", "responsive", "mobile"],
+      theory: {
+        fr: { points: ["Flexbox organise principalement sur un axe, Grid sur deux axes.", "Une approche mobile-first pose une base simple puis enrichit les grands écrans.", "gap crée un espacement cohérent sans dépendre de la position des éléments."], example: ".panel {\n  display: grid;\n  gap: 1rem;\n}" },
+        en: { points: ["Flexbox mainly organizes on one axis, Grid on two axes.", "A mobile-first approach sets a simple base then enhances larger screens.", "gap creates consistent spacing without depending on item position."], example: ".panel {\n  display: grid;\n  gap: 1rem;\n}" }
+      }
+    },
+    {
+      match: ["arrays", "map", "reduce", "find", "some"],
+      theory: {
+        fr: { points: ["Un tableau représente une collection ordonnée de valeurs.", "map transforme, filter sélectionne, find récupère et reduce agrège.", "Choisir la bonne méthode rend l'intention du code immédiatement lisible."], example: "const titles = courses.map((course) => course.title);" },
+        en: { points: ["An array represents an ordered collection of values.", "map transforms, filter selects, find retrieves, and reduce aggregates.", "Choosing the right method makes code intent immediately readable."], example: "const titles = courses.map((course) => course.title);" }
+      }
+    },
+    {
+      match: ["dom", "toggle", "submit", "counter"],
+      theory: {
+        fr: { points: ["Le DOM est la représentation manipulable de la page.", "Un écouteur relie un événement utilisateur à une fonction.", "Sépare l'état, les actions et le rendu pour éviter une logique fragile."], example: "button.addEventListener(\"click\", render);" },
+        en: { points: ["The DOM is the manipulable representation of the page.", "A listener connects a user event to a function.", "Separate state, actions, and rendering to avoid fragile logic."], example: "button.addEventListener(\"click\", render);" }
+      }
+    },
+    {
+      match: ["fetch", "storage", "json"],
+      theory: {
+        fr: { points: ["Les données externes peuvent échouer, être lentes ou avoir une forme inattendue.", "JSON permet de sérialiser des données structurées.", "Une fonction asynchrone doit gérer le succès, l'attente et l'erreur."], example: "const response = await fetch(url);\nif (!response.ok) throw new Error(\"Request failed\");" },
+        en: { points: ["External data can fail, be slow, or have an unexpected shape.", "JSON serializes structured data.", "An asynchronous function must handle success, waiting, and failure."], example: "const response = await fetch(url);\nif (!response.ok) throw new Error(\"Request failed\");" }
+      }
+    }
+  ];
+  const topic = topicTheories.find((item) => item.match.some((part) => id.includes(part)));
+  return lessons[id] || topic?.theory || generic;
+}
+
+function guideFor(id, type) {
+  const track = id.startsWith("html") ? "html" : id.startsWith("css") ? "css" : id.startsWith("js") ? "javascript" : type;
+  const guides = {
+    html: {
+      fr: {
+        objectives: ["Comprendre le rôle des éléments demandés", "Écrire une structure valide et lisible", "Vérifier le résultat avec les tests et l'aperçu"],
+        steps: ["Lis la consigne et repère les éléments HTML attendus.", "Construis d'abord la structure principale, puis ajoute les attributs.", "Lance les tests un par un et inspecte l'aperçu avant de valider."],
+        mistakes: ["Utiliser des div quand un élément sémantique existe", "Oublier de relier les labels, liens ou descriptions", "Modifier plusieurs zones à la fois sans tester"]
+      },
+      en: {
+        objectives: ["Understand the role of the requested elements", "Write a valid readable structure", "Verify the result with tests and preview"],
+        steps: ["Read the brief and identify the expected HTML elements.", "Build the main structure first, then add attributes.", "Run tests one by one and inspect the preview before validating."],
+        mistakes: ["Using div when a semantic element exists", "Forgetting to connect labels, links, or descriptions", "Changing several areas at once without testing"]
+      }
+    },
+    css: {
+      fr: {
+        objectives: ["Choisir le bon sélecteur", "Appliquer des propriétés prévisibles", "Contrôler le résultat visuel sans casser le responsive"],
+        steps: ["Identifie précisément l'élément à cibler.", "Ajoute les propriétés structurelles avant la décoration.", "Observe l'aperçu, puis ajuste une propriété à la fois."],
+        mistakes: ["Employer un sélecteur trop large", "Compenser un mauvais layout avec des valeurs arbitraires", "Oublier les petits écrans et le mouvement réduit"]
+      },
+      en: {
+        objectives: ["Choose the right selector", "Apply predictable properties", "Control the visual result without breaking responsiveness"],
+        steps: ["Identify the exact element to target.", "Add structural properties before decoration.", "Inspect the preview, then adjust one property at a time."],
+        mistakes: ["Using an overly broad selector", "Compensating for a bad layout with arbitrary values", "Forgetting small screens and reduced motion"]
+      }
+    },
+    javascript: {
+      fr: {
+        objectives: ["Décomposer le problème en entrées, traitement et sortie", "Écrire une logique testable", "Lire les erreurs et vérifier les cas limites"],
+        steps: ["Définis ce que le code reçoit et doit retourner.", "Écris le cas simple avant les variantes.", "Exécute le code puis utilise les tests pour corriger précisément."],
+        mistakes: ["Modifier les données sans comprendre leur forme", "Oublier return ou les cas limites", "Déboguer plusieurs hypothèses en même temps"]
+      },
+      en: {
+        objectives: ["Break the problem into input, processing, and output", "Write testable logic", "Read errors and verify edge cases"],
+        steps: ["Define what the code receives and must return.", "Write the simple case before variants.", "Run the code, then use tests to correct precisely."],
+        mistakes: ["Changing data without understanding its shape", "Forgetting return or edge cases", "Debugging several hypotheses at once"]
+      }
+    },
+    project: {
+      fr: {
+        objectives: ["Transformer un cahier des charges en livrable", "Assembler plusieurs compétences sans guide ligne par ligne", "Relire et améliorer la qualité avant validation"],
+        steps: ["Découpe le projet en grandes zones et liste les tests associés.", "Livre une première version fonctionnelle avant de la raffiner.", "Passe la rubrique de validation, puis corrige les derniers écarts."],
+        mistakes: ["Commencer par les détails visuels", "Chercher à tout écrire d'un seul bloc", "S'arrêter dès que les tests passent sans relire"]
+      },
+      en: {
+        objectives: ["Turn a brief into a deliverable", "Combine several skills without line-by-line guidance", "Review and improve quality before validation"],
+        steps: ["Break the project into major areas and list related tests.", "Ship a functional first version before refining it.", "Use the validation rubric, then fix remaining gaps."],
+        mistakes: ["Starting with visual details", "Trying to write everything in one block", "Stopping as soon as tests pass without reviewing"]
+      }
+    },
+    quiz: {
+      fr: {
+        objectives: ["Vérifier la compréhension du concept", "Justifier un choix technique", "Identifier les alternatives trompeuses"],
+        steps: ["Lis chaque réponse complètement.", "Élimine les choix qui ne résolvent qu'une partie du problème.", "Valide puis relis l'explication."],
+        mistakes: ["Choisir selon l'apparence", "Ignorer les utilisateurs ou cas limites", "Mémoriser sans comprendre la raison"]
+      },
+      en: {
+        objectives: ["Check concept understanding", "Justify a technical choice", "Identify misleading alternatives"],
+        steps: ["Read every answer completely.", "Eliminate choices that solve only part of the problem.", "Validate, then read the explanation."],
+        mistakes: ["Choosing based on appearance", "Ignoring users or edge cases", "Memorizing without understanding why"]
+      }
+    }
+  };
+  return guides[type === "project" || type === "quiz" ? type : track] || guides.html;
 }
 
 function cssLesson(id, title, brief, starterCode, target, checks, xp) {
@@ -625,6 +950,7 @@ function cssLesson(id, title, brief, starterCode, target, checks, xp) {
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief, en: brief },
     theory: theoryFor(id),
+    guide: guideFor(id, "css"),
     skills: skillsFor(id),
     difficulty: difficultyFor(id),
     durationMin: durationFor(id),
@@ -710,6 +1036,12 @@ function cssPropertyLine(check) {
   if (check === "font-size") return "font-size: 18px;";
   if (check === "line-height") return "line-height: 1.7;";
   if (check === "max-width") return "max-width: 760px;";
+  if (check === "width") return "width: min(100% - 32px, 960px);";
+  if (check === "margin") return "margin: 0 auto;";
+  if (check === "overflow") return "overflow: auto;";
+  if (check === "overflow-wrap") return "overflow-wrap: anywhere;";
+  if (check === "outline") return "outline: 3px solid #4f46e5;";
+  if (check === "outline-offset") return "outline-offset: 3px;";
   if (check === "grid-template-columns") return "grid-template-columns: repeat(3, minmax(0, 1fr));";
   if (check === "transition") return "transition: transform .2s ease;";
   if (check === "transform") return "transform: translateY(-3px);";
@@ -726,6 +1058,7 @@ function jsLesson(id, title, brief, starterCode, checks, xp) {
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief, en: brief },
     theory: theoryFor(id),
+    guide: guideFor(id, "javascript"),
     skills: skillsFor(id),
     difficulty: difficultyFor(id),
     durationMin: durationFor(id),
@@ -791,6 +1124,8 @@ console.log(total);`,
     "js-01-conditionals": `function canStart(age) {
   return age >= 13;
 }`,
+    "js-01-strings-template": "const name = 'Maya';\nconst xp = 120;\nconst message = `${name} possède ${xp} XP`;\nconsole.log(message);",
+    "js-01-errors-console": "const lesson = 'JavaScript';\nconsole.log(`Leçon chargée : ${lesson}`);\nconsole.warn('Pense à lancer les tests.');",
     "js-02-functions": `function getLevel(score) {
   if (score < 100) return "Starter";
   if (score < 500) return "Builder";
@@ -814,12 +1149,26 @@ localStorage.setItem('pulsa-theme', theme);`,
     "js-02-parameters": `function makeBadge(name, xp) {
   return name + " earned " + xp + " XP";
 }`,
+    "js-02-default-parameters": `function greet(name = "apprenant") {
+  return "Bienvenue " + name;
+}`,
+    "js-02-object-method": `const lesson = {
+  title: "Fonctions",
+  done: false,
+  complete() {
+    this.done = true;
+  }
+};`,
     "js-03-map": `const courses = [{ title: 'HTML' }, { title: 'CSS' }];
 const titles = courses.map((course) => course.title);
 console.log(titles);`,
     "js-03-reduce-xp": `const lessons = [{ xp: 20 }, { xp: 35 }, { xp: 45 }];
 const totalXp = lessons.reduce((sum, lesson) => sum + lesson.xp, 0);
 console.log(totalXp);`,
+    "js-03-find": `const courses = [{ id: "html" }, { id: "css" }, { id: "js" }];
+const cssCourse = courses.find((course) => course.id === "css");`,
+    "js-03-some": `const lessons = [{ done: false }, { done: true }];
+const hasCompleted = lessons.some((lesson) => lesson.done);`,
     "js-04-class-toggle": `<button id="toggle">Toggle</button>
 <article class="card">Carte</article>
 <script>
@@ -838,6 +1187,25 @@ console.log(parsedSettings);`,
   const response = await fetch('/api/courses');
   const courses = await response.json();
   return courses;
+}`,
+    "js-04-form-submit": `<form id="task-form"><input id="task" /><button>Ajouter</button></form>
+<script>
+  const form = document.querySelector("#task-form");
+  const field = document.querySelector("#task");
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    console.log(field.value);
+  });
+</script>`,
+    "js-06-fetch-errors": `async function loadProfile() {
+  try {
+    const response = await fetch("/api/profile");
+    if (!response.ok) throw new Error("Request failed");
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 }`,
     "js-07-final-project": `const state = { tasks: [] };
 
