@@ -127,6 +127,7 @@ function TrackCard({ track, locale, progress, open, onToggle }) {
       {open && (
         <div className="border-t border-slate-200 bg-slate-50 p-4 sm:p-5">
           <p className="mb-5 max-w-2xl leading-7 text-slate-600">{track.summary[locale]}</p>
+          {track.profession?.[locale] && <p className="mb-5 rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-sm leading-6 text-indigo-950">{track.profession[locale]}</p>}
           <div className="mb-5 grid gap-3 sm:grid-cols-3">
             <CourseFact icon={Clock3} value={`${Math.ceil(totalMinutes / 60)} h`} label={locale === "fr" ? "de pratique guidée" : "guided practice"} />
             <CourseFact icon={Code2} value={lessons} label={locale === "fr" ? "leçons interactives" : "interactive lessons"} />
@@ -144,6 +145,12 @@ function TrackCard({ track, locale, progress, open, onToggle }) {
               <p className="mt-2 text-sm leading-6 text-slate-600">{track.capstone?.[locale]}</p>
               <h3 className="mt-4 text-sm font-bold text-ink">{locale === "fr" ? "Prérequis" : "Prerequisites"}</h3>
               <p className="mt-2 text-sm leading-6 text-slate-600">{(track.prerequisites?.[locale] || []).join(" · ")}</p>
+              {track.certification?.[locale] && (
+                <>
+                  <h3 className="mt-4 text-sm font-bold text-ink">{locale === "fr" ? "Critères de certification" : "Certification criteria"}</h3>
+                  <ul className="mt-2 grid gap-1 text-sm leading-6 text-slate-600">{track.certification[locale].map((item) => <li key={item}>• {item}</li>)}</ul>
+                </>
+              )}
             </div>
           </div>
           <div className="grid gap-2">
@@ -159,6 +166,7 @@ function TrackCard({ track, locale, progress, open, onToggle }) {
                     <span className="block font-bold">{module.title[locale]}</span>
                     <span className="mt-1 block text-xs leading-5 text-slate-500">{module.description?.[locale]}</span>
                     <span className="mt-1 block text-xs font-semibold text-indigoPop">{locale === "fr" ? "Livrable :" : "Deliverable:"} {module.deliverable?.[locale]}</span>
+                    {module.mastery?.[locale] && <span className="mt-1 block text-xs text-slate-500">{locale === "fr" ? "Maîtrise :" : "Mastery:"} {module.mastery[locale].join(" · ")}</span>}
                   </span>
                   <span className="text-xs font-semibold text-slate-500">{module.totalMinutes} min · {moduleCompleted}/{module.lessons.length}</span>
                 </a>

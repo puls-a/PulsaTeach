@@ -312,7 +312,8 @@ function MissionBoard({ locale, progress, onOpenLesson }) {
 function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted, isBookmarked, onToggleBookmark, onComplete, onNext, hasNext }) {
   const [code, setCode] = useState(lesson.starterCode);
   const [result, setResult] = useState(null);
-  const [showHint, setShowHint] = useState(false);
+  const [hintLevel, setHintLevel] = useState(0);
+  const [showCorrection, setShowCorrection] = useState(false);
   const [consoleOutput, setConsoleOutput] = useState("");
   const [note, setNote] = useState("");
   const [copied, setCopied] = useState(false);
@@ -321,7 +322,8 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
     const saved = localStorage.getItem(`pulsateach-code-${lesson.id}`);
     setCode(saved || lesson.starterCode);
     setResult(null);
-    setShowHint(false);
+    setHintLevel(0);
+    setShowCorrection(false);
     setConsoleOutput("");
     setNote(localStorage.getItem(`pulsateach-note-${lesson.id}`) || "");
   }, [lesson]);
@@ -377,8 +379,8 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
           <SkillChips skills={lesson.skills} />
         </div>
         <div className="flex flex-wrap gap-3">
-          <ActionButton onClick={() => setShowHint((value) => !value)} icon={Lightbulb}>
-            {locale === "fr" ? "Indice" : "Hint"}
+          <ActionButton onClick={() => setHintLevel((value) => Math.min(value + 1, lesson.pedagogy?.hints?.length || 1))} icon={Lightbulb}>
+            {locale === "fr" ? `Indice ${Math.min(hintLevel + 1, lesson.pedagogy?.hints?.length || 1)}` : "Next hint"}
           </ActionButton>
           <ActionButton
             onClick={() => {
@@ -393,8 +395,8 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
           <ActionButton onClick={onToggleBookmark} icon={isBookmarked ? BookmarkCheck : Bookmark}>
             {isBookmarked ? (locale === "fr" ? "Sauvé" : "Saved") : (locale === "fr" ? "Favori" : "Save")}
           </ActionButton>
-          <ActionButton onClick={() => setCode(lesson.solution)} icon={Eye}>
-            {locale === "fr" ? "Solution" : "Solution"}
+          <ActionButton onClick={() => setShowCorrection((value) => !value)} icon={Eye}>
+            {locale === "fr" ? "Correction expliquée" : "Explained correction"}
           </ActionButton>
           {previewKind === "javascript" && (
             <ActionButton onClick={runCode} icon={Terminal}>
@@ -407,19 +409,21 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
         </div>
       </div>
 
-      {showHint && (
-        <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
-          {lesson.hint[locale]}
-        </div>
-      )}
       <CourseChapter course={lesson.course} theory={lesson.theory} locale={locale} />
+      <PedagogyWorkshop pedagogy={lesson.pedagogy} locale={locale} />
       <LessonGuide guide={lesson.guide} locale={locale} />
+      <ProgressiveHints pedagogy={lesson.pedagogy} fallback={lesson.hint} level={hintLevel} locale={locale} />
       <div className="mt-4"><NotesPanel lessonId={lesson.id} locale={locale} note={note} setNote={setNote} /></div>
       {lesson.type === "project" && <ProjectRubric lesson={lesson} locale={locale} />}
       {result?.every((check) => check.pass) && (
         <CompletionBanner locale={locale} onNext={onNext} hasNext={hasNext} />
       )}
 
+      <div className="mt-8 border-t border-slate-200 pt-6">
+        <p className="text-xs font-bold uppercase tracking-[.14em] text-indigoPop">{locale === "fr" ? "Exercice autonome" : "Independent exercise"}</p>
+        <h4 className="mt-2 font-display text-2xl font-bold">{lesson.brief[locale]}</h4>
+        <p className="mt-2 text-sm leading-6 text-slate-500">{locale === "fr" ? "Travaille dans l'éditeur, observe l'aperçu puis lance les tests. Utilise les indices progressivement si tu bloques." : "Work in the editor, inspect the preview, then run the tests. Use hints progressively if needed."}</p>
+      </div>
       <div className="mt-4 grid gap-3 xl:grid-cols-2">
         <div className="overflow-hidden rounded-xl border border-slate-800 bg-ink">
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-white">
@@ -495,6 +499,7 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
           </div>
         </div>
       </div>
+      {(showCorrection || result?.every((check) => check.pass)) && <ExplainedCorrection lesson={lesson} locale={locale} onLoadSolution={() => setCode(lesson.solution)} />}
     </section>
   );
 }
@@ -654,6 +659,108 @@ function CourseChapter({ course, theory, locale }) {
   );
 }
 
+function PedagogyWorkshop({ pedagogy, locale }) {
+  if (!pedagogy) return null;
+  const content = pedagogy[locale] || pedagogy.fr;
+  if (!content) return null;
+
+  return (
+    <section className="mt-5 grid gap-4">
+      <div className="grid gap-4 lg:grid-cols-3">
+        <article className="rounded-xl border border-indigo-100 bg-indigo-50 p-4">
+          <p className="text-xs font-bold uppercase tracking-[.12em] text-indigo-700">{locale === "fr" ? "Pourquoi apprendre cela ?" : "Why learn this?"}</p>
+          <p className="mt-2 leading-7 text-indigo-950">{content.why}</p>
+        </article>
+        <article className="rounded-xl border border-slate-200 bg-white p-4">
+          <p className="text-xs font-bold uppercase tracking-[.12em] text-slate-500">{locale === "fr" ? "Prérequis" : "Prerequisites"}</p>
+          <ul className="mt-3 grid gap-2 text-sm text-slate-600">
+            {content.prerequisites.map((item) => <li className="flex gap-2" key={item}><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-green-600" />{item}</li>)}
+          </ul>
+        </article>
+        <article className="rounded-xl border border-slate-200 bg-white p-4">
+          <p className="text-xs font-bold uppercase tracking-[.12em] text-slate-500">{locale === "fr" ? "Objectifs précis" : "Precise objectives"}</p>
+          <ul className="mt-3 grid gap-2 text-sm text-slate-600">
+            {content.objectives.map((item) => <li className="flex gap-2" key={item}><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-indigoPop" />{item}</li>)}
+          </ul>
+        </article>
+      </div>
+
+      {content.vocabulary?.length > 0 && (
+        <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-xs font-bold uppercase tracking-[.12em] text-slate-500">{locale === "fr" ? "Vocabulaire spécifique" : "Specific vocabulary"}</p>
+          <dl className="mt-3 grid gap-3 md:grid-cols-3">
+            {content.vocabulary.map(([term, definition]) => <div className="rounded-lg bg-white p-3" key={term}><dt className="text-sm font-bold text-indigoPop">{term}</dt><dd className="mt-1 text-sm leading-6 text-slate-600">{definition}</dd></div>)}
+          </dl>
+        </article>
+      )}
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        <ComparisonCard title={locale === "fr" ? "Bonne pratique" : "Good practice"} item={content.comparison.good} tone="good" />
+        <ComparisonCard title={locale === "fr" ? "À éviter" : "Avoid this"} item={content.comparison.bad} tone="bad" />
+      </div>
+
+      <article className="rounded-xl border border-green-200 bg-green-50 p-5">
+        <p className="text-xs font-bold uppercase tracking-[.12em] text-green-700">{locale === "fr" ? "Pratique guidée" : "Guided practice"}</p>
+        <h5 className="mt-2 font-display text-xl font-bold text-green-950">{locale === "fr" ? "Construis une première version avec ces étapes" : "Build a first version with these steps"}</h5>
+        <ol className="mt-4 grid gap-3">
+          {content.guided.map((step, index) => <li className="flex gap-3 text-sm leading-6 text-green-900" key={step}><span className="grid size-6 shrink-0 place-items-center rounded-full bg-green-700 text-xs font-bold text-white">{index + 1}</span>{step}</li>)}
+        </ol>
+      </article>
+
+      <article className="rounded-xl border border-amber-200 bg-amber-50 p-5">
+        <p className="text-xs font-bold uppercase tracking-[.12em] text-amber-800">{locale === "fr" ? "Défi autonome complémentaire" : "Additional independent challenge"}</p>
+        <p className="mt-2 leading-7 text-amber-950">{content.autonomous}</p>
+      </article>
+    </section>
+  );
+}
+
+function ComparisonCard({ title, item, tone }) {
+  const good = tone === "good";
+  return (
+    <article className={`overflow-hidden rounded-xl border ${good ? "border-green-200" : "border-red-200"}`}>
+      <header className={`px-4 py-3 text-sm font-bold ${good ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"}`}>{title} : {item.title}</header>
+      <pre className="overflow-x-auto bg-ink p-4 font-mono text-xs leading-6 text-indigo-100">{item.code}</pre>
+      <p className="border-t border-slate-200 bg-white p-4 text-sm leading-6 text-slate-600">{item.explanation}</p>
+    </article>
+  );
+}
+
+function ProgressiveHints({ pedagogy, fallback, level, locale }) {
+  if (level < 1) return null;
+  const hints = pedagogy?.[locale]?.hints || pedagogy?.fr?.hints || [fallback?.[locale] || fallback?.en];
+  return (
+    <section className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+      <h5 className="font-display text-lg font-bold text-amber-950">{locale === "fr" ? "Indices débloqués progressivement" : "Progressive hints"}</h5>
+      <ol className="mt-3 grid gap-2">
+        {hints.slice(0, level).map((hint, index) => <li className="flex gap-3 text-sm leading-6 text-amber-900" key={hint}><span className="font-bold">{index + 1}.</span>{hint}</li>)}
+      </ol>
+    </section>
+  );
+}
+
+function ExplainedCorrection({ lesson, locale, onLoadSolution }) {
+  const pedagogy = lesson.pedagogy?.[locale] || lesson.pedagogy?.fr;
+  return (
+    <details className="mt-6 rounded-xl border border-indigo-200 bg-indigo-50 p-5" open>
+      <summary className="cursor-pointer font-display text-xl font-bold text-indigo-950">{locale === "fr" ? "Correction expliquée" : "Explained correction"}</summary>
+      {pedagogy && (
+        <>
+          <ol className="mt-4 grid gap-2">
+            {pedagogy.correction.map((item, index) => <li className="flex gap-3 text-sm leading-6 text-indigo-900" key={item}><span className="font-bold">{index + 1}.</span>{item}</li>)}
+          </ol>
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            <div className="rounded-lg bg-white p-4"><p className="text-xs font-bold uppercase tracking-[.1em] text-indigo-700">{locale === "fr" ? "Synthèse" : "Summary"}</p><p className="mt-2 text-sm leading-6 text-slate-700">{pedagogy.summary}</p></div>
+            <div className="rounded-lg bg-white p-4"><p className="text-xs font-bold uppercase tracking-[.1em] text-indigo-700">{locale === "fr" ? "Ensuite" : "Next"}</p><p className="mt-2 text-sm leading-6 text-slate-700">{pedagogy.next}</p></div>
+          </div>
+        </>
+      )}
+      <pre className="mt-5 overflow-x-auto rounded-xl bg-ink p-4 font-mono text-xs leading-6 text-indigo-100">{lesson.solution}</pre>
+      <button type="button" onClick={onLoadSolution} className="secondary-button mt-4 min-h-10 py-2 text-sm">{locale === "fr" ? "Charger cette solution dans l'éditeur" : "Load this solution in the editor"}</button>
+    </details>
+  );
+}
+
 function LessonGuide({ guide, locale }) {
   if (!guide) return null;
   const localized = guide[locale] || guide.en;
@@ -728,6 +835,8 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
       <h3 className="mt-4 font-display text-4xl font-bold">{lesson.title[locale]}</h3>
       <p className="mt-3 max-w-3xl text-lg font-bold leading-8 text-ink/70">{lesson.brief[locale]}</p>
       <SkillChips skills={lesson.skills} />
+      <CourseChapter course={lesson.course} theory={lesson.theory} locale={locale} />
+      <PedagogyWorkshop pedagogy={lesson.pedagogy} locale={locale} />
       <div className="muted-surface mt-6">
         <p className="font-display text-2xl font-bold">{lesson.question[locale]}</p>
         <div className="mt-5 grid gap-3">

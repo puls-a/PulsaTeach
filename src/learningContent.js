@@ -1,3 +1,5 @@
+import { getHtmlPedagogy } from "./htmlPedagogy.js";
+
 const htmlShell = (body) => `<!doctype html>
 <html lang="fr">
   <head>
@@ -26,6 +28,14 @@ export const learningTracks = [
       en: ["Structure a complete semantic page", "Create accessible forms", "Audit HTML, accessibility, and SEO", "Ship a portfolio-ready event website"]
     },
     capstone: { fr: "PulsaConf : site événementiel accessible", en: "PulsaConf: accessible event website" },
+    profession: {
+      fr: "HTML est la compétence de base des développeurs front-end, intégrateurs web, créateurs de contenu et spécialistes accessibilité. Elle consiste à transformer une information en document structuré, navigable et compréhensible.",
+      en: "HTML is a core skill for front-end developers, web integrators, content creators, and accessibility specialists."
+    },
+    certification: {
+      fr: ["Valider toutes les leçons et quiz HTML", "Réussir les deux mini-projets", "Corriger l'audit d'accessibilité", "Livrer PulsaConf avec tous les tests réussis"],
+      en: ["Pass every HTML lesson and quiz", "Complete both mini projects", "Fix the accessibility audit", "Ship PulsaConf with every test passing"]
+    },
     modules: [
       module("html-foundations", "Fondations", "Foundations", [
         lesson({
@@ -700,7 +710,41 @@ export const learningTracks = [
 
 function module(id, fr, en, lessons) {
   const totalMinutes = lessons.reduce((sum, item) => sum + item.durationMin, 0);
-  return { id, title: { fr, en }, lessons, totalMinutes, ...moduleMeta(id) };
+  return { id, title: { fr, en }, lessons, totalMinutes, ...moduleMeta(id), ...moduleLearningMeta(id) };
+}
+
+function moduleLearningMeta(id) {
+  const metadata = {
+    "html-foundations": {
+      importance: { fr: "Ces fondations déterminent si tout le reste du document sera compréhensible et maintenable.", en: "These foundations determine whether the rest of the document is understandable and maintainable." },
+      prerequisites: { fr: ["Aucun prérequis technique"], en: ["No technical prerequisites"] },
+      outcomes: { fr: ["Créer un document valide", "Structurer un texte", "Utiliser des composants natifs simples"], en: ["Create a valid document", "Structure text", "Use simple native components"] },
+      vocabulary: ["doctype", "balise", "attribut", "DOM", "hiérarchie", "entité"],
+      mastery: { fr: ["Expliquer head et body", "Créer un squelette sans modèle", "Justifier chaque balise utilisée"], en: ["Explain head and body", "Create a skeleton without a template", "Justify every used tag"] }
+    },
+    "html-content-navigation": {
+      importance: { fr: "Un site utile doit permettre de trouver, parcourir et comprendre différents formats de contenu.", en: "A useful site must make different content formats easy to find and understand." },
+      prerequisites: { fr: ["Module Fondations"], en: ["Foundations module"] },
+      outcomes: { fr: ["Créer une navigation explicite", "Intégrer images et médias accessibles", "Construire des cartes autonomes"], en: ["Create explicit navigation", "Integrate accessible media", "Build autonomous cards"] },
+      vocabulary: ["href", "ancre", "alt", "figure", "liste", "article", "time"],
+      mastery: { fr: ["Tous les liens annoncent leur destination", "Chaque média possède une alternative adaptée", "La page profil est navigable au clavier"], en: ["Every link announces its destination", "Every media has an alternative", "The profile page is keyboard navigable"] }
+    },
+    "html-forms-seo": {
+      importance: { fr: "Les applications web doivent présenter des données et permettre aux utilisateurs d'en fournir sans confusion.", en: "Web applications must present data and let users provide it without confusion." },
+      prerequisites: { fr: ["Fondations", "Contenu et navigation"], en: ["Foundations", "Content and navigation"] },
+      outcomes: { fr: ["Créer des tableaux accessibles", "Construire des formulaires nommés et validés", "Organiser une page avec des landmarks"], en: ["Create accessible tables", "Build named validated forms", "Organize a page with landmarks"] },
+      vocabulary: ["caption", "scope", "label", "fieldset", "legend", "required", "pattern"],
+      mastery: { fr: ["Chaque contrôle possède un nom", "Les contraintes sont expliquées", "Les données tabulaires restent compréhensibles"], en: ["Every control has a name", "Constraints are explained", "Tabular data remains understandable"] }
+    },
+    "html-a11y-final": {
+      importance: { fr: "La qualité finale se mesure à la capacité du document à rester utilisable, trouvable et compréhensible pour tous.", en: "Final quality is measured by whether the document remains usable, findable, and understandable for everyone." },
+      prerequisites: { fr: ["Tous les modules HTML précédents"], en: ["Every previous HTML module"] },
+      outcomes: { fr: ["Annoncer les changements dynamiques", "Optimiser structure et métadonnées", "Auditer puis livrer un projet complet"], en: ["Announce dynamic changes", "Optimize structure and metadata", "Audit and ship a complete project"] },
+      vocabulary: ["région live", "SEO", "landmark", "lien d'évitement", "audit", "remédiation"],
+      mastery: { fr: ["PulsaConf passe tous les tests", "La page est navigable au clavier", "Chaque correction d'audit est justifiée"], en: ["PulsaConf passes every test", "The page is keyboard navigable", "Every audit fix is justified"] }
+    }
+  };
+  return metadata[id] || {};
 }
 
 function moduleMeta(id) {
@@ -734,6 +778,7 @@ function lesson({ id, title, brief, course, starterCode, solution, tests, hint, 
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief[0], en: brief[1] },
     course: course || courseFor(id, "html"),
+    pedagogy: getHtmlPedagogy(id),
     theory: theoryFor(id),
     guide: guideFor(id, "html"),
     skills: skillsFor(id),
@@ -754,6 +799,7 @@ function quizLesson({ id, title, brief, question, options, answer, explanation, 
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief[0], en: brief[1] },
     course: courseFor(id, "quiz"),
+    pedagogy: getHtmlPedagogy(id),
     theory: theoryFor(id),
     guide: guideFor(id, "quiz"),
     skills: skillsFor(id),
@@ -781,6 +827,7 @@ function projectLesson({ id, title, brief, starterCode, solution, tests, xp }) {
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief[0], en: brief[1] },
     course: courseFor(id, "project"),
+    pedagogy: getHtmlPedagogy(id),
     theory: theoryFor(id),
     guide: guideFor(id, "project"),
     skills: skillsFor(id),
@@ -1087,6 +1134,7 @@ function cssLesson(id, title, brief, starterCode, target, checks, xp) {
     brief: { fr: brief, en: brief },
     theory: theoryFor(id),
     course: courseFor(id, "css"),
+    pedagogy: getHtmlPedagogy(id),
     guide: guideFor(id, "css"),
     skills: skillsFor(id),
     difficulty: difficultyFor(id),
@@ -1196,6 +1244,7 @@ function jsLesson(id, title, brief, starterCode, checks, xp) {
     brief: { fr: brief, en: brief },
     theory: theoryFor(id),
     course: courseFor(id, "javascript"),
+    pedagogy: getHtmlPedagogy(id),
     guide: guideFor(id, "javascript"),
     skills: skillsFor(id),
     difficulty: difficultyFor(id),
