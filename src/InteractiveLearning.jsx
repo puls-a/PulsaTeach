@@ -412,11 +412,9 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
           {lesson.hint[locale]}
         </div>
       )}
-      <div className="mt-4 grid gap-3 lg:grid-cols-2">
-        <TheoryCard theory={lesson.theory} locale={locale} />
-        <NotesPanel lessonId={lesson.id} locale={locale} note={note} setNote={setNote} />
-      </div>
+      <CourseChapter course={lesson.course} theory={lesson.theory} locale={locale} />
       <LessonGuide guide={lesson.guide} locale={locale} />
+      <div className="mt-4"><NotesPanel lessonId={lesson.id} locale={locale} note={note} setNote={setNote} /></div>
       {lesson.type === "project" && <ProjectRubric lesson={lesson} locale={locale} />}
       {result?.every((check) => check.pass) && (
         <CompletionBanner locale={locale} onNext={onNext} hasNext={hasNext} />
@@ -596,25 +594,63 @@ function ActivityLog({ locale, activity }) {
   );
 }
 
-function TheoryCard({ theory, locale }) {
-  if (!theory) return null;
-  const localized = theory[locale] || theory.en;
+function CourseChapter({ course, theory, locale }) {
+  if (!course) return null;
+  const content = course[locale] || course.en;
+  const reminder = theory?.[locale] || theory?.en;
 
   return (
-    <details className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-      <summary className="cursor-pointer font-display text-lg font-bold">{locale === "fr" ? "Rappel de cours" : "Lesson notes"}</summary>
-      <ul className="mt-3 grid gap-2">
-        {localized.points.map((point) => (
-          <li className="flex gap-2 text-sm font-semibold leading-6 text-slate-600" key={point}>
-            <Sparkles className="mt-1 size-4 shrink-0 text-indigoPop" />
-            {point}
-          </li>
-        ))}
-      </ul>
-      {localized.example && (
-        <pre className="mt-4 overflow-x-auto rounded-lg bg-ink p-3 font-mono text-xs text-indigo-100">{localized.example}</pre>
-      )}
-    </details>
+    <article className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <header className="border-b border-slate-200 bg-slate-50 px-5 py-5">
+        <p className="text-xs font-bold uppercase tracking-[.14em] text-indigoPop">{locale === "fr" ? "Cours" : "Lesson"}</p>
+        <h4 className="mt-2 font-display text-2xl font-bold text-ink">{locale === "fr" ? "Comprendre avant de pratiquer" : "Understand before practicing"}</h4>
+        <p className="mt-3 max-w-4xl leading-7 text-slate-600">{content.introduction}</p>
+      </header>
+
+      <div className="grid gap-8 p-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="grid gap-8">
+          {content.sections.map((section, index) => (
+            <section key={section.title}>
+              <div className="flex items-start gap-3">
+                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-indigoPop text-xs font-bold text-white">{index + 1}</span>
+                <div>
+                  <h5 className="font-display text-xl font-bold text-ink">{section.title}</h5>
+                  <div className="mt-3 grid gap-3">
+                    {section.paragraphs.map((paragraph) => <p className="leading-7 text-slate-600" key={paragraph}>{paragraph}</p>)}
+                  </div>
+                  {section.example && <pre className="mt-4 overflow-x-auto rounded-xl bg-ink p-4 font-mono text-sm leading-6 text-indigo-100">{section.example}</pre>}
+                </div>
+              </div>
+            </section>
+          ))}
+        </div>
+
+        <aside className="grid content-start gap-4">
+          {content.vocabulary?.length > 0 && (
+            <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <h5 className="font-display text-lg font-bold">{locale === "fr" ? "Vocabulaire" : "Vocabulary"}</h5>
+              <dl className="mt-3 grid gap-3">
+                {content.vocabulary.map(([term, definition]) => <div key={term}><dt className="text-sm font-bold text-indigoPop">{term}</dt><dd className="mt-1 text-sm leading-6 text-slate-600">{definition}</dd></div>)}
+              </dl>
+            </section>
+          )}
+          <section className="rounded-xl border border-green-200 bg-green-50 p-4">
+            <h5 className="font-display text-lg font-bold text-green-900">{locale === "fr" ? "Avant de pratiquer" : "Before practicing"}</h5>
+            <ul className="mt-3 grid gap-2">
+              {content.check.map((item) => <li className="flex gap-2 text-sm leading-6 text-green-800" key={item}><CheckCircle2 className="mt-1 size-4 shrink-0" />{item}</li>)}
+            </ul>
+          </section>
+          {reminder?.points?.length > 0 && (
+            <section className="rounded-xl border border-indigo-100 bg-indigo-50 p-4">
+              <h5 className="font-display text-lg font-bold text-indigo-950">{locale === "fr" ? "À retenir" : "Key takeaways"}</h5>
+              <ul className="mt-3 grid gap-2">
+                {reminder.points.map((point) => <li className="flex gap-2 text-sm leading-6 text-indigo-900" key={point}><Sparkles className="mt-1 size-4 shrink-0" />{point}</li>)}
+              </ul>
+            </section>
+          )}
+        </aside>
+      </div>
+    </article>
   );
 }
 

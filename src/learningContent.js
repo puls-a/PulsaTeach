@@ -35,6 +35,73 @@ export const learningTracks = [
             "Complète une page HTML valide avec doctype, langue, charset, title et h1.",
             "Complete a valid HTML page with doctype, language, charset, title, and h1."
           ],
+          course: {
+            fr: {
+              introduction: "Avant d'écrire une interface, il faut comprendre le document que le navigateur reçoit. Une page HTML est un fichier texte organisé comme un arbre : chaque élément possède un rôle, peut contenir d'autres éléments et aide le navigateur à comprendre ce qu'il doit afficher.",
+              sections: [
+                {
+                  title: "HTML décrit le contenu, pas son apparence",
+                  paragraphs: [
+                    "HTML signifie HyperText Markup Language. C'est un langage de balisage : on entoure le contenu avec des balises pour indiquer son rôle. Un titre principal utilise h1, un paragraphe utilise p et une zone de navigation utilise nav.",
+                    "Le navigateur lit ces informations pour construire le DOM, une représentation structurée de la page. CSS pourra ensuite modifier l'apparence et JavaScript ajouter des comportements."
+                  ],
+                  example: "<h1>Bienvenue</h1>\n<p>Voici mon premier document web.</p>"
+                },
+                {
+                  title: "Les cinq éléments indispensables du squelette",
+                  paragraphs: [
+                    "<!doctype html> annonce un document HTML moderne. Sans lui, le navigateur peut activer un ancien mode de compatibilité.",
+                    "<html lang=\"fr\"> est la racine du document. L'attribut lang indique la langue principale aux lecteurs d'écran, moteurs de recherche et outils de traduction.",
+                    "<head> contient les informations sur la page qui ne constituent pas son contenu principal : encodage, titre de l'onglet, description et ressources.",
+                    "<body> contient tout ce que l'utilisateur peut lire ou utiliser dans la page."
+                  ],
+                  example: "<!doctype html>\n<html lang=\"fr\">\n  <head>...</head>\n  <body>...</body>\n</html>"
+                },
+                {
+                  title: "Pourquoi charset et title sont importants",
+                  paragraphs: [
+                    "<meta charset=\"UTF-8\"> permet d'afficher correctement les accents, symboles et caractères de nombreuses langues. Il doit apparaître tôt dans head.",
+                    "<title> définit le texte de l'onglet du navigateur. Il aide aussi les moteurs de recherche et les personnes qui naviguent entre plusieurs onglets.",
+                    "Le title n'est pas le titre visible dans la page. Le titre visible principal est généralement un h1 placé dans body."
+                  ],
+                  example: "<head>\n  <meta charset=\"UTF-8\" />\n  <title>Accueil PulsaTeach</title>\n</head>"
+                },
+                {
+                  title: "Comment lire les balises imbriquées",
+                  paragraphs: [
+                    "Une balise ouvrante commence une zone et sa balise fermante la termine. Les éléments placés à l'intérieur sont ses enfants.",
+                    "L'indentation n'est pas obligatoire pour le navigateur, mais elle rend la hiérarchie visible pour les humains. Ferme toujours les éléments dans l'ordre inverse de leur ouverture."
+                  ],
+                  example: "<body>\n  <main>\n    <h1>Mon titre</h1>\n  </main>\n</body>"
+                }
+              ],
+              vocabulary: [
+                ["Balise", "Marqueur comme <body> qui indique le rôle d'une partie du document."],
+                ["Élément", "Ensemble composé d'une balise ouvrante, de son contenu et souvent d'une balise fermante."],
+                ["Attribut", "Information ajoutée dans une balise ouvrante, comme lang=\"fr\"."],
+                ["head", "Métadonnées et configuration du document."],
+                ["body", "Contenu visible et interactif de la page."],
+                ["DOM", "Arbre construit par le navigateur à partir du HTML."]
+              ],
+              check: [
+                "Je sais expliquer la différence entre head et body.",
+                "Je comprends pourquoi lang, charset et title ne sont pas optionnels.",
+                "Je sais distinguer le title de l'onglet et le h1 visible.",
+                "Je peux reconnaître une balise ouvrante, une balise fermante et un attribut."
+              ]
+            },
+            en: {
+              introduction: "Before writing an interface, understand the document received by the browser. An HTML page is a text file organized as a tree: every element has a role, can contain other elements, and helps the browser understand what to display.",
+              sections: [
+                { title: "HTML describes content, not appearance", paragraphs: ["HTML is a markup language. Tags describe the role of content so browsers and assistive technologies can understand it.", "The browser turns HTML into the DOM. CSS controls appearance and JavaScript adds behavior."], example: "<h1>Welcome</h1>\n<p>This is my first web document.</p>" },
+                { title: "The essential document skeleton", paragraphs: ["The doctype enables modern standards mode.", "html is the root, head contains metadata, and body contains visible content."], example: "<!doctype html>\n<html lang=\"en\">\n  <head>...</head>\n  <body>...</body>\n</html>" },
+                { title: "Why charset and title matter", paragraphs: ["UTF-8 displays international characters correctly.", "title names the browser tab, while h1 is the visible main heading."], example: "<meta charset=\"UTF-8\" />\n<title>PulsaTeach Home</title>" },
+                { title: "Reading nested tags", paragraphs: ["Elements inside another element are its children.", "Indentation makes hierarchy readable and closing order must mirror opening order."], example: "<body>\n  <main>\n    <h1>My title</h1>\n  </main>\n</body>" }
+              ],
+              vocabulary: [["Tag", "A marker such as <body> that describes part of a document."], ["Element", "An opening tag, its content, and usually a closing tag."], ["Attribute", "Extra information inside an opening tag."], ["head", "Document metadata and configuration."], ["body", "Visible and interactive page content."], ["DOM", "The tree built by the browser from HTML."]],
+              check: ["I can explain head versus body.", "I understand lang, charset, and title.", "I can distinguish title from h1.", "I can identify tags and attributes."]
+            }
+          },
           starterCode: `<html>
   <head>
     <title></title>
@@ -660,12 +727,13 @@ function moduleMeta(id) {
   };
 }
 
-function lesson({ id, title, brief, starterCode, solution, tests, hint, xp }) {
+function lesson({ id, title, brief, course, starterCode, solution, tests, hint, xp }) {
   return {
     id,
     type: "html",
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief[0], en: brief[1] },
+    course: course || courseFor(id, "html"),
     theory: theoryFor(id),
     guide: guideFor(id, "html"),
     skills: skillsFor(id),
@@ -685,6 +753,7 @@ function quizLesson({ id, title, brief, question, options, answer, explanation, 
     type: "quiz",
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief[0], en: brief[1] },
+    course: courseFor(id, "quiz"),
     theory: theoryFor(id),
     guide: guideFor(id, "quiz"),
     skills: skillsFor(id),
@@ -711,6 +780,7 @@ function projectLesson({ id, title, brief, starterCode, solution, tests, xp }) {
     type: "project",
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief[0], en: brief[1] },
+    course: courseFor(id, "project"),
     theory: theoryFor(id),
     guide: guideFor(id, "project"),
     skills: skillsFor(id),
@@ -874,6 +944,72 @@ function theoryFor(id) {
   return lessons[id] || topic?.theory || generic;
 }
 
+function courseFor(id, type) {
+  const track = id.startsWith("css") ? "css" : id.startsWith("js") ? "javascript" : "html";
+  const topics = {
+    html: {
+      fr: {
+        introduction: "Cette leçon explique comment structurer une information pour qu'elle soit comprise par le navigateur, les moteurs de recherche et les technologies d'assistance.",
+        sections: [
+          { title: "Le concept essentiel", paragraphs: ["HTML donne un rôle au contenu. Le choix d'un élément doit dépendre de sa signification, pas de son apparence par défaut.", "Une structure claire est plus simple à maintenir, à styliser et à rendre accessible."], example: "<section>\n  <h2>Un sujet</h2>\n  <p>Une explication.</p>\n</section>" },
+          { title: "Méthode de travail", paragraphs: ["Commence par identifier les grandes zones et leur hiérarchie.", "Ajoute ensuite les attributs nécessaires, puis relis le document comme un plan avant de lancer les tests."], example: "<main>\n  <!-- contenu principal -->\n</main>" }
+        ],
+        vocabulary: [["Sémantique", "Signification portée par un élément HTML."], ["Hiérarchie", "Organisation parent/enfant des éléments."], ["Attribut", "Information qui précise le comportement ou le sens d'un élément."]],
+        check: ["Je peux expliquer le rôle des éléments utilisés.", "Ma structure reste compréhensible sans CSS.", "J'ai vérifié les attributs requis."]
+      },
+      en: {
+        introduction: "This lesson explains how to structure information so browsers, search engines, and assistive technologies can understand it.",
+        sections: [{ title: "The essential concept", paragraphs: ["HTML gives meaning to content. Choose elements by meaning rather than default appearance.", "A clear structure is easier to maintain, style, and make accessible."], example: "<section>\n  <h2>A topic</h2>\n  <p>An explanation.</p>\n</section>" }],
+        vocabulary: [["Semantics", "Meaning carried by an HTML element."], ["Hierarchy", "Parent and child organization of elements."], ["Attribute", "Information that refines an element."]],
+        check: ["I can explain the role of each element.", "My structure makes sense without CSS.", "I checked required attributes."]
+      }
+    },
+    css: {
+      fr: {
+        introduction: "Cette leçon part du fonctionnement réel de CSS : sélectionner un élément, appliquer une règle, puis comprendre comment cette règle interagit avec les autres.",
+        sections: [
+          { title: "Anatomie d'une règle CSS", paragraphs: ["Un sélecteur choisit les éléments concernés. Chaque déclaration associe une propriété à une valeur.", "La cascade, la spécificité et l'ordre déterminent quelle règle gagne."], example: ".card {\n  padding: 1rem;\n  background: white;\n}" },
+          { title: "Raisonner avant d'ajuster", paragraphs: ["Commence par les propriétés de structure comme display, width et gap.", "Ajoute ensuite la typographie, les couleurs et les interactions. Teste à plusieurs largeurs."], example: ".panel {\n  display: grid;\n  gap: 1rem;\n}" }
+        ],
+        vocabulary: [["Sélecteur", "Expression qui cible des éléments."], ["Propriété", "Aspect que la règle modifie."], ["Valeur", "Réglage appliqué à la propriété."], ["Cascade", "Mécanisme qui décide quelle déclaration est utilisée."]],
+        check: ["Je sais quel élément ma règle cible.", "Je comprends l'effet de chaque propriété.", "J'ai vérifié le rendu à différentes tailles."]
+      },
+      en: {
+        introduction: "This lesson starts from how CSS works: select an element, apply a rule, then understand how it interacts with other rules.",
+        sections: [{ title: "Anatomy of a CSS rule", paragraphs: ["A selector chooses elements. Each declaration connects a property with a value.", "Cascade, specificity, and order decide which rule wins."], example: ".card {\n  padding: 1rem;\n}" }],
+        vocabulary: [["Selector", "Expression targeting elements."], ["Property", "Aspect changed by a rule."], ["Value", "Setting applied to a property."], ["Cascade", "Mechanism deciding which declaration is used."]],
+        check: ["I know what my rule targets.", "I understand every property.", "I checked multiple viewport sizes."]
+      }
+    },
+    javascript: {
+      fr: {
+        introduction: "Cette leçon explique la logique avant la syntaxe : quelles données entrent, quelle transformation est appliquée et quel résultat doit sortir.",
+        sections: [
+          { title: "Lire un programme comme une suite d'étapes", paragraphs: ["Une valeur est stockée dans une variable, transformée par des expressions ou des fonctions, puis utilisée ou retournée.", "Un code facile à tester produit des résultats prévisibles à partir d'entrées précises."], example: "function double(number) {\n  return number * 2;\n}" },
+          { title: "Déboguer méthodiquement", paragraphs: ["Lis le message d'erreur et localise la ligne concernée.", "Vérifie une hypothèse à la fois avec la console ou un test simple."], example: "console.log({ value, result });" }
+        ],
+        vocabulary: [["Valeur", "Donnée manipulée par le programme."], ["Variable", "Nom permettant de retrouver une valeur."], ["Fonction", "Bloc de logique réutilisable."], ["return", "Résultat renvoyé par une fonction."]],
+        check: ["Je connais les entrées attendues.", "Je peux expliquer chaque transformation.", "J'ai vérifié le résultat et un cas limite."]
+      },
+      en: {
+        introduction: "This lesson explains logic before syntax: what data enters, what transformation happens, and what result must come out.",
+        sections: [{ title: "Read a program as steps", paragraphs: ["A value is stored, transformed, then used or returned.", "Testable code produces predictable outputs from precise inputs."], example: "function double(number) {\n  return number * 2;\n}" }],
+        vocabulary: [["Value", "Data manipulated by a program."], ["Variable", "A name used to retrieve a value."], ["Function", "Reusable logic block."], ["return", "Result produced by a function."]],
+        check: ["I know the expected inputs.", "I can explain each transformation.", "I checked the result and an edge case."]
+      }
+    },
+    quiz: {
+      fr: { introduction: "Ce quiz vérifie que tu peux expliquer le concept et choisir une solution adaptée, pas seulement reconnaître du code.", sections: [{ title: "Avant de répondre", paragraphs: ["Reformule la question avec tes propres mots.", "Compare les conséquences de chaque choix pour l'utilisateur et la maintenance."], example: "" }], vocabulary: [], check: ["Je peux justifier ma réponse.", "Je comprends pourquoi les autres choix sont moins adaptés."] },
+      en: { introduction: "This quiz checks whether you can explain the concept and choose an appropriate solution.", sections: [{ title: "Before answering", paragraphs: ["Rephrase the question.", "Compare the consequences of each choice."], example: "" }], vocabulary: [], check: ["I can justify my answer."] }
+    },
+    project: {
+      fr: { introduction: "Ce projet te demande de transformer plusieurs notions en un livrable cohérent. Il faut planifier, construire, tester puis relire.", sections: [{ title: "Construire par étapes", paragraphs: ["Découpe le cahier des charges en zones indépendantes.", "Livre une version simple qui fonctionne, puis améliore la qualité et l'accessibilité."], example: "" }], vocabulary: [["Livrable", "Résultat concret pouvant être présenté ou évalué."], ["Rubrique", "Liste des critères utilisés pour évaluer le projet."]], check: ["Tous les critères sont couverts.", "Le résultat est lisible et testable.", "J'ai relu le livrable comme un utilisateur."] },
+      en: { introduction: "This project asks you to combine several concepts into a coherent deliverable.", sections: [{ title: "Build in stages", paragraphs: ["Break the brief into independent areas.", "Ship a simple working version, then improve quality."], example: "" }], vocabulary: [["Deliverable", "Concrete result that can be presented or assessed."]], check: ["All criteria are covered.", "The result is readable and testable."] }
+    }
+  };
+  return topics[type === "quiz" || type === "project" ? type : track];
+}
+
 function guideFor(id, type) {
   const track = id.startsWith("html") ? "html" : id.startsWith("css") ? "css" : id.startsWith("js") ? "javascript" : type;
   const guides = {
@@ -950,6 +1086,7 @@ function cssLesson(id, title, brief, starterCode, target, checks, xp) {
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief, en: brief },
     theory: theoryFor(id),
+    course: courseFor(id, "css"),
     guide: guideFor(id, "css"),
     skills: skillsFor(id),
     difficulty: difficultyFor(id),
@@ -1058,6 +1195,7 @@ function jsLesson(id, title, brief, starterCode, checks, xp) {
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief, en: brief },
     theory: theoryFor(id),
+    course: courseFor(id, "javascript"),
     guide: guideFor(id, "javascript"),
     skills: skillsFor(id),
     difficulty: difficultyFor(id),
