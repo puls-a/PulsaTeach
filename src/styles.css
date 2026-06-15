@@ -37,6 +37,11 @@
   .lab-primary-button { @apply inline-flex min-h-10 items-center gap-2 rounded-lg bg-indigo-500 px-4 text-sm font-bold text-white hover:bg-indigo-400; }
   .code-editor { @apply flex-1 resize-y rounded-xl border border-white/15 bg-slate-950 p-4 font-mono text-sm leading-7 text-indigo-100 outline-none focus:border-indigo-400; }
   .test-row { @apply flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold; }
+  .empty-state { @apply rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm font-semibold text-slate-500; }
+  .status-badge { @apply inline-flex rounded-full px-3 py-1 text-xs font-bold; }
+  .status-success { @apply border border-green-200 bg-green-50 text-green-700; }
+  .status-warning { @apply border border-amber-200 bg-amber-50 text-amber-800; }
+  .status-error { @apply border border-red-200 bg-red-50 text-red-700; }
 
   /* Legacy components keep working while sharing the calmer visual system. */
   .clay, .clay-soft {

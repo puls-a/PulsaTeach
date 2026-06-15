@@ -441,8 +441,8 @@ export function ProjectsPage({ locale }) {
                 <Send className="size-5" />
                 {status === "saving" ? (locale === "fr" ? "Envoi..." : "Saving...") : (locale === "fr" ? "Soumettre" : "Submit")}
               </button>
-              {status === "error" && <p className="font-extrabold text-rosePop">{locale === "fr" ? "API indisponible." : "API unavailable."}</p>}
-              {status === "saved" && <p className="font-extrabold text-mintPop">{locale === "fr" ? "Projet soumis." : "Project submitted."}</p>}
+              {status === "error" && <p className="status-error rounded-xl p-3 text-sm font-semibold">{locale === "fr" ? "API indisponible." : "API unavailable."}</p>}
+              {status === "saved" && <p className="status-success rounded-xl p-3 text-sm font-semibold">{locale === "fr" ? "Projet soumis." : "Project submitted."}</p>}
             </div>
           </form>
 
@@ -450,18 +450,18 @@ export function ProjectsPage({ locale }) {
             <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Mes soumissions" : "My submissions"}</h2>
             <div className="mt-5 grid gap-3">
               {submissions.length === 0 && (
-                <p className="rounded-2xl bg-cloud p-4 font-extrabold text-ink/60 clay-soft">
+                <p className="empty-state">
                   {locale === "fr" ? "Aucun projet soumis." : "No submitted projects."}
                 </p>
               )}
               {submissions.map((submission) => (
-                <article className="rounded-2xl bg-cloud p-4 clay-soft" key={submission.id}>
+                <article className="muted-surface" key={submission.id}>
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <h3 className="font-display text-2xl font-bold">{submission.title}</h3>
-                    <span className="rounded-xl bg-lemonPop px-3 py-1 text-xs font-extrabold">{submission.status}</span>
+                    <span className="status-badge status-warning">{submission.status}</span>
                   </div>
-                  <p className="mt-2 font-extrabold text-indigoPop">{submission.projectId}</p>
-                  {submission.url && <a className="mt-2 block font-extrabold text-orangePop" href={submission.url} target="_blank" rel="noreferrer">{submission.url}</a>}
+                  <p className="mt-2 text-sm font-bold text-indigoPop">{submission.projectId}</p>
+                  {submission.url && <a className="mt-2 block break-all text-sm font-bold text-indigoPop hover:underline" href={submission.url} target="_blank" rel="noreferrer">{submission.url}</a>}
                   <p className="mt-2 font-bold text-ink/65">{submission.description}</p>
                 </article>
               ))}
@@ -492,7 +492,7 @@ export function CertificationPage({ locale }) {
         <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_.8fr]">
           <div className="grid gap-5">
             {certificates.length === 0 && (
-              <p className="rounded-[24px] bg-white p-5 font-extrabold text-ink/60 clay">
+              <p className="empty-state">
                 {locale === "fr" ? "L'API certification n'est pas disponible." : "The certification API is not available."}
               </p>
             )}
@@ -500,7 +500,7 @@ export function CertificationPage({ locale }) {
               <article className="surface" key={certificate.id}>
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
-                    <div className="inline-flex items-center gap-2 rounded-2xl bg-lemonPop px-4 py-2 font-extrabold clay-soft">
+                    <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold ${certificate.eligible ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-800"}`}>
                       <Award className="size-5" />
                       {certificate.eligible ? (locale === "fr" ? "Prêt à délivrer" : "Ready to issue") : (locale === "fr" ? "En progression" : "In progress")}
                     </div>
@@ -632,8 +632,8 @@ export function AuthorPage({ locale }) {
                 <Send className="size-5" />
                 {status === "saving" ? (locale === "fr" ? "Création..." : "Creating...") : (locale === "fr" ? "Créer le draft" : "Create draft")}
               </button>
-              {status === "saved" && <p className="font-extrabold text-mintPop" role="status">{locale === "fr" ? "Draft créé." : "Draft created."}</p>}
-              {status === "error" && <p className="font-extrabold text-rosePop" role="alert">API unavailable.</p>}
+              {status === "saved" && <p className="status-success rounded-xl p-3 text-sm font-semibold" role="status">{locale === "fr" ? "Draft créé." : "Draft created."}</p>}
+              {status === "error" && <p className="status-error rounded-xl p-3 text-sm font-semibold" role="alert">API unavailable.</p>}
             </div>
           </form>
 
@@ -644,18 +644,18 @@ export function AuthorPage({ locale }) {
             </div>
             <div className="mt-5 grid gap-3">
               {drafts.length === 0 && (
-                <p className="rounded-2xl bg-cloud p-4 font-extrabold text-ink/60 clay-soft">
+                <p className="empty-state">
                   {locale === "fr" ? "Aucun draft pour le moment." : "No drafts yet."}
                 </p>
               )}
               {drafts.map((draft) => (
-                <article className="rounded-2xl bg-cloud p-4 clay-soft" key={draft.id}>
+                <article className="muted-surface" key={draft.id}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <h3 className="font-display text-2xl font-bold">{draft.title?.[locale] || draft.title?.en}</h3>
-                      <p className="mt-1 font-extrabold text-indigoPop">{draft.trackId} · {draft.type} · {draft.xp} XP</p>
+                      <p className="mt-1 text-sm font-bold text-indigoPop">{draft.trackId} · {draft.type} · {draft.xp} XP</p>
                     </div>
-                    <span className="rounded-xl bg-lemonPop px-3 py-1 text-xs font-extrabold">{draft.status}</span>
+                    <span className="status-badge status-warning">{draft.status}</span>
                   </div>
                   <p className="mt-3 font-bold text-ink/65">{draft.objective?.[locale] || draft.objective?.en}</p>
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -736,10 +736,10 @@ export function AdminPage({ locale }) {
           <Database className="size-5" />
           {locale === "fr" ? "Exporter les données" : "Export data"}
         </button>
-        <p className="mt-4 font-extrabold text-indigoPop" role="status" aria-live="polite">{message}</p>
+        {message && <p className="status-success mt-4 rounded-xl p-3 text-sm font-semibold" role="status" aria-live="polite">{message}</p>}
         <div className="mt-8 grid gap-4">
           {submissions.length === 0 && (
-            <p className="rounded-[24px] bg-white p-5 font-extrabold text-ink/60 clay">
+            <p className="empty-state">
               {locale === "fr" ? "Aucune soumission à corriger." : "No submissions to review."}
             </p>
           )}
@@ -748,11 +748,11 @@ export function AdminPage({ locale }) {
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h2 className="font-display text-3xl font-bold">{submission.title}</h2>
-                  <p className="mt-1 font-extrabold text-indigoPop">{submission.projectId}</p>
+                  <p className="mt-1 text-sm font-bold text-indigoPop">{submission.projectId}</p>
                   <p className="mt-2 font-bold text-ink/65">{submission.description}</p>
                   {submission.feedback && <p className="mt-3 rounded-2xl bg-cloud p-3 font-bold text-ink/70 clay-soft">{submission.feedback}</p>}
                 </div>
-                <span className="rounded-2xl bg-lemonPop px-4 py-2 font-extrabold clay-soft">{submission.status}</span>
+                <span className="status-badge status-warning">{submission.status}</span>
               </div>
               <div className="mt-5 flex flex-wrap gap-3">
                 <button type="button" onClick={() => review(submission, "approved")} className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-3 text-sm font-bold text-white hover:bg-green-700">
@@ -798,7 +798,7 @@ export function RoadmapPage({ locale }) {
             <article className="surface" key={phase.id}>
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <span className="rounded-2xl bg-indigoPop px-4 py-2 text-sm font-extrabold text-white clay-soft">{phase.horizon}</span>
+                  <span className="status-badge bg-indigo-50 text-indigoPop">{phase.horizon}</span>
                   <h2 className="mt-4 font-display text-3xl font-bold">{index + 1}. {phase.title[locale]}</h2>
                 </div>
                 <Map className="size-10 text-orangePop" />

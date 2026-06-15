@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  BadgeCheck,
   Bookmark,
   BookmarkCheck,
   CheckCircle2,
   Code2,
   Copy,
-  Download,
   Eye,
   Lightbulb,
   Play,
@@ -15,33 +13,13 @@ import {
   Search,
   Sparkles,
   Terminal,
-  Trash2,
-  Upload,
   XCircle
 } from "lucide-react";
 import { learningTracks } from "./learningContent.js";
-import { getUserId, loadRemoteProgress, recordAttempt, saveRemoteProgress } from "./apiClient.js";
+import { loadRemoteProgress, recordAttempt, saveRemoteProgress } from "./apiClient.js";
 
 const progressKey = "pulsateach-learning-progress";
 const bookmarksKey = "pulsateach-learning-bookmarks";
-
-const colorClasses = {
-  html: {
-    card: "bg-orange-100",
-    button: "bg-orangePop",
-    text: "text-orangePop"
-  },
-  css: {
-    card: "bg-cyan-100",
-    button: "bg-aquaPop",
-    text: "text-aquaPop"
-  },
-  javascript: {
-    card: "bg-green-100",
-    button: "bg-mintPop",
-    text: "text-mintPop"
-  }
-};
 
 export default function InteractiveLearning({ locale }) {
   const initialRoute = readLessonRoute();
@@ -67,11 +45,8 @@ export default function InteractiveLearning({ locale }) {
     }
   }, [activeModuleId, activeTrack]);
 
-  const completedCount = Object.keys(progress.completed).length;
-  const totalLessons = learningTracks.reduce((sum, track) => sum + track.modules.reduce((inner, module) => inner + module.lessons.length, 0), 0);
   const activeTrackCompleted = activeTrack.modules.reduce((sum, module) => sum + module.lessons.filter((lesson) => progress.completed[lesson.id]).length, 0);
   const activeTrackTotal = activeTrack.modules.reduce((sum, module) => sum + module.lessons.length, 0);
-  const unlockedBadges = getUnlockedBadges(progress, completedCount, totalLessons);
 
   useEffect(() => {
     window.history.replaceState(null, "", `#/learn/${activeTrackId}/${activeModuleId}/${activeLessonId}`);
@@ -102,12 +77,6 @@ export default function InteractiveLearning({ locale }) {
     setActiveTrackId(trackId);
     setActiveModuleId(moduleId);
     setActiveLessonId(lessonId);
-  };
-
-  const resumeNext = () => {
-    const next = findFirstTodo(progress);
-    if (next) openLesson(next);
-    setTimeout(() => document.getElementById("learn-workspace")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   };
 
   const completeLesson = (lesson, passedCount) => {
@@ -185,220 +154,6 @@ export default function InteractiveLearning({ locale }) {
     />
   );
 
-  /*
-  return (
-    <section id="learn" className="bg-indigoPop px-5 py-20 text-white sm:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-10 grid gap-6 lg:grid-cols-[.75fr_1.25fr] lg:items-end">
-          <div>
-            <p className="font-display text-lg font-bold text-lemonPop">
-              {locale === "fr" ? "Learning Lab interactif" : "Interactive Learning Lab"}
-            </p>
-            <h2 className="mt-2 font-display text-4xl font-bold tracking-normal sm:text-5xl">
-              {locale === "fr" ? "Clique un cours, écris du code, lance les tests." : "Click a course, write code, run the tests."}
-            </h2>
-          </div>
-          <div className="clay rounded-[28px] bg-white p-5 text-ink">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <ProgressKpi icon={BadgeCheck} value={`${completedCount}/${totalLessons}`} label={locale === "fr" ? "leçons validées" : "lessons passed"} />
-              <ProgressKpi icon={Save} value={progress.xp} label="XP" />
-              <ProgressKpi icon={CheckCircle2} value={levelFromXp(progress.xp)} label={locale === "fr" ? "niveau" : "level"} />
-            </div>
-            <div className="mt-4 rounded-[18px] bg-cloud p-3 text-sm font-extrabold text-ink/70 clay-soft">
-              API: {syncState} · {getUserId()}
-            </div>
-            <div className="mt-5">
-              <div className="mb-2 flex items-center justify-between text-sm font-extrabold text-ink/65">
-                <span>{activeTrack.label}</span>
-                <span>{activeTrackCompleted}/{activeTrackTotal}</span>
-              </div>
-              <div className="h-4 rounded-full bg-cloud clay-soft">
-                <div className="h-full rounded-full bg-mintPop" style={{ width: `${Math.round((activeTrackCompleted / activeTrackTotal) * 100)}%` }} />
-              </div>
-            </div>
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-[22px] bg-cloud p-4 clay-soft">
-              <div>
-                <p className="font-display text-xl font-bold">{locale === "fr" ? "Série" : "Streak"}: {progress.streak?.count ?? 0}</p>
-                <p className="text-sm font-extrabold text-ink/62">{locale === "fr" ? "Valide une leçon par jour pour la garder." : "Pass one lesson per day to keep it alive."}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  const fresh = createEmptyProgress();
-                  setProgress(fresh);
-                  localStorage.setItem(progressKey, JSON.stringify(fresh));
-                }}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-extrabold text-ink shadow-clayPressed transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orangePop"
-              >
-                <Trash2 className="size-4" />
-                {locale === "fr" ? "Reset" : "Reset"}
-              </button>
-              <button
-                type="button"
-                onClick={resumeNext}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-orangePop px-4 py-3 text-sm font-extrabold text-white shadow-clayPressed transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigoPop"
-              >
-                <Play className="size-4" />
-                {locale === "fr" ? "Reprendre" : "Resume"}
-              </button>
-              <button
-                type="button"
-                onClick={() => exportProgress(progress)}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-extrabold text-ink shadow-clayPressed transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orangePop"
-              >
-                <Download className="size-4" />
-                Export
-              </button>
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-extrabold text-ink shadow-clayPressed transition-transform hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-orangePop">
-                <Upload className="size-4" />
-                Import
-                <input
-                  type="file"
-                  accept="application/json"
-                  className="sr-only"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (file) importProgress(file, setProgress);
-                    event.target.value = "";
-                  }}
-                />
-              </label>
-            </div>
-            <div className="mt-5 flex flex-wrap gap-2">
-              {unlockedBadges.map((badge) => (
-                <span className="inline-flex items-center gap-2 rounded-xl bg-lemonPop px-3 py-2 text-xs font-extrabold clay-soft" key={badge}>
-                  <Sparkles className="size-4 text-orangePop" />
-                  {badge}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <MasteryDashboard locale={locale} progress={progress} onOpenLesson={openLesson} />
-
-        <div className="grid gap-4 lg:grid-cols-3">
-          {learningTracks.map((track) => (
-            <button
-              type="button"
-              key={track.id}
-              onClick={() => handleTrackChange(track)}
-              className={`cursor-pointer rounded-[28px] p-5 text-left text-ink transition-transform duration-200 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lemonPop focus-visible:ring-offset-4 focus-visible:ring-offset-indigoPop clay ${activeTrackId === track.id ? "bg-lemonPop" : colorClasses[track.id].card}`}
-            >
-              <span className={`inline-flex rounded-2xl px-4 py-2 text-sm font-extrabold text-white clay-soft ${colorClasses[track.id].button}`}>
-                {track.label}
-              </span>
-              <h3 className="mt-4 font-display text-3xl font-bold">{track.title[locale]}</h3>
-              <p className="mt-2 font-bold leading-7 text-ink/70">{track.summary[locale]}</p>
-            </button>
-          ))}
-        </div>
-
-        <MissionBoard
-          locale={locale}
-          progress={progress}
-          onOpenLesson={({ trackId, moduleId, lessonId }) => {
-            openLesson({ trackId, moduleId, lessonId });
-            setTimeout(() => document.getElementById("learn-workspace")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
-          }}
-        />
-
-        <div id="learn-workspace" className="mt-8 grid gap-6 scroll-mt-28 xl:grid-cols-[.55fr_1.45fr]">
-          <aside className="clay rounded-[30px] bg-white p-5 text-ink">
-            <h3 className="font-display text-3xl font-bold">{locale === "fr" ? "Plan du parcours" : "Track plan"}</h3>
-            <div className="mt-5 grid gap-3">
-              <label className="relative block">
-                <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-indigoPop" />
-                <input
-                  type="search"
-                  value={lessonQuery}
-                  onChange={(event) => setLessonQuery(event.target.value)}
-                  placeholder={locale === "fr" ? "Chercher une leçon" : "Search lessons"}
-                  className="min-h-12 w-full rounded-2xl border-[3px] border-ink bg-cloud pl-12 pr-4 font-extrabold outline-none focus-visible:ring-2 focus-visible:ring-orangePop"
-                />
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {["all", "todo", "done", "saved"].map((filter) => (
-                  <button
-                    type="button"
-                    key={filter}
-                    onClick={() => setStatusFilter(filter)}
-                    className={`cursor-pointer rounded-2xl px-2 py-2 text-sm font-extrabold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orangePop ${statusFilter === filter ? "bg-indigoPop text-white" : "bg-cloud text-ink"}`}
-                  >
-                    {filterLabel(filter, locale)}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="mt-5 space-y-4">
-              {activeTrack.modules.map((module) => (
-                <div className="rounded-[22px] bg-cloud p-4 clay-soft" key={module.id}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveModuleId(module.id);
-                      setActiveLessonId(module.lessons[0].id);
-                    }}
-                    className="flex w-full cursor-pointer items-center justify-between gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orangePop"
-                  >
-                    <span className="font-display text-xl font-bold">{module.title[locale]}</span>
-                    <span className="text-xs font-extrabold text-indigoPop">{module.lessons.length}</span>
-                  </button>
-                  <div className="mt-3 space-y-2">
-                    {module.lessons.filter((lesson) => isVisibleLesson(lesson, progress, bookmarks, lessonQuery, statusFilter, locale)).map((lesson) => {
-                      const isActive = lesson.id === activeLesson.id;
-                      const isDone = Boolean(progress.completed[lesson.id]);
-                      const isSaved = bookmarks.includes(lesson.id);
-                      return (
-                        <button
-                          type="button"
-                          className={`flex w-full cursor-pointer items-start gap-3 rounded-2xl px-3 py-3 text-left font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orangePop ${isActive ? "bg-indigoPop text-white" : "bg-white text-ink hover:bg-lemonPop"}`}
-                          key={lesson.id}
-                          onClick={() => {
-                            setActiveModuleId(module.id);
-                            setActiveLessonId(lesson.id);
-                          }}
-                        >
-                          {isDone ? <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-mintPop" /> : <Code2 className="mt-0.5 size-5 shrink-0" />}
-                          <span>{lesson.title[locale]}</span>
-                          {isSaved && <BookmarkCheck className="ml-auto mt-0.5 size-5 shrink-0 text-orangePop" />}
-                        </button>
-                      );
-                    })}
-                    {module.lessons.filter((lesson) => isVisibleLesson(lesson, progress, bookmarks, lessonQuery, statusFilter, locale)).length === 0 && (
-                      <p className="rounded-2xl bg-white p-3 text-sm font-extrabold text-ink/55">
-                        {locale === "fr" ? "Aucune leçon ici." : "No lessons here."}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </aside>
-
-          <LessonWorkspace
-            activeTrack={activeTrack}
-            activeModule={activeModule}
-            lesson={activeLesson}
-            locale={locale}
-            isCompleted={Boolean(progress.completed[activeLesson.id])}
-            isBookmarked={bookmarks.includes(activeLesson.id)}
-            onToggleBookmark={() => toggleBookmark(activeLesson.id)}
-            onComplete={completeLesson}
-            onNext={() => {
-              const next = getNextLesson(activeTrack, activeModule.id, activeLesson.id);
-              if (next) {
-                setActiveModuleId(next.moduleId);
-                setActiveLessonId(next.lessonId);
-              }
-            }}
-            hasNext={Boolean(getNextLesson(activeTrack, activeModule.id, activeLesson.id))}
-          />
-        </div>
-      </div>
-    </section>
-  );
-  */
 }
 
 function FocusedLearningLayout({
@@ -991,7 +746,7 @@ function SkillChips({ skills = [] }) {
   return (
     <div className="mt-4 flex flex-wrap gap-2">
       {skills.map((skill) => (
-        <span className="rounded-xl bg-cloud px-3 py-2 text-xs font-extrabold text-indigoPop clay-soft" key={skill}>
+        <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigoPop" key={skill}>
           {skill}
         </span>
       ))}
@@ -1013,7 +768,7 @@ function NotesPanel({ lessonId, locale, note, setNote }) {
             setSaved(true);
             window.setTimeout(() => setSaved(false), 1600);
           }}
-          className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-indigoPop px-3 py-2 text-sm font-bold text-white"
+          className="primary-button min-h-10 px-3 py-2 text-sm"
         >
           <Save className="size-4" />
           {saved ? (locale === "fr" ? "Sauvé" : "Saved") : (locale === "fr" ? "Sauver" : "Save")}
@@ -1042,27 +797,17 @@ function difficultyLabel(difficulty, locale) {
 
 function CompletionBanner({ locale, onNext, hasNext }) {
   return (
-    <div className="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-[22px] bg-green-100 p-4 font-extrabold text-ink clay-soft">
+    <div className="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-green-200 bg-green-50 p-4 text-sm font-semibold text-green-800">
       <span>{locale === "fr" ? "C'est validé. XP ajouté à ta progression." : "Passed. XP has been added to your progress."}</span>
       {hasNext && (
         <button
           type="button"
           onClick={onNext}
-          className="cursor-pointer rounded-2xl bg-indigoPop px-5 py-3 text-white shadow-clayPressed transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orangePop"
+          className="primary-button"
         >
           {locale === "fr" ? "Leçon suivante" : "Next lesson"}
         </button>
       )}
-    </div>
-  );
-}
-
-function ProgressKpi({ icon: Icon, value, label }) {
-  return (
-    <div className="rounded-[22px] bg-cloud p-4 clay-soft">
-      <Icon className="mb-3 size-6 text-indigoPop" />
-      <p className="font-display text-2xl font-bold">{value}</p>
-      <p className="text-sm font-extrabold text-ink/62">{label}</p>
     </div>
   );
 }
@@ -1072,7 +817,7 @@ function ActionButton({ icon: Icon, onClick, children }) {
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigoPop"
+      className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigoPop"
     >
       <Icon className="size-4" />
       {children}
