@@ -612,10 +612,10 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
       <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-2xl bg-indigoPop px-4 py-2 text-sm font-extrabold text-white clay-soft">{lesson.type}</span>
-            <span className="rounded-2xl bg-lemonPop px-4 py-2 text-sm font-extrabold clay-soft">{lesson.xp} XP</span>
-            <span className="rounded-2xl bg-cloud px-4 py-2 text-sm font-extrabold text-ink clay-soft">{difficultyLabel(lesson.difficulty, locale)} · {lesson.durationMin} min</span>
-            {isCompleted && <span className="rounded-2xl bg-mintPop px-4 py-2 text-sm font-extrabold text-white clay-soft">{locale === "fr" ? "Validé" : "Passed"}</span>}
+            <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold uppercase text-indigoPop">{lesson.type}</span>
+            <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">{lesson.xp} XP</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600">{difficultyLabel(lesson.difficulty, locale)} · {lesson.durationMin} min</span>
+            {isCompleted && <span className="rounded-full bg-green-100 px-3 py-1.5 text-xs font-bold text-green-700">{locale === "fr" ? "Validé" : "Passed"}</span>}
           </div>
           <h3 className="mt-3 font-display text-3xl font-bold">{lesson.title[locale]}</h3>
           <p className="mt-2 max-w-3xl leading-7 text-slate-600">{lesson.brief[locale]}</p>
@@ -653,7 +653,7 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
       </div>
 
       {showHint && (
-        <div className="mt-5 rounded-[22px] bg-lemonPop p-4 font-extrabold clay-soft">
+        <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
           {lesson.hint[locale]}
         </div>
       )}
@@ -894,11 +894,11 @@ function ProjectRubric({ lesson, locale }) {
   ];
 
   return (
-    <div className="mt-5 rounded-[22px] bg-orange-100 p-4 clay-soft">
-      <p className="font-display text-2xl font-bold">{locale === "fr" ? "Rubrique de validation" : "Validation rubric"}</p>
+    <div className="mt-5 rounded-xl border border-indigo-100 bg-indigo-50 p-4">
+      <p className="font-display text-xl font-bold">{locale === "fr" ? "Rubrique de validation" : "Validation rubric"}</p>
       <ul className="mt-3 grid gap-2">
         {rubric.map((item) => (
-          <li className="flex gap-2 font-extrabold text-ink/72" key={item}>
+          <li className="flex gap-2 text-sm font-semibold text-slate-700" key={item}>
             <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-mintPop" />
             {item}
           </li>
@@ -919,12 +919,12 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
   }, [lesson.id]);
 
   return (
-    <section className="clay rounded-[30px] bg-white p-5 text-ink">
+    <section className="surface text-ink">
       <div className="flex flex-wrap items-center gap-3">
-        <span className="rounded-2xl bg-indigoPop px-4 py-2 text-sm font-extrabold text-white clay-soft">quiz</span>
-        <span className="rounded-2xl bg-lemonPop px-4 py-2 text-sm font-extrabold clay-soft">{lesson.xp} XP</span>
-        <span className="rounded-2xl bg-cloud px-4 py-2 text-sm font-extrabold text-ink clay-soft">{difficultyLabel(lesson.difficulty, locale)} · {lesson.durationMin} min</span>
-        {isCompleted && <span className="rounded-2xl bg-mintPop px-4 py-2 text-sm font-extrabold text-white clay-soft">{locale === "fr" ? "Validé" : "Passed"}</span>}
+        <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold uppercase text-indigoPop">quiz</span>
+        <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">{lesson.xp} XP</span>
+        <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600">{difficultyLabel(lesson.difficulty, locale)} · {lesson.durationMin} min</span>
+        {isCompleted && <span className="rounded-full bg-green-100 px-3 py-1.5 text-xs font-bold text-green-700">{locale === "fr" ? "Validé" : "Passed"}</span>}
         <button
           type="button"
           onClick={onToggleBookmark}
@@ -937,7 +937,7 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
       <h3 className="mt-4 font-display text-4xl font-bold">{lesson.title[locale]}</h3>
       <p className="mt-3 max-w-3xl text-lg font-bold leading-8 text-ink/70">{lesson.brief[locale]}</p>
       <SkillChips skills={lesson.skills} />
-      <div className="mt-6 rounded-[24px] bg-cloud p-5 clay-soft">
+      <div className="muted-surface mt-6">
         <p className="font-display text-2xl font-bold">{lesson.question[locale]}</p>
         <div className="mt-5 grid gap-3">
           {lesson.options.map((option) => (
@@ -948,7 +948,7 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
                 setSelected(option.id);
                 setChecked(false);
               }}
-              className={`cursor-pointer rounded-2xl p-4 text-left font-extrabold transition-colors clay-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orangePop ${selected === option.id ? "bg-lemonPop" : "bg-white hover:bg-orange-100"}`}
+              className={`rounded-xl border p-4 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 ${selected === option.id ? "border-indigo-400 bg-indigo-50 text-indigo-800" : "border-slate-200 bg-white hover:border-indigo-200 hover:bg-indigo-50"}`}
             >
               {option.label[locale]}
             </button>
@@ -967,14 +967,14 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
             }).catch(() => {});
             if (isCorrect) onComplete(lesson, 1);
           }}
-          className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-orangePop px-5 py-3 font-extrabold text-white shadow-clayPressed transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigoPop focus-visible:ring-offset-4"
+          className="primary-button mt-5"
         >
           <Play className="size-5" />
           {locale === "fr" ? "Valider" : "Check"}
         </button>
       </div>
       {checked && (
-        <div className={`mt-5 rounded-[22px] p-4 font-extrabold clay-soft ${isCorrect ? "bg-green-100 text-ink" : "bg-rose-100 text-ink"}`}>
+        <div className={`mt-5 rounded-xl border p-4 text-sm font-semibold ${isCorrect ? "border-green-200 bg-green-50 text-green-800" : "border-red-200 bg-red-50 text-red-800"}`}>
           {isCorrect ? <CheckCircle2 className="mb-2 size-6 text-mintPop" /> : <XCircle className="mb-2 size-6 text-rosePop" />}
           {lesson.explanation[locale]}
         </div>

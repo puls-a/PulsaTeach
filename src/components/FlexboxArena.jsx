@@ -23,14 +23,14 @@ const copyMap = {
   },
   fr: {
     title: "Flexbox Arena",
-    intro: "Ecris les declarations flex qui deplacent le bot sur la cible.",
+    intro: "Écris les déclarations flex qui déplacent le bot sur la cible.",
     mission: "Mission : atteindre la cible au centre droit.",
     reset: "Reset",
     validate: "Valider",
-    passed: "Arena reussie. Badge debloque.",
-    failed: "Le bot n'est pas encore aligne avec la cible.",
+    passed: "Arena réussie. Badge débloqué.",
+    failed: "Le bot n'est pas encore aligné avec la cible.",
     code: "Code CSS de mission",
-    tests: "Tests de l'arene"
+    tests: "Tests de l'arène"
   }
 };
 
@@ -59,21 +59,21 @@ export default function FlexboxArena({ locale = "en" }) {
   };
 
   return (
-    <section className="overflow-hidden rounded-[26px] bg-white clay">
+    <section className="lab-shell">
       <div className="grid min-h-[640px] gap-0 lg:grid-cols-[minmax(0,.92fr)_minmax(420px,1.08fr)]">
         <div className="flex min-w-0 flex-col bg-ink p-3">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div className="font-display text-xl font-bold text-white">{copy.code}</div>
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => setMissionOpen(true)} className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-white/10 px-4 font-extrabold text-white">
+              <button type="button" onClick={() => setMissionOpen(true)} className="lab-toolbar-button">
                 <Info className="size-4" />
                 Mission
               </button>
-              <button type="button" onClick={() => { setCode(starterCss); setStatus(null); }} className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-white/10 px-4 font-extrabold text-white">
+              <button type="button" onClick={() => { setCode(starterCss); setStatus(null); }} className="lab-toolbar-button">
                 <RotateCcw className="size-4" />
                 {copy.reset}
               </button>
-              <button type="button" onClick={validate} className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-aquaPop px-5 font-extrabold text-white shadow-clayPressed">
+              <button type="button" onClick={validate} className="lab-primary-button">
                 <TestTube2 className="size-4" />
                 {copy.validate}
               </button>
@@ -84,25 +84,25 @@ export default function FlexboxArena({ locale = "en" }) {
               value={code}
               onChange={(event) => { setCode(event.target.value); setStatus(null); }}
               spellCheck="false"
-              className="min-h-[520px] flex-1 resize-none rounded-2xl border-[3px] border-white/20 bg-[#111032] p-4 font-mono text-sm leading-7 text-indigo-100 outline-none focus:border-lemonPop"
+              className="code-editor min-h-[520px]"
             />
           </label>
           {status && (
-            <p className={`mt-3 rounded-2xl px-3 py-2 font-extrabold ${status === "passed" ? "bg-mintPop text-white" : "bg-lemonPop text-ink"}`}>
+            <p className={`mt-3 rounded-lg px-3 py-2 text-sm font-bold ${status === "passed" ? "bg-green-600 text-white" : "bg-amber-100 text-amber-900"}`}>
               {status === "passed" ? copy.passed : copy.failed}
             </p>
           )}
         </div>
 
         <div className="grid bg-white p-3">
-          <div className="relative min-h-[520px] overflow-hidden rounded-[24px] bg-gradient-to-br from-cyan-100 via-orange-100 to-green-100 p-5 clay-soft">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-2 font-extrabold clay-soft">
+          <div className="relative min-h-[520px] overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-cyan-50 via-indigo-50 to-green-50 p-5">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold">
               <Target className="size-5 text-orangePop" />
               {copy.mission}
             </div>
             <img src={assetPaths.target} alt="" className="absolute right-8 top-1/2 size-24 -translate-y-1/2" />
             <div
-              className="relative z-10 h-[250px] rounded-[26px] border-[3px] border-dashed border-ink/55 bg-white/58 p-4"
+              className="relative z-10 h-[250px] rounded-xl border-2 border-dashed border-slate-400 bg-white/60 p-4"
               style={{ display: parsed.display, justifyContent: parsed.justifyContent, alignItems: parsed.alignItems }}
             >
               <img src={assetPaths.bot} alt="PulsaTeach bot" className="size-24 drop-shadow-xl" />
@@ -112,11 +112,11 @@ export default function FlexboxArena({ locale = "en" }) {
       </div>
       <MissionModal open={missionOpen} title={copy.title} onClose={() => setMissionOpen(false)}>
         <p className="font-bold leading-7 text-ink/70">{copy.intro}</p>
-        <div className="mt-5 rounded-[24px] bg-white p-4 clay-soft">
+        <div className="surface mt-5">
           <h3 className="font-display text-2xl font-bold">{copy.tests}</h3>
           <div className="mt-3 grid gap-2">
             {tests.map((test) => (
-              <p key={test.label} className={`flex items-center gap-2 rounded-2xl px-3 py-2 font-extrabold ${test.pass ? "bg-green-100 text-mintPop" : "bg-orange-100 text-orangePop"}`}>
+              <p key={test.label} className={`test-row ${test.pass ? "text-green-700" : "text-amber-700"}`}>
                 {test.pass ? <CheckCircle2 className="size-5" /> : <TriangleAlert className="size-5" />}
                 {test.label}
               </p>

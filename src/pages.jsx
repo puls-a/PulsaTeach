@@ -21,7 +21,6 @@ import {
   Trophy,
   UserRound
 } from "lucide-react";
-import CurriculumSection from "./CurriculumSection.jsx";
 import AuthNotice from "./components/AuthNotice.jsx";
 import InteractiveLearning from "./InteractiveLearning.jsx";
 import {
@@ -31,7 +30,6 @@ import {
   exportAdminData,
   getAnalytics,
   getApiHealth,
-  getCatalog,
   getCertificates,
   getProfile,
   getRoadmap,
@@ -51,16 +49,6 @@ import { learningTracks } from "./learningContent.js";
 
 export function LearnPage({ locale }) {
   return <InteractiveLearning locale={locale} />;
-}
-
-export function CatalogPage({ locale, Courses, copy }) {
-  return (
-    <>
-      <Courses copy={copy.courses} />
-      <CatalogStats locale={locale} />
-      <CurriculumSection locale={locale} />
-    </>
-  );
 }
 
 export function DashboardPage({ locale }) {
@@ -132,19 +120,19 @@ export function ProfilePage({ locale }) {
     <section className="app-page">
       <div className="mx-auto max-w-7xl">
         <AuthNotice locale={locale} />
-        <div className="rounded-[34px] bg-white p-6 clay">
+        <div className="surface p-6">
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
             <div className="flex items-center gap-5">
-              <div className="grid size-20 place-items-center rounded-[28px] bg-lemonPop clay-soft">
+              <div className="grid size-16 place-items-center rounded-2xl bg-indigo-50">
                 <UserRound className="size-10 text-indigoPop" />
               </div>
               <div>
                 <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Profil apprenant" : "Learner profile"}</p>
                 <h1 className="font-display text-3xl font-bold sm:text-4xl">{profile?.displayName || "PulsaTeach Learner"}</h1>
-                <p className="mt-2 font-extrabold text-ink/60">{profile?.userId || getUserId()}</p>
+                <p className="mt-2 font-semibold text-slate-500">{profile?.userId || getUserId()}</p>
               </div>
             </div>
-            <a href="#/learn" className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-orangePop px-5 py-4 font-extrabold text-white shadow-clayPressed transition-transform hover:-translate-y-0.5">
+            <a href="#/learn" className="primary-button">
               <Target className="size-5" />
               {locale === "fr" ? "Continuer le parcours" : "Continue learning"}
             </a>
@@ -179,7 +167,7 @@ export function ProfilePage({ locale }) {
             </div>
           </section>
 
-          <section className="rounded-[30px] bg-indigoPop p-5 text-white clay">
+          <section className="rounded-2xl border border-indigo-700 bg-indigo-700 p-5 text-white shadow-sm">
             <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Portfolio et certificats" : "Portfolio and certificates"}</h2>
             <div className="mt-5 grid gap-3">
               {submissions.slice(0, 3).map((submission) => (
@@ -246,7 +234,7 @@ export function SettingsPage({ locale }) {
             <Field label={locale === "fr" ? "Minutes par semaine" : "Weekly minutes"} value={form.weeklyMinutes} onChange={(weeklyMinutes) => setForm({ ...form, weeklyMinutes })} />
             <SelectField label="Locale" value={form.locale} onChange={(nextLocale) => setForm({ ...form, locale: nextLocale })} options={["fr", "en"]} />
           </div>
-          <button type="submit" className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-orangePop px-5 py-4 font-extrabold text-white shadow-clayPressed transition-transform hover:-translate-y-0.5">
+          <button type="submit" className="primary-button mt-5">
             <Send className="size-5" />
             {status === "saving" ? (locale === "fr" ? "Sauvegarde..." : "Saving...") : (locale === "fr" ? "Sauvegarder" : "Save settings")}
           </button>
@@ -277,7 +265,7 @@ export function PathPage({ locale }) {
         </h1>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[.85fr_1.15fr]">
-          <aside className="rounded-[30px] bg-indigoPop p-5 text-white clay">
+          <aside className="rounded-2xl border border-indigo-700 bg-indigo-700 p-5 text-white shadow-sm">
             <Target className="size-10 text-lemonPop" />
             <h2 className="mt-4 font-display text-4xl font-bold">{plan?.percent ?? 0}%</h2>
             <p className="mt-2 font-extrabold text-white/75">
@@ -377,7 +365,7 @@ export function AnalyticsPage({ locale }) {
               ))}
             </div>
           </section>
-          <section className="rounded-[30px] bg-indigoPop p-5 text-white clay">
+          <section className="rounded-2xl border border-indigo-700 bg-indigo-700 p-5 text-white shadow-sm">
             <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Contenu" : "Content"}</h2>
             <div className="mt-5 grid gap-4">
               <DashCard icon={FileText} label="Drafts" value={analytics?.content?.drafts ?? "..."} />
@@ -441,7 +429,7 @@ export function ProjectsPage({ locale }) {
               <Field label="Project ID" value={form.projectId} onChange={(projectId) => setForm({ ...form, projectId })} />
               <Field label={locale === "fr" ? "Titre" : "Title"} value={form.title} onChange={(title) => setForm({ ...form, title })} required />
               <Field label="URL" value={form.url} onChange={(url) => setForm({ ...form, url })} />
-              <label className="grid gap-2 font-extrabold">
+              <label className="grid gap-2 text-sm font-semibold text-slate-700">
                 {locale === "fr" ? "Description" : "Description"}
                 <textarea
                   value={form.description}
@@ -449,7 +437,7 @@ export function ProjectsPage({ locale }) {
                   className="form-control min-h-32 py-3"
                 />
               </label>
-              <button type="submit" className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-orangePop px-5 py-4 font-extrabold text-white shadow-clayPressed transition-transform hover:-translate-y-0.5">
+              <button type="submit" className="primary-button">
                 <Send className="size-5" />
                 {status === "saving" ? (locale === "fr" ? "Envoi..." : "Saving...") : (locale === "fr" ? "Soumettre" : "Submit")}
               </button>
@@ -528,7 +516,7 @@ export function CertificationPage({ locale }) {
               </article>
             ))}
           </div>
-          <aside className="rounded-[30px] bg-indigoPop p-5 text-white clay">
+          <aside className="rounded-2xl border border-indigo-700 bg-indigo-700 p-5 text-white shadow-sm">
             <Star className="size-10 text-lemonPop" />
             <h2 className="mt-4 font-display text-3xl font-bold">{locale === "fr" ? "Règles V1" : "V1 rules"}</h2>
             <ul className="mt-5 grid gap-3">
@@ -640,7 +628,7 @@ export function AuthorPage({ locale }) {
               <TextAreaField label="Prompt FR" value={form.promptFr} onChange={(promptFr) => setForm({ ...form, promptFr })} />
               <TextAreaField label="Prompt EN" value={form.promptEn} onChange={(promptEn) => setForm({ ...form, promptEn })} />
               <Field label="Skills" value={form.skills} onChange={(skills) => setForm({ ...form, skills })} />
-              <button type="submit" className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-orangePop px-5 py-4 font-extrabold text-white shadow-clayPressed transition-transform hover:-translate-y-0.5">
+              <button type="submit" className="primary-button">
                 <Send className="size-5" />
                 {status === "saving" ? (locale === "fr" ? "Création..." : "Creating...") : (locale === "fr" ? "Créer le draft" : "Create draft")}
               </button>
@@ -671,10 +659,10 @@ export function AuthorPage({ locale }) {
                   </div>
                   <p className="mt-3 font-bold text-ink/65">{draft.objective?.[locale] || draft.objective?.en}</p>
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <button type="button" onClick={() => changeStatus(draft, "review")} className="cursor-pointer rounded-xl bg-indigoPop px-3 py-2 text-sm font-extrabold text-white shadow-clayPressed">Review</button>
-                    <button type="button" onClick={() => changeStatus(draft, "published")} className="cursor-pointer rounded-xl bg-mintPop px-3 py-2 text-sm font-extrabold text-white shadow-clayPressed">Publish</button>
-                    <button type="button" onClick={() => changeStatus(draft, "draft")} className="cursor-pointer rounded-xl bg-white px-3 py-2 text-sm font-extrabold text-ink shadow-clayPressed">Draft</button>
-                    <button type="button" onClick={() => removeDraft(draft)} className="cursor-pointer rounded-xl bg-rosePop px-3 py-2 text-sm font-extrabold text-white shadow-clayPressed">Delete</button>
+                    <button type="button" onClick={() => changeStatus(draft, "review")} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold text-white hover:bg-indigo-700">Review</button>
+                    <button type="button" onClick={() => changeStatus(draft, "published")} className="rounded-lg bg-green-600 px-3 py-2 text-sm font-bold text-white hover:bg-green-700">Publish</button>
+                    <button type="button" onClick={() => changeStatus(draft, "draft")} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-ink hover:bg-slate-50">Draft</button>
+                    <button type="button" onClick={() => removeDraft(draft)} className="rounded-lg bg-red-600 px-3 py-2 text-sm font-bold text-white hover:bg-red-700">Delete</button>
                   </div>
                 </article>
               ))}
@@ -744,7 +732,7 @@ export function AdminPage({ locale }) {
         <p className="mt-4 max-w-2xl font-semibold leading-7 text-ink/70">
           {locale === "fr" ? "Cette page simule la revue pédagogique : approuver, demander des changements, stocker un score et un feedback." : "This page simulates educator review: approve, request changes, store a score, and save feedback."}
         </p>
-        <button type="button" onClick={exportData} className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-indigoPop px-5 py-4 font-extrabold text-white shadow-clayPressed transition-transform hover:-translate-y-0.5">
+        <button type="button" onClick={exportData} className="primary-button mt-5">
           <Database className="size-5" />
           {locale === "fr" ? "Exporter les données" : "Export data"}
         </button>
@@ -767,11 +755,11 @@ export function AdminPage({ locale }) {
                 <span className="rounded-2xl bg-lemonPop px-4 py-2 font-extrabold clay-soft">{submission.status}</span>
               </div>
               <div className="mt-5 flex flex-wrap gap-3">
-                <button type="button" onClick={() => review(submission, "approved")} className="inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-mintPop px-4 py-3 font-extrabold text-white shadow-clayPressed transition-transform hover:-translate-y-0.5">
+                <button type="button" onClick={() => review(submission, "approved")} className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-3 text-sm font-bold text-white hover:bg-green-700">
                   <CheckCircle2 className="size-5" />
                   {locale === "fr" ? "Approuver" : "Approve"}
                 </button>
-                <button type="button" onClick={() => review(submission, "changes_requested")} className="inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-orangePop px-4 py-3 font-extrabold text-white shadow-clayPressed transition-transform hover:-translate-y-0.5">
+                <button type="button" onClick={() => review(submission, "changes_requested")} className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-3 text-sm font-bold text-white hover:bg-amber-700">
                   <ClipboardCheck className="size-5" />
                   {locale === "fr" ? "Demander changements" : "Request changes"}
                 </button>
@@ -821,29 +809,6 @@ export function RoadmapPage({ locale }) {
               </div>
             </article>
           ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CatalogStats({ locale }) {
-  const [catalog, setCatalog] = useState(null);
-
-  useEffect(() => {
-    getCatalog().then(setCatalog).catch(() => setCatalog(null));
-  }, []);
-
-  const tracks = catalog?.tracks || learningTracks;
-  const lessons = tracks.reduce((sum, track) => sum + track.modules.reduce((inner, module) => inner + module.lessons.length, 0), 0);
-
-  return (
-    <section className="px-5 pb-10 sm:px-8">
-      <div className="surface mx-auto max-w-7xl">
-        <div className="grid gap-4 md:grid-cols-3">
-          <DashCard icon={BookOpenCheck} label={locale === "fr" ? "Parcours" : "Tracks"} value={tracks.length} />
-          <DashCard icon={Activity} label={locale === "fr" ? "Leçons" : "Lessons"} value={lessons} />
-          <DashCard icon={Server} label="Source" value={catalog ? "API" : "local"} />
         </div>
       </div>
     </section>

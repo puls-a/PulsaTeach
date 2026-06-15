@@ -41,16 +41,16 @@ const text = {
   },
   fr: {
     title: "JavaScript Target Lab",
-    intro: "Ecris une fonction qui lit les coordonnees de la cible et retourne la bonne direction.",
-    mission: "Retourne le texte de direction necessaire pour toucher la cible.",
+    intro: "Écris une fonction qui lit les coordonnées de la cible et retourne la bonne direction.",
+    mission: "Retourne le texte de direction nécessaire pour toucher la cible.",
     reset: "Reset",
     validate: "Tirer",
     next: "Cible suivante",
     code: "Code JavaScript de mission",
     expected: "Attendu",
-    returned: "Retourne",
-    pass: "Cible touchee. XP attribue.",
-    fail: "Tir rate. Verifie tes conditions.",
+    returned: "Retourné",
+    pass: "Cible touchée. XP attribué.",
+    fail: "Tir raté. Vérifie tes conditions.",
     tests: "Analyse du tir"
   }
 };
@@ -89,25 +89,25 @@ export default function ArrowTargetGame({ locale = "en" }) {
   };
 
   return (
-    <section className="overflow-hidden rounded-[26px] bg-white clay">
+    <section className="lab-shell">
       <div className="grid min-h-[660px] lg:grid-cols-[minmax(0,.94fr)_minmax(430px,1.06fr)]">
         <div className="flex min-w-0 flex-col bg-ink p-3">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div className="font-display text-xl font-bold text-white">{copy.code}</div>
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => setMissionOpen(true)} className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-white/10 px-4 font-extrabold text-white">
+              <button type="button" onClick={() => setMissionOpen(true)} className="lab-toolbar-button">
                 <Info className="size-4" />
                 Mission
               </button>
-              <button type="button" onClick={() => { setCode(starterCode); setShot(null); setMessage(null); }} className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-white/10 px-4 font-extrabold text-white">
+              <button type="button" onClick={() => { setCode(starterCode); setShot(null); setMessage(null); }} className="lab-toolbar-button">
                 <RotateCcw className="size-4" />
                 {copy.reset}
               </button>
-              <button type="button" onClick={fire} className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-rosePop px-5 font-extrabold text-white shadow-clayPressed">
+              <button type="button" onClick={fire} className="lab-primary-button">
                 <TestTube2 className="size-4" />
                 {copy.validate}
               </button>
-              <button type="button" onClick={nextLevel} className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-indigoPop px-4 font-extrabold text-white shadow-clayPressed">
+              <button type="button" onClick={nextLevel} className="lab-toolbar-button">
                 {copy.next}
                 <ArrowRight className="size-4" />
               </button>
@@ -118,11 +118,11 @@ export default function ArrowTargetGame({ locale = "en" }) {
             value={code}
             onChange={(event) => { setCode(event.target.value); setShot(null); setMessage(null); }}
             spellCheck="false"
-            className="min-h-[520px] flex-1 resize-none rounded-2xl border-[3px] border-white/20 bg-[#111032] p-4 font-mono text-sm leading-7 text-indigo-100 outline-none focus:border-lemonPop"
+            className="code-editor min-h-[520px]"
           />
         </label>
           {message && (
-            <p className={`mt-3 flex items-center gap-2 rounded-2xl px-3 py-2 font-extrabold ${message === "pass" ? "bg-green-100 text-mintPop" : "bg-lemonPop text-ink"}`}>
+            <p className={`mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold ${message === "pass" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-900"}`}>
               {message === "pass" ? <CheckCircle2 className="size-5" /> : <TriangleAlert className="size-5" />}
               {message === "pass" ? copy.pass : copy.fail}
             </p>
@@ -130,8 +130,8 @@ export default function ArrowTargetGame({ locale = "en" }) {
         </div>
 
         <div className="grid bg-white p-3">
-          <div className="relative min-h-[540px] overflow-hidden rounded-[24px] bg-gradient-to-br from-indigo-100 via-rose-100 to-yellow-100 p-5 clay-soft">
-            <div className="inline-flex rounded-2xl bg-white px-4 py-2 font-extrabold clay-soft">
+          <div className="relative min-h-[540px] overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-indigo-50 via-rose-50 to-amber-50 p-5">
+            <div className="inline-flex rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold">
               {copy.mission}
             </div>
             <div className="absolute left-1/2 top-1/2 size-14 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigoPop clay-soft" />
@@ -162,7 +162,7 @@ export default function ArrowTargetGame({ locale = "en" }) {
       </div>
       <MissionModal open={missionOpen} title={copy.title} onClose={() => setMissionOpen(false)}>
         <p className="font-bold leading-7 text-ink/70">{copy.intro}</p>
-        <div className="mt-5 rounded-[24px] bg-white p-4 clay-soft">
+        <div className="surface mt-5">
           <h3 className="font-display text-2xl font-bold">{copy.tests}</h3>
           <div className="mt-3 grid gap-2 md:grid-cols-2">
             <Stat label="x" value={level.target.x} />
@@ -178,7 +178,7 @@ export default function ArrowTargetGame({ locale = "en" }) {
 
 function Stat({ label, value }) {
   return (
-    <div className="rounded-2xl bg-cloud p-3 font-extrabold clay-soft">
+    <div className="muted-surface">
       <p className="text-xs uppercase tracking-[.14em] text-indigoPop">{label}</p>
       <p className="mt-1 font-display text-2xl font-bold">{value}</p>
     </div>

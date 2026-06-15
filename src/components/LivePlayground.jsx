@@ -51,21 +51,21 @@ const labels = {
   },
   fr: {
     title: "Playground code live",
-    intro: "Ecris du HTML, du CSS et du JavaScript, puis valide les tests de mission.",
+    intro: "Écris du HTML, du CSS et du JavaScript, puis valide les tests de mission.",
     html: "HTML",
     css: "CSS",
     js: "JS",
-    preview: "Resultat",
+    preview: "Résultat",
     reset: "Reset",
     validate: "Valider",
     objectives: "Objectifs de mission",
     tests: "Tests automatiques",
-    errors: "Erreurs d'execution",
-    noErrors: "Aucune erreur d'execution detectee.",
-    ready: "Apercu rendu",
-    pass: "Mission reussie. XP attribue.",
-    fail: "Certains tests echouent encore.",
-    goals: ["Creer une carte main", "La styliser avec un background visible", "Ajouter une interaction JavaScript sur un bouton"]
+    errors: "Erreurs d'exécution",
+    noErrors: "Aucune erreur d'exécution détectée.",
+    ready: "Aperçu rendu",
+    pass: "Mission réussie. XP attribué.",
+    fail: "Certains tests échouent encore.",
+    goals: ["Créer une carte main", "La styliser avec un arrière-plan visible", "Ajouter une interaction JavaScript sur un bouton"]
   }
 };
 
@@ -132,15 +132,15 @@ export default function LivePlayground({ locale = "en" }) {
       pass: /<main[^>]*class=["'][^"']*hero-card/i.test(html)
     },
     {
-      label: locale === "fr" ? "Le CSS definit un background" : "CSS defines a background",
+      label: locale === "fr" ? "Le CSS définit un arrière-plan" : "CSS defines a background",
       pass: /background\s*:/i.test(css)
     },
     {
-      label: locale === "fr" ? "Le JS ecoute un clic ou selectionne le DOM" : "JS listens for a click or selects the DOM",
+      label: locale === "fr" ? "Le JS écoute un clic ou sélectionne le DOM" : "JS listens for a click or selects the DOM",
       pass: /addEventListener|querySelector|getElementById/i.test(js)
     },
     {
-      label: locale === "fr" ? "Aucune erreur runtime detectee" : "No runtime error detected",
+      label: locale === "fr" ? "Aucune erreur runtime détectée" : "No runtime error detected",
       pass: !runtimeError
     }
   ], [css, html, js, locale, runtimeError]);
@@ -167,7 +167,7 @@ export default function LivePlayground({ locale = "en" }) {
   const ActiveIcon = files[activeFile].icon;
 
   return (
-    <section className="overflow-hidden rounded-[26px] bg-white clay">
+    <section className="lab-shell">
       <div className="grid min-h-[680px] xl:grid-cols-[minmax(0,1fr)_minmax(360px,.82fr)]">
       <div className="flex min-w-0 flex-col bg-ink">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b-[3px] border-white/15 p-3">
@@ -179,7 +179,7 @@ export default function LivePlayground({ locale = "en" }) {
                   key={id}
                   type="button"
                   onClick={() => setActiveFile(id)}
-                  className={`inline-flex min-h-11 items-center gap-2 rounded-2xl px-4 font-extrabold shadow-clayPressed ${activeFile === id ? "bg-lemonPop text-ink" : "bg-white/10 text-white"}`}
+                  className={`lab-toolbar-button ${activeFile === id ? "!bg-white !text-ink" : ""}`}
                 >
                   <Icon className="size-4" />
                   {file.label}
@@ -188,15 +188,15 @@ export default function LivePlayground({ locale = "en" }) {
             })}
           </div>
           <div className="flex gap-2">
-            <button type="button" onClick={() => setMissionOpen(true)} className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-white/10 px-4 font-extrabold text-white">
+            <button type="button" onClick={() => setMissionOpen(true)} className="lab-toolbar-button">
               <Info className="size-4" />
               Mission
             </button>
-            <button type="button" onClick={reset} className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-white/10 px-4 font-extrabold text-white">
+            <button type="button" onClick={reset} className="lab-toolbar-button">
               <RotateCcw className="size-4" />
               {copy.reset}
             </button>
-            <button type="button" onClick={validate} className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-orangePop px-4 font-extrabold text-white">
+            <button type="button" onClick={validate} className="lab-primary-button">
               <TestTube2 className="size-4" />
               {copy.validate}
             </button>
@@ -211,28 +211,28 @@ export default function LivePlayground({ locale = "en" }) {
             value={files[activeFile].value}
             onChange={(event) => files[activeFile].onChange(event.target.value)}
             spellCheck="false"
-            className="min-h-[460px] flex-1 resize-none rounded-2xl border-[3px] border-white/20 bg-[#111032] p-4 font-mono text-sm leading-7 text-indigo-100 outline-none focus:border-lemonPop"
+            className="code-editor min-h-[460px]"
           />
         </label>
         {result && (
-          <div className={`border-t-[3px] border-white/15 px-4 py-3 font-extrabold ${result === "pass" ? "bg-mintPop text-white" : "bg-lemonPop text-ink"}`}>
+          <div className={`border-t border-white/15 px-4 py-3 text-sm font-bold ${result === "pass" ? "bg-green-600 text-white" : "bg-amber-100 text-amber-900"}`}>
             {result === "pass" ? copy.pass : copy.fail}
           </div>
         )}
       </div>
 
       <div className="grid min-h-[520px] grid-rows-[auto_1fr_auto] bg-white">
-        <div className="flex items-center justify-between border-b-[3px] border-ink bg-lemonPop px-4 py-3 font-extrabold">
+        <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 text-sm font-bold">
           <span className="inline-flex items-center gap-2">
             <Eye className="size-5" />
             {copy.preview}
           </span>
-          <span className={`rounded-xl px-3 py-1 text-xs ${previewReady && !runtimeError ? "bg-mintPop text-white" : "bg-white text-ink"}`}>
+          <span className={`rounded-full px-3 py-1 text-xs ${previewReady && !runtimeError ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"}`}>
             {previewReady && !runtimeError ? copy.ready : "iframe"}
           </span>
         </div>
         <iframe title="PulsaTeach live preview" srcDoc={srcDoc} sandbox="allow-scripts allow-forms allow-modals" className="h-full min-h-[430px] w-full bg-white" />
-        <div className={`border-t-[3px] border-ink p-4 font-extrabold ${runtimeError ? "bg-orange-100 text-orangePop" : "bg-green-100 text-mintPop"}`}>
+        <div className={`border-t border-slate-200 p-4 text-sm font-semibold ${runtimeError ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"}`}>
           <p className="font-display text-xl font-bold text-ink">{copy.errors}</p>
           <p className="mt-1">{runtimeError || copy.noErrors}</p>
         </div>
@@ -244,11 +244,11 @@ export default function LivePlayground({ locale = "en" }) {
         <div className="mt-5">
           <InfoPanel title={copy.objectives} items={copy.goals} />
         </div>
-        <div className="mt-5 rounded-[22px] bg-white p-3 clay-soft">
+        <div className="surface mt-5 p-3">
           <h3 className="font-display text-xl font-bold">{copy.tests}</h3>
           <div className="mt-3 grid gap-2">
             {tests.map((test) => (
-              <p key={test.label} className={`flex items-center gap-2 rounded-2xl px-3 py-2 text-sm font-extrabold ${test.pass ? "bg-green-100 text-mintPop" : "bg-orange-100 text-orangePop"}`}>
+              <p key={test.label} className={`test-row ${test.pass ? "text-green-700" : "text-amber-700"}`}>
                 {test.pass ? <CheckCircle2 className="size-4" /> : <TriangleAlert className="size-4" />}
                 {test.label}
               </p>
@@ -262,11 +262,11 @@ export default function LivePlayground({ locale = "en" }) {
 
 function InfoPanel({ title, items }) {
   return (
-    <div className="rounded-[24px] bg-lemonPop p-4 clay-soft">
+    <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-4">
       <h3 className="font-display text-2xl font-bold">{title}</h3>
       <div className="mt-3 grid gap-2">
         {items.map((item) => (
-          <p key={item} className="rounded-2xl bg-white px-3 py-2 font-extrabold text-ink">{item}</p>
+          <p key={item} className="rounded-lg border border-indigo-100 bg-white px-3 py-2 text-sm font-semibold text-slate-700">{item}</p>
         ))}
       </div>
     </div>

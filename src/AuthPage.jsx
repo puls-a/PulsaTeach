@@ -112,12 +112,12 @@ export default function AuthPage({ locale = "en", defaultMode = "login" }) {
   };
 
   return (
-    <section className="min-h-screen bg-slate-50 px-5 py-28 sm:px-8">
+    <section className="app-page min-h-screen bg-slate-50">
       <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[.95fr_1.05fr] lg:items-start">
         <div>
           <p className="eyebrow">{copy.kicker}</p>
-          <h1 className="mt-2 font-display text-5xl font-bold leading-tight">{copy.title}</h1>
-          <p className="mt-5 max-w-2xl text-lg font-bold leading-8 text-ink/70">{copy.text}</p>
+          <h1 className="page-heading">{copy.title}</h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">{copy.text}</p>
           <div className={`mt-6 rounded-xl border p-4 font-bold ${isSupabaseBrowserConfigured ? "border-green-200 bg-green-50 text-green-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
             {isSupabaseBrowserConfigured ? copy.configured : copy.missing}
           </div>
@@ -126,11 +126,11 @@ export default function AuthPage({ locale = "en", defaultMode = "login" }) {
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-900/5">
           {session ? (
             <div>
-              <div className="rounded-[26px] bg-cloud p-5 clay-soft">
+              <div className="muted-surface">
                 <p className="font-display text-2xl font-bold">{copy.signedIn}</p>
-                <p className="mt-2 break-all font-extrabold text-ink/68">{session.user.email || session.user.id}</p>
+                <p className="mt-2 break-all font-semibold text-slate-600">{session.user.email || session.user.id}</p>
               </div>
-              <button type="button" onClick={signOut} className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-2xl bg-ink px-5 font-extrabold text-white shadow-clayPressed">
+              <button type="button" onClick={signOut} className="secondary-button mt-5">
                 <LogOut className="size-5" />
                 {copy.signOut}
               </button>
@@ -144,7 +144,7 @@ export default function AuthPage({ locale = "en", defaultMode = "login" }) {
                     type="button"
                     disabled={!supabase || useLocalAuth}
                     onClick={() => signInWithProvider(id)}
-                    className="inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-cloud px-4 font-extrabold shadow-clayPressed transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="secondary-button disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Icon className="size-5" />
                     {label}
@@ -165,7 +165,7 @@ export default function AuthPage({ locale = "en", defaultMode = "login" }) {
                 </div>
                 <div className="grid gap-3">
                   <label className="block">
-                    <span className="block text-sm font-extrabold uppercase tracking-[.14em]">{copy.email}</span>
+                    <span className="block text-sm font-semibold text-slate-700">{copy.email}</span>
                     <input
                       id="auth-email"
                       type="email"
@@ -177,7 +177,7 @@ export default function AuthPage({ locale = "en", defaultMode = "login" }) {
                     />
                   </label>
                   <label className="block">
-                    <span className="block text-sm font-extrabold uppercase tracking-[.14em]">{copy.password}</span>
+                    <span className="block text-sm font-semibold text-slate-700">{copy.password}</span>
                     <input
                       type="password"
                       required
@@ -188,7 +188,7 @@ export default function AuthPage({ locale = "en", defaultMode = "login" }) {
                       className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 font-bold outline-none focus:border-indigoPop"
                     />
                   </label>
-                  <button type="submit" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-indigoPop px-5 font-extrabold text-white shadow-clayPressed">
+                  <button type="submit" className="primary-button">
                     {mode === "signup" ? <UserPlus className="size-5" /> : <LockKeyhole className="size-5" />}
                     {mode === "signup" ? copy.signup : copy.login}
                   </button>
@@ -196,7 +196,7 @@ export default function AuthPage({ locale = "en", defaultMode = "login" }) {
               </form>
 
               <form onSubmit={sendMagicLink} className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
-                <label className="block text-sm font-extrabold uppercase tracking-[.14em]" htmlFor="auth-magic-email">{copy.email}</label>
+                <label className="block text-sm font-semibold text-slate-700" htmlFor="auth-magic-email">{copy.email}</label>
                 <div className="mt-3 flex flex-col gap-3 sm:flex-row">
                   <input
                     id="auth-magic-email"
@@ -205,17 +205,17 @@ export default function AuthPage({ locale = "en", defaultMode = "login" }) {
                     autoComplete="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    className="min-h-12 flex-1 rounded-2xl border-[3px] border-ink bg-white px-4 font-bold outline-none focus:border-indigoPop"
+                    className="form-control flex-1"
                   />
-                  <button type="submit" disabled={!supabase || useLocalAuth} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-indigoPop px-5 font-extrabold text-white shadow-clayPressed disabled:opacity-50">
+                  <button type="submit" disabled={!supabase || useLocalAuth} className="primary-button disabled:opacity-50">
                     <Mail className="size-5" />
                     {copy.magic}
                   </button>
                 </div>
               </form>
 
-              <p className="mt-5 rounded-2xl bg-orange-100 px-4 py-3 font-extrabold text-orangePop">{copy.providerNote}</p>
-              {status && <p className="mt-3 rounded-2xl bg-cloud px-4 py-3 font-extrabold text-ink">{status}</p>}
+              <p className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">{copy.providerNote}</p>
+              {status && <p className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700" role="status">{status}</p>}
             </div>
           )}
         </div>
