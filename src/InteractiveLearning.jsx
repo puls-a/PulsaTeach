@@ -494,7 +494,7 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
                 <div className={`flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm font-semibold ${check.pass ? "text-ink" : "text-slate-500"}`} key={check.label}>
                   {check.waiting ? <Code2 className="mt-0.5 size-5 shrink-0 text-indigoPop" /> : check.pass ? <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-mintPop" /> : <XCircle className="mt-0.5 size-5 shrink-0 text-rosePop" />}
                   <span>
-                    <span className="block">{check.label}</span>
+                    <span className="block">{displayTestLabel(check, locale)}</span>
                     {!check.waiting && !check.pass && <span className="mt-1 block text-xs font-medium leading-5 text-slate-500">{testFailureHelp(check, locale)}</span>}
                   </span>
                 </div>
@@ -670,38 +670,31 @@ function PedagogyWorkshop({ pedagogy, locale }) {
 
   return (
     <section className="mt-5 grid gap-4">
-      <div className="grid gap-4 lg:grid-cols-3">
-        <article className="rounded-xl border border-indigo-100 bg-indigo-50 p-4">
-          <p className="text-xs font-bold uppercase tracking-[.12em] text-indigo-700">{locale === "fr" ? "Pourquoi apprendre cela ?" : "Why learn this?"}</p>
-          <p className="mt-2 leading-7 text-indigo-950">{content.why}</p>
-        </article>
-        <article className="rounded-xl border border-slate-200 bg-white p-4">
-          <p className="text-xs font-bold uppercase tracking-[.12em] text-slate-500">{locale === "fr" ? "Prérequis" : "Prerequisites"}</p>
-          <ul className="mt-3 grid gap-2 text-sm text-slate-600">
-            {content.prerequisites.map((item) => <li className="flex gap-2" key={item}><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-green-600" />{item}</li>)}
-          </ul>
-        </article>
-        <article className="rounded-xl border border-slate-200 bg-white p-4">
-          <p className="text-xs font-bold uppercase tracking-[.12em] text-slate-500">{locale === "fr" ? "Objectifs précis" : "Precise objectives"}</p>
-          <ul className="mt-3 grid gap-2 text-sm text-slate-600">
-            {content.objectives.map((item) => <li className="flex gap-2" key={item}><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-indigoPop" />{item}</li>)}
-          </ul>
-        </article>
-      </div>
+      <details className="rounded-xl border border-slate-200 bg-white p-4">
+        <summary className="cursor-pointer text-xs font-bold uppercase tracking-[.12em] text-slate-500">{locale === "fr" ? "Préparer la pratique : prérequis et objectifs" : "Prepare for practice: prerequisites and objectives"}</summary>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-bold uppercase tracking-[.12em] text-slate-500">{locale === "fr" ? "Prérequis" : "Prerequisites"}</p>
+            <ul className="mt-3 grid gap-2 text-sm text-slate-600">
+              {content.prerequisites.map((item) => <li className="flex gap-2" key={item}><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-green-600" />{item}</li>)}
+            </ul>
+          </article>
+          <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-bold uppercase tracking-[.12em] text-slate-500">{locale === "fr" ? "Objectifs précis" : "Precise objectives"}</p>
+            <ul className="mt-3 grid gap-2 text-sm text-slate-600">
+              {content.objectives.map((item) => <li className="flex gap-2" key={item}><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-indigoPop" />{item}</li>)}
+            </ul>
+          </article>
+        </div>
+      </details>
 
-      {content.vocabulary?.length > 0 && (
-        <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs font-bold uppercase tracking-[.12em] text-slate-500">{locale === "fr" ? "Vocabulaire spécifique" : "Specific vocabulary"}</p>
-          <dl className="mt-3 grid gap-3 md:grid-cols-3">
-            {content.vocabulary.map(([term, definition]) => <div className="rounded-lg bg-white p-3" key={term}><dt className="text-sm font-bold text-indigoPop">{term}</dt><dd className="mt-1 text-sm leading-6 text-slate-600">{definition}</dd></div>)}
-          </dl>
-        </article>
-      )}
-
-      <div className="grid gap-4 xl:grid-cols-2">
-        <ComparisonCard title={locale === "fr" ? "Bonne pratique" : "Good practice"} item={content.comparison.good} tone="good" />
-        <ComparisonCard title={locale === "fr" ? "À éviter" : "Avoid this"} item={content.comparison.bad} tone="bad" />
-      </div>
+      <details className="rounded-xl border border-slate-200 bg-white p-4">
+        <summary className="cursor-pointer text-xs font-bold uppercase tracking-[.12em] text-slate-500">{locale === "fr" ? "Comparer bonne et mauvaise pratique" : "Compare good and bad practice"}</summary>
+        <div className="mt-4 grid gap-4 xl:grid-cols-2">
+          <ComparisonCard title={locale === "fr" ? "Bonne pratique" : "Good practice"} item={content.comparison.good} tone="good" />
+          <ComparisonCard title={locale === "fr" ? "À éviter" : "Avoid this"} item={content.comparison.bad} tone="bad" />
+        </div>
+      </details>
 
       <article className="rounded-xl border border-green-200 bg-green-50 p-5">
         <p className="text-xs font-bold uppercase tracking-[.12em] text-green-700">{locale === "fr" ? "Pratique guidée" : "Guided practice"}</p>
@@ -813,11 +806,16 @@ function ProjectRubric({ lesson, locale }) {
 function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted, isBookmarked, onToggleBookmark, onComplete, onNext, hasNext }) {
   const [selected, setSelected] = useState(null);
   const [checked, setChecked] = useState(false);
+  const [rationale, setRationale] = useState("");
   const [note, setNote] = useState("");
   const isCorrect = selected === lesson.answer;
+  const canValidate = Boolean(selected) && rationale.trim().length >= 12;
 
   useEffect(() => {
     setNote(localStorage.getItem(`pulsateach-note-${lesson.id}`) || "");
+    setSelected(null);
+    setChecked(false);
+    setRationale("");
   }, [lesson.id]);
 
   return (
@@ -858,8 +856,23 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
             </button>
           ))}
         </div>
+        <label className="mt-5 block text-sm font-bold text-slate-700" htmlFor={`quiz-rationale-${lesson.id}`}>
+          {locale === "fr" ? "Explique ton choix en une phrase" : "Explain your choice in one sentence"}
+        </label>
+        <textarea
+          id={`quiz-rationale-${lesson.id}`}
+          value={rationale}
+          onChange={(event) => {
+            setRationale(event.target.value);
+            setChecked(false);
+          }}
+          placeholder={locale === "fr" ? "Cette réponse est la plus adaptée parce que…" : "This answer is the best choice because…"}
+          className="mt-2 min-h-24 w-full resize-y rounded-xl border border-slate-300 bg-white p-3 text-sm font-semibold outline-none focus:border-indigoPop"
+        />
+        <p className="mt-2 text-xs font-semibold text-slate-500">{locale === "fr" ? "La justification force à raisonner au-delà de la mémorisation." : "The explanation makes you reason beyond memorization."}</p>
         <button
           type="button"
+          disabled={!canValidate}
           onClick={() => {
             setChecked(true);
             recordAttempt({
@@ -871,7 +884,7 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
             }).catch(() => {});
             if (isCorrect) onComplete(lesson, 1);
           }}
-          className="primary-button mt-5"
+          className="primary-button mt-5 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Play className="size-5" />
           {locale === "fr" ? "Valider" : "Check"}
@@ -1046,13 +1059,14 @@ function createJavaScriptPreview() {
 }
 
 function validateLesson(lesson, code) {
+  const activeCode = stripCodeComments(code);
   return lesson.tests.map((item) => {
     let pass = false;
     if (item.type === "contains" || item.type === "doctype") {
-      pass = normalize(code).includes(normalize(item.value));
+      pass = normalize(activeCode).includes(normalize(item.value));
     }
     if (item.type === "notContains") {
-      pass = !normalize(code).includes(normalize(item.value));
+      pass = !normalize(activeCode).includes(normalize(item.value));
     }
     if (item.type === "selector" || item.type === "minSelector") {
       pass = checkSelector(code, item.value, item.amount || 1);
@@ -1068,10 +1082,18 @@ function validateLesson(lesson, code) {
 }
 
 function hasCssDeclaration(code, selector, property) {
-  if (selector === "@media") return normalize(code).includes(normalize(property));
+  const activeCode = stripCodeComments(code);
+  if (selector === "@media") return normalize(activeCode).includes(normalize(property));
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const pattern = new RegExp(`${escaped}\\s*\\{[^}]*${property}\\s*:`, "i");
-  return pattern.test(code);
+  return pattern.test(activeCode);
+}
+
+function stripCodeComments(value) {
+  return String(value)
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
 }
 
 function runJavaScriptExpression(code, expression) {
@@ -1105,6 +1127,15 @@ function testFailureHelp(check, locale) {
   if (check.type === "cssDeclaration") return "Vérifie le sélecteur ciblé et la propriété CSS exacte.";
   if (check.type === "selector" || check.type === "minSelector") return "Vérifie la structure HTML et le nombre d'éléments demandés.";
   return "Vérifie la syntaxe demandée et assure-toi qu'elle se trouve dans du code actif, pas dans un commentaire.";
+}
+
+function displayTestLabel(check, locale) {
+  if (locale !== "fr") return check.label;
+  if (check.type === "cssDeclaration") return `La propriété « ${check.value.property} » est déclarée sur « ${check.value.selector} »`;
+  if (check.type === "minSelector") return `Au moins ${check.amount || 1} éléments correspondent à « ${check.value} »`;
+  if (check.type === "selector") return `La structure attendue « ${check.label} » est présente`;
+  if (check.label === "target selector") return `Le sélecteur demandé « ${check.value} » est présent`;
+  return check.label;
 }
 
 async function runJavaScriptWithConsole(code, locale) {

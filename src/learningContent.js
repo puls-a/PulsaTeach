@@ -1012,22 +1012,11 @@ function projectLesson({ id, title, brief, starterCode, solution, tests, xp }) {
     guide: guideFor(id, "project"),
     skills: skillsFor(id),
     difficulty: "project",
-    durationMin: 45,
+    durationMin: projectDurationFor(id),
     starterCode,
     solution,
     tests,
-    rubric: {
-      fr: [
-        "Tous les tests requis passent.",
-        "Le code reste lisible et organisé.",
-        "Le résultat pourrait être montré comme livrable de portfolio."
-      ],
-      en: [
-        "Every required test passes.",
-        "The code remains readable and organized.",
-        "The result could be shown as a portfolio deliverable."
-      ]
-    },
+    rubric: projectRubricFor(id),
     hint: {
       fr: "Commence par les grandes zones, puis remplis les détails.",
       en: "Start with the large regions, then fill in the details."
@@ -1063,11 +1052,17 @@ function difficultyFor(id) {
 
 function durationFor(id) {
   const difficulty = difficultyFor(id);
-  if (difficulty === "quick") return 5;
-  if (difficulty === "starter") return 10;
-  if (difficulty === "stretch") return 25;
-  if (difficulty === "project") return 45;
-  return 15;
+  if (difficulty === "quick") return 15;
+  if (difficulty === "starter") return 30;
+  if (difficulty === "stretch") return 55;
+  if (difficulty === "project") return projectDurationFor(id);
+  return 40;
+}
+
+function projectDurationFor(id) {
+  if (id.includes("final-project") || id === "js-07-final-project") return 180;
+  if (id.includes("accessibility-audit")) return 120;
+  return 90;
 }
 
 function theoryFor(id) {
@@ -1234,7 +1229,38 @@ function courseFor(id, type) {
       en: { introduction: "This project asks you to combine several concepts into a coherent deliverable.", sections: [{ title: "Build in stages", paragraphs: ["Break the brief into independent areas.", "Ship a simple working version, then improve quality."], example: "" }], vocabulary: [["Deliverable", "Concrete result that can be presented or assessed."]], check: ["All criteria are covered.", "The result is readable and testable."] }
     }
   };
-  return topics[type === "quiz" || type === "project" ? type : track];
+  const base = topics[type === "quiz" || type === "project" ? type : track];
+  const pedagogy = getPedagogy(id)?.fr;
+  if (!pedagogy) return base;
+
+  return {
+    ...base,
+    fr: {
+      introduction: pedagogy.why,
+      sections: [
+        {
+          title: "Comprendre le principe",
+          paragraphs: pedagogy.objectives.map((objective) => `À la fin de cette leçon, tu sauras ${objective.charAt(0).toLowerCase()}${objective.slice(1)}.`),
+          example: ""
+        },
+        {
+          title: pedagogy.comparison.good.title,
+          paragraphs: [pedagogy.comparison.good.explanation, ...pedagogy.correction.slice(0, 2)],
+          example: pedagogy.comparison.good.code
+        },
+        {
+          title: `Pourquoi éviter : ${pedagogy.comparison.bad.title}`,
+          paragraphs: [pedagogy.comparison.bad.explanation, pedagogy.summary],
+          example: pedagogy.comparison.bad.code
+        }
+      ],
+      vocabulary: pedagogy.vocabulary,
+      check: [
+        `Je peux expliquer : ${pedagogy.summary}`,
+        ...pedagogy.objectives.slice(0, 2).map((objective) => `Je peux ${objective.charAt(0).toLowerCase()}${objective.slice(1)}.`)
+      ]
+    }
+  };
 }
 
 function guideFor(id, type) {
@@ -1301,7 +1327,36 @@ function guideFor(id, type) {
       }
     }
   };
-  return guides[type === "project" || type === "quiz" ? type : track] || guides.html;
+  const base = guides[type === "project" || type === "quiz" ? type : track] || guides.html;
+  const pedagogy = getPedagogy(id)?.fr;
+  if (!pedagogy) return base;
+
+  return {
+    ...base,
+    fr: {
+      objectives: pedagogy.objectives,
+      steps: pedagogy.guided,
+      mistakes: [
+        pedagogy.comparison.bad.explanation,
+        `Reproduire « ${pedagogy.comparison.bad.title} » sans analyser son impact.`,
+        `Valider sans pouvoir expliquer cette règle : ${pedagogy.summary}`
+      ]
+    }
+  };
+}
+
+function projectRubricFor(id) {
+  const commonEn = ["Every required test passes.", "The code remains readable and organized.", "The result can be explained without the solution."];
+  const rubrics = {
+    "html-05-mini-project-profile": ["La navigation atteint chaque section annoncée.", "La hiérarchie des titres reste logique.", "Images, listes et liens transmettent un sens clair.", "La page reste compréhensible sans CSS."],
+    "html-11-accessibility-audit": ["Chaque problème est relié à un impact utilisateur.", "Les corrections privilégient les éléments HTML natifs.", "La page est utilisable au clavier.", "Chaque correction est vérifiée, pas seulement écrite."],
+    "html-12-final-project": ["Toutes les zones du cahier des charges sont présentes.", "La navigation, le tableau et le formulaire sont accessibles.", "Les métadonnées décrivent précisément PulsaConf.", "Le projet passe une relecture clavier, contenu et SEO."],
+    "css-03-mini-project-navbar": ["La navbar aligne et distribue correctement ses groupes.", "Toutes les actions restent visibles sur petit écran.", "Les zones cliquables et le focus sont clairement perceptibles.", "Aucune largeur fixe fragile n'est utilisée."],
+    "css-06-final-project": ["La landing utilise un système visuel cohérent.", "Le layout reste lisible sans débordement aux largeurs testées.", "Les états hover et focus communiquent clairement l'interaction.", "Le mouvement respecte prefers-reduced-motion."],
+    "js-04-mini-project-counter": ["L'état count reste l'unique source de vérité.", "Les actions modifient l'état avant le rendu.", "Le rendu synchronise correctement le DOM.", "Les limites et cas de remise à zéro sont vérifiés."],
+    "js-07-final-project": ["L'état central représente toutes les tâches.", "Ajout, complétion et suppression gèrent leurs cas limites.", "Chaque modification déclenche sauvegarde et rendu.", "Une sauvegarde absente ou invalide ne bloque pas l'application."]
+  };
+  return { fr: rubrics[id] || ["Tous les tests requis passent.", "Le code reste lisible et organisé.", "Le résultat peut être expliqué sans la solution."], en: commonEn };
 }
 
 function cssLesson(id, title, brief, starterCode, target, checks, xp) {
