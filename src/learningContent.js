@@ -1,5 +1,6 @@
 import { getHtmlPedagogy } from "./htmlPedagogy.js";
 import { getCssPedagogy } from "./cssPedagogy.js";
+import { getJsPedagogy } from "./jsPedagogy.js";
 
 const htmlShell = (body) => `<!doctype html>
 <html lang="fr">
@@ -639,6 +640,14 @@ export const learningTracks = [
       en: ["Model logic with functions and data", "Transform arrays", "Create DOM interactions", "Load and save data"]
     },
     capstone: { fr: "Dashboard de tâches persistant", en: "Persistent task dashboard" },
+    profession: {
+      fr: "JavaScript est le langage qui transforme une page en application. Les développeurs front-end l'utilisent pour modéliser les données, réagir aux actions, mettre à jour l'interface, communiquer avec des API et conserver l'état.",
+      en: "JavaScript turns a page into an application. Front-end developers use it to model data, react to actions, update interfaces, communicate with APIs, and persist state."
+    },
+    certification: {
+      fr: ["Valider toutes les leçons et le quiz JavaScript", "Expliquer le flux données, actions et rendu", "Livrer le compteur interactif", "Livrer un dashboard persistant avec gestion des erreurs"],
+      en: ["Pass every JavaScript lesson and quiz", "Explain the data, actions, and rendering flow", "Ship the interactive counter", "Ship a persistent dashboard with error handling"]
+    },
     modules: [
       module("js-basics", "Bases du langage", "Language basics", [
         jsLesson("js-01-variables", ["Variables et calcul", "Variables and calculation"], "Crée une constante price, une constante quantity et une constante total.", "const price = 12;\n// ajoute quantity et total", ["const quantity", "const total", "price * quantity"], 25),
@@ -723,7 +732,7 @@ function module(id, fr, en, lessons) {
 }
 
 function getPedagogy(id) {
-  return getHtmlPedagogy(id) || getCssPedagogy(id);
+  return getHtmlPedagogy(id) || getCssPedagogy(id) || getJsPedagogy(id);
 }
 
 function moduleLearningMeta(id) {
@@ -790,6 +799,41 @@ function moduleLearningMeta(id) {
       outcomes: { fr: ["Choisir des breakpoints dictés par le contenu", "Organiser une feuille mobile-first", "Créer un mouvement responsable", "Livrer une landing complète"], en: ["Choose content-driven breakpoints", "Organize mobile-first styles", "Create responsible motion", "Ship a complete landing"] },
       vocabulary: ["media query", "breakpoint", "mobile-first", "transition", "transform", "prefers-reduced-motion"],
       mastery: { fr: ["Aucun débordement aux largeurs testées", "Les actions clavier restent visibles", "Le mouvement respecte reduced-motion", "Le projet final utilise un système cohérent"], en: ["No overflow at tested widths", "Keyboard actions remain visible", "Motion respects reduced-motion", "Final project uses a coherent system"] }
+    },
+    "js-basics": {
+      importance: { fr: "Les valeurs, types et conditions forment le vocabulaire minimal nécessaire pour exprimer une règle dans un programme.", en: "Values, types, and conditions form the minimum vocabulary needed to express a program rule." },
+      prerequisites: { fr: ["Aucun prérequis JavaScript", "Savoir utiliser la console du lab"], en: ["No JavaScript prerequisites", "Know how to use the lab console"] },
+      outcomes: { fr: ["Nommer et calculer des valeurs", "Prendre une décision", "Construire un message dynamique", "Observer l'exécution"], en: ["Name and calculate values", "Make a decision", "Build a dynamic message", "Observe execution"] },
+      vocabulary: ["valeur", "const", "expression", "condition", "booléen", "type", "console"],
+      mastery: { fr: ["Expliquer le type de chaque valeur", "Traduire une règle simple en condition", "Produire des logs contextualisés"], en: ["Explain every value type", "Translate a simple rule into a condition", "Produce contextual logs"] }
+    },
+    "js-functions": {
+      importance: { fr: "Les fonctions et objets organisent les règles métier pour éviter la répétition et rendre chaque comportement testable.", en: "Functions and objects organize business rules to avoid repetition and make each behavior testable." },
+      prerequisites: { fr: ["Module Bases du langage"], en: ["Language basics module"] },
+      outcomes: { fr: ["Créer des fonctions réutilisables", "Définir entrées, défauts et résultats", "Associer état et méthode dans un objet"], en: ["Create reusable functions", "Define inputs, defaults, and results", "Connect state and methods in an object"] },
+      vocabulary: ["fonction", "appel", "paramètre", "argument", "return", "objet", "méthode", "this"],
+      mastery: { fr: ["Chaque fonction possède une responsabilité claire", "Les cas limites sont testés", "Les dépendances sont explicites"], en: ["Every function has a clear responsibility", "Edge cases are tested", "Dependencies are explicit"] }
+    },
+    "js-arrays": {
+      importance: { fr: "Les applications manipulent des collections de cours, tâches et utilisateurs. Choisir la bonne opération rend cette logique concise et prévisible.", en: "Applications manipulate collections of courses, tasks, and users. Choosing the right operation makes this logic concise and predictable." },
+      prerequisites: { fr: ["Fonctions", "Objets et propriétés"], en: ["Functions", "Objects and properties"] },
+      outcomes: { fr: ["Filtrer et transformer une collection", "Combiner des valeurs", "Rechercher et vérifier l'existence"], en: ["Filter and transform a collection", "Combine values", "Search and check existence"] },
+      vocabulary: ["tableau", "callback", "filter", "map", "reduce", "find", "some"],
+      mastery: { fr: ["Choisir la méthode correspondant à la question", "Prévoir le type du résultat", "Éviter les mutations inutiles"], en: ["Choose the method matching the question", "Predict the result type", "Avoid unnecessary mutations"] }
+    },
+    "js-dom-events": {
+      importance: { fr: "Le DOM et les événements relient la logique JavaScript aux actions réelles de l'utilisateur et au contenu visible.", en: "The DOM and events connect JavaScript logic to real user actions and visible content." },
+      prerequisites: { fr: ["HTML sémantique", "Fonctions", "État simple"], en: ["Semantic HTML", "Functions", "Simple state"] },
+      outcomes: { fr: ["Sélectionner et mettre à jour le DOM", "Traiter clics et formulaires", "Séparer état, actions et rendu"], en: ["Select and update the DOM", "Handle clicks and forms", "Separate state, actions, and rendering"] },
+      vocabulary: ["DOM", "querySelector", "événement", "listener", "textContent", "classList", "submit"],
+      mastery: { fr: ["Les interactions fonctionnent au clavier", "L'état reste la source de vérité", "Le rendu découle de l'état"], en: ["Interactions work with a keyboard", "State remains the source of truth", "Rendering derives from state"] }
+    },
+    "js-storage-async": {
+      importance: { fr: "Une application autonome doit conserver ses données, charger des ressources distantes et expliquer clairement les échecs.", en: "An autonomous application must persist data, load remote resources, and clearly explain failures." },
+      prerequisites: { fr: ["Tous les modules JavaScript précédents"], en: ["Every previous JavaScript module"] },
+      outcomes: { fr: ["Persister des données avec JSON", "Charger une API avec async/await", "Gérer erreurs réseau et HTTP", "Livrer un dashboard cohérent"], en: ["Persist data with JSON", "Load an API with async/await", "Handle network and HTTP errors", "Ship a coherent dashboard"] },
+      vocabulary: ["localStorage", "JSON", "sérialisation", "Promise", "async", "await", "fetch", "try/catch"],
+      mastery: { fr: ["Les données survivent au rechargement", "Les états chargement, succès et erreur sont distingués", "Le dashboard garde une source de vérité unique"], en: ["Data survives reloads", "Loading, success, and error states are distinct", "The dashboard keeps a single source of truth"] }
     }
   };
   return metadata[id] || {};

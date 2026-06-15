@@ -14,7 +14,7 @@ const requiredPedagogy = [
   "next"
 ];
 
-const richTracks = ["html", "css"];
+const richTracks = ["html", "css", "javascript"];
 const failures = [];
 
 for (const trackId of richTracks) {
@@ -48,6 +48,13 @@ for (const lesson of cssTrack.modules.flatMap((module) => module.lessons).filter
   }
 }
 
+const jsTrack = learningTracks.find((item) => item.id === "javascript");
+for (const lesson of jsTrack.modules.flatMap((module) => module.lessons).filter((item) => item.type !== "quiz")) {
+  for (const test of lesson.tests) {
+    if (!passesJavaScriptTest(lesson.solution, test)) failures.push(`${lesson.id}: solution fails "${test.label}"`);
+  }
+}
+
 if (failures.length) {
   console.error(`Learning audit failed:\n${failures.join("\n")}`);
   process.exit(1);
@@ -69,6 +76,18 @@ function passesStaticCssTest(code, test) {
 
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return new RegExp(`${escaped}\\s*\\{[^}]*${property}\\s*:`, "i").test(code);
+}
+
+function passesJavaScriptTest(code, test) {
+  if (test.type === "contains") return normalize(code).includes(normalize(test.value));
+  if (test.type !== "jsExpression") return true;
+
+  try {
+    const silentConsole = { log() {}, warn() {}, error() {} };
+    return Boolean(new Function("console", `${code}\n${test.value}`)(silentConsole));
+  } catch {
+    return false;
+  }
 }
 
 function normalize(value) {

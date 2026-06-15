@@ -6,6 +6,7 @@ const routes = [
   "catalog",
   "learn/html/html-foundations/html-01-document-skeleton",
   "learn/css/css-selectors/css-01-selectors",
+  "learn/javascript/js-basics/js-01-variables",
   "path",
   "dashboard",
   "profile",
