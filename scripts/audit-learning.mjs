@@ -84,7 +84,13 @@ function passesJavaScriptTest(code, test) {
 
   try {
     const silentConsole = { log() {}, warn() {}, error() {} };
-    return Boolean(new Function("console", `${code}\n${test.value}`)(silentConsole));
+    const values = new Map();
+    const localStorage = {
+      getItem(key) { return values.has(key) ? values.get(key) : null; },
+      setItem(key, value) { values.set(key, String(value)); },
+      removeItem(key) { values.delete(key); }
+    };
+    return Boolean(new Function("console", "localStorage", `${code}\n${test.value}`)(silentConsole, localStorage));
   } catch {
     return false;
   }

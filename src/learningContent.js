@@ -715,10 +715,98 @@ export const learningTracks = [
         projectLesson({
           id: "js-07-final-project",
           title: ["Projet dashboard", "Dashboard project"],
-          brief: ["Écris le squelette logique d'un dashboard : state, render, addTask et localStorage.", "Write the logic skeleton for a dashboard: state, render, addTask, and localStorage."],
-          starterCode: "const state = { tasks: [] };\n\nfunction render() {\n}\n\nfunction addTask(title) {\n}\n",
-          solution: "const state = { tasks: [] };\n\nfunction render() {\n  console.log(state.tasks);\n}\n\nfunction addTask(title) {\n  state.tasks.push({ title, done: false });\n  localStorage.setItem('pulsa-dashboard', JSON.stringify(state));\n  render();\n}",
-          tests: [test("contains", "state", "const state"), test("contains", "render", "function render"), test("contains", "addTask", "function addTask"), test("contains", "push task", ".push"), test("contains", "localStorage", "localStorage.setItem")],
+          brief: ["Construis le moteur complet d'un dashboard de tâches : chargement, ajout validé, complétion, suppression, rendu et persistance.", "Build the complete task dashboard engine: loading, validated creation, completion, deletion, rendering, and persistence."],
+          starterCode: `const state = {
+  tasks: [],
+  nextId: 1
+};
+
+function load() {
+}
+
+function save() {
+}
+
+function render() {
+}
+
+function addTask(title) {
+}
+
+function toggleTask(id) {
+}
+
+function removeTask(id) {
+}
+
+load();
+render();`,
+          solution: `const state = {
+  tasks: [],
+  nextId: 1
+};
+
+function load() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('pulsa-dashboard') || 'null');
+    if (saved && Array.isArray(saved.tasks)) {
+      state.tasks = saved.tasks;
+      state.nextId = saved.nextId || 1;
+    }
+  } catch {
+    state.tasks = [];
+    state.nextId = 1;
+  }
+}
+
+function save() {
+  localStorage.setItem('pulsa-dashboard', JSON.stringify(state));
+}
+
+function render() {
+  console.log(state.tasks);
+}
+
+function addTask(title) {
+  const cleanTitle = title.trim();
+  if (!cleanTitle) return false;
+  state.tasks.push({ id: state.nextId++, title: cleanTitle, done: false });
+  save();
+  render();
+  return true;
+}
+
+function toggleTask(id) {
+  const task = state.tasks.find((item) => item.id === id);
+  if (!task) return false;
+  task.done = !task.done;
+  save();
+  render();
+  return true;
+}
+
+function removeTask(id) {
+  const index = state.tasks.findIndex((item) => item.id === id);
+  if (index === -1) return false;
+  state.tasks.splice(index, 1);
+  save();
+  render();
+  return true;
+}
+
+load();
+render();`,
+          tests: [
+            test("contains", "L'état central est déclaré", "const state"),
+            test("contains", "Le dashboard peut restaurer une sauvegarde", "function load"),
+            test("contains", "Le dashboard possède une fonction de rendu", "function render"),
+            test("contains", "Les modifications sont persistées", "localStorage.setItem"),
+            test("jsExpression", "Une tâche valide peut être ajoutée", "addTask('Réviser JavaScript'); return state.tasks.length === 1 && state.tasks[0].title === 'Réviser JavaScript';"),
+            test("jsExpression", "Une tâche vide est refusée", "return addTask('   ') === false && state.tasks.length === 0;"),
+            test("jsExpression", "Une tâche peut être marquée comme terminée", "addTask('Tester'); const id = state.tasks[0].id; toggleTask(id); return state.tasks[0].done === true;"),
+            test("jsExpression", "Une tâche peut être supprimée", "addTask('Supprimer'); removeTask(state.tasks[0].id); return state.tasks.length === 0;"),
+            test("jsExpression", "L'état complet est réellement sauvegardé", "addTask('Persister'); return JSON.parse(localStorage.getItem('pulsa-dashboard')).tasks.length === 1;")
+          ],
           xp: 100
         })
       ])
@@ -1364,7 +1452,7 @@ function jsLesson(id, title, brief, starterCode, checks, xp) {
     durationMin: durationFor(id),
     starterCode,
     solution: jsSolution(id, starterCode),
-    tests: [...checks.map((check) => test("contains", check, check)), ...jsRuntimeTests(id)],
+    tests: [...checks.map((check) => test("contains", jsCheckLabel(check), check)), ...jsRuntimeTests(id)],
     hint: { fr: "Les tests vérifient les mots-clés importants de la solution.", en: "The tests check the important keywords in the solution." },
     xp
   };
@@ -1384,35 +1472,87 @@ function test(type, label, value, amount = 1) {
 function jsRuntimeTests(id) {
   const runtime = {
     "js-01-variables": [
-      { type: "jsExpression", label: "total equals 48", value: "return total === 48;" }
+      { type: "jsExpression", label: "Le total calculé vaut réellement 48", value: "return total === 48;" }
     ],
     "js-01-conditionals": [
-      { type: "jsExpression", label: "canStart(13) is true", value: "return canStart(13) === true;" },
-      { type: "jsExpression", label: "canStart(12) is false", value: "return canStart(12) === false;" }
+      { type: "jsExpression", label: "canStart accepte exactement l'âge limite de 13 ans", value: "return canStart(13) === true;" },
+      { type: "jsExpression", label: "canStart refuse un âge inférieur au seuil", value: "return canStart(12) === false;" }
+    ],
+    "js-01-strings-template": [
+      { type: "jsExpression", label: "Le message contient le nom et la valeur d'XP", value: "return typeof message === 'string' && message.includes(name) && message.includes(String(xp));" }
     ],
     "js-02-functions": [
-      { type: "jsExpression", label: "getLevel(50) returns Starter", value: "return getLevel(50) === 'Starter';" },
-      { type: "jsExpression", label: "getLevel(300) returns Builder", value: "return getLevel(300) === 'Builder';" },
-      { type: "jsExpression", label: "getLevel(800) returns Pre-junior", value: "return getLevel(800) === 'Pre-junior';" }
+      { type: "jsExpression", label: "Un score de 50 retourne Starter", value: "return getLevel(50) === 'Starter';" },
+      { type: "jsExpression", label: "Un score de 300 retourne Builder", value: "return getLevel(300) === 'Builder';" },
+      { type: "jsExpression", label: "Un score de 800 retourne Pre-junior", value: "return getLevel(800) === 'Pre-junior';" }
     ],
     "js-02-parameters": [
-      { type: "jsExpression", label: "makeBadge uses name and xp", value: "return makeBadge('Maya', 120).includes('Maya') && makeBadge('Maya', 120).includes('120');" }
+      { type: "jsExpression", label: "makeBadge utilise réellement ses deux arguments", value: "return makeBadge('Maya', 120).includes('Maya') && makeBadge('Maya', 120).includes('120');" }
+    ],
+    "js-02-default-parameters": [
+      { type: "jsExpression", label: "greet reste valide lorsqu'aucun nom n'est fourni", value: "return greet().includes('apprenant') && greet('Maya').includes('Maya');" }
+    ],
+    "js-02-object-method": [
+      { type: "jsExpression", label: "La méthode complete modifie réellement done", value: "lesson.complete(); return lesson.done === true;" }
     ],
     "js-03-arrays": [
-      { type: "jsExpression", label: "htmlCourses has one item", value: "return Array.isArray(htmlCourses) && htmlCourses.length === 1 && htmlCourses[0].track === 'html';" }
+      { type: "jsExpression", label: "htmlCourses contient uniquement le cours HTML", value: "return Array.isArray(htmlCourses) && htmlCourses.length === 1 && htmlCourses[0].track === 'html';" }
     ],
     "js-03-map": [
-      { type: "jsExpression", label: "titles contains HTML and CSS", value: "return Array.isArray(titles) && titles.includes('HTML') && titles.includes('CSS');" }
+      { type: "jsExpression", label: "titles contient les deux titres sous forme de chaînes", value: "return Array.isArray(titles) && titles.length === 2 && titles.includes('HTML') && titles.includes('CSS');" }
     ],
     "js-03-reduce-xp": [
-      { type: "jsExpression", label: "totalXp equals 100", value: "return totalXp === 100;" }
+      { type: "jsExpression", label: "La réduction calcule un total de 100 XP", value: "return totalXp === 100;" }
+    ],
+    "js-03-find": [
+      { type: "jsExpression", label: "cssCourse est bien l'objet dont l'id vaut css", value: "return cssCourse?.id === 'css';" }
+    ],
+    "js-03-some": [
+      { type: "jsExpression", label: "hasCompleted vaut true lorsqu'une leçon est terminée", value: "return hasCompleted === true;" }
+    ],
+    "js-05-storage": [
+      { type: "jsExpression", label: "Le thème est réellement enregistré sous la bonne clé", value: "return localStorage.getItem('pulsa-theme') === theme;" }
     ],
     "js-05-json-settings": [
-      { type: "jsExpression", label: "parsedSettings keeps theme", value: "return parsedSettings.theme === 'happy' && parsedSettings.minutes === 30;" }
+      { type: "jsExpression", label: "Le JSON relu conserve toutes les préférences", value: "return parsedSettings.theme === 'happy' && parsedSettings.minutes === 30;" }
     ]
   };
 
   return runtime[id] || [];
+}
+
+function jsCheckLabel(check) {
+  const labels = {
+    "const quantity": "Une constante quantity est déclarée",
+    "const total": "Une constante total est déclarée",
+    "price * quantity": "Le total est calculé depuis price et quantity",
+    "function canStart": "La fonction canStart est déclarée",
+    "return": "La fonction retourne explicitement un résultat",
+    "age >= 13": "La comparaison inclut le seuil de 13 ans",
+    "const message": "Une constante message est déclarée",
+    "`": "Un template literal est utilisé",
+    "${name}": "Le nom est interpolé dans le message",
+    "${xp}": "L'XP est interpolée dans le message",
+    "console.log": "Une information est envoyée dans la console",
+    "console.warn": "Un avertissement est envoyé dans la console",
+    "lesson": "Le message utilise la valeur lesson",
+    ".filter": "filter est utilisé pour sélectionner des éléments",
+    ".map": "map est utilisé pour transformer la collection",
+    ".reduce": "reduce est utilisé pour combiner la collection",
+    ".find": "find est utilisé pour rechercher un élément",
+    ".some": "some est utilisé pour vérifier l'existence",
+    "localStorage.setItem": "Une valeur est enregistrée dans localStorage",
+    "JSON.stringify": "Les réglages sont sérialisés en JSON",
+    "JSON.parse": "Le JSON est reconstruit en objet",
+    "await fetch": "La réponse réseau est attendue",
+    "response.json": "Le corps JSON est lu",
+    "response.ok": "Le statut HTTP est vérifié",
+    "preventDefault": "Le rechargement natif du formulaire est empêché",
+    "classList.toggle": "La classe active est basculée",
+    "addEventListener": "Un événement utilisateur est écouté",
+    "querySelector": "Les éléments utiles sont sélectionnés"
+  };
+  return labels[check] || `Le code utilise ${check}`;
 }
 
 function jsSolution(id, fallback) {

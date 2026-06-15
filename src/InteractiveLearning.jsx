@@ -354,8 +354,9 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
     }
   };
 
-  const runCode = () => {
-    setConsoleOutput(runJavaScriptWithConsole(code));
+  const runCode = async () => {
+    setConsoleOutput(locale === "fr" ? "Exécution en cours…" : "Running…");
+    setConsoleOutput(await runJavaScriptWithConsole(code, locale));
   };
 
   const passed = result?.filter((check) => check.pass).length ?? 0;
@@ -492,7 +493,10 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
               {(result || lesson.tests.map((item) => ({ ...item, pass: false, waiting: true }))).map((check) => (
                 <div className={`flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm font-semibold ${check.pass ? "text-ink" : "text-slate-500"}`} key={check.label}>
                   {check.waiting ? <Code2 className="mt-0.5 size-5 shrink-0 text-indigoPop" /> : check.pass ? <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-mintPop" /> : <XCircle className="mt-0.5 size-5 shrink-0 text-rosePop" />}
-                  <span>{check.label}</span>
+                  <span>
+                    <span className="block">{check.label}</span>
+                    {!check.waiting && !check.pass && <span className="mt-1 block text-xs font-medium leading-5 text-slate-500">{testFailureHelp(check, locale)}</span>}
+                  </span>
                 </div>
               ))}
             </div>
@@ -1072,23 +1076,63 @@ function hasCssDeclaration(code, selector, property) {
 
 function runJavaScriptExpression(code, expression) {
   try {
-    return Boolean(new Function(`${code}\n${expression}`)());
+    const values = new Map();
+    const isolatedStorage = {
+      getItem(key) {
+        return values.has(key) ? values.get(key) : null;
+      },
+      setItem(key, value) {
+        values.set(key, String(value));
+      },
+      removeItem(key) {
+        values.delete(key);
+      }
+    };
+    const silentConsole = { log() {}, info() {}, warn() {}, error() {} };
+    return Boolean(new Function("console", "localStorage", `${code}\n${expression}`)(silentConsole, isolatedStorage));
   } catch {
     return false;
   }
 }
 
-function runJavaScriptWithConsole(code) {
+function testFailureHelp(check, locale) {
+  if (locale !== "fr") {
+    if (check.type === "jsExpression") return "The code runs, but the produced result does not match this scenario.";
+    if (check.type === "cssDeclaration") return "Check the selector and the exact CSS property.";
+    return "Check the requested syntax and make sure it is active code, not a comment.";
+  }
+  if (check.type === "jsExpression") return "Le code s'exécute, mais le résultat produit ne correspond pas encore à ce scénario.";
+  if (check.type === "cssDeclaration") return "Vérifie le sélecteur ciblé et la propriété CSS exacte.";
+  if (check.type === "selector" || check.type === "minSelector") return "Vérifie la structure HTML et le nombre d'éléments demandés.";
+  return "Vérifie la syntaxe demandée et assure-toi qu'elle se trouve dans du code actif, pas dans un commentaire.";
+}
+
+async function runJavaScriptWithConsole(code, locale) {
   const logs = [];
+  const push = (level, items) => logs.push(`${level}${items.map(stringifyConsoleValue).join(" ")}`);
   const fakeConsole = {
-    log: (...items) => logs.push(items.map(stringifyConsoleValue).join(" "))
+    log: (...items) => push("", items),
+    info: (...items) => push("[info] ", items),
+    warn: (...items) => push("[attention] ", items),
+    error: (...items) => push("[erreur] ", items)
   };
+  const fakeFetch = async (url) => ({
+    ok: true,
+    status: 200,
+    async json() {
+      return { url, courses: [{ id: "html" }, { id: "css" }, { id: "javascript" }] };
+    }
+  });
 
   try {
-    new Function("console", "localStorage", `${code}`)(fakeConsole, localStorage);
-    return logs.length ? logs.join("\n") : "No console output.";
+    const execute = new Function("console", "localStorage", "fetch", `"use strict";\nreturn (async () => {\n${code}\n})();`);
+    await Promise.race([
+      execute(fakeConsole, localStorage, fakeFetch),
+      new Promise((_, reject) => window.setTimeout(() => reject(new Error(locale === "fr" ? "Temps d'exécution dépassé." : "Execution timed out.")), 3000))
+    ]);
+    return logs.length ? logs.join("\n") : (locale === "fr" ? "Code exécuté sans erreur. Aucun message console." : "Code ran without errors. No console output.");
   } catch (error) {
-    return `Error: ${error.message}`;
+    return `${locale === "fr" ? "Erreur" : "Error"}: ${error.message}`;
   }
 }
 
