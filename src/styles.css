@@ -27,11 +27,16 @@
   .nav-icon-button { @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigoPop; }
   .nav-account-button { @apply inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-2 pr-3 text-sm font-bold text-slate-700 hover:border-indigo-200 hover:bg-indigo-50; }
   .nav-dropdown { @apply absolute top-[calc(100%+12px)] grid gap-1 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl shadow-slate-900/10; }
+  .app-page { @apply px-4 pb-16 pt-28 sm:px-6 lg:px-8; }
+  .page-heading { @apply mt-2 max-w-4xl font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl; }
+  .surface { @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm; }
+  .muted-surface { @apply rounded-xl border border-slate-200 bg-slate-50 p-4; }
+  .form-control { @apply min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-ink outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100; }
 
   /* Legacy components keep working while sharing the calmer visual system. */
   .clay, .clay-soft {
     border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 12px 30px rgba(15, 23, 42, .05);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
     transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
   }
   .hero-stage { background: #f8fafc; }

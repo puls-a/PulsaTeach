@@ -78,11 +78,11 @@ export function DashboardPage({ locale }) {
   }, []);
 
   return (
-    <section className="px-5 py-32 sm:px-8">
+    <section className="app-page">
       <div className="mx-auto max-w-7xl">
         <AuthNotice locale={locale} />
         <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Dashboard apprenant" : "Learner dashboard"}</p>
-        <h1 className="mt-2 font-display text-5xl font-bold">{locale === "fr" ? "Progression, API et prochaines décisions." : "Progress, API, and next decisions."}</h1>
+        <h1 className="page-heading">{locale === "fr" ? "Ta progression en un coup d'œil." : "Your progress at a glance."}</h1>
         <div className="mt-10 grid gap-5 lg:grid-cols-4">
           <DashCard icon={Trophy} label="XP" value={progress.xp || 0} />
           <DashCard icon={BookOpenCheck} label={locale === "fr" ? "Leçons" : "Lessons"} value={`${completed}/${total}`} />
@@ -95,7 +95,7 @@ export function DashboardPage({ locale }) {
           <DashCard icon={ClipboardCheck} label={locale === "fr" ? "Soumissions" : "Submissions"} value={stats?.submissions ?? "..."} />
           <DashCard icon={Award} label={locale === "fr" ? "Certificats" : "Certificates"} value={stats?.certificates ?? "..."} />
         </div>
-        <div className="mt-8 rounded-[30px] bg-white p-5 clay">
+        <div className="surface mt-8">
           <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Activité récente" : "Recent activity"}</h2>
           <div className="mt-4 grid gap-3">
             {(progress.activity || []).length === 0 && (
@@ -129,7 +129,7 @@ export function ProfilePage({ locale }) {
   const certificates = profile?.certificates || [];
 
   return (
-    <section className="px-5 py-32 sm:px-8">
+    <section className="app-page">
       <div className="mx-auto max-w-7xl">
         <AuthNotice locale={locale} />
         <div className="rounded-[34px] bg-white p-6 clay">
@@ -140,7 +140,7 @@ export function ProfilePage({ locale }) {
               </div>
               <div>
                 <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Profil apprenant" : "Learner profile"}</p>
-                <h1 className="font-display text-5xl font-bold">{profile?.displayName || "PulsaTeach Learner"}</h1>
+                <h1 className="font-display text-3xl font-bold sm:text-4xl">{profile?.displayName || "PulsaTeach Learner"}</h1>
                 <p className="mt-2 font-extrabold text-ink/60">{profile?.userId || getUserId()}</p>
               </div>
             </div>
@@ -160,7 +160,7 @@ export function ProfilePage({ locale }) {
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_.9fr]">
-          <section className="rounded-[30px] bg-white p-5 clay">
+          <section className="surface">
             <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Derniers essais" : "Latest attempts"}</h2>
             <div className="mt-5 grid gap-3">
               {attempts.length === 0 && (
@@ -231,11 +231,11 @@ export function SettingsPage({ locale }) {
   };
 
   return (
-    <section className="px-5 py-32 sm:px-8">
+    <section className="app-page">
       <div className="mx-auto max-w-4xl">
         <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Préférences" : "Settings"}</p>
-        <h1 className="mt-2 font-display text-5xl font-bold">{locale === "fr" ? "Personnalise ton espace PulsaTeach." : "Personalize your PulsaTeach space."}</h1>
-        <form onSubmit={submit} className="mt-10 rounded-[30px] bg-white p-5 clay">
+        <h1 className="page-heading">{locale === "fr" ? "Personnalise ton apprentissage." : "Personalize your learning."}</h1>
+        <form onSubmit={submit} className="surface mt-8">
           <div className="mb-5 flex items-center gap-3">
             <Settings className="size-8 text-indigoPop" />
             <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Profil d'apprentissage" : "Learning profile"}</h2>
@@ -269,10 +269,10 @@ export function PathPage({ locale }) {
   const weeklyPlan = plan?.weeklyPlan || [];
 
   return (
-    <section className="px-5 py-32 sm:px-8">
+    <section className="app-page">
       <div className="mx-auto max-w-7xl">
         <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Plan personnalisé" : "Personalized path"}</p>
-        <h1 className="mt-2 max-w-5xl font-display text-5xl font-bold">
+        <h1 className="page-heading">
           {locale === "fr" ? "PulsaTeach te dit quoi travailler ensuite." : "PulsaTeach tells you what to study next."}
         </h1>
 
@@ -296,7 +296,7 @@ export function PathPage({ locale }) {
             </div>
           </aside>
 
-          <section className="rounded-[30px] bg-white p-5 clay">
+          <section className="surface">
             <div className="flex items-center gap-3">
               <BookOpenCheck className="size-8 text-indigoPop" />
               <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Prochaines leçons" : "Next lessons"}</h2>
@@ -321,7 +321,7 @@ export function PathPage({ locale }) {
           </section>
         </div>
 
-        <section className="mt-8 rounded-[30px] bg-white p-5 clay">
+        <section className="surface mt-8">
           <div className="flex items-center gap-3">
             <CalendarDays className="size-8 text-orangePop" />
             <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Semaine suggérée" : "Suggested week"}</h2>
@@ -351,14 +351,14 @@ export function AnalyticsPage({ locale }) {
   const maxFunnel = Math.max(...(analytics?.funnel || [{ value: 1 }]).map((item) => item.value), 1);
 
   return (
-    <section className="px-5 py-32 sm:px-8">
+    <section className="app-page">
       <div className="mx-auto max-w-7xl">
         <p className="font-display text-lg font-bold text-orangePop">Analytics</p>
-        <h1 className="mt-2 max-w-5xl font-display text-5xl font-bold">
+        <h1 className="page-heading">
           {locale === "fr" ? "Regarde où la plateforme respire, bloque ou progresse." : "See where the platform breathes, blocks, or grows."}
         </h1>
         <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_.9fr]">
-          <section className="rounded-[30px] bg-white p-5 clay">
+          <section className="surface">
             <div className="flex items-center gap-3">
               <BarChart3 className="size-8 text-indigoPop" />
               <h2 className="font-display text-3xl font-bold">Funnel</h2>
@@ -386,7 +386,7 @@ export function AnalyticsPage({ locale }) {
             </div>
           </section>
         </div>
-        <section className="mt-8 rounded-[30px] bg-white p-5 clay">
+        <section className="surface mt-8">
           <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Parcours" : "Tracks"}</h2>
           <div className="mt-5 grid gap-4 md:grid-cols-3">
             {(analytics?.tracks || []).map((track) => (
@@ -426,13 +426,13 @@ export function ProjectsPage({ locale }) {
   };
 
   return (
-    <section className="px-5 py-32 sm:px-8">
+    <section className="app-page">
       <div className="mx-auto max-w-7xl">
         <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Projets portfolio" : "Portfolio projects"}</p>
-        <h1 className="mt-2 max-w-4xl font-display text-5xl font-bold">{locale === "fr" ? "Soumets tes livrables comme sur une vraie plateforme." : "Submit deliverables like a real learning platform."}</h1>
+        <h1 className="page-heading">{locale === "fr" ? "Construis et partage tes projets." : "Build and share your projects."}</h1>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[.85fr_1.15fr]">
-          <form onSubmit={submit} className="clay rounded-[30px] bg-white p-5">
+          <form onSubmit={submit} className="surface">
             <div className="mb-5 flex items-center gap-3">
               <FolderKanban className="size-8 text-indigoPop" />
               <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Nouvelle soumission" : "New submission"}</h2>
@@ -446,7 +446,7 @@ export function ProjectsPage({ locale }) {
                 <textarea
                   value={form.description}
                   onChange={(event) => setForm({ ...form, description: event.target.value })}
-                  className="min-h-32 rounded-2xl border-[3px] border-ink bg-cloud p-4 outline-none focus-visible:ring-2 focus-visible:ring-orangePop"
+                  className="form-control min-h-32 py-3"
                 />
               </label>
               <button type="submit" className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-orangePop px-5 py-4 font-extrabold text-white shadow-clayPressed transition-transform hover:-translate-y-0.5">
@@ -458,7 +458,7 @@ export function ProjectsPage({ locale }) {
             </div>
           </form>
 
-          <div className="clay rounded-[30px] bg-white p-5">
+          <div className="surface">
             <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Mes soumissions" : "My submissions"}</h2>
             <div className="mt-5 grid gap-3">
               {submissions.length === 0 && (
@@ -495,10 +495,10 @@ export function CertificationPage({ locale }) {
   const certificates = data?.certificates || [];
 
   return (
-    <section className="px-5 py-32 sm:px-8">
+    <section className="app-page">
       <div className="mx-auto max-w-7xl">
         <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Certifications" : "Certifications"}</p>
-        <h1 className="mt-2 max-w-5xl font-display text-5xl font-bold">
+        <h1 className="page-heading">
           {locale === "fr" ? "Un vrai objectif final, pas juste une suite de cartes." : "A real finish line, not just a stack of cards."}
         </h1>
         <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_.8fr]">
@@ -509,7 +509,7 @@ export function CertificationPage({ locale }) {
               </p>
             )}
             {certificates.map((certificate) => (
-              <article className="rounded-[30px] bg-white p-5 clay" key={certificate.id}>
+              <article className="surface" key={certificate.id}>
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <div className="inline-flex items-center gap-2 rounded-2xl bg-lemonPop px-4 py-2 font-extrabold clay-soft">
@@ -613,15 +613,15 @@ export function AuthorPage({ locale }) {
   };
 
   return (
-    <section className="px-5 py-32 sm:px-8">
+    <section className="app-page">
       <div className="mx-auto max-w-7xl">
         <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Auteur de cours" : "Course authoring"}</p>
-        <h1 className="mt-2 max-w-5xl font-display text-5xl font-bold">
+        <h1 className="page-heading">
           {locale === "fr" ? "Prépare les prochaines leçons sans casser le lab." : "Prepare the next lessons without breaking the lab."}
         </h1>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[.9fr_1.1fr]">
-          <form onSubmit={submit} className="rounded-[30px] bg-white p-5 clay">
+          <form onSubmit={submit} className="surface">
             <div className="mb-5 flex items-center gap-3">
               <PenTool className="size-8 text-indigoPop" />
               <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Nouveau draft" : "New draft"}</h2>
@@ -649,7 +649,7 @@ export function AuthorPage({ locale }) {
             </div>
           </form>
 
-          <section className="rounded-[30px] bg-white p-5 clay">
+          <section className="surface">
             <div className="flex items-center gap-3">
               <FileText className="size-8 text-indigoPop" />
               <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Backlog contenu" : "Content backlog"}</h2>
@@ -735,10 +735,10 @@ export function AdminPage({ locale }) {
   };
 
   return (
-    <section className="px-5 py-32 sm:px-8">
+    <section className="app-page">
       <div className="mx-auto max-w-7xl">
         <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Admin contenu" : "Content admin"}</p>
-        <h1 className="mt-2 max-w-5xl font-display text-5xl font-bold">
+        <h1 className="page-heading">
           {locale === "fr" ? "Un premier cockpit pour corriger les projets." : "A first cockpit for reviewing projects."}
         </h1>
         <p className="mt-4 max-w-2xl font-semibold leading-7 text-ink/70">
@@ -756,7 +756,7 @@ export function AdminPage({ locale }) {
             </p>
           )}
           {submissions.map((submission) => (
-            <article className="rounded-[30px] bg-white p-5 clay" key={submission.id}>
+            <article className="surface" key={submission.id}>
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h2 className="font-display text-3xl font-bold">{submission.title}</h2>
@@ -801,13 +801,13 @@ export function RoadmapPage({ locale }) {
   const data = roadmap || fallback;
 
   return (
-    <section className="px-5 py-32 sm:px-8">
+    <section className="app-page">
       <div className="mx-auto max-w-7xl">
         <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Ultra roadmap" : "Ultra roadmap"}</p>
-        <h1 className="mt-2 max-w-5xl font-display text-5xl font-bold">{data.vision[locale]}</h1>
+        <h1 className="page-heading">{data.vision[locale]}</h1>
         <div className="mt-10 grid gap-5">
           {data.phases.map((phase, index) => (
-            <article className="clay rounded-[30px] bg-white p-5" key={phase.id}>
+            <article className="surface" key={phase.id}>
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <span className="rounded-2xl bg-indigoPop px-4 py-2 text-sm font-extrabold text-white clay-soft">{phase.horizon}</span>
@@ -839,7 +839,7 @@ function CatalogStats({ locale }) {
 
   return (
     <section className="px-5 pb-10 sm:px-8">
-      <div className="mx-auto max-w-7xl rounded-[30px] bg-white p-5 clay">
+      <div className="surface mx-auto max-w-7xl">
         <div className="grid gap-4 md:grid-cols-3">
           <DashCard icon={BookOpenCheck} label={locale === "fr" ? "Parcours" : "Tracks"} value={tracks.length} />
           <DashCard icon={Activity} label={locale === "fr" ? "Leçons" : "Lessons"} value={lessons} />
@@ -852,38 +852,38 @@ function CatalogStats({ locale }) {
 
 function DashCard({ icon: Icon, label, value }) {
   return (
-    <div className="rounded-[24px] bg-cloud p-5 clay-soft">
-      <Icon className="mb-4 size-7 text-indigoPop" />
-      <p className="font-display text-3xl font-bold">{value}</p>
-      <p className="font-extrabold text-ink/60">{label}</p>
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-4 grid size-9 place-items-center rounded-lg bg-indigo-50 text-indigoPop"><Icon className="size-5" /></div>
+      <p className="font-display text-2xl font-bold text-ink">{value}</p>
+      <p className="mt-1 text-sm font-semibold text-slate-500">{label}</p>
     </div>
   );
 }
 
 function ProgressMeter({ label, value, detail }) {
   return (
-    <div className="rounded-[24px] bg-cloud p-5 clay-soft">
-      <div className="mb-3 flex items-center justify-between gap-4 font-extrabold">
+    <div className="muted-surface">
+      <div className="mb-3 flex items-center justify-between gap-4 text-sm font-semibold">
         <span>{label}</span>
         <span>{detail}</span>
       </div>
-      <div className="h-5 rounded-full bg-white clay-soft">
-        <div className="h-full rounded-full bg-mintPop" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
+      <div className="h-2 rounded-full bg-slate-200">
+        <div className="h-full rounded-full bg-indigoPop" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
       </div>
-      <p className="mt-3 font-display text-3xl font-bold">{value}%</p>
+      <p className="mt-3 font-display text-2xl font-bold">{value}%</p>
     </div>
   );
 }
 
 function Field({ label, value, onChange, required = false }) {
   return (
-    <label className="grid gap-2 font-extrabold">
+    <label className="grid gap-2 text-sm font-semibold text-slate-700">
       {label}
       <input
         required={required}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="min-h-14 rounded-2xl border-[3px] border-ink bg-cloud px-4 outline-none focus-visible:ring-2 focus-visible:ring-orangePop"
+        className="form-control"
       />
     </label>
   );
@@ -891,12 +891,12 @@ function Field({ label, value, onChange, required = false }) {
 
 function SelectField({ label, value, onChange, options }) {
   return (
-    <label className="grid gap-2 font-extrabold">
+    <label className="grid gap-2 text-sm font-semibold text-slate-700">
       {label}
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="min-h-14 rounded-2xl border-[3px] border-ink bg-cloud px-4 outline-none focus-visible:ring-2 focus-visible:ring-orangePop"
+        className="form-control"
       >
         {options.map((option) => (
           <option key={option} value={option}>{option}</option>
@@ -908,12 +908,12 @@ function SelectField({ label, value, onChange, options }) {
 
 function TextAreaField({ label, value, onChange }) {
   return (
-    <label className="grid gap-2 font-extrabold">
+    <label className="grid gap-2 text-sm font-semibold text-slate-700">
       {label}
       <textarea
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="min-h-24 rounded-2xl border-[3px] border-ink bg-cloud p-4 outline-none focus-visible:ring-2 focus-visible:ring-orangePop"
+        className="form-control min-h-28 py-3"
       />
     </label>
   );
@@ -921,11 +921,11 @@ function TextAreaField({ label, value, onChange }) {
 
 function RoadmapList({ title, items }) {
   return (
-    <div className="rounded-[24px] bg-cloud p-5 clay-soft">
-      <h3 className="font-display text-2xl font-bold">{title}</h3>
+    <div className="muted-surface">
+      <h3 className="font-display text-xl font-bold">{title}</h3>
       <ul className="mt-4 grid gap-2">
         {items.map((item) => (
-          <li className="font-extrabold text-ink/70" key={item}>• {item}</li>
+          <li className="text-sm font-medium text-slate-600" key={item}>• {item}</li>
         ))}
       </ul>
     </div>

@@ -135,6 +135,15 @@ function Header({ locale, route, onLanguageToggle }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!mobileOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileOpen]);
+
   const toggleMenu = (id) => setActiveMenu(activeMenu === id ? null : id);
   const activeGroup = navGroups.find((group) => group.items.some((item) => item.routes.includes(route)))?.id;
 
@@ -161,7 +170,12 @@ function Header({ locale, route, onLanguageToggle }) {
         </div>
       </nav>
 
-      {mobileOpen && <MobileNavigation locale={locale} user={user} route={route} />}
+      {mobileOpen && (
+        <>
+          <button type="button" className="fixed inset-0 -z-10 bg-slate-950/40 backdrop-blur-sm lg:hidden" aria-label={locale === "fr" ? "Fermer le menu" : "Close menu"} onClick={() => setMobileOpen(false)} />
+          <MobileNavigation locale={locale} user={user} route={route} onClose={() => setMobileOpen(false)} />
+        </>
+      )}
     </header>
   );
 }
@@ -225,23 +239,69 @@ function AccountMenu({ user, locale, route, open, onToggle, onClose }) {
   );
 }
 
-function MobileNavigation({ locale, user, route }) {
+function MobileNavigation({ locale, user, route, onClose }) {
+  const currentGroup = navGroups.find((group) => group.items.some((item) => item.routes.includes(route)))?.id || "learn";
+  const [openGroup, setOpenGroup] = useState(currentGroup);
+
   return (
-    <div id="mobile-navigation" className="mx-auto mt-2 max-h-[calc(100vh-6rem)] max-w-7xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-xl lg:hidden">
-      {navGroups.map((group) => (
-        <section className="mb-4" key={group.id}>
-          <p className="px-3 pb-2 text-xs font-bold uppercase tracking-[.16em] text-slate-400">{group.label[locale]}</p>
-          <div className="grid gap-1 sm:grid-cols-2">{group.items.map((item) => <DropdownItem key={item.href} item={item} locale={locale} active={item.routes.includes(route)} />)}</div>
-        </section>
-      ))}
-      <div className="grid gap-2 border-t border-slate-200 pt-3 sm:grid-cols-2">
-        <a href={user ? "#/profile" : "#/signup"} className="primary-button">{user ? (locale === "fr" ? "Mon profil" : "My profile") : (locale === "fr" ? "Créer un compte" : "Create account")}</a>
-        <a href={user ? "#/settings" : "#/auth"} className="secondary-button">
-          {user ? <Settings className="size-4" /> : <LogIn className="size-4" />}
-          {user ? (locale === "fr" ? "Paramètres" : "Settings") : (locale === "fr" ? "Se connecter" : "Sign in")}
-        </a>
+    <aside id="mobile-navigation" className="fixed inset-y-0 right-0 z-20 flex w-full max-w-sm flex-col border-l border-slate-200 bg-white shadow-2xl lg:hidden" aria-label={locale === "fr" ? "Menu mobile" : "Mobile menu"}>
+      <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold text-ink">{user?.email || (locale === "fr" ? "Bienvenue sur PulsaTeach" : "Welcome to PulsaTeach")}</p>
+          <p className="mt-0.5 text-xs text-slate-500">{user ? (locale === "fr" ? "Progression synchronisée" : "Progress synced") : (locale === "fr" ? "Apprends à ton rythme" : "Learn at your pace")}</p>
+        </div>
+        <button type="button" className="nav-icon-button" onClick={onClose} aria-label={locale === "fr" ? "Fermer le menu" : "Close menu"}><X className="size-5" /></button>
       </div>
-    </div>
+
+      <div className="grid grid-cols-3 gap-2 border-b border-slate-200 p-4">
+        {[
+          { href: "#/catalog", icon: Compass, label: locale === "fr" ? "Formations" : "Courses" },
+          { href: "#/learn", icon: Code2, label: locale === "fr" ? "Continuer" : "Continue" },
+          { href: "#/dashboard", icon: BarChart3, label: locale === "fr" ? "Progrès" : "Progress" }
+        ].map((item) => {
+          const Icon = item.icon;
+          return <a href={item.href} onClick={onClose} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-xl bg-slate-100 px-2 text-center text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigoPop" key={item.href}><Icon className="size-5" />{item.label}</a>;
+        })}
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4">
+        {navGroups.map((group) => {
+          const Icon = group.icon;
+          const open = openGroup === group.id;
+          return (
+            <section className="border-b border-slate-100 py-2" key={group.id}>
+              <button type="button" className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left font-bold text-ink hover:bg-slate-50" onClick={() => setOpenGroup(open ? null : group.id)} aria-expanded={open}>
+                <span className="grid size-9 place-items-center rounded-xl bg-indigo-50 text-indigoPop"><Icon className="size-4" /></span>
+                <span className="flex-1">{group.label[locale]}</span>
+                <ChevronDown className={`size-4 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
+              </button>
+              {open && <div className="grid gap-1 pb-2 pl-3">{group.items.map((item) => <MobileMenuItem key={item.href} item={item} locale={locale} active={item.routes.includes(route)} onClick={onClose} />)}</div>}
+            </section>
+          );
+        })}
+      </div>
+
+      <div className="border-t border-slate-200 bg-slate-50 p-4">
+        <div className="grid gap-2">
+          <a href={user ? "#/profile" : "#/signup"} onClick={onClose} className="primary-button">{user ? (locale === "fr" ? "Voir mon profil" : "View profile") : (locale === "fr" ? "Créer un compte gratuit" : "Create free account")}</a>
+          <a href={user ? "#/settings" : "#/auth"} onClick={onClose} className="secondary-button">
+            {user ? <Settings className="size-4" /> : <LogIn className="size-4" />}
+            {user ? (locale === "fr" ? "Paramètres" : "Settings") : (locale === "fr" ? "Se connecter" : "Sign in")}
+          </a>
+          {user && <button type="button" onClick={() => { signOutSupabase(); onClose(); }} className="flex min-h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50"><LogOut className="size-4" />{locale === "fr" ? "Se déconnecter" : "Sign out"}</button>}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function MobileMenuItem({ item, locale, active, onClick }) {
+  const Icon = item.icon;
+  return (
+    <a href={item.href} onClick={onClick} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold ${active ? "bg-indigo-50 text-indigoPop" : "text-slate-600 hover:bg-slate-50 hover:text-ink"}`} aria-current={active ? "page" : undefined}>
+      <Icon className="size-4 shrink-0" />
+      <span>{item.title[locale]}</span>
+    </a>
   );
 }
 
