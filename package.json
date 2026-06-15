@@ -8,6 +8,7 @@
     "server": "node server/index.js",
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
     "build": "vite build",
+    "audit:learning": "node scripts/audit-learning.mjs",
     "smoke": "node scripts/smoke.mjs",
     "preview": "vite preview --host 127.0.0.1"
   },

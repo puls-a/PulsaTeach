@@ -8,7 +8,8 @@ export default defineConfig({
       output: {
         manualChunks: {
           supabase: ["@supabase/supabase-js"],
-          react: ["react", "react-dom"]
+          react: ["react", "react-dom"],
+          pedagogy: ["./src/htmlPedagogy.js", "./src/cssPedagogy.js"]
         }
       }
     }

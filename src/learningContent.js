@@ -1,4 +1,5 @@
 import { getHtmlPedagogy } from "./htmlPedagogy.js";
+import { getCssPedagogy } from "./cssPedagogy.js";
 
 const htmlShell = (body) => `<!doctype html>
 <html lang="fr">
@@ -551,6 +552,14 @@ export const learningTracks = [
       en: ["Build a coherent visual system", "Master Flexbox and Grid", "Create responsive interfaces", "Handle interactions and motion preferences"]
     },
     capstone: { fr: "Landing page responsive complète", en: "Complete responsive landing page" },
+    profession: {
+      fr: "CSS est au coeur du travail des développeurs front-end, intégrateurs web et designers UI. Cette compétence transforme une structure HTML en interface lisible, cohérente, responsive et accessible, capable de résister aux vrais contenus.",
+      en: "CSS is central to front-end development, web integration, and UI design. It turns HTML structure into readable, coherent, responsive, and accessible interfaces."
+    },
+    certification: {
+      fr: ["Valider toutes les leçons et le quiz CSS", "Livrer une navbar Flexbox responsive", "Justifier les choix de layout et de mouvement", "Livrer la landing finale sans débordement, navigable au clavier et compatible reduced-motion"],
+      en: ["Pass every CSS lesson and quiz", "Ship a responsive Flexbox navbar", "Justify layout and motion choices", "Ship the final landing without overflow, keyboard accessible, and reduced-motion compatible"]
+    },
     modules: [
       module("css-selectors", "Sélecteurs", "Selectors", [
         cssLesson("css-01-selectors", ["Selector Quest", "Selector Quest"], "Cible uniquement les cartes de cours avec la classe .course-card.", ".course-card {\n  /* écris ici */\n}", ".course-card", ["background", "border"], 25),
@@ -713,6 +722,10 @@ function module(id, fr, en, lessons) {
   return { id, title: { fr, en }, lessons, totalMinutes, ...moduleMeta(id), ...moduleLearningMeta(id) };
 }
 
+function getPedagogy(id) {
+  return getHtmlPedagogy(id) || getCssPedagogy(id);
+}
+
 function moduleLearningMeta(id) {
   const metadata = {
     "html-foundations": {
@@ -742,6 +755,41 @@ function moduleLearningMeta(id) {
       outcomes: { fr: ["Annoncer les changements dynamiques", "Optimiser structure et métadonnées", "Auditer puis livrer un projet complet"], en: ["Announce dynamic changes", "Optimize structure and metadata", "Audit and ship a complete project"] },
       vocabulary: ["région live", "SEO", "landmark", "lien d'évitement", "audit", "remédiation"],
       mastery: { fr: ["PulsaConf passe tous les tests", "La page est navigable au clavier", "Chaque correction d'audit est justifiée"], en: ["PulsaConf passes every test", "The page is keyboard navigable", "Every audit fix is justified"] }
+    },
+    "css-selectors": {
+      importance: { fr: "Des sélecteurs prévisibles permettent de faire évoluer une interface sans modifier accidentellement d'autres composants.", en: "Predictable selectors let an interface evolve without accidentally changing other components." },
+      prerequisites: { fr: ["Lire une structure HTML simple", "Reconnaître balises, classes et identifiants"], en: ["Read simple HTML structure", "Recognize tags, classes, and identifiers"] },
+      outcomes: { fr: ["Cibler selon un nom ou une relation", "Styliser les états interactifs", "Raisonner sur la cascade"], en: ["Target by name or relationship", "Style interactive states", "Reason about the cascade"] },
+      vocabulary: ["sélecteur", "classe", "combinateur", "pseudo-classe", "cascade", "spécificité"],
+      mastery: { fr: ["Prédire les éléments ciblés", "Conserver un focus clavier visible", "Expliquer quelle règle gagne et pourquoi"], en: ["Predict targeted elements", "Keep keyboard focus visible", "Explain which rule wins and why"] }
+    },
+    "css-box-model": {
+      importance: { fr: "Le modèle de boîte, la typographie et les dimensions fluides constituent la base de toute interface stable et lisible.", en: "The box model, typography, and fluid sizing form the base of every stable readable interface." },
+      prerequisites: { fr: ["Module Sélecteurs"], en: ["Selectors module"] },
+      outcomes: { fr: ["Construire des surfaces cohérentes", "Rendre le texte confortable", "Créer des dimensions fluides et robustes"], en: ["Build coherent surfaces", "Make text comfortable", "Create fluid robust sizing"] },
+      vocabulary: ["contenu", "padding", "bordure", "margin", "line-height", "variable CSS", "overflow"],
+      mastery: { fr: ["Distinguer espace intérieur et extérieur", "Centraliser les valeurs partagées", "Absorber un contenu long sans casser le layout"], en: ["Distinguish internal and external spacing", "Centralize shared values", "Handle long content without breaking layout"] }
+    },
+    "css-flexbox": {
+      importance: { fr: "Flexbox organise les composants sur un axe et résout les alignements courants des navigations, barres d'actions et listes.", en: "Flexbox organizes components on one axis and solves common navigation, action bar, and list alignment needs." },
+      prerequisites: { fr: ["Sélecteurs", "Modèle de boîte"], en: ["Selectors", "Box model"] },
+      outcomes: { fr: ["Aligner et distribuer des groupes", "Gérer le repli sans débordement", "Livrer une navbar responsive"], en: ["Align and distribute groups", "Handle wrapping without overflow", "Ship a responsive navbar"] },
+      vocabulary: ["conteneur flex", "axe principal", "axe secondaire", "gap", "flex-wrap", "justify-content"],
+      mastery: { fr: ["Expliquer les deux axes", "Choisir la bonne propriété d'alignement", "La navbar reste utilisable sur petit écran"], en: ["Explain both axes", "Choose the right alignment property", "Keep the navbar usable on small screens"] }
+    },
+    "css-grid": {
+      importance: { fr: "Grid permet de composer des structures bidimensionnelles adaptatives sans calculs de largeur fragiles.", en: "Grid composes adaptive two-dimensional structures without fragile width calculations." },
+      prerequisites: { fr: ["Tailles fluides", "Espacements cohérents"], en: ["Fluid sizing", "Consistent spacing"] },
+      outcomes: { fr: ["Définir lignes et colonnes", "Créer une galerie auto-adaptative", "Aligner le contenu dans les cellules"], en: ["Define rows and columns", "Create an auto-adaptive gallery", "Align content inside cells"] },
+      vocabulary: ["grille", "piste", "fr", "repeat", "minmax", "auto-fit", "place-items"],
+      mastery: { fr: ["Choisir Grid pour un besoin bidimensionnel", "Construire une galerie sans largeur fixe", "Expliquer chaque piste et gouttière"], en: ["Choose Grid for a two-dimensional need", "Build a gallery without fixed width", "Explain every track and gutter"] }
+    },
+    "css-responsive-motion": {
+      importance: { fr: "Une interface professionnelle doit fonctionner avec différents écrans, contenus, moyens d'interaction et préférences de mouvement.", en: "A professional interface must work across screens, content, interaction methods, and motion preferences." },
+      prerequisites: { fr: ["Tous les modules CSS précédents"], en: ["Every previous CSS module"] },
+      outcomes: { fr: ["Choisir des breakpoints dictés par le contenu", "Organiser une feuille mobile-first", "Créer un mouvement responsable", "Livrer une landing complète"], en: ["Choose content-driven breakpoints", "Organize mobile-first styles", "Create responsible motion", "Ship a complete landing"] },
+      vocabulary: ["media query", "breakpoint", "mobile-first", "transition", "transform", "prefers-reduced-motion"],
+      mastery: { fr: ["Aucun débordement aux largeurs testées", "Les actions clavier restent visibles", "Le mouvement respecte reduced-motion", "Le projet final utilise un système cohérent"], en: ["No overflow at tested widths", "Keyboard actions remain visible", "Motion respects reduced-motion", "Final project uses a coherent system"] }
     }
   };
   return metadata[id] || {};
@@ -778,7 +826,7 @@ function lesson({ id, title, brief, course, starterCode, solution, tests, hint, 
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief[0], en: brief[1] },
     course: course || courseFor(id, "html"),
-    pedagogy: getHtmlPedagogy(id),
+    pedagogy: getPedagogy(id),
     theory: theoryFor(id),
     guide: guideFor(id, "html"),
     skills: skillsFor(id),
@@ -799,7 +847,7 @@ function quizLesson({ id, title, brief, question, options, answer, explanation, 
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief[0], en: brief[1] },
     course: courseFor(id, "quiz"),
-    pedagogy: getHtmlPedagogy(id),
+    pedagogy: getPedagogy(id),
     theory: theoryFor(id),
     guide: guideFor(id, "quiz"),
     skills: skillsFor(id),
@@ -827,7 +875,7 @@ function projectLesson({ id, title, brief, starterCode, solution, tests, xp }) {
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief[0], en: brief[1] },
     course: courseFor(id, "project"),
-    pedagogy: getHtmlPedagogy(id),
+    pedagogy: getPedagogy(id),
     theory: theoryFor(id),
     guide: guideFor(id, "project"),
     skills: skillsFor(id),
@@ -1134,7 +1182,7 @@ function cssLesson(id, title, brief, starterCode, target, checks, xp) {
     brief: { fr: brief, en: brief },
     theory: theoryFor(id),
     course: courseFor(id, "css"),
-    pedagogy: getHtmlPedagogy(id),
+    pedagogy: getPedagogy(id),
     guide: guideFor(id, "css"),
     skills: skillsFor(id),
     difficulty: difficultyFor(id),
@@ -1154,7 +1202,7 @@ function cssLesson(id, title, brief, starterCode, target, checks, xp) {
 </main>`,
     tests: [
       test("contains", "target selector", target),
-      ...checks.map((check) => check.includes(":") || check === ":hover" || check === "@media"
+      ...checks.map((check) => check.includes(":") || check === ":hover" || check === "@media" || check === "repeat" || check === "minmax" || (id === "css-05-motion" && check === "transform")
         ? test("contains", check, check)
         : test("cssDeclaration", check, { selector: target, property: check }))
     ],
@@ -1164,6 +1212,27 @@ function cssLesson(id, title, brief, starterCode, target, checks, xp) {
 }
 
 function cssSolution(id, target, checks) {
+  if (id === "css-04-grid") {
+    return `.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}`;
+  }
+
+  if (id === "css-05-mobile-first") {
+    return `.panel {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 700px) {
+  .panel {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}`;
+  }
+
   if (id === "css-05-motion") {
     return `.toolbar button {
   transition: transform .2s ease;
@@ -1244,7 +1313,7 @@ function jsLesson(id, title, brief, starterCode, checks, xp) {
     brief: { fr: brief, en: brief },
     theory: theoryFor(id),
     course: courseFor(id, "javascript"),
-    pedagogy: getHtmlPedagogy(id),
+    pedagogy: getPedagogy(id),
     guide: guideFor(id, "javascript"),
     skills: skillsFor(id),
     difficulty: difficultyFor(id),
