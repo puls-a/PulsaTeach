@@ -6,10 +6,11 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          supabase: ["@supabase/supabase-js"],
-          react: ["react", "react-dom"],
-          pedagogy: ["./src/htmlPedagogy.js", "./src/cssPedagogy.js", "./src/jsPedagogy.js"]
+        manualChunks(id) {
+          if (id.includes("node_modules/@supabase/supabase-js")) return "supabase";
+          if (id.includes("node_modules/react") || id.includes("node_modules/react-dom")) return "react";
+          if (id.includes("htmlPedagogy.js") || id.includes("cssPedagogy.js") || id.includes("jsPedagogy.js")) return "pedagogy";
+          return undefined;
         }
       }
     }

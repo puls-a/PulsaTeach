@@ -215,13 +215,13 @@ export const languages = {
         {
           initials: "JS",
           name: "Jules S.",
-          role: "13 ans, crÇateur de bot",
+          role: "13 ans, créateur de bot",
           quote: "Le tableau de bord m'a montré que je progressais avant même que je m'en rende compte. Ça m'a beaucoup aidé."
         },
         {
           initials: "NK",
           name: "Noa K.",
-          role: "10 ans, crÇateur de jeu",
+          role: "10 ans, créateur de jeu",
           quote: "J'ai fait un jeu auquel mon cousin a joué vingt minutes. Ensuite, j'ai appris à corriger mon propre bug."
         }
       ]

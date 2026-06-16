@@ -20,6 +20,11 @@ import { loadRemoteProgress, recordAttempt, saveRemoteProgress } from "./apiClie
 
 const progressKey = "pulsateach-learning-progress";
 const bookmarksKey = "pulsateach-learning-bookmarks";
+const colorClasses = {
+  html: { card: "bg-orange-50", button: "bg-orange-500" },
+  css: { card: "bg-indigo-50", button: "bg-indigoPop" },
+  javascript: { card: "bg-amber-50", button: "bg-amber-500" }
+};
 
 export default function InteractiveLearning({ locale }) {
   const initialRoute = readLessonRoute();
@@ -53,30 +58,33 @@ export default function InteractiveLearning({ locale }) {
   }, [activeTrackId, activeModuleId, activeLessonId]);
 
   useEffect(() => {
+    let cancelled = false;
     loadRemoteProgress()
       .then((remote) => {
+        if (cancelled) return;
         if (remote?.completed) {
-          const merged = mergeProgress(progress, remote);
-          setProgress(merged);
-          localStorage.setItem(progressKey, JSON.stringify(merged));
+          setProgress((current) => {
+            const merged = mergeProgress(current, remote);
+            localStorage.setItem(progressKey, JSON.stringify(merged));
+            return merged;
+          });
           setSyncState("synced");
         } else {
           setSyncState("local");
         }
       })
-      .catch(() => setSyncState("offline"));
+      .catch(() => {
+        if (!cancelled) setSyncState("offline");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleTrackChange = (track) => {
     setActiveTrackId(track.id);
     setActiveModuleId(track.modules[0].id);
     setActiveLessonId(track.modules[0].lessons[0].id);
-  };
-
-  const openLesson = ({ trackId, moduleId, lessonId }) => {
-    setActiveTrackId(trackId);
-    setActiveModuleId(moduleId);
-    setActiveLessonId(lessonId);
   };
 
   const completeLesson = (lesson, passedCount) => {
@@ -1182,21 +1190,6 @@ function getNextLesson(track, moduleId, lessonId) {
   return index >= 0 ? flat[index + 1] : null;
 }
 
-function findFirstTodo(progress) {
-  for (const track of learningTracks) {
-    for (const module of track.modules) {
-      for (const lesson of module.lessons) {
-        if (!progress.completed[lesson.id]) {
-          return { trackId: track.id, moduleId: module.id, lessonId: lesson.id };
-        }
-      }
-    }
-  }
-  const firstTrack = learningTracks[0];
-  const firstModule = firstTrack.modules[0];
-  return { trackId: firstTrack.id, moduleId: firstModule.id, lessonId: firstModule.lessons[0].id };
-}
-
 function readLessonRoute() {
   const fallbackTrack = learningTracks[0];
   const fallbackModule = fallbackTrack.modules[0];
@@ -1244,33 +1237,6 @@ function filterLabel(filter, locale) {
     saved: { fr: "Favoris", en: "Saved" }
   };
   return labels[filter][locale];
-}
-
-function exportProgress(progress) {
-  const payload = JSON.stringify({ exportedAt: new Date().toISOString(), progress }, null, 2);
-  const blob = new Blob([payload], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "pulsateach-progress.json";
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-function importProgress(file, setProgress) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const parsed = JSON.parse(String(reader.result));
-      const imported = parsed.progress || parsed;
-      const next = { ...createEmptyProgress(), ...imported };
-      setProgress(next);
-      localStorage.setItem(progressKey, JSON.stringify(next));
-    } catch {
-      window.alert("Invalid PulsaTeach progress file.");
-    }
-  };
-  reader.readAsText(file);
 }
 
 function readBookmarks() {
@@ -1333,23 +1299,4 @@ function mergeProgress(local, remote) {
     activity,
     streak: remote.streak || local.streak || createEmptyProgress().streak
   };
-}
-
-function getUnlockedBadges(progress, completedCount, totalLessons) {
-  const badges = [];
-  if (completedCount >= 1) badges.push("first-pass");
-  if (completedCount >= 5) badges.push("five-wins");
-  if (completedCount >= 10) badges.push("tenacious");
-  if ((progress.streak?.count ?? 0) >= 3) badges.push("streak-3");
-  if (completedCount === totalLessons && totalLessons > 0) badges.push("path-complete");
-  return badges;
-}
-
-function levelFromXp(xp) {
-  if (xp >= 2000) return "10";
-  if (xp >= 980) return "7";
-  if (xp >= 500) return "5";
-  if (xp >= 180) return "3";
-  if (xp >= 80) return "2";
-  return "1";
 }
