@@ -113,7 +113,7 @@ Le smoke test simple suppose que le frontend et l'API sont déjà démarrés. Le
 - En développement JSON local, `PULSATEACH_ADMIN_KEY` et `VITE_ADMIN_ACCESS_KEY` permettent de tester ces écrans sans Supabase.
 - En production, les rôles doivent venir des metadata Supabase (`role` ou `roles`) et la clé dev ne doit pas être exposée au navigateur.
 - Les certificats sont pour l'instant calculés comme éligibilité ; la roadmap prévoit une émission vérifiable.
-- L'exécution JavaScript utilisateur doit encore être isolée dans un Web Worker avant usage production.
+- L'exécution JavaScript utilisateur du lab navigateur passe par un Web Worker avec timeout, stockage simulé et `fetch` simulé.
 
 ## Limites connues
 

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ArrowRight, CheckCircle2, Info, RotateCcw, TestTube2, TriangleAlert } from "lucide-react";
 import { assetPaths, awardGameMission } from "../gameContent.js";
+import { runAimFunctionSandbox } from "../jsSandboxClient.js";
 import MissionModal from "./MissionModal.jsx";
 
 const levels = [
@@ -67,11 +68,11 @@ export default function ArrowTargetGame({ locale = "en" }) {
   const angle = useMemo(() => directionToAngle(shot?.direction || level.expected), [level.expected, shot]);
   const travel = shot?.passed ? 130 : 66;
 
-  const fire = () => {
+  const fire = async () => {
     try {
-      const aim = new Function(`${code}; return aim;`)();
-      if (typeof aim !== "function") throw new Error("aim must be a function");
-      const returned = String(aim(level.target)).trim().toLowerCase();
+      const result = await runAimFunctionSandbox(code, level.target);
+      if (!result.ok) throw new Error(result.error || "aim failed");
+      const returned = result.value;
       const passed = returned === level.expected;
       setShot({ passed, returned, direction: returned });
       setMessage(passed ? "pass" : "fail");

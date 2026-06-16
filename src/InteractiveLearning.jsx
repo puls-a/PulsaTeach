@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { learningTracks } from "./learningContent.js";
 import { loadRemoteProgress, recordAttempt, saveRemoteProgress } from "./apiClient.js";
+import { runJavaScriptConsoleSandbox, runJavaScriptExpressionSandbox } from "./jsSandboxClient.js";
 
 const progressKey = "pulsateach-learning-progress";
 const bookmarksKey = "pulsateach-learning-bookmarks";
@@ -347,8 +348,8 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
   const preview = useMemo(() => createPreview(lesson, code), [code, lesson]);
   const previewKind = getPreviewKind(lesson);
 
-  const runTests = () => {
-    const checks = validateLesson(lesson, code);
+  const runTests = async () => {
+    const checks = await validateLesson(lesson, code);
     setResult(checks);
     recordAttempt({
       lessonId: lesson.id,
@@ -1066,9 +1067,10 @@ function createJavaScriptPreview() {
   return "<!doctype html><html><body></body></html>";
 }
 
-function validateLesson(lesson, code) {
+async function validateLesson(lesson, code) {
   const activeCode = stripCodeComments(code);
-  return lesson.tests.map((item) => {
+  const results = [];
+  for (const item of lesson.tests) {
     let pass = false;
     if (item.type === "contains" || item.type === "doctype") {
       pass = normalize(activeCode).includes(normalize(item.value));
@@ -1080,13 +1082,14 @@ function validateLesson(lesson, code) {
       pass = checkSelector(code, item.value, item.amount || 1);
     }
     if (item.type === "jsExpression") {
-      pass = runJavaScriptExpression(code, item.value);
+      pass = await runJavaScriptExpression(code, item.value);
     }
     if (item.type === "cssDeclaration") {
       pass = hasCssDeclaration(code, item.value.selector, item.value.property);
     }
-    return { ...item, pass };
-  });
+    results.push({ ...item, pass });
+  }
+  return results;
 }
 
 function hasCssDeclaration(code, selector, property) {
@@ -1104,25 +1107,9 @@ function stripCodeComments(value) {
     .replace(/^\s*\/\/.*$/gm, "");
 }
 
-function runJavaScriptExpression(code, expression) {
-  try {
-    const values = new Map();
-    const isolatedStorage = {
-      getItem(key) {
-        return values.has(key) ? values.get(key) : null;
-      },
-      setItem(key, value) {
-        values.set(key, String(value));
-      },
-      removeItem(key) {
-        values.delete(key);
-      }
-    };
-    const silentConsole = { log() {}, info() {}, warn() {}, error() {} };
-    return Boolean(new Function("console", "localStorage", `${code}\n${expression}`)(silentConsole, isolatedStorage));
-  } catch {
-    return false;
-  }
+async function runJavaScriptExpression(code, expression) {
+  const result = await runJavaScriptExpressionSandbox(code, expression);
+  return Boolean(result.ok && result.value);
 }
 
 function testFailureHelp(check, locale) {
@@ -1147,43 +1134,11 @@ function displayTestLabel(check, locale) {
 }
 
 async function runJavaScriptWithConsole(code, locale) {
-  const logs = [];
-  const push = (level, items) => logs.push(`${level}${items.map(stringifyConsoleValue).join(" ")}`);
-  const fakeConsole = {
-    log: (...items) => push("", items),
-    info: (...items) => push("[info] ", items),
-    warn: (...items) => push("[attention] ", items),
-    error: (...items) => push("[erreur] ", items)
-  };
-  const fakeFetch = async (url) => ({
-    ok: true,
-    status: 200,
-    async json() {
-      return { url, courses: [{ id: "html" }, { id: "css" }, { id: "javascript" }] };
-    }
-  });
-
-  try {
-    const execute = new Function("console", "localStorage", "fetch", `"use strict";\nreturn (async () => {\n${code}\n})();`);
-    await Promise.race([
-      execute(fakeConsole, localStorage, fakeFetch),
-      new Promise((_, reject) => window.setTimeout(() => reject(new Error(locale === "fr" ? "Temps d'exécution dépassé." : "Execution timed out.")), 3000))
-    ]);
-    return logs.length ? logs.join("\n") : (locale === "fr" ? "Code exécuté sans erreur. Aucun message console." : "Code ran without errors. No console output.");
-  } catch (error) {
-    return `${locale === "fr" ? "Erreur" : "Error"}: ${error.message}`;
-  }
+  const result = await runJavaScriptConsoleSandbox(code);
+  if (result.timedOut) return locale === "fr" ? "Erreur: Temps d'ex?cution d?pass?." : "Error: Execution timed out.";
+  if (!result.ok) return `${locale === "fr" ? "Erreur" : "Error"}: ${result.error}`;
+  return result.logs?.length ? result.logs.join("\n") : (locale === "fr" ? "Code ex?cut? sans erreur. Aucun message console." : "Code ran without errors. No console output.");
 }
-
-function stringifyConsoleValue(value) {
-  if (typeof value === "string") return value;
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return String(value);
-  }
-}
-
 function getNextLesson(track, moduleId, lessonId) {
   const flat = track.modules.flatMap((module) => module.lessons.map((lesson) => ({ moduleId: module.id, lessonId: lesson.id })));
   const index = flat.findIndex((item) => item.moduleId === moduleId && item.lessonId === lessonId);

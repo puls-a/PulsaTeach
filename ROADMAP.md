@@ -33,7 +33,7 @@ Le but n'est pas seulement d'avoir beaucoup de pages. Le but est de montrer un s
   - `src/InteractiveLearning.jsx`
   - `src/pages.jsx`
   - `server/index.js`
-- Exécution JavaScript utilisateur via `new Function`, pas encore isolée en Worker.
+- Exécution JavaScript utilisateur isolée dans un Web Worker côté navigateur ; il reste à durcir les scénarios avancés et à étendre les tests E2E.
 - Routes admin/auteur et exports insuffisamment protégés par rôles.
 - Auth locale utile pour prototype mais insuffisante pour production.
 - Certification calculée mais pas émise, vérifiable ni signée.
@@ -652,7 +652,7 @@ Objectif : rendre le projet montrable.
 - Ajouter ESLint.
 - Ajouter smoke test autonome.
 - Protéger admin/auteur/export.
-- Isoler l'exécution JS.
+- Durcir l'exécution JS isolée en Worker avec davantage de scénarios E2E.
 - Découper `InteractiveLearning.jsx`.
 - Corriger certification CSS responsive.
 
