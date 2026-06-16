@@ -49,6 +49,8 @@ En développement local sans Supabase, utiliser :
 
 ```bash
 PULSATEACH_STORAGE=json
+PULSATEACH_ADMIN_KEY=dev-admin-key
+VITE_ADMIN_ACCESS_KEY=dev-admin-key
 ```
 
 Sous PowerShell :
@@ -107,12 +109,15 @@ Le smoke test simple suppose que le frontend et l'API sont déjà démarrés. Le
 - Le curriculum est audité automatiquement pour vérifier la présence des sections pédagogiques obligatoires.
 - Les exercices CSS et JavaScript sont validés par tests statiques ou expressions exécutées.
 - Le backend peut fonctionner en JSON local ou avec Supabase.
+- Les endpoints admin/auteur/review sont protégés par rôles côté serveur.
+- En développement JSON local, `PULSATEACH_ADMIN_KEY` et `VITE_ADMIN_ACCESS_KEY` permettent de tester ces écrans sans Supabase.
+- En production, les rôles doivent venir des metadata Supabase (`role` ou `roles`) et la clé dev ne doit pas être exposée au navigateur.
 - Les certificats sont pour l'instant calculés comme éligibilité ; la roadmap prévoit une émission vérifiable.
 - L'exécution JavaScript utilisateur doit encore être isolée dans un Web Worker avant usage production.
 
 ## Limites connues
 
-- Les pages admin/auteur sont encore des bases produit et doivent être protégées par rôles avant production.
+- Les pages admin/auteur sont protégées côté API, mais leur expérience produit reste à renforcer.
 - Le Course Studio ne publie pas encore réellement dans le curriculum actif.
 - Les gros fichiers doivent être découpés par domaine.
 - Il manque encore des tests unitaires/composants/E2E.

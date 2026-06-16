@@ -115,6 +115,7 @@ function Header({ locale, route, onLanguageToggle }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user } = useSupabaseSession();
+  const visibleNavGroups = navGroups.filter((group) => group.id !== "create" || canManageContent(user));
 
   useEffect(() => {
     const close = () => {
@@ -145,7 +146,7 @@ function Header({ locale, route, onLanguageToggle }) {
   }, [mobileOpen]);
 
   const toggleMenu = (id) => setActiveMenu(activeMenu === id ? null : id);
-  const activeGroup = navGroups.find((group) => group.items.some((item) => item.routes.includes(route)))?.id;
+  const activeGroup = visibleNavGroups.find((group) => group.items.some((item) => item.routes.includes(route)))?.id;
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3" data-navigation-root>
@@ -156,7 +157,7 @@ function Header({ locale, route, onLanguageToggle }) {
         </a>
 
         <div className="hidden items-center gap-1 lg:flex">
-          {navGroups.map((group) => (
+          {visibleNavGroups.map((group) => (
             <NavDropdown key={group.id} group={group} locale={locale} route={route} open={activeMenu === group.id} active={activeGroup === group.id} onToggle={() => toggleMenu(group.id)} onClose={() => setActiveMenu(null)} />
           ))}
         </div>
@@ -173,7 +174,7 @@ function Header({ locale, route, onLanguageToggle }) {
       {mobileOpen && (
         <>
           <button type="button" className="fixed inset-0 -z-10 bg-slate-950/40 backdrop-blur-sm lg:hidden" aria-label={locale === "fr" ? "Fermer le menu" : "Close menu"} onClick={() => setMobileOpen(false)} />
-          <MobileNavigation locale={locale} user={user} route={route} onClose={() => setMobileOpen(false)} />
+          <MobileNavigation locale={locale} user={user} route={route} groups={visibleNavGroups} onClose={() => setMobileOpen(false)} />
         </>
       )}
     </header>
@@ -239,8 +240,8 @@ function AccountMenu({ user, locale, route, open, onToggle, onClose }) {
   );
 }
 
-function MobileNavigation({ locale, user, route, onClose }) {
-  const currentGroup = navGroups.find((group) => group.items.some((item) => item.routes.includes(route)))?.id || "learn";
+function MobileNavigation({ locale, user, route, groups, onClose }) {
+  const currentGroup = groups.find((group) => group.items.some((item) => item.routes.includes(route)))?.id || "learn";
   const [openGroup, setOpenGroup] = useState(currentGroup);
 
   return (
@@ -265,7 +266,7 @@ function MobileNavigation({ locale, user, route, onClose }) {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        {navGroups.map((group) => {
+        {groups.map((group) => {
           const Icon = group.icon;
           const open = openGroup === group.id;
           return (
@@ -353,6 +354,13 @@ function getPageRoute() {
   const route = window.location.hash.replace(/^#\/?/, "").split(/[/?#]/)[0];
   const known = ["auth", "signup", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "catalog", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap"];
   return known.includes(route) ? route : "home";
+}
+
+function canManageContent(user) {
+  if (import.meta.env.VITE_ADMIN_ACCESS_KEY) return true;
+  const metadata = { ...(user?.app_metadata || {}), ...(user?.user_metadata || {}) };
+  const roles = Array.isArray(metadata.roles) ? metadata.roles : [metadata.role].filter(Boolean);
+  return roles.some((role) => ["admin", "author", "reviewer"].includes(String(role)));
 }
 
 export default App;

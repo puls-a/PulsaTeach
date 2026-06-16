@@ -17,6 +17,7 @@ const enrollmentsFile = path.join(dataDir, "enrollments.json");
 const draftsFile = path.join(dataDir, "lesson-drafts.json");
 const usersFile = path.join(dataDir, "users.json");
 const port = process.env.PORT || 4174;
+const adminAccessKey = process.env.PULSATEACH_ADMIN_KEY || (process.env.PULSATEACH_STORAGE === "json" ? "dev-admin-key" : "");
 const supabaseRetryDelayMs = 5 * 60 * 1000;
 let supabaseFallbackUntil = 0;
 const projectLessonIds = ["html-12-final-project", "css-06-final-project", "js-07-final-project"];
@@ -74,6 +75,7 @@ app.get("/api/me", (request, response) => {
   response.json({
     userId: request.authUserId,
     email: request.authUser.email,
+    roles: request.authRoles || [],
     appMetadata: request.authUser.app_metadata || {},
     userMetadata: request.authUser.user_metadata || {}
   });
@@ -130,7 +132,7 @@ app.get("/api/stats", async (_request, response) => {
   });
 });
 
-app.get("/api/analytics", async (_request, response) => {
+app.get("/api/analytics", requireRole("admin", "reviewer", "author"), async (_request, response) => {
   const progressStore = await readProgressStore();
   const submissions = await readJsonStore(submissionsFile, []);
   const attempts = await readJsonStore(attemptsFile, []);
@@ -166,7 +168,7 @@ app.get("/api/analytics", async (_request, response) => {
   });
 });
 
-app.get("/api/admin/export", async (_request, response) => {
+app.get("/api/admin/export", requireRole("admin"), async (_request, response) => {
   const [progress, submissions, attempts, enrollments, drafts, users] = await Promise.all([
     readJsonStore(progressFile, {}),
     readJsonStore(submissionsFile, []),
@@ -250,7 +252,7 @@ app.put("/api/users/:userId", async (request, response) => {
   response.json(users[userId]);
 });
 
-app.get("/api/enrollments", async (_request, response) => {
+app.get("/api/enrollments", requireRole("admin", "reviewer"), async (_request, response) => {
   response.json(await readJsonStore(enrollmentsFile, []));
 });
 
@@ -287,14 +289,14 @@ app.post("/api/enrollments", async (request, response) => {
   response.status(201).json(enrollment);
 });
 
-app.get("/api/lesson-drafts", async (request, response) => {
+app.get("/api/lesson-drafts", requireRole("admin", "author", "reviewer"), async (request, response) => {
   const store = await readJsonStore(draftsFile, []);
   const status = Array.isArray(request.query.status) ? request.query.status[0] : request.query.status;
   const normalizedStatus = typeof status === "string" ? status.trim() : "";
   response.json(normalizedStatus ? store.filter((item) => item.status === normalizedStatus) : store);
 });
 
-app.post("/api/lesson-drafts", async (request, response) => {
+app.post("/api/lesson-drafts", requireRole("admin", "author"), async (request, response) => {
   const payload = request.body;
   if (!isObject(payload) || !payload.trackId || !payload.title) {
     response.status(400).json({ error: "Lesson draft requires trackId and title." });
@@ -323,7 +325,7 @@ app.post("/api/lesson-drafts", async (request, response) => {
   response.status(201).json(draft);
 });
 
-app.patch("/api/lesson-drafts/:id", async (request, response) => {
+app.patch("/api/lesson-drafts/:id", requireRole("admin", "author", "reviewer"), async (request, response) => {
   const payload = request.body;
   if (!isObject(payload)) {
     response.status(400).json({ error: "Draft update requires an object." });
@@ -350,7 +352,7 @@ app.patch("/api/lesson-drafts/:id", async (request, response) => {
   response.json(store[index]);
 });
 
-app.delete("/api/lesson-drafts/:id", async (request, response) => {
+app.delete("/api/lesson-drafts/:id", requireRole("admin", "author"), async (request, response) => {
   const store = await readJsonStore(draftsFile, []);
   const next = store.filter((item) => item.id !== request.params.id);
   if (next.length === store.length) {
@@ -402,6 +404,10 @@ app.get("/api/submissions", async (request, response) => {
   const normalizedUserId = request.authUserId || requestedUserId;
   if (request.authUserId && requestedUserId && requestedUserId !== request.authUserId) {
     response.status(403).json({ error: "Authenticated user cannot access another learner." });
+    return;
+  }
+  if (!normalizedUserId && !hasRole(request, "admin", "reviewer")) {
+    response.status(403).json({ error: "Reviewer role required to list all submissions." });
     return;
   }
   response.json(normalizedUserId ? store.filter((item) => item.userId === normalizedUserId) : store);
@@ -479,7 +485,7 @@ app.post("/api/attempts", async (request, response) => {
   response.status(201).json(attempt);
 });
 
-app.patch("/api/submissions/:id/review", async (request, response) => {
+app.patch("/api/submissions/:id/review", requireRole("admin", "reviewer"), async (request, response) => {
   const payload = request.body;
   const allowedStatuses = new Set(["approved", "changes_requested", "submitted"]);
   if (!isObject(payload) || !allowedStatuses.has(payload.status)) {
@@ -578,13 +584,22 @@ async function writeJsonStore(file, store) {
 async function attachAuthUser(request, _response, next) {
   const authorization = request.headers.authorization || "";
   const token = authorization.startsWith("Bearer ") ? authorization.slice("Bearer ".length).trim() : "";
+  request.authRoles = [];
+
   if (token && shouldTrySupabase()) {
     const user = await getUserFromAccessToken(token);
     if (user?.id) {
       request.authUser = user;
       request.authUserId = `supabase-${user.id}`;
+      request.authRoles = rolesFromUser(user);
     }
   }
+
+  const providedAdminKey = request.headers["x-pulsateach-admin-key"];
+  if (adminAccessKey && typeof providedAdminKey === "string" && providedAdminKey === adminAccessKey) {
+    request.authRoles = Array.from(new Set([...(request.authRoles || []), "admin", "author", "reviewer"]));
+  }
+
   next();
 }
 
@@ -610,6 +625,33 @@ function authorizePayloadUser(request, response, payloadUserId) {
     return false;
   }
   return true;
+}
+
+function requireRole(...roles) {
+  return (request, response, next) => {
+    if (hasRole(request, ...roles)) {
+      next();
+      return;
+    }
+    response.status(request.authUser || request.authRoles?.length ? 403 : 401).json({
+      error: `Required role: ${roles.join(" or ")}.`
+    });
+  };
+}
+
+function hasRole(request, ...roles) {
+  const granted = new Set(request.authRoles || []);
+  return roles.some((role) => granted.has(role));
+}
+
+function rolesFromUser(user) {
+  const metadata = {
+    ...(user.app_metadata || {}),
+    ...(user.user_metadata || {})
+  };
+  const rawRoles = metadata.roles || metadata.role || [];
+  const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles];
+  return roles.map((role) => String(role).trim()).filter(Boolean);
 }
 
 function isObject(value) {

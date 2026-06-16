@@ -1,6 +1,7 @@
 import { supabase } from "./supabaseClient.js";
 
 const apiBase = import.meta.env.VITE_API_URL || "http://127.0.0.1:4174";
+const adminAccessKey = import.meta.env.VITE_ADMIN_ACCESS_KEY;
 const userIdKey = "pulsateach-user-id";
 
 export function getUserId() {
@@ -156,6 +157,7 @@ async function request(path, options = {}) {
     const token = data.session?.access_token;
     if (token) headers.set("Authorization", `Bearer ${token}`);
   }
+  if (adminAccessKey) headers.set("X-PulsaTeach-Admin-Key", adminAccessKey);
 
   const response = await fetch(`${apiBase}${path}`, {
     ...options,

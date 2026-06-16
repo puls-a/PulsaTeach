@@ -22,9 +22,17 @@ VITE_SUPABASE_URL=your_project_url
 VITE_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_URL=your_project_url
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+PULSATEACH_ADMIN_KEY=local_admin_key_for_development
 ```
 
 The browser only receives the anon key. The service role key is used only by the Express API and must never be exposed to the frontend.
+
+Admin and author endpoints require one of these controls:
+
+- Supabase user metadata containing `role` or `roles` with `admin`, `author`, or `reviewer`.
+- Local development header `X-PulsaTeach-Admin-Key`, matching `PULSATEACH_ADMIN_KEY`.
+
+Do not expose a development admin key in production browser builds.
 
 Storage modes:
 
@@ -56,25 +64,25 @@ PulsaTeach exposes auth at `#/auth`.
 | `GET` | `/api/roadmap` | Product roadmap data |
 | `GET` | `/api/stats` | Platform stats: lessons, modules, learners, submissions, certificates |
 | `GET` | `/api/analytics` | Funnel, track, and content analytics |
-| `GET` | `/api/admin/export` | Full JSON export for local backup |
+| `GET` | `/api/admin/export` | Full JSON export for local backup, admin only |
 | `GET` | `/api/path/:userId` | Personalized next lessons, weekly plan, and milestones |
 | `GET` | `/api/profile/:userId` | Aggregated learner profile with progress, submissions, attempts, certificates |
 | `GET` | `/api/users/:userId` | Load editable learner settings |
 | `PUT` | `/api/users/:userId` | Save editable learner settings |
-| `GET` | `/api/enrollments` | List landing enrollments |
+| `GET` | `/api/enrollments` | List landing enrollments, admin/reviewer only |
 | `POST` | `/api/enrollments` | Register a learner email from the landing CTA |
-| `GET` | `/api/lesson-drafts` | List authoring drafts |
-| `POST` | `/api/lesson-drafts` | Create a lesson draft |
-| `PATCH` | `/api/lesson-drafts/:id` | Update draft copy or workflow status |
-| `DELETE` | `/api/lesson-drafts/:id` | Delete a lesson draft |
+| `GET` | `/api/lesson-drafts` | List authoring drafts, author/reviewer/admin only |
+| `POST` | `/api/lesson-drafts` | Create a lesson draft, author/admin only |
+| `PATCH` | `/api/lesson-drafts/:id` | Update draft copy or workflow status, author/reviewer/admin only |
+| `DELETE` | `/api/lesson-drafts/:id` | Delete a lesson draft, author/admin only |
 | `GET` | `/api/progress/:userId` | Load learner progress |
 | `PUT` | `/api/progress/:userId` | Save learner progress |
 | `GET` | `/api/attempts?userId=...` | List exercise attempts |
 | `POST` | `/api/attempts` | Store a test run attempt from the learning lab |
 | `GET` | `/api/submissions?userId=...` | List one learner's project submissions |
-| `GET` | `/api/submissions` | List all submissions for the admin page |
+| `GET` | `/api/submissions` | List all submissions for the admin page, reviewer/admin only |
 | `POST` | `/api/submissions` | Create a project submission |
-| `PATCH` | `/api/submissions/:id/review` | Approve or request changes on a submission |
+| `PATCH` | `/api/submissions/:id/review` | Approve or request changes on a submission, reviewer/admin only |
 | `GET` | `/api/certificates/:userId` | Compute certificate readiness for a learner |
 
 ## Current Data Stores
@@ -90,7 +98,7 @@ PulsaTeach exposes auth at `#/auth`.
 
 ## Next Backend Milestones
 
-1. Add real auth and roles: learner, reviewer, admin.
+1. Replace the local admin key with production-only Supabase role management.
 2. Add row-level policies for direct browser reads where needed.
 3. Add server-side exercise attempts and code snapshots.
 4. Add certificate issuance records instead of computed-only certificates.

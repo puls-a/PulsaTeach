@@ -3,12 +3,15 @@ import { spawn } from "node:child_process";
 const processes = [];
 const apiUrl = process.env.API_URL || "http://127.0.0.1:4174";
 const frontendUrl = process.env.FRONTEND_URL || "http://127.0.0.1:5173";
+const adminKey = process.env.PULSATEACH_ADMIN_KEY || process.env.API_ADMIN_KEY || "dev-admin-key";
 
 process.env.API_URL = apiUrl;
 process.env.FRONTEND_URL = frontendUrl;
+process.env.API_ADMIN_KEY = adminKey;
+process.env.PULSATEACH_ADMIN_KEY = adminKey;
 
 try {
-  processes.push(start("api", "node", ["server/index.js"], { PORT: "4174" }));
+  processes.push(start("api", "node", ["server/index.js"], { PORT: "4174", PULSATEACH_ADMIN_KEY: adminKey }));
   processes.push(start("frontend", process.execPath, ["node_modules/vite/bin/vite.js", "preview", "--host", "127.0.0.1", "--port", "5173"]));
 
   await waitFor(`${apiUrl}/api/health`, "API");
