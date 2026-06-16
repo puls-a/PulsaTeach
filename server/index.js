@@ -9,7 +9,7 @@ import { productRoadmap } from "./roadmap.js";
 import { deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, readSupabaseStore, requireSupabaseStorage, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dataDir = path.join(__dirname, "..", "data");
+const dataDir = process.env.PULSATEACH_DATA_DIR || (process.env.VERCEL ? "/tmp/pulsateach-data" : path.join(__dirname, "..", "data"));
 const progressFile = path.join(dataDir, "progress.json");
 const submissionsFile = path.join(dataDir, "submissions.json");
 const attemptsFile = path.join(dataDir, "attempts.json");
@@ -526,9 +526,13 @@ app.get("/api/certificates/:userId", async (request, response) => {
   response.json(buildCertificatesForUser(userId, progress, userSubmissions));
 });
 
-app.listen(port, () => {
-  console.log(`PulsaTeach API ready on http://127.0.0.1:${port}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(port, () => {
+    console.log(`PulsaTeach API ready on http://127.0.0.1:${port}`);
+  });
+}
+
+export default app;
 
 async function readProgressStore() {
   return readJsonStore(progressFile, {});

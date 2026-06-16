@@ -19,3 +19,5 @@ dist/
 .vite-dev.*.log
 .api.*.log
 data/
+
+.vercel

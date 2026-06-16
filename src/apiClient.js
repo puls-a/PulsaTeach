@@ -1,6 +1,6 @@
 import { supabase } from "./supabaseClient.js";
 
-const apiBase = import.meta.env.VITE_API_URL || "http://127.0.0.1:4174";
+const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://127.0.0.1:4174");
 const adminAccessKey = import.meta.env.VITE_ADMIN_ACCESS_KEY;
 const userIdKey = "pulsateach-user-id";
 
