@@ -21,3 +21,5 @@ dist/
 data/
 
 .vercel
+supabase/.temp/
+.supabase-db-password.tmp

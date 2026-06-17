@@ -104,11 +104,26 @@ npm run smoke:full
 
 Le smoke test simple suppose que le frontend et l'API sont déjà démarrés. Le smoke test complet démarre l'API et le preview Vite automatiquement.
 
+## Production Supabase
+
+La production Vercel doit utiliser Supabase en mode strict :
+
+```bash
+PULSATEACH_STORAGE=supabase-strict
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<server-only-service-role>
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_ANON_KEY=<public-anon-key>
+VITE_AUTH_MODE=supabase
+```
+
+Les migrations sont versionnées dans `supabase/migrations/`. La configuration Auth autorise `https://pulsateach.vercel.app` et `http://127.0.0.1:5173` comme URLs de redirection.
+
 ## Points techniques importants
 
 - Le curriculum est audité automatiquement pour vérifier la présence des sections pédagogiques obligatoires.
 - Les exercices CSS et JavaScript sont validés par tests statiques ou expressions exécutées.
-- Le backend peut fonctionner en JSON local ou avec Supabase.
+- Le backend peut fonctionner en JSON local ou avec Supabase. La production doit rester en `supabase-strict`.
 - Les endpoints admin/auteur/review sont protégés par rôles côté serveur.
 - En développement JSON local, `PULSATEACH_ADMIN_KEY` et `VITE_ADMIN_ACCESS_KEY` permettent de tester ces écrans sans Supabase.
 - En production, les rôles doivent venir des metadata Supabase (`role` ou `roles`) et la clé dev ne doit pas être exposée au navigateur.

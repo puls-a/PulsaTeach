@@ -49,7 +49,7 @@ app.get("/api/health", (_request, response) => {
   response.json({
     ok: true,
     service: "pulsateach-api",
-    storage: shouldTrySupabase() ? "supabase-with-json-fallback" : "json-fallback",
+    storage: requireSupabaseStorage ? "supabase-strict" : shouldTrySupabase() ? "supabase-with-json-fallback" : "json-fallback",
     timestamp: new Date().toISOString()
   });
 });
