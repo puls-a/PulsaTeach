@@ -43,7 +43,7 @@ const copyMap = {
     magic: "Envoyer un magic link",
     signedIn: "Connecté",
     signOut: "Se déconnecter",
-    providerNote: "Tu peux aussi continuer sans compte, mais ta progression restera enregistrée uniquement sur cet appareil."
+    providerNote: "Les connexions OAuth doivent être activées dans Supabase avant d'utiliser ces boutons. L'email et le mot de passe fonctionnent déjà."
   }
 };
 
@@ -97,9 +97,17 @@ export default function AuthPage({ locale = "en", defaultMode = "login" }) {
           setStatus(mode === "signup" ? (locale === "fr" ? "Compte créé." : "Account created.") : (locale === "fr" ? "Connexion réussie." : "Signed in successfully."));
           return;
         }
-      } catch {
-        // Fall through to the local account so the platform remains usable offline.
+        setStatus(result.error.message);
+        return;
+      } catch (error) {
+        setStatus(error.message || (locale === "fr" ? "Connexion Supabase indisponible." : "Supabase authentication unavailable."));
+        return;
       }
+    }
+
+    if (!useLocalAuth) {
+      setStatus(locale === "fr" ? "Supabase n'est pas configuré. Active VITE_AUTH_MODE=local pour utiliser un compte local en développement." : "Supabase is not configured. Set VITE_AUTH_MODE=local to use local development accounts.");
+      return;
     }
 
     createLocalSession(email);
