@@ -1,6 +1,6 @@
 import { supabase } from "./supabaseClient.js";
 
-const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://127.0.0.1:4174");
+const apiBase = String(import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 const adminAccessKey = import.meta.env.VITE_ADMIN_ACCESS_KEY;
 const userIdKey = "pulsateach-user-id";
 
@@ -239,10 +239,12 @@ async function request(path, options = {}) {
   }
   if (adminAccessKey) headers.set("X-PulsaTeach-Admin-Key", adminAccessKey);
 
-  const response = await fetch(`${apiBase}${path}`, {
-    ...options,
-    headers
-  });
+  let response;
+  try {
+    response = await fetch(`${apiBase}${path}`, { ...options, headers });
+  } catch (cause) {
+    throw new Error("API PulsaTeach inaccessible. Lance le serveur avec « npm run dev:full ».", { cause });
+  }
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
     const error = new Error(payload.error || `API ${response.status}`);

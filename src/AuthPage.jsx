@@ -50,7 +50,15 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
               password,
               options: {
                 emailRedirectTo: `${window.location.origin}/auth/callback`,
-                data: { name: displayName.trim(), full_name: displayName.trim(), locale, onboarding_completed: false }
+                data: {
+                  name: displayName.trim(),
+                  full_name: displayName.trim(),
+                  locale,
+                  onboarding_completed: false,
+                  terms_accepted_at: new Date().toISOString(),
+                  terms_version: "2026-06-18",
+                  privacy_version: "2026-06-18"
+                }
               }
             })
           : await supabase.auth.signInWithPassword({ email, password });
@@ -199,7 +207,12 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
                 {mode === "signup" && (
                   <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-600">
                     <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} className="mt-1 size-4" />
-                    <span>{fr ? "J'accepte les conditions d'utilisation et la politique de confidentialité." : "I accept the terms of use and privacy policy."}</span>
+                    <span>
+                      {fr ? "J’accepte les " : "I accept the "}
+                      <a href="#/terms" className="font-bold text-indigoPop underline">{fr ? "conditions d’utilisation" : "terms of use"}</a>
+                      {fr ? " et la " : " and "}
+                      <a href="#/privacy" className="font-bold text-indigoPop underline">{fr ? "politique de confidentialité" : "privacy policy"}</a>.
+                    </span>
                   </label>
                 )}
                 <button type="submit" disabled={busy || !isSupabaseBrowserConfigured} className="primary-button min-h-12 disabled:cursor-wait disabled:opacity-60">

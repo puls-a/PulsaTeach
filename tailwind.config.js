@@ -14,8 +14,8 @@ export default {
         aquaPop: "#06B6D4"
       },
       fontFamily: {
-        display: ["Manrope", "ui-sans-serif", "system-ui"],
-        body: ["DM Sans", "ui-sans-serif", "system-ui"]
+        display: ["ui-sans-serif", "system-ui", "sans-serif"],
+        body: ["ui-sans-serif", "system-ui", "sans-serif"]
       },
       boxShadow: {
         clay: "0 16px 40px rgba(15,23,42,.08)",

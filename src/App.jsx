@@ -30,6 +30,9 @@ import { OnboardingPage, PasswordRecoveryPage, PublicCertificatePage } from "./A
 import CourseStudio from "./CourseStudio.jsx";
 import CurriculumHub from "./CurriculumHub.jsx";
 import { FlexboxArenaPage, JavaScriptArenaPage, LivePlaygroundPage, WorldPage } from "./GamePages.jsx";
+import CookieConsent from "./components/CookieConsent.jsx";
+import { CookiesPage, LegalNoticePage, PrivacyPage, TermsPage } from "./LegalPages.jsx";
+import { openPrivacySettings } from "./privacyConsent.js";
 import {
   AdminPage,
   AnalyticsPage,
@@ -108,6 +111,7 @@ function App() {
       <Header locale={locale} route={route} onLanguageToggle={() => setLocale(locale === "fr" ? "en" : "fr")} />
       <main>{renderRoute(route, locale)}</main>
       <Footer locale={locale} />
+      <CookieConsent locale={locale} />
     </div>
   );
 }
@@ -312,7 +316,13 @@ function Footer({ locale }) {
     <footer className="border-t border-slate-200 bg-white px-5 py-8">
       <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 text-sm text-slate-500 sm:flex-row">
         <p>© 2026 PulsaTeach</p>
-        <div className="flex flex-wrap gap-5 font-semibold"><a href="#/catalog">{locale === "fr" ? "Formations" : "Courses"}</a><a href="#/studio">{locale === "fr" ? "Créer" : "Create"}</a><a href="#/roadmap">Roadmap</a></div>
+        <div className="flex flex-wrap gap-x-5 gap-y-3 font-semibold">
+          <a href="#/privacy">{locale === "fr" ? "Confidentialité" : "Privacy"}</a>
+          <a href="#/cookies">Cookies</a>
+          <a href="#/terms">{locale === "fr" ? "Conditions" : "Terms"}</a>
+          <a href="#/legal">{locale === "fr" ? "Mentions légales" : "Legal notice"}</a>
+          <button type="button" onClick={openPrivacySettings} className="font-semibold hover:text-ink">{locale === "fr" ? "Gérer mes choix" : "Manage choices"}</button>
+        </div>
       </div>
     </footer>
   );
@@ -350,6 +360,10 @@ function renderRoute(route, locale) {
   if (route === "author") return <AuthorPage locale={locale} />;
   if (route === "admin") return <AdminPage locale={locale} />;
   if (route === "roadmap") return <RoadmapPage locale={locale} />;
+  if (route === "privacy") return <PrivacyPage locale={locale} />;
+  if (route === "cookies") return <CookiesPage locale={locale} />;
+  if (route === "terms") return <TermsPage locale={locale} />;
+  if (route === "legal") return <LegalNoticePage locale={locale} />;
   return <CurriculumHub locale={locale} />;
 }
 
@@ -358,7 +372,7 @@ function getPageRoute() {
     return new URLSearchParams(window.location.search).has("recovery") ? "recovery" : "onboarding";
   }
   const route = window.location.hash.replace(/^#\/?/, "").split(/[/?#]/)[0];
-  const known = ["auth", "signup", "onboarding", "recovery", "verify", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "catalog", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap"];
+  const known = ["auth", "signup", "onboarding", "recovery", "verify", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "catalog", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap", "privacy", "cookies", "terms", "legal"];
   return known.includes(route) ? route : "home";
 }
 
