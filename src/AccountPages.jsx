@@ -21,11 +21,11 @@ export function OnboardingPage({ locale = "fr" }) {
     if (!user) return;
     getUserSettings().then((profile) => setForm((current) => ({
       ...current,
-      displayName: profile.displayName === "PulsaTeach Learner" ? "" : profile.displayName || "",
+      displayName: current.displayName || (profile.displayName === "PulsaTeach Learner" ? "" : profile.displayName || user.user_metadata?.full_name || user.user_metadata?.name || ""),
       goal: profile.goal || current.goal,
       weeklyMinutes: profile.weeklyMinutes || current.weeklyMinutes,
       locale: profile.locale || locale,
-      bio: profile.bio || ""
+      bio: current.bio || profile.bio || ""
     }))).catch(() => {});
   }, [locale, user]);
 

@@ -253,6 +253,17 @@ otp_expiry = 3600
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
 
+# Custom PulsaTeach templates are versioned in supabase/templates/.
+# Supabase requires a custom SMTP provider or a paid email provider before these
+# sections can be activated in production.
+# [auth.email.template.confirmation]
+# subject = "Confirme ton compte PulsaTeach"
+# content_path = "./supabase/templates/confirmation.html"
+#
+# [auth.email.template.recovery]
+# subject = "Réinitialise ton mot de passe PulsaTeach"
+# content_path = "./supabase/templates/recovery.html"
+
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
 # enabled = true
