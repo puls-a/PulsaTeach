@@ -14,7 +14,9 @@
     "smoke": "node scripts/smoke.mjs",
     "smoke:full": "node scripts/smoke-full.mjs",
     "dev:e2e": "cross-env VITE_AUTH_MODE=local PULSATEACH_STORAGE=json VITE_API_URL=http://127.0.0.1:4188 PORT=4188 concurrently \"npm run server\" \"npm run dev -- --port 5188\"",
+    "dev:e2e:supabase": "cross-env VITE_AUTH_MODE=supabase PULSATEACH_STORAGE=supabase-strict VITE_API_URL=http://127.0.0.1:4190 PORT=4190 concurrently \"npm run server\" \"npm run dev -- --port 5190\"",
     "test:e2e": "playwright test",
+    "test:e2e:supabase": "cross-env E2E_SUPABASE=true playwright test --config=playwright.supabase.config.js",
     "roles:set": "node scripts/set-user-roles.mjs",
     "preview": "vite preview --host 127.0.0.1"
   },

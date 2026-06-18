@@ -22,6 +22,7 @@ import {
   UserRound
 } from "lucide-react";
 import AuthNotice from "./components/AuthNotice.jsx";
+import AccountSettings from "./AccountSettings.jsx";
 import InteractiveLearning from "./InteractiveLearning.jsx";
 import {
   createLessonDraft,
@@ -50,9 +51,11 @@ import {
   updateLessonDraft
 } from "./apiClient.js";
 import { learningTracks } from "./learningContent.js";
+import { useLearningTracks } from "./useLearningTracks.js";
 
 export function LearnPage({ locale }) {
-  return <InteractiveLearning locale={locale} />;
+  const { tracks } = useLearningTracks();
+  return <InteractiveLearning locale={locale} tracks={tracks} />;
 }
 
 export function DashboardPage({ locale }) {
@@ -138,9 +141,9 @@ export function ProfilePage({ locale }) {
         <div className="surface p-6">
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
             <div className="flex items-center gap-5">
-              <div className="grid size-16 place-items-center rounded-2xl bg-indigo-50">
-                <UserRound className="size-10 text-indigoPop" />
-              </div>
+              {profile?.user?.avatarUrl
+                ? <img src={profile.user.avatarUrl} alt="" className="size-16 rounded-2xl border border-slate-200 object-cover" />
+                : <div className="grid size-16 place-items-center rounded-2xl bg-indigo-50"><UserRound className="size-10 text-indigoPop" /></div>}
               <div>
                 <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Profil apprenant" : "Learner profile"}</p>
                 <h1 className="font-display text-3xl font-bold sm:text-4xl">{profile?.displayName || "PulsaTeach Learner"}</h1>
@@ -209,7 +212,7 @@ export function ProfilePage({ locale }) {
   );
 }
 
-export function SettingsPage({ locale }) {
+function LegacySettingsPage({ locale }) {
   const [form, setForm] = useState({ displayName: "", goal: "frontend-foundations", weeklyMinutes: 120, locale, bio: "", avatarUrl: "", onboardingCompleted: false });
   const [status, setStatus] = useState("idle");
 
@@ -266,6 +269,10 @@ export function SettingsPage({ locale }) {
       </div>
     </section>
   );
+}
+
+export function SettingsPage({ locale }) {
+  return <AccountSettings locale={locale} />;
 }
 
 export function PathPage({ locale }) {

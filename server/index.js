@@ -6,7 +6,9 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { learningTracks } from "../src/learningContent.js";
+import { normalizePublishedCourse, validateCourseForPublication } from "../src/courseSchema.js";
 import { productRoadmap } from "./roadmap.js";
+import { sendWelcomeEmail, transactionalEmailEnabled } from "./emailService.js";
 import { deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, readSupabaseStore, requireSupabaseStorage, supabaseAdmin, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -46,7 +48,7 @@ if (requireSupabaseStorage && !supabaseEnabled) {
 }
 
 app.use(cors());
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "2mb" }));
 app.use(attachRequestContext);
 app.use(attachAuthUser);
 
@@ -55,6 +57,7 @@ app.get("/api/health", (_request, response) => {
     ok: true,
     service: "pulsateach-api",
     storage: requireSupabaseStorage ? "supabase-strict" : shouldTrySupabase() ? "supabase-with-json-fallback" : "json-fallback",
+    email: transactionalEmailEnabled ? "resend" : "disabled",
     timestamp: new Date().toISOString()
   });
 });
@@ -86,27 +89,11 @@ app.get("/api/me", (request, response) => {
   });
 });
 
-app.get("/api/catalog", (_request, response) => {
+app.get("/api/catalog", async (_request, response) => {
+  const courses = await readJsonStore(coursesFile, []);
+  const publishedTracks = courses.filter((course) => course.status === "published").map(normalizePublishedCourse);
   response.json({
-    tracks: learningTracks.map((track) => ({
-      id: track.id,
-      label: track.label,
-      title: track.title,
-      summary: track.summary,
-      modules: track.modules.map((module) => ({
-        id: module.id,
-        title: module.title,
-        lessons: module.lessons.map((lesson) => ({
-          id: lesson.id,
-          type: lesson.type,
-          title: lesson.title,
-          xp: lesson.xp,
-          difficulty: lesson.difficulty,
-          durationMin: lesson.durationMin,
-          skills: lesson.skills
-        }))
-      }))
-    }))
+    tracks: [...learningTracks, ...publishedTracks]
   });
 });
 
@@ -160,12 +147,22 @@ app.patch("/api/courses/:id", requireRole("admin", "author", "reviewer"), async 
     response.status(403).json({ error: "Reviewer role required to publish.", requestId: request.requestId });
     return;
   }
-  store[index] = {
+  const candidate = {
     ...store[index],
     ...(payload.title ? { title: normalizeLocalizedText(payload.title) } : {}),
     ...(payload.description ? { description: normalizeLocalizedText(payload.description) } : {}),
     ...(payload.curriculum && isObject(payload.curriculum) ? { curriculum: payload.curriculum } : {}),
-    ...(payload.level ? { level: String(payload.level) } : {}),
+    ...(payload.level ? { level: String(payload.level) } : {})
+  };
+  if (nextStatus === "published") {
+    const validationErrors = validateCourseForPublication(candidate);
+    if (validationErrors.length) {
+      response.status(422).json({ error: "Course is not ready for publication.", validationErrors, requestId: request.requestId });
+      return;
+    }
+  }
+  store[index] = {
+    ...candidate,
     status: nextStatus,
     updatedAt: new Date().toISOString(),
     publishedAt: nextStatus === "published" ? store[index].publishedAt || new Date().toISOString() : null
@@ -364,6 +361,7 @@ app.put("/api/users/:userId", async (request, response) => {
   }
   const users = await readJsonStore(usersFile, {});
   const current = users[userId] || createDefaultUser(userId);
+  const completedOnboardingNow = !current.onboardingCompleted && Boolean(payload.onboardingCompleted);
   const next = {
     ...current,
     displayName: String(payload.displayName || current.displayName).slice(0, 80),
@@ -378,7 +376,107 @@ app.put("/api/users/:userId", async (request, response) => {
   };
   users[userId] = next;
   await writeJsonStore(usersFile, users);
+  if (completedOnboardingNow && request.authUser?.email) {
+    sendWelcomeEmail({
+      email: request.authUser.email,
+      displayName: next.displayName,
+      locale: next.locale
+    }).catch((error) => console.warn(JSON.stringify({
+      level: "warn",
+      message: "Welcome email failed",
+      requestId: request.requestId,
+      error: error.message
+    })));
+  }
   response.json(users[userId]);
+});
+
+app.post("/api/account/avatar", async (request, response) => {
+  if (!requireAuthenticatedWrite(request, response)) return;
+  if (!supabaseAdmin || !request.authUser?.id) {
+    response.status(503).json({ error: "Avatar storage unavailable.", requestId: request.requestId });
+    return;
+  }
+  const parsed = parseImageDataUrl(request.body?.dataUrl);
+  if (!parsed) {
+    response.status(400).json({ error: "Avatar must be a JPEG, PNG, or WebP data URL under 1 MB.", requestId: request.requestId });
+    return;
+  }
+  const extension = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[parsed.mime];
+  const objectPath = `${request.authUser.id}/avatar-${Date.now()}.${extension}`;
+  const { error: uploadError } = await supabaseAdmin.storage.from("avatars").upload(objectPath, parsed.buffer, {
+    contentType: parsed.mime,
+    upsert: true,
+    cacheControl: "3600"
+  });
+  if (uploadError) throw uploadError;
+  const { data } = supabaseAdmin.storage.from("avatars").getPublicUrl(objectPath);
+  const users = await readJsonStore(usersFile, {});
+  const userId = request.authUserId;
+  users[userId] = {
+    ...(users[userId] || createDefaultUser(userId)),
+    avatarUrl: data.publicUrl,
+    updatedAt: new Date().toISOString()
+  };
+  await writeJsonStore(usersFile, users);
+  response.status(201).json({ avatarUrl: data.publicUrl });
+});
+
+app.get("/api/account/export", async (request, response) => {
+  if (!requireAuthenticatedWrite(request, response)) return;
+  const userId = request.authUserId;
+  const [progress, submissions, attempts, users, issuedCertificates, learningEvents] = await Promise.all([
+    readProgressStore(),
+    readJsonStore(submissionsFile, []),
+    readJsonStore(attemptsFile, []),
+    readJsonStore(usersFile, {}),
+    readJsonStore(issuedCertificatesFile, []),
+    readJsonStore(learningEventsFile, [])
+  ]);
+  response.json({
+    exportedAt: new Date().toISOString(),
+    account: {
+      userId,
+      email: request.authUser?.email,
+      profile: users[userId] || createDefaultUser(userId)
+    },
+    progress: progress[userId] || null,
+    submissions: submissions.filter((item) => item.userId === userId),
+    attempts: attempts.filter((item) => item.userId === userId),
+    certificates: issuedCertificates.filter((item) => item.userId === userId),
+    learningEvents: learningEvents.filter((item) => item.userId === userId)
+  });
+});
+
+app.delete("/api/account", async (request, response) => {
+  if (!requireAuthenticatedWrite(request, response)) return;
+  if (String(request.body?.confirmation || "") !== "DELETE") {
+    response.status(400).json({ error: "Type DELETE to confirm account deletion.", requestId: request.requestId });
+    return;
+  }
+  const userId = request.authUserId;
+  if (supabaseAdmin && request.authUser?.id) {
+    const deletes = [
+      supabaseAdmin.from("learning_events").delete().eq("user_id", userId),
+      supabaseAdmin.from("issued_certificates").delete().eq("user_id", userId),
+      supabaseAdmin.from("submissions").delete().eq("user_id", userId),
+      supabaseAdmin.from("attempts").delete().eq("user_id", userId),
+      supabaseAdmin.from("progress").delete().eq("user_id", userId),
+      supabaseAdmin.from("profiles").delete().eq("local_user_id", userId)
+    ];
+    const results = await Promise.all(deletes);
+    const failed = results.find((result) => result.error);
+    if (failed?.error) throw failed.error;
+    const { data: avatarFiles } = await supabaseAdmin.storage.from("avatars").list(request.authUser.id);
+    if (avatarFiles?.length) {
+      await supabaseAdmin.storage.from("avatars").remove(avatarFiles.map((file) => `${request.authUser.id}/${file.name}`));
+    }
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(request.authUser.id);
+    if (authError) throw authError;
+  } else {
+    await deleteLocalAccountData(userId);
+  }
+  response.json({ deleted: true });
 });
 
 app.get("/api/enrollments", requireRole("admin", "reviewer"), async (_request, response) => {
@@ -1061,6 +1159,27 @@ function uniqueSlug(baseSlug, courses) {
     suffix += 1;
   }
   return slug;
+}
+
+function parseImageDataUrl(value) {
+  const match = String(value || "").match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
+  if (!match) return null;
+  const buffer = Buffer.from(match[2], "base64");
+  if (!buffer.length || buffer.length > 1024 * 1024) return null;
+  return { mime: match[1], buffer };
+}
+
+async function deleteLocalAccountData(userId) {
+  const progress = await readJsonStore(progressFile, {});
+  delete progress[userId];
+  await writeJsonStore(progressFile, progress);
+  const users = await readJsonStore(usersFile, {});
+  delete users[userId];
+  await writeJsonStore(usersFile, users);
+  for (const [file, fallback] of [[attemptsFile, []], [submissionsFile, []], [learningEventsFile, []], [issuedCertificatesFile, []]]) {
+    const items = await readJsonStore(file, fallback);
+    await writeJsonStore(file, items.filter((item) => item.userId !== userId));
+  }
 }
 
 function buildProfileSummary(progress, submissions, attempts) {

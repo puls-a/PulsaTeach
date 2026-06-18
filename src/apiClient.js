@@ -64,6 +64,26 @@ export async function saveUserSettings(payload, userId = getUserId()) {
   });
 }
 
+export async function uploadAvatar(dataUrl) {
+  return request("/api/account/avatar", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ dataUrl })
+  });
+}
+
+export async function exportAccountData() {
+  return request("/api/account/export");
+}
+
+export async function deleteAccount(confirmation) {
+  return request("/api/account", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ confirmation })
+  });
+}
+
 export async function loadRemoteProgress(userId = getUserId()) {
   return request(`/api/progress/${encodeURIComponent(userId)}`);
 }

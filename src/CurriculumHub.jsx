@@ -1,17 +1,22 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, BookOpen, Check, ChevronDown, Clock3, Code2, Flag, GraduationCap, Plus, Trophy } from "lucide-react";
 import { useSupabaseSession } from "./authState.js";
-import { learningTracks } from "./learningContent.js";
+import { useLearningTracks } from "./useLearningTracks.js";
 
 const trackIcons = { html: BookOpen, css: Code2, javascript: Code2 };
 
 export default function CurriculumHub({ locale = "fr" }) {
   const { user } = useSupabaseSession();
-  const [openTrack, setOpenTrack] = useState(learningTracks[0]?.id);
+  const { tracks, loading, error } = useLearningTracks();
+  const [openTrack, setOpenTrack] = useState(null);
   const progress = useMemo(readProgress, []);
   const courseDrafts = useMemo(readCourseDrafts, []);
   const completedCount = Object.keys(progress.completed || {}).length;
-  const totalLessons = learningTracks.reduce((total, track) => total + countLessons(track), 0);
+  const totalLessons = tracks.reduce((total, track) => total + countLessons(track), 0);
+
+  useEffect(() => {
+    if (!openTrack && tracks[0]) setOpenTrack(tracks[0].id);
+  }, [openTrack, tracks]);
 
   return (
     <section className="min-h-screen bg-[#f5f6fa] px-4 pb-20 pt-24 sm:px-6">
@@ -59,7 +64,7 @@ export default function CurriculumHub({ locale = "fr" }) {
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
             <h2 className="font-display text-2xl font-bold">{locale === "fr" ? "Toutes les formations" : "All courses"}</h2>
-            <p className="mt-1 text-sm text-slate-500">{learningTracks.length} formations disponibles</p>
+            <p className="mt-1 text-sm text-slate-500">{tracks.length} formations disponibles</p>
           </div>
           <a href="#/studio" className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-ink hover:border-indigoPop hover:text-indigoPop">
             <Plus className="size-4" />{locale === "fr" ? "Créer une formation" : "Create a course"}
@@ -67,7 +72,9 @@ export default function CurriculumHub({ locale = "fr" }) {
         </div>
 
         <div className="grid gap-3">
-          {learningTracks.map((track) => (
+          {loading && <p className="empty-state">{locale === "fr" ? "Chargement du catalogue..." : "Loading catalog..."}</p>}
+          {error && <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">{locale === "fr" ? "Le catalogue distant est indisponible. Les formations intégrées restent accessibles." : "Remote catalog unavailable. Built-in courses remain accessible."}</p>}
+          {tracks.map((track) => (
             <TrackCard
               key={track.id}
               track={track}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bookmark,
   BookmarkCheck,
@@ -27,8 +27,9 @@ const colorClasses = {
   javascript: { card: "bg-amber-50", button: "bg-amber-500" }
 };
 
-export default function InteractiveLearning({ locale }) {
+export default function InteractiveLearning({ locale, tracks = learningTracks }) {
   const initialRoute = readLessonRoute();
+  const requestedRoute = useRef(initialRoute);
   const [activeTrackId, setActiveTrackId] = useState(initialRoute.trackId);
   const [activeModuleId, setActiveModuleId] = useState(initialRoute.moduleId);
   const [activeLessonId, setActiveLessonId] = useState(initialRoute.lessonId);
@@ -38,9 +39,20 @@ export default function InteractiveLearning({ locale }) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [syncState, setSyncState] = useState("local");
 
-  const activeTrack = learningTracks.find((track) => track.id === activeTrackId) ?? learningTracks[0];
+  const activeTrack = tracks.find((track) => track.id === activeTrackId) ?? tracks[0] ?? learningTracks[0];
   const activeModule = activeTrack.modules.find((module) => module.id === activeModuleId) ?? activeTrack.modules[0];
   const activeLesson = activeModule.lessons.find((lesson) => lesson.id === activeLessonId) ?? activeModule.lessons[0];
+
+  useEffect(() => {
+    const requestedTrack = tracks.find((track) => track.id === requestedRoute.current.trackId);
+    const requestedModule = requestedTrack?.modules.find((module) => module.id === requestedRoute.current.moduleId);
+    const requestedLesson = requestedModule?.lessons.find((lesson) => lesson.id === requestedRoute.current.lessonId);
+    if (requestedTrack && requestedModule && requestedLesson) {
+      setActiveTrackId(requestedTrack.id);
+      setActiveModuleId(requestedModule.id);
+      setActiveLessonId(requestedLesson.id);
+    }
+  }, [tracks]);
 
   useEffect(() => {
     const firstModule = activeTrack.modules[0];
@@ -137,6 +149,7 @@ export default function InteractiveLearning({ locale }) {
   return (
     <FocusedLearningLayout
       locale={locale}
+      tracks={tracks}
       activeTrack={activeTrack}
       activeModule={activeModule}
       activeLesson={activeLesson}
@@ -172,6 +185,7 @@ export default function InteractiveLearning({ locale }) {
 
 function FocusedLearningLayout({
   locale,
+  tracks,
   activeTrack,
   activeModule,
   activeLesson,
@@ -213,7 +227,7 @@ function FocusedLearningLayout({
         <div className="grid gap-3 xl:grid-cols-[300px_minmax(0,1fr)]">
           <aside className="max-h-[calc(100vh-7.5rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-sm xl:sticky xl:top-24">
             <div className="grid grid-cols-3 gap-1">
-              {learningTracks.map((track) => (
+              {tracks.map((track) => (
                 <button key={track.id} type="button" onClick={() => onTrackChange(track)} className={`rounded-lg px-2 py-2 text-xs font-bold ${activeTrackId === track.id ? "bg-indigoPop text-white" : "bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigoPop"}`}>{track.label}</button>
               ))}
             </div>
@@ -1036,11 +1050,7 @@ function readLessonRoute() {
   if (!match) return fallback;
 
   const [, trackId, moduleId, lessonId] = match;
-  const track = learningTracks.find((item) => item.id === trackId);
-  const module = track?.modules.find((item) => item.id === moduleId);
-  const lesson = module?.lessons.find((item) => item.id === lessonId);
-
-  return track && module && lesson ? { trackId, moduleId, lessonId } : fallback;
+  return { trackId, moduleId, lessonId };
 }
 
 function copyLessonLink() {
