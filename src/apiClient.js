@@ -76,6 +76,14 @@ export async function saveRemoteProgress(progress, userId = getUserId()) {
   });
 }
 
+export async function migrateLocalProgress(progress) {
+  return request("/api/progress/migrate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ progress })
+  });
+}
+
 export async function listSubmissions(userId = getUserId()) {
   return request(`/api/submissions?userId=${encodeURIComponent(userId)}`);
 }
@@ -102,6 +110,58 @@ export async function reviewSubmission(id, review) {
 
 export async function getCertificates(userId = getUserId()) {
   return request(`/api/certificates/${encodeURIComponent(userId)}`);
+}
+
+export async function issueCertificate(certificateId) {
+  return request(`/api/certificates/${encodeURIComponent(certificateId)}/issue`, { method: "POST" });
+}
+
+export async function getPublicCertificate(verificationCode) {
+  return request(`/api/certificates/public/${encodeURIComponent(verificationCode)}`);
+}
+
+export async function recordLearningEvent(payload) {
+  return request("/api/events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function listCourses() {
+  return request("/api/courses");
+}
+
+export async function createCourse(payload) {
+  return request("/api/courses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function updateCourse(id, payload) {
+  return request(`/api/courses/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function deleteCourse(id) {
+  return request(`/api/courses/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+export async function listAdminUsers() {
+  return request("/api/admin/users");
+}
+
+export async function updateUserRoles(id, roles) {
+  return request(`/api/admin/users/${encodeURIComponent(id)}/roles`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ roles })
+  });
 }
 
 export async function listAttempts(userId = getUserId()) {
@@ -164,7 +224,12 @@ async function request(path, options = {}) {
     headers
   });
   if (!response.ok) {
-    throw new Error(`API ${response.status}`);
+    const payload = await response.json().catch(() => ({}));
+    const error = new Error(payload.error || `API ${response.status}`);
+    error.status = response.status;
+    error.requestId = payload.requestId || response.headers.get("X-Request-Id");
+    error.payload = payload;
+    throw error;
   }
   return response.json();
 }

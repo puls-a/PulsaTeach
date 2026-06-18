@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Github, KeyRound, LockKeyhole, LogOut, Mail, ShieldCheck, UserPlus } from "lucide-react";
+import { Github, KeyRound, LockKeyhole, LogOut, Mail, RotateCcw, ShieldCheck, UserPlus } from "lucide-react";
 import { createLocalSession, signOutSupabase, syncSessionUserId, useSupabaseSession } from "./authState.js";
 import { isSupabaseBrowserConfigured, supabase } from "./supabaseClient.js";
 
@@ -10,59 +10,21 @@ const providers = [
 ];
 const useLocalAuth = import.meta.env.VITE_AUTH_MODE === "local";
 
-const copyMap = {
-  en: {
-    kicker: "Supabase Auth",
-    title: "Sign in to PulsaTeach",
-    text: "Use GitHub, Google, Discord, or a secure email/password account powered by Supabase Auth.",
-    configured: "Supabase client configured",
-    missing: "Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY in .env.",
-    email: "Email",
-    password: "Password",
-    login: "Sign in",
-    signup: "Create account",
-    hasAccount: "I already have an account",
-    needsAccount: "Create a new account",
-    magic: "Send magic link",
-    signedIn: "Signed in",
-    signOut: "Sign out",
-    providerNote: "Enable each provider in Supabase Dashboard > Authentication > Providers."
-  },
-  fr: {
-    kicker: "Compte PulsaTeach",
-    title: "Crée ton compte et sauvegarde ta progression",
-    text: "Retrouve tes formations, tes leçons terminées, tes projets et tes certifications sur tous tes appareils.",
-    configured: "Création de compte disponible",
-    missing: "Il manque VITE_SUPABASE_URL ou VITE_SUPABASE_ANON_KEY dans .env.",
-    email: "Email",
-    password: "Mot de passe",
-    login: "Se connecter",
-    signup: "Créer un compte",
-    hasAccount: "J'ai déjà un compte",
-    needsAccount: "Créer un nouveau compte",
-    magic: "Envoyer un magic link",
-    signedIn: "Connecté",
-    signOut: "Se déconnecter",
-    providerNote: "Les connexions OAuth doivent être activées dans Supabase avant d'utiliser ces boutons. L'email et le mot de passe fonctionnent déjà."
-  }
-};
-
-export default function AuthPage({ locale = "en", defaultMode = "login" }) {
-  const copy = copyMap[locale] || copyMap.en;
+export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
+  const fr = locale === "fr";
   const { session } = useSupabaseSession();
   const [mode, setMode] = useState(defaultMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
+  const [busy, setBusy] = useState(false);
 
   const signInWithProvider = async (provider) => {
     if (!supabase || useLocalAuth) return;
     setStatus("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
-      }
+      options: { redirectTo: `${window.location.origin}/auth/callback` }
     });
     if (error) setStatus(error.message);
   };
@@ -70,64 +32,92 @@ export default function AuthPage({ locale = "en", defaultMode = "login" }) {
   const sendMagicLink = async (event) => {
     event.preventDefault();
     if (!supabase || useLocalAuth) return;
+    setBusy(true);
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`
-      }
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
     });
-    setStatus(error ? error.message : "Magic link sent.");
+    setBusy(false);
+    setStatus(error ? error.message : (fr ? "Lien de connexion envoyé." : "Magic link sent."));
   };
 
   const submitPasswordAuth = async (event) => {
     event.preventDefault();
     if (password.length < 8) {
-      setStatus(locale === "fr" ? "Le mot de passe doit contenir au moins 8 caractères." : "Password must be at least 8 characters.");
+      setStatus(fr ? "Le mot de passe doit contenir au moins 8 caractères." : "Password must be at least 8 characters.");
       return;
     }
 
     setStatus("");
+    setBusy(true);
     if (supabase && !useLocalAuth) {
       try {
         const result = mode === "signup"
-          ? await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/auth/callback` } })
+          ? await supabase.auth.signUp({
+              email,
+              password,
+              options: {
+                emailRedirectTo: `${window.location.origin}/auth/callback`,
+                data: { locale, onboarding_completed: false }
+              }
+            })
           : await supabase.auth.signInWithPassword({ email, password });
-        if (!result.error) {
-          syncSessionUserId(result.data.session);
-          setStatus(mode === "signup" ? (locale === "fr" ? "Compte créé." : "Account created.") : (locale === "fr" ? "Connexion réussie." : "Signed in successfully."));
+        if (result.error) {
+          setStatus(result.error.message);
           return;
         }
-        setStatus(result.error.message);
-        return;
+        syncSessionUserId(result.data.session);
+        if (result.data.session) {
+          window.location.hash = mode === "signup" ? "#/onboarding" : "#/dashboard";
+        } else {
+          setStatus(fr
+            ? "Compte créé. Confirme ton adresse depuis l'email reçu avant de te connecter."
+            : "Account created. Confirm your address from the email before signing in.");
+        }
       } catch (error) {
-        setStatus(error.message || (locale === "fr" ? "Connexion Supabase indisponible." : "Supabase authentication unavailable."));
-        return;
+        setStatus(error.message || (fr ? "Authentification indisponible." : "Authentication unavailable."));
+      } finally {
+        setBusy(false);
       }
-    }
-
-    if (!useLocalAuth) {
-      setStatus(locale === "fr" ? "Supabase n'est pas configuré. Active VITE_AUTH_MODE=local pour utiliser un compte local en développement." : "Supabase is not configured. Set VITE_AUTH_MODE=local to use local development accounts.");
       return;
     }
 
+    if (!useLocalAuth) {
+      setBusy(false);
+      setStatus(fr
+        ? "Supabase n'est pas configuré. Le mode local doit être activé explicitement en développement."
+        : "Supabase is not configured. Local mode must be explicitly enabled in development.");
+      return;
+    }
     createLocalSession(email);
-    setStatus(locale === "fr" ? "Compte local actif. Ta progression est sauvegardée sur cet appareil." : "Local account active. Progress is saved on this device.");
+    setBusy(false);
+    window.location.hash = mode === "signup" ? "#/onboarding" : "#/dashboard";
   };
 
-  const signOut = async () => {
-    await signOutSupabase();
-    setStatus("");
+  const sendPasswordReset = async () => {
+    if (!supabase || !email) {
+      setStatus(fr ? "Saisis d'abord ton adresse email." : "Enter your email address first.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?recovery=1`
+    });
+    setBusy(false);
+    setStatus(error ? error.message : (fr ? "Email de réinitialisation envoyé." : "Password reset email sent."));
   };
 
   return (
     <section className="app-page min-h-screen bg-slate-50">
-      <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[.95fr_1.05fr] lg:items-start">
+      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[.9fr_1.1fr] lg:items-start">
         <div>
-          <p className="eyebrow">{copy.kicker}</p>
-          <h1 className="page-heading">{copy.title}</h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">{copy.text}</p>
-          <div className={`mt-6 rounded-xl border p-4 font-bold ${isSupabaseBrowserConfigured ? "border-green-200 bg-green-50 text-green-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
-            {isSupabaseBrowserConfigured ? copy.configured : copy.missing}
+          <p className="eyebrow">{fr ? "Compte PulsaTeach" : "PulsaTeach account"}</p>
+          <h1 className="page-heading">{fr ? "Retrouve ton parcours sur tous tes appareils." : "Keep your learning path on every device."}</h1>
+          <p className="mt-4 max-w-xl leading-7 text-slate-600">
+            {fr ? "Ton compte synchronise progression, projets, préférences et certificats. Tu peux commencer localement puis tout importer à la première connexion." : "Your account syncs progress, projects, preferences, and certificates. Local work is imported on first sign-in."}
+          </p>
+          <div className={`mt-6 rounded-xl border p-4 font-bold ${isSupabaseBrowserConfigured ? "border-green-200 bg-green-50 text-green-700" : "border-amber-200 bg-amber-50 text-amber-800"}`}>
+            {isSupabaseBrowserConfigured ? (fr ? "Synchronisation Supabase disponible" : "Supabase sync available") : (fr ? "Configuration Supabase manquante" : "Supabase configuration missing")}
           </div>
         </div>
 
@@ -135,99 +125,66 @@ export default function AuthPage({ locale = "en", defaultMode = "login" }) {
           {session ? (
             <div>
               <div className="muted-surface">
-                <p className="font-display text-2xl font-bold">{copy.signedIn}</p>
+                <p className="font-display text-2xl font-bold">{fr ? "Compte connecté" : "Signed in"}</p>
                 <p className="mt-2 break-all font-semibold text-slate-600">{session.user.email || session.user.id}</p>
               </div>
-              <button type="button" onClick={signOut} className="secondary-button mt-5">
-                <LogOut className="size-5" />
-                {copy.signOut}
-              </button>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <a href="#/dashboard" className="primary-button">{fr ? "Voir ma progression" : "View progress"}</a>
+                <button type="button" onClick={signOutSupabase} className="secondary-button"><LogOut className="size-5" />{fr ? "Se déconnecter" : "Sign out"}</button>
+              </div>
             </div>
           ) : (
-            <div>
-              <div className="grid gap-3 sm:grid-cols-2">
+            <>
+              <div className="grid gap-3 sm:grid-cols-3">
                 {providers.map(({ id, label, icon: Icon }) => (
-                  <button
-                    key={id}
-                    type="button"
-                    disabled={!supabase || useLocalAuth}
-                    onClick={() => signInWithProvider(id)}
-                    className="secondary-button disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <Icon className="size-5" />
-                    {label}
+                  <button key={id} type="button" disabled={!supabase || useLocalAuth || busy} onClick={() => signInWithProvider(id)} className="secondary-button disabled:cursor-not-allowed disabled:opacity-50">
+                    <Icon className="size-5" />{label}
                   </button>
                 ))}
               </div>
 
               <form onSubmit={submitPasswordAuth} className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="font-display text-2xl font-bold">{mode === "signup" ? copy.signup : copy.login}</h2>
-                  <button
-                    type="button"
-                    onClick={() => { setMode(mode === "signup" ? "login" : "signup"); setStatus(""); }}
-                    className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold"
-                  >
-                    {mode === "signup" ? copy.hasAccount : copy.needsAccount}
+                  <h2 className="font-display text-2xl font-bold">{mode === "signup" ? (fr ? "Créer un compte" : "Create account") : (fr ? "Se connecter" : "Sign in")}</h2>
+                  <button type="button" onClick={() => { setMode(mode === "signup" ? "login" : "signup"); setStatus(""); }} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold">
+                    {mode === "signup" ? (fr ? "J'ai déjà un compte" : "I have an account") : (fr ? "Créer un compte" : "Create account")}
                   </button>
                 </div>
                 <div className="grid gap-3">
-                  <label className="block">
-                    <span className="block text-sm font-semibold text-slate-700">{copy.email}</span>
-                    <input
-                      id="auth-email"
-                      type="email"
-                      required
-                      autoComplete="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 font-bold outline-none focus:border-indigoPop"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="block text-sm font-semibold text-slate-700">{copy.password}</span>
-                    <input
-                      type="password"
-                      required
-                      minLength={8}
-                      autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 font-bold outline-none focus:border-indigoPop"
-                    />
-                  </label>
-                  <button type="submit" className="primary-button">
+                  <AuthField label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" />
+                  <AuthField label={fr ? "Mot de passe" : "Password"} type="password" value={password} onChange={setPassword} autoComplete={mode === "signup" ? "new-password" : "current-password"} />
+                  <button type="submit" disabled={busy} className="primary-button disabled:cursor-wait disabled:opacity-60">
                     {mode === "signup" ? <UserPlus className="size-5" /> : <LockKeyhole className="size-5" />}
-                    {mode === "signup" ? copy.signup : copy.login}
+                    {mode === "signup" ? (fr ? "Créer mon compte" : "Create my account") : (fr ? "Se connecter" : "Sign in")}
                   </button>
+                  {mode === "login" && (
+                    <button type="button" onClick={sendPasswordReset} disabled={busy} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold text-indigoPop hover:bg-indigo-50">
+                      <RotateCcw className="size-4" />{fr ? "Mot de passe oublié" : "Forgot password"}
+                    </button>
+                  )}
                 </div>
               </form>
 
               <form onSubmit={sendMagicLink} className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
-                <label className="block text-sm font-semibold text-slate-700" htmlFor="auth-magic-email">{copy.email}</label>
-                <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                  <input
-                    id="auth-magic-email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    className="form-control flex-1"
-                  />
-                  <button type="submit" disabled={!supabase || useLocalAuth} className="primary-button disabled:opacity-50">
-                    <Mail className="size-5" />
-                    {copy.magic}
-                  </button>
-                </div>
+                <p className="text-sm font-semibold text-slate-700">{fr ? "Connexion sans mot de passe" : "Passwordless sign-in"}</p>
+                <button type="submit" disabled={!supabase || useLocalAuth || busy || !email} className="secondary-button mt-3 disabled:opacity-50">
+                  <Mail className="size-5" />{fr ? "Envoyer un lien magique" : "Send magic link"}
+                </button>
               </form>
-
-              <p className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">{copy.providerNote}</p>
-              {status && <p className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700" role="status">{status}</p>}
-            </div>
+              {status && <p className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700" role="status">{status}</p>}
+            </>
           )}
         </div>
       </div>
     </section>
+  );
+}
+
+function AuthField({ label, type, value, onChange, autoComplete }) {
+  return (
+    <label className="block">
+      <span className="block text-sm font-semibold text-slate-700">{label}</span>
+      <input type={type} required minLength={type === "password" ? 8 : undefined} autoComplete={autoComplete} value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 font-bold outline-none focus:border-indigoPop focus:ring-2 focus:ring-indigo-100" />
+    </label>
   );
 }

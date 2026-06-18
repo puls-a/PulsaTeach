@@ -13,6 +13,9 @@
     "audit:learning": "node scripts/audit-learning.mjs",
     "smoke": "node scripts/smoke.mjs",
     "smoke:full": "node scripts/smoke-full.mjs",
+    "dev:e2e": "cross-env VITE_AUTH_MODE=local PULSATEACH_STORAGE=json VITE_API_URL=http://127.0.0.1:4188 PORT=4188 concurrently \"npm run server\" \"npm run dev -- --port 5188\"",
+    "test:e2e": "playwright test",
+    "roles:set": "node scripts/set-user-roles.mjs",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
@@ -28,8 +31,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.61.0",
     "autoprefixer": "^10.4.23",
     "concurrently": "^10.0.3",
+    "cross-env": "^10.1.0",
     "eslint": "^10.5.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.6.0",

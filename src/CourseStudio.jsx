@@ -1,77 +1,114 @@
-import { useMemo, useState } from "react";
-import { ArrowRight, BookOpen, Plus, Save, Trash2 } from "lucide-react";
-import { learningTracks } from "./learningContent.js";
-
-const storageKey = "pulsateach-course-drafts";
+import { useEffect, useState } from "react";
+import { ArrowRight, BookOpen, Plus, Save, Send, Trash2 } from "lucide-react";
+import { createCourse, deleteCourse, listCourses, updateCourse } from "./apiClient.js";
 
 export default function CourseStudio({ locale = "fr" }) {
-  const [drafts, setDrafts] = useState(readDrafts);
-  const [form, setForm] = useState({ title: "", description: "", level: "Débutant", language: "fr" });
-  const published = useMemo(() => learningTracks.map((track) => ({
-    id: track.id,
-    title: track.title[locale],
-    modules: track.modules.length,
-    lessons: track.modules.reduce((sum, module) => sum + module.lessons.length, 0)
-  })), [locale]);
+  const fr = locale === "fr";
+  const [courses, setCourses] = useState([]);
+  const [status, setStatus] = useState("loading");
+  const [form, setForm] = useState({ titleFr: "", titleEn: "", descriptionFr: "", descriptionEn: "", level: "beginner", language: "fr" });
 
-  const submit = (event) => {
+  const refresh = () => listCourses().then((items) => { setCourses(items); setStatus("idle"); }).catch((error) => setStatus(error.message));
+
+  useEffect(refresh, []);
+
+  const submit = async (event) => {
     event.preventDefault();
-    const next = [{ ...form, id: `course-${Date.now()}`, status: "draft", createdAt: new Date().toISOString() }, ...drafts];
-    localStorage.setItem(storageKey, JSON.stringify(next));
-    setDrafts(next);
-    setForm({ ...form, title: "", description: "" });
+    setStatus("saving");
+    try {
+      await createCourse({
+        title: { fr: form.titleFr, en: form.titleEn || form.titleFr },
+        description: { fr: form.descriptionFr, en: form.descriptionEn || form.descriptionFr },
+        level: form.level,
+        language: form.language,
+        curriculum: { modules: [] }
+      });
+      setForm({ ...form, titleFr: "", titleEn: "", descriptionFr: "", descriptionEn: "" });
+      refresh();
+    } catch (error) {
+      setStatus(error.message);
+    }
   };
 
-  const remove = (id) => {
-    const next = drafts.filter((draft) => draft.id !== id);
-    localStorage.setItem(storageKey, JSON.stringify(next));
-    setDrafts(next);
+  const changeStatus = async (course, nextStatus) => {
+    setStatus("saving");
+    try {
+      const updated = await updateCourse(course.id, { status: nextStatus });
+      setCourses((items) => items.map((item) => item.id === updated.id ? updated : item));
+      setStatus("idle");
+    } catch (error) {
+      setStatus(error.message);
+    }
+  };
+
+  const remove = async (course) => {
+    try {
+      await deleteCourse(course.id);
+      setCourses((items) => items.filter((item) => item.id !== course.id));
+    } catch (error) {
+      setStatus(error.message);
+    }
   };
 
   return (
-    <section className="min-h-screen bg-slate-50 px-5 pb-20 pt-28 sm:px-8">
-      <div className="mx-auto max-w-6xl">
+    <section className="app-page">
+      <div className="mx-auto max-w-7xl">
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-          <div><p className="eyebrow">Course Studio</p><h1 className="mt-3 font-display text-4xl font-bold">{locale === "fr" ? "Créer et organiser les formations" : "Create and organize courses"}</h1><p className="mt-3 max-w-2xl text-slate-600">{locale === "fr" ? "Crée d'abord la structure d'une formation, puis ajoute ses leçons dans l'espace auteur." : "Create the course structure first, then add lessons in the author workspace."}</p></div>
-          <a href="#/author" className="secondary-button">{locale === "fr" ? "Créer des leçons" : "Create lessons"}<ArrowRight className="size-4" /></a>
+          <div>
+            <p className="eyebrow">Course Studio</p>
+            <h1 className="page-heading">{fr ? "Conçois puis publie de vraies formations." : "Design and publish real courses."}</h1>
+            <p className="mt-3 max-w-2xl text-slate-600">{fr ? "Les brouillons sont stockés dans Supabase. La publication exige une validation administrateur ou relecteur." : "Drafts are stored in Supabase. Publishing requires an admin or reviewer."}</p>
+          </div>
+          <a href="#/author" className="secondary-button">{fr ? "Créer les leçons" : "Create lessons"}<ArrowRight className="size-4" /></a>
         </div>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[.8fr_1.2fr]">
-          <form onSubmit={submit} className="rounded-2xl border border-slate-200 bg-white p-5">
-            <div className="flex items-center gap-3"><Plus className="size-5 text-indigoPop" /><h2 className="font-display text-2xl font-bold">{locale === "fr" ? "Nouvelle formation" : "New course"}</h2></div>
+          <form onSubmit={submit} className="surface">
+            <div className="flex items-center gap-3"><Plus className="size-5 text-indigoPop" /><h2 className="font-display text-2xl font-bold">{fr ? "Nouvelle formation" : "New course"}</h2></div>
             <div className="mt-5 grid gap-4">
-              <Field label={locale === "fr" ? "Titre" : "Title"} value={form.title} onChange={(title) => setForm({ ...form, title })} required />
-              <label className="grid gap-2 text-sm font-bold">{locale === "fr" ? "Description" : "Description"}<textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} className="min-h-28 rounded-xl border border-slate-300 p-3 outline-none focus:border-indigoPop" /></label>
-              <Field label={locale === "fr" ? "Niveau" : "Level"} value={form.level} onChange={(level) => setForm({ ...form, level })} />
-              <button type="submit" className="primary-button"><Save className="size-4" />{locale === "fr" ? "Enregistrer le brouillon" : "Save draft"}</button>
+              <Field label="Titre FR" value={form.titleFr} onChange={(titleFr) => setForm({ ...form, titleFr })} required />
+              <Field label="Title EN" value={form.titleEn} onChange={(titleEn) => setForm({ ...form, titleEn })} />
+              <Field label={fr ? "Promesse pédagogique FR" : "Learning promise FR"} value={form.descriptionFr} onChange={(descriptionFr) => setForm({ ...form, descriptionFr })} multiline />
+              <Field label="Learning promise EN" value={form.descriptionEn} onChange={(descriptionEn) => setForm({ ...form, descriptionEn })} multiline />
+              <label className="grid gap-2 text-sm font-bold">{fr ? "Niveau" : "Level"}<select value={form.level} onChange={(event) => setForm({ ...form, level: event.target.value })} className="form-control"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
+              <button type="submit" disabled={status === "saving"} className="primary-button disabled:opacity-60"><Save className="size-4" />{fr ? "Créer le brouillon" : "Create draft"}</button>
+              {!["idle", "loading", "saving"].includes(status) && <p className="status-error rounded-xl p-3 text-sm font-semibold" role="alert">{status}</p>}
             </div>
           </form>
 
-          <div>
-            <h2 className="font-display text-2xl font-bold">{locale === "fr" ? "Formations publiées" : "Published courses"}</h2>
+          <section>
+            <h2 className="font-display text-2xl font-bold">{fr ? "Pipeline éditorial" : "Editorial pipeline"}</h2>
             <div className="mt-4 grid gap-3">
-              {published.map((course) => <CourseRow key={course.id} course={course} status="published" />)}
+              {status === "loading" && <p className="empty-state">{fr ? "Chargement des formations..." : "Loading courses..."}</p>}
+              {status !== "loading" && courses.length === 0 && <p className="empty-state">{fr ? "Aucune formation distante." : "No remote courses."}</p>}
+              {courses.map((course) => (
+                <article className="rounded-xl border border-slate-200 bg-white p-4" key={course.id}>
+                  <div className="flex flex-wrap items-start gap-4">
+                    <span className="grid size-11 place-items-center rounded-xl bg-indigo-50 text-indigoPop"><BookOpen className="size-5" /></span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-display text-xl font-bold">{course.title?.[locale] || course.title?.fr || course.title?.en}</h3>
+                      <p className="mt-1 text-sm text-slate-500">{course.slug} · {course.level} · {(course.curriculum?.modules || []).length} modules</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-600">{course.description?.[locale] || course.description?.fr || course.description?.en}</p>
+                    </div>
+                    <span className={`status-badge ${course.status === "published" ? "status-success" : "status-warning"}`}>{course.status}</span>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+                    <button type="button" onClick={() => changeStatus(course, "review")} className="secondary-button"><Send className="size-4" />Review</button>
+                    <button type="button" onClick={() => changeStatus(course, "published")} className="primary-button">Publish</button>
+                    <button type="button" onClick={() => changeStatus(course, "draft")} className="secondary-button">Draft</button>
+                    <button type="button" onClick={() => remove(course)} className="icon-button ml-auto text-red-600" aria-label={fr ? "Supprimer la formation" : "Delete course"}><Trash2 className="size-4" /></button>
+                  </div>
+                </article>
+              ))}
             </div>
-            <h2 className="mt-8 font-display text-2xl font-bold">{locale === "fr" ? "Brouillons" : "Drafts"}</h2>
-            <div className="mt-4 grid gap-3">
-              {!drafts.length && <p className="rounded-xl border border-dashed border-slate-300 p-5 text-slate-500">{locale === "fr" ? "Aucun brouillon de formation." : "No course drafts."}</p>}
-              {drafts.map((course) => <CourseRow key={course.id} course={course} status="draft" onRemove={() => remove(course.id)} />)}
-            </div>
-          </div>
+          </section>
         </div>
       </div>
     </section>
   );
 }
 
-function CourseRow({ course, status, onRemove }) {
-  return <article className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4"><span className="grid size-11 place-items-center bg-slate-100"><BookOpen className="size-5" /></span><div className="min-w-0 flex-1"><h3 className="font-bold">{course.title}</h3><p className="mt-1 text-sm text-slate-500">{status === "published" ? `${course.modules} modules · ${course.lessons} leçons` : course.level}</p></div><span className={`rounded-full px-3 py-1 text-xs font-bold ${status === "published" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{status}</span>{onRemove && <button type="button" onClick={onRemove} className="icon-button" aria-label="Delete draft"><Trash2 className="size-4" /></button>}</article>;
-}
-
-function Field({ label, value, onChange, required = false }) {
-  return <label className="grid gap-2 text-sm font-bold">{label}<input required={required} value={value} onChange={(event) => onChange(event.target.value)} className="min-h-11 rounded-xl border border-slate-300 px-3 outline-none focus:border-indigoPop" /></label>;
-}
-
-function readDrafts() {
-  try { return JSON.parse(localStorage.getItem(storageKey)) || []; } catch { return []; }
+function Field({ label, value, onChange, required = false, multiline = false }) {
+  const Component = multiline ? "textarea" : "input";
+  return <label className="grid gap-2 text-sm font-bold">{label}<Component required={required} value={value} onChange={(event) => onChange(event.target.value)} className={`form-control ${multiline ? "min-h-24" : ""}`} /></label>;
 }

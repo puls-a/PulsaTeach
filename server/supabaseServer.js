@@ -32,7 +32,7 @@ export async function getSupabaseStatus() {
     };
   }
 
-  const tables = ["profiles", "progress", "attempts", "submissions", "enrollments", "lesson_drafts"];
+  const tables = ["profiles", "progress", "attempts", "submissions", "enrollments", "lesson_drafts", "course_drafts", "issued_certificates", "learning_events"];
   const checks = await Promise.all(tables.map(async (table) => {
     const { count, error } = await supabaseAdmin.from(table).select("*", { count: "exact", head: true });
     return {
@@ -74,6 +74,10 @@ export async function readSupabaseStore(storeName, fallback) {
         goal: row.goal,
         weeklyMinutes: row.weekly_minutes,
         locale: row.locale,
+        bio: row.bio || "",
+        avatarUrl: row.avatar_url || "",
+        onboardingCompleted: Boolean(row.onboarding_completed),
+        roles: row.roles || [],
         createdAt: row.created_at,
         updatedAt: row.updated_at
       }
@@ -83,7 +87,8 @@ export async function readSupabaseStore(storeName, fallback) {
   const table = tableForStore(storeName);
   if (!table) return fallback;
 
-  const { data, error } = await supabaseAdmin.from(table).select("*").order("created_at", { ascending: false });
+  const orderColumn = table === "issued_certificates" ? "issued_at" : "created_at";
+  const { data, error } = await supabaseAdmin.from(table).select("*").order(orderColumn, { ascending: false });
   if (error) throw error;
   return (data || []).map((row) => fromSupabaseRow(table, row));
 }
@@ -110,6 +115,10 @@ export async function writeSupabaseStore(storeName, store) {
       goal: user.goal || "frontend-foundations",
       weekly_minutes: user.weeklyMinutes || 120,
       locale: user.locale || "en",
+      bio: user.bio || "",
+      avatar_url: user.avatarUrl || "",
+      onboarding_completed: Boolean(user.onboardingCompleted),
+      roles: user.roles || [],
       created_at: user.createdAt || new Date().toISOString(),
       updated_at: user.updatedAt || new Date().toISOString()
     }));
@@ -142,7 +151,10 @@ function tableForStore(storeName) {
     "attempts.json": "attempts",
     "submissions.json": "submissions",
     "enrollments.json": "enrollments",
-    "lesson-drafts.json": "lesson_drafts"
+    "lesson-drafts.json": "lesson_drafts",
+    "course-drafts.json": "course_drafts",
+    "issued-certificates.json": "issued_certificates",
+    "learning-events.json": "learning_events"
   }[storeName];
 }
 
@@ -204,6 +216,47 @@ function fromSupabaseRow(table, row) {
       updatedAt: row.updated_at
     };
   }
+  if (table === "course_drafts") {
+    return {
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      description: row.description,
+      level: row.level,
+      language: row.language,
+      status: row.status,
+      authorUserId: row.author_user_id,
+      curriculum: row.curriculum || { modules: [] },
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      publishedAt: row.published_at
+    };
+  }
+  if (table === "issued_certificates") {
+    return {
+      id: row.id,
+      verificationCode: row.verification_code,
+      userId: row.user_id,
+      certificateId: row.certificate_id,
+      learnerName: row.learner_name,
+      title: row.title,
+      evidence: row.evidence || {},
+      issuedAt: row.issued_at,
+      revokedAt: row.revoked_at
+    };
+  }
+  if (table === "learning_events") {
+    return {
+      id: row.id,
+      userId: row.user_id,
+      eventType: row.event_type,
+      lessonId: row.lesson_id,
+      trackId: row.track_id,
+      payload: row.payload || {},
+      requestId: row.request_id,
+      createdAt: row.created_at
+    };
+  }
   return row;
 }
 
@@ -263,6 +316,47 @@ function toSupabaseRow(table, item) {
       status: item.status,
       created_at: item.createdAt,
       updated_at: item.updatedAt
+    };
+  }
+  if (table === "course_drafts") {
+    return {
+      id: item.id,
+      slug: item.slug,
+      title: item.title,
+      description: item.description || {},
+      level: item.level || "beginner",
+      language: item.language || "fr",
+      status: item.status || "draft",
+      author_user_id: item.authorUserId,
+      curriculum: item.curriculum || { modules: [] },
+      created_at: item.createdAt,
+      updated_at: item.updatedAt,
+      published_at: item.publishedAt || null
+    };
+  }
+  if (table === "issued_certificates") {
+    return {
+      id: item.id,
+      verification_code: item.verificationCode,
+      user_id: item.userId,
+      certificate_id: item.certificateId,
+      learner_name: item.learnerName,
+      title: item.title,
+      evidence: item.evidence || {},
+      issued_at: item.issuedAt,
+      revoked_at: item.revokedAt || null
+    };
+  }
+  if (table === "learning_events") {
+    return {
+      id: item.id,
+      user_id: item.userId || null,
+      event_type: item.eventType,
+      lesson_id: item.lessonId || null,
+      track_id: item.trackId || null,
+      payload: item.payload || {},
+      request_id: item.requestId || null,
+      created_at: item.createdAt
     };
   }
   return item;

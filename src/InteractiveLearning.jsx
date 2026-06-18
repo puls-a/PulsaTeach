@@ -16,7 +16,7 @@ import {
   XCircle
 } from "lucide-react";
 import { learningTracks } from "./learningContent.js";
-import { loadRemoteProgress, recordAttempt, saveRemoteProgress } from "./apiClient.js";
+import { loadRemoteProgress, recordAttempt, recordLearningEvent, saveRemoteProgress } from "./apiClient.js";
 import { createPreview, displayTestLabel, getPreviewKind, runJavaScriptWithConsole, testFailureHelp, validateLesson } from "./lessonRuntime.js";
 
 const progressKey = "pulsateach-learning-progress";
@@ -56,6 +56,11 @@ export default function InteractiveLearning({ locale }) {
 
   useEffect(() => {
     window.history.replaceState(null, "", `#/learn/${activeTrackId}/${activeModuleId}/${activeLessonId}`);
+    recordLearningEvent({
+      eventType: "lesson_opened",
+      lessonId: activeLessonId,
+      trackId: activeTrackId
+    }).catch(() => {});
   }, [activeTrackId, activeModuleId, activeLessonId]);
 
   useEffect(() => {
@@ -357,6 +362,16 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
       moduleId: activeModule.id,
       passed: checks.filter((check) => check.pass).length,
       total: checks.length
+    }).catch(() => {});
+    recordLearningEvent({
+      eventType: checks.every((check) => check.pass) ? "lesson_completed" : "tests_failed",
+      lessonId: lesson.id,
+      trackId: activeTrack.id,
+      payload: {
+        passed: checks.filter((check) => check.pass).length,
+        total: checks.length,
+        failedTests: checks.filter((check) => !check.pass).map((check) => check.label || check.id)
+      }
     }).catch(() => {});
     if (checks.every((check) => check.pass)) {
       onComplete(lesson, checks.length);
@@ -890,6 +905,12 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
               moduleId: activeModule.id,
               passed: isCorrect ? 1 : 0,
               total: 1
+            }).catch(() => {});
+            recordLearningEvent({
+              eventType: isCorrect ? "lesson_completed" : "tests_failed",
+              lessonId: lesson.id,
+              trackId: activeTrack.id,
+              payload: { passed: isCorrect ? 1 : 0, total: 1, kind: "quiz" }
             }).catch(() => {});
             if (isCorrect) onComplete(lesson, 1);
           }}

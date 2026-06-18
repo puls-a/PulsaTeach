@@ -26,6 +26,7 @@ import {
 import { signOutSupabase, useSupabaseSession } from "./authState.js";
 import { languages } from "./content.js";
 import AuthPage from "./AuthPage.jsx";
+import { OnboardingPage, PasswordRecoveryPage, PublicCertificatePage } from "./AccountPages.jsx";
 import CourseStudio from "./CourseStudio.jsx";
 import CurriculumHub from "./CurriculumHub.jsx";
 import { FlexboxArenaPage, JavaScriptArenaPage, LivePlaygroundPage, WorldPage } from "./GamePages.jsx";
@@ -329,6 +330,9 @@ function menuDescription(id, locale) {
 function renderRoute(route, locale) {
   if (route === "auth") return <AuthPage locale={locale} />;
   if (route === "signup") return <AuthPage locale={locale} defaultMode="signup" />;
+  if (route === "onboarding") return <OnboardingPage locale={locale} />;
+  if (route === "recovery") return <PasswordRecoveryPage locale={locale} />;
+  if (route === "verify") return <PublicCertificatePage locale={locale} verificationCode={window.location.hash.split("/")[2] || ""} />;
   if (route === "studio") return <CourseStudio locale={locale} />;
   if (route === "world") return <WorldPage locale={locale} />;
   if (route === "playground") return <LivePlaygroundPage locale={locale} />;
@@ -350,9 +354,11 @@ function renderRoute(route, locale) {
 }
 
 function getPageRoute() {
-  if (window.location.pathname.startsWith("/auth/callback")) return "auth";
+  if (window.location.pathname.startsWith("/auth/callback")) {
+    return new URLSearchParams(window.location.search).has("recovery") ? "recovery" : "onboarding";
+  }
   const route = window.location.hash.replace(/^#\/?/, "").split(/[/?#]/)[0];
-  const known = ["auth", "signup", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "catalog", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap"];
+  const known = ["auth", "signup", "onboarding", "recovery", "verify", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "catalog", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap"];
   return known.includes(route) ? route : "home";
 }
 

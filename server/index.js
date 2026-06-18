@@ -2,11 +2,12 @@ import "dotenv/config";
 import cors from "cors";
 import express from "express";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { learningTracks } from "../src/learningContent.js";
 import { productRoadmap } from "./roadmap.js";
-import { deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, readSupabaseStore, requireSupabaseStorage, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
+import { deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, readSupabaseStore, requireSupabaseStorage, supabaseAdmin, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = process.env.PULSATEACH_DATA_DIR || (process.env.VERCEL ? "/tmp/pulsateach-data" : path.join(__dirname, "..", "data"));
@@ -16,6 +17,9 @@ const attemptsFile = path.join(dataDir, "attempts.json");
 const enrollmentsFile = path.join(dataDir, "enrollments.json");
 const draftsFile = path.join(dataDir, "lesson-drafts.json");
 const usersFile = path.join(dataDir, "users.json");
+const coursesFile = path.join(dataDir, "course-drafts.json");
+const issuedCertificatesFile = path.join(dataDir, "issued-certificates.json");
+const learningEventsFile = path.join(dataDir, "learning-events.json");
 const port = process.env.PORT || 4174;
 const adminAccessKey = process.env.PULSATEACH_ADMIN_KEY || (process.env.PULSATEACH_STORAGE === "json" ? "dev-admin-key" : "");
 const supabaseRetryDelayMs = 5 * 60 * 1000;
@@ -43,6 +47,7 @@ if (requireSupabaseStorage && !supabaseEnabled) {
 
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
+app.use(attachRequestContext);
 app.use(attachAuthUser);
 
 app.get("/api/health", (_request, response) => {
@@ -103,6 +108,86 @@ app.get("/api/catalog", (_request, response) => {
       }))
     }))
   });
+});
+
+app.get("/api/courses", async (request, response) => {
+  const courses = await readJsonStore(coursesFile, []);
+  const canReview = hasRole(request, "admin", "author", "reviewer");
+  response.json(canReview ? courses : courses.filter((course) => course.status === "published"));
+});
+
+app.post("/api/courses", requireRole("admin", "author"), async (request, response) => {
+  const payload = request.body;
+  if (!isObject(payload) || !payload.title) {
+    response.status(400).json({ error: "Course requires a title.", requestId: request.requestId });
+    return;
+  }
+  const store = await readJsonStore(coursesFile, []);
+  const now = new Date().toISOString();
+  const title = normalizeLocalizedText(payload.title);
+  const baseSlug = slugify(payload.slug || title.fr || title.en || "formation");
+  const slug = uniqueSlug(baseSlug, store);
+  const course = {
+    id: `course-${randomUUID()}`,
+    slug,
+    title,
+    description: normalizeLocalizedText(payload.description || ""),
+    level: String(payload.level || "beginner"),
+    language: String(payload.language || "fr"),
+    status: "draft",
+    authorUserId: request.authUserId || "admin",
+    curriculum: isObject(payload.curriculum) ? payload.curriculum : { modules: [] },
+    createdAt: now,
+    updatedAt: now,
+    publishedAt: null
+  };
+  store.unshift(course);
+  await writeJsonStore(coursesFile, store);
+  response.status(201).json(course);
+});
+
+app.patch("/api/courses/:id", requireRole("admin", "author", "reviewer"), async (request, response) => {
+  const store = await readJsonStore(coursesFile, []);
+  const index = store.findIndex((course) => course.id === request.params.id);
+  if (index === -1) {
+    response.status(404).json({ error: "Course not found.", requestId: request.requestId });
+    return;
+  }
+  const payload = isObject(request.body) ? request.body : {};
+  const allowedStatuses = new Set(["draft", "review", "published"]);
+  const nextStatus = allowedStatuses.has(payload.status) ? payload.status : store[index].status;
+  if (nextStatus === "published" && !hasRole(request, "admin", "reviewer")) {
+    response.status(403).json({ error: "Reviewer role required to publish.", requestId: request.requestId });
+    return;
+  }
+  store[index] = {
+    ...store[index],
+    ...(payload.title ? { title: normalizeLocalizedText(payload.title) } : {}),
+    ...(payload.description ? { description: normalizeLocalizedText(payload.description) } : {}),
+    ...(payload.curriculum && isObject(payload.curriculum) ? { curriculum: payload.curriculum } : {}),
+    ...(payload.level ? { level: String(payload.level) } : {}),
+    status: nextStatus,
+    updatedAt: new Date().toISOString(),
+    publishedAt: nextStatus === "published" ? store[index].publishedAt || new Date().toISOString() : null
+  };
+  await writeJsonStore(coursesFile, store);
+  response.json(store[index]);
+});
+
+app.delete("/api/courses/:id", requireRole("admin", "author"), async (request, response) => {
+  const store = await readJsonStore(coursesFile, []);
+  const course = store.find((item) => item.id === request.params.id);
+  if (!course) {
+    response.status(404).json({ error: "Course not found.", requestId: request.requestId });
+    return;
+  }
+  if (course.status === "published" && !hasRole(request, "admin")) {
+    response.status(403).json({ error: "Only an admin can delete a published course.", requestId: request.requestId });
+    return;
+  }
+  if (shouldTrySupabase()) await deleteSupabaseRecord("course-drafts.json", course.id);
+  else await writeJsonStore(coursesFile, store.filter((item) => item.id !== course.id));
+  response.json({ ok: true, id: course.id });
 });
 
 app.get("/api/roadmap", (_request, response) => {
@@ -169,13 +254,16 @@ app.get("/api/analytics", requireRole("admin", "reviewer", "author"), async (_re
 });
 
 app.get("/api/admin/export", requireRole("admin"), async (_request, response) => {
-  const [progress, submissions, attempts, enrollments, drafts, users] = await Promise.all([
+  const [progress, submissions, attempts, enrollments, drafts, users, courses, issuedCertificates, learningEvents] = await Promise.all([
     readJsonStore(progressFile, {}),
     readJsonStore(submissionsFile, []),
     readJsonStore(attemptsFile, []),
     readJsonStore(enrollmentsFile, []),
     readJsonStore(draftsFile, []),
-    readJsonStore(usersFile, {})
+    readJsonStore(usersFile, {}),
+    readJsonStore(coursesFile, []),
+    readJsonStore(issuedCertificatesFile, []),
+    readJsonStore(learningEventsFile, [])
   ]);
   response.json({
     exportedAt: new Date().toISOString(),
@@ -184,8 +272,44 @@ app.get("/api/admin/export", requireRole("admin"), async (_request, response) =>
     attempts,
     enrollments,
     drafts,
-    users
+    users,
+    courses,
+    issuedCertificates,
+    learningEvents
   });
+});
+
+app.get("/api/admin/users", requireRole("admin"), async (_request, response) => {
+  if (!supabaseAdmin) {
+    response.json([]);
+    return;
+  }
+  const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  if (error) throw error;
+  response.json((data.users || []).map((user) => ({
+    id: user.id,
+    email: user.email,
+    roles: rolesFromUser(user),
+    createdAt: user.created_at,
+    lastSignInAt: user.last_sign_in_at
+  })));
+});
+
+app.patch("/api/admin/users/:id/roles", requireRole("admin"), async (request, response) => {
+  if (!supabaseAdmin) {
+    response.status(503).json({ error: "Supabase admin unavailable.", requestId: request.requestId });
+    return;
+  }
+  const allowed = new Set(["admin", "author", "reviewer"]);
+  const roles = Array.from(new Set((Array.isArray(request.body?.roles) ? request.body.roles : [])
+    .map((role) => String(role).trim())
+    .filter((role) => allowed.has(role))));
+  const { data, error } = await supabaseAdmin.auth.admin.updateUserById(request.params.id, {
+    app_metadata: { roles }
+  });
+  if (error) throw error;
+  await supabaseAdmin.from("profiles").update({ roles, updated_at: new Date().toISOString() }).eq("auth_user_id", request.params.id);
+  response.json({ id: data.user.id, email: data.user.email, roles });
 });
 
 app.get("/api/path/:userId", async (request, response) => {
@@ -230,6 +354,7 @@ app.get("/api/users/:userId", async (request, response) => {
 });
 
 app.put("/api/users/:userId", async (request, response) => {
+  if (!requireAuthenticatedWrite(request, response)) return;
   if (!authorizeUserParam(request, response)) return;
   const userId = request.authUserId || request.params.userId;
   const payload = request.body;
@@ -245,6 +370,10 @@ app.put("/api/users/:userId", async (request, response) => {
     goal: String(payload.goal || current.goal || "frontend-foundations").slice(0, 80),
     weeklyMinutes: Number.isFinite(Number(payload.weeklyMinutes)) ? Number(payload.weeklyMinutes) : current.weeklyMinutes,
     locale: String(payload.locale || current.locale || "en").slice(0, 8),
+    bio: String(payload.bio ?? current.bio ?? "").slice(0, 500),
+    avatarUrl: String(payload.avatarUrl ?? current.avatarUrl ?? "").slice(0, 500),
+    onboardingCompleted: payload.onboardingCompleted === undefined ? Boolean(current.onboardingCompleted) : Boolean(payload.onboardingCompleted),
+    roles: current.roles || [],
     updatedAt: new Date().toISOString()
   };
   users[userId] = next;
@@ -381,6 +510,7 @@ app.get("/api/progress/:userId", async (request, response) => {
 });
 
 app.put("/api/progress/:userId", async (request, response) => {
+  if (!requireAuthenticatedWrite(request, response)) return;
   if (!authorizeUserParam(request, response)) return;
   const userId = request.authUserId || request.params.userId;
   if (!isObject(request.body)) {
@@ -395,6 +525,21 @@ app.put("/api/progress/:userId", async (request, response) => {
   };
   await writeProgressStore(store);
   response.json(store[userId]);
+});
+
+app.post("/api/progress/migrate", async (request, response) => {
+  if (!requireAuthenticatedWrite(request, response)) return;
+  const localProgress = request.body?.progress;
+  if (!isObject(localProgress)) {
+    response.status(400).json({ error: "Migration requires a progress object.", requestId: request.requestId });
+    return;
+  }
+  const userId = request.authUserId;
+  const store = await readProgressStore();
+  const merged = mergeProgress(store[userId], localProgress);
+  store[userId] = { ...merged, userId, updatedAt: new Date().toISOString() };
+  await writeProgressStore(store);
+  response.json({ migrated: true, progress: store[userId] });
 });
 
 app.get("/api/submissions", async (request, response) => {
@@ -414,6 +559,7 @@ app.get("/api/submissions", async (request, response) => {
 });
 
 app.post("/api/submissions", async (request, response) => {
+  if (!requireAuthenticatedWrite(request, response)) return;
   const payload = request.body;
   if (!isObject(payload) || !payload.projectId || !payload.title) {
     response.status(400).json({ error: "Submission requires userId, projectId and title." });
@@ -458,6 +604,7 @@ app.get("/api/attempts", async (request, response) => {
 });
 
 app.post("/api/attempts", async (request, response) => {
+  if (!requireAuthenticatedWrite(request, response)) return;
   const payload = request.body;
   if (!isObject(payload) || !payload.lessonId) {
     response.status(400).json({ error: "Attempt requires userId and lessonId." });
@@ -523,7 +670,113 @@ app.get("/api/certificates/:userId", async (request, response) => {
   const submissions = await readJsonStore(submissionsFile, []);
   const progress = progressStore[userId] || {};
   const userSubmissions = submissions.filter((item) => item.userId === userId);
-  response.json(buildCertificatesForUser(userId, progress, userSubmissions));
+  const issued = await readJsonStore(issuedCertificatesFile, []);
+  response.json(buildCertificatesForUser(userId, progress, userSubmissions, issued));
+});
+
+app.post("/api/certificates/:certificateId/issue", async (request, response) => {
+  if (!requireAuthenticatedWrite(request, response)) return;
+  const userId = request.authUserId;
+  const progressStore = await readProgressStore();
+  const submissions = await readJsonStore(submissionsFile, []);
+  const users = await readJsonStore(usersFile, {});
+  const issued = await readJsonStore(issuedCertificatesFile, []);
+  const existing = issued.find((item) => item.userId === userId && item.certificateId === request.params.certificateId && !item.revokedAt);
+  if (existing) {
+    response.json(existing);
+    return;
+  }
+  const evaluation = buildCertificatesForUser(userId, progressStore[userId] || {}, submissions.filter((item) => item.userId === userId), issued)
+    .certificates.find((item) => item.id === request.params.certificateId);
+  if (!evaluation) {
+    response.status(404).json({ error: "Certificate not found.", requestId: request.requestId });
+    return;
+  }
+  if (!evaluation.eligible) {
+    response.status(409).json({ error: "Certificate requirements are not complete.", progress: evaluation.progress, requestId: request.requestId });
+    return;
+  }
+  const now = new Date().toISOString();
+  const certificate = {
+    id: randomUUID(),
+    verificationCode: randomUUID().replaceAll("-", ""),
+    userId,
+    certificateId: evaluation.id,
+    learnerName: users[userId]?.displayName || request.authUser?.email || "PulsaTeach Learner",
+    title: evaluation.title,
+    evidence: evaluation.progress,
+    issuedAt: now,
+    revokedAt: null
+  };
+  issued.unshift(certificate);
+  await writeJsonStore(issuedCertificatesFile, issued);
+  response.status(201).json(certificate);
+});
+
+app.get("/api/certificates/public/:verificationCode", async (request, response) => {
+  const issued = await readJsonStore(issuedCertificatesFile, []);
+  const certificate = issued.find((item) => item.verificationCode === request.params.verificationCode);
+  if (!certificate) {
+    response.status(404).json({ error: "Certificate not found.", requestId: request.requestId });
+    return;
+  }
+  response.json({
+    valid: !certificate.revokedAt,
+    certificate: {
+      verificationCode: certificate.verificationCode,
+      learnerName: certificate.learnerName,
+      title: certificate.title,
+      evidence: certificate.evidence,
+      issuedAt: certificate.issuedAt,
+      revokedAt: certificate.revokedAt
+    }
+  });
+});
+
+app.post("/api/events", async (request, response) => {
+  if (!requireAuthenticatedWrite(request, response)) return;
+  const payload = request.body;
+  if (!isObject(payload) || !payload.eventType) {
+    response.status(400).json({ error: "Event type is required.", requestId: request.requestId });
+    return;
+  }
+  const allowedEvents = new Set(["lesson_opened", "tests_run", "tests_failed", "lesson_completed", "hint_opened", "progress_migrated"]);
+  if (!allowedEvents.has(payload.eventType)) {
+    response.status(400).json({ error: "Unsupported event type.", requestId: request.requestId });
+    return;
+  }
+  const store = await readJsonStore(learningEventsFile, []);
+  const event = {
+    id: randomUUID(),
+    userId: request.authUserId,
+    eventType: payload.eventType,
+    lessonId: payload.lessonId ? String(payload.lessonId) : "",
+    trackId: payload.trackId ? String(payload.trackId) : "",
+    payload: isObject(payload.payload) ? payload.payload : {},
+    requestId: request.requestId,
+    createdAt: new Date().toISOString()
+  };
+  store.unshift(event);
+  await writeJsonStore(learningEventsFile, store.slice(0, 10000));
+  response.status(201).json(event);
+});
+
+app.get("/api/admin/learning-events", requireRole("admin", "reviewer", "author"), async (request, response) => {
+  const store = await readJsonStore(learningEventsFile, []);
+  const failedOnly = request.query.failed === "true";
+  response.json((failedOnly ? store.filter((event) => event.eventType === "tests_failed") : store).slice(0, 500));
+});
+
+app.use((error, request, response, _next) => {
+  console.error(JSON.stringify({
+    level: "error",
+    message: error?.message || "Unhandled API error",
+    requestId: request.requestId,
+    method: request.method,
+    path: request.path,
+    stack: process.env.NODE_ENV === "production" ? undefined : error?.stack
+  }));
+  response.status(500).json({ error: "Internal server error.", requestId: request.requestId });
 });
 
 if (!process.env.VERCEL) {
@@ -596,6 +849,10 @@ async function attachAuthUser(request, _response, next) {
       request.authUser = user;
       request.authUserId = `supabase-${user.id}`;
       request.authRoles = rolesFromUser(user);
+      if (supabaseAdmin) {
+        const { data: profile } = await supabaseAdmin.from("profiles").select("roles").eq("auth_user_id", user.id).maybeSingle();
+        request.authRoles = Array.from(new Set([...request.authRoles, ...(profile?.roles || [])]));
+      }
     }
   }
 
@@ -604,6 +861,24 @@ async function attachAuthUser(request, _response, next) {
     request.authRoles = Array.from(new Set([...(request.authRoles || []), "admin", "author", "reviewer"]));
   }
 
+  next();
+}
+
+function attachRequestContext(request, response, next) {
+  const startedAt = Date.now();
+  request.requestId = String(request.headers["x-request-id"] || randomUUID());
+  response.setHeader("X-Request-Id", request.requestId);
+  response.on("finish", () => {
+    console.log(JSON.stringify({
+      level: response.statusCode >= 500 ? "error" : response.statusCode >= 400 ? "warn" : "info",
+      requestId: request.requestId,
+      method: request.method,
+      path: request.path,
+      status: response.statusCode,
+      durationMs: Date.now() - startedAt,
+      userId: request.authUserId || null
+    }));
+  });
   next();
 }
 
@@ -629,6 +904,12 @@ function authorizePayloadUser(request, response, payloadUserId) {
     return false;
   }
   return true;
+}
+
+function requireAuthenticatedWrite(request, response) {
+  if (!requireSupabaseStorage || request.authUserId || request.authRoles?.includes("admin")) return true;
+  response.status(401).json({ error: "Authentication required for remote writes.", requestId: request.requestId });
+  return false;
 }
 
 function requireRole(...roles) {
@@ -682,6 +963,10 @@ function createDefaultUser(userId) {
     goal: "frontend-foundations",
     weeklyMinutes: 120,
     locale: "en",
+    bio: "",
+    avatarUrl: "",
+    onboardingCompleted: false,
+    roles: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -708,7 +993,7 @@ function getLessonsForTracks(trackIds) {
     .flatMap((track) => track.modules.flatMap((module) => module.lessons));
 }
 
-function buildCertificatesForUser(userId, progress, userSubmissions) {
+function buildCertificatesForUser(userId, progress, userSubmissions, issuedCertificates = []) {
   const completed = isObject(progress?.completed) ? progress.completed : {};
   const completedLessonIds = Object.keys(completed);
 
@@ -727,7 +1012,7 @@ function buildCertificatesForUser(userId, progress, userSubmissions) {
       return {
         ...certificate,
         eligible,
-        issuedAt: eligible ? new Date().toISOString() : null,
+        issued: issuedCertificates.find((item) => item.userId === userId && item.certificateId === certificate.id && !item.revokedAt) || null,
         progress: {
           lessonPercent,
           projectPercent,
@@ -739,6 +1024,43 @@ function buildCertificatesForUser(userId, progress, userSubmissions) {
       };
     })
   };
+}
+
+function mergeProgress(remoteProgress, localProgress) {
+  const remote = isObject(remoteProgress) ? remoteProgress : {};
+  const local = isObject(localProgress) ? localProgress : {};
+  const activity = [...(local.activity || []), ...(remote.activity || [])]
+    .filter((item, index, items) => items.findIndex((candidate) => `${candidate.id}-${candidate.at}` === `${item.id}-${item.at}`) === index)
+    .sort((a, b) => String(b.at || "").localeCompare(String(a.at || "")))
+    .slice(0, 100);
+  return {
+    ...local,
+    ...remote,
+    xp: Math.max(Number(local.xp) || 0, Number(remote.xp) || 0),
+    streak: Math.max(Number(local.streak) || 0, Number(remote.streak) || 0),
+    completed: { ...(local.completed || {}), ...(remote.completed || {}) },
+    activity
+  };
+}
+
+function slugify(value) {
+  return String(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || "formation";
+}
+
+function uniqueSlug(baseSlug, courses) {
+  let slug = baseSlug;
+  let suffix = 2;
+  while (courses.some((course) => course.slug === slug)) {
+    slug = `${baseSlug}-${suffix}`;
+    suffix += 1;
+  }
+  return slug;
 }
 
 function buildProfileSummary(progress, submissions, attempts) {

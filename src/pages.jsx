@@ -38,11 +38,15 @@ import {
   getSupabaseStatus,
   getUserId,
   getUserSettings,
+  issueCertificate,
+  listAdminUsers,
   listAllSubmissions,
   listLessonDrafts,
   listSubmissions,
+  loadRemoteProgress,
   reviewSubmission,
   saveUserSettings,
+  updateUserRoles,
   updateLessonDraft
 } from "./apiClient.js";
 import { learningTracks } from "./learningContent.js";
@@ -55,7 +59,7 @@ export function DashboardPage({ locale }) {
   const [health, setHealth] = useState(null);
   const [stats, setStats] = useState(null);
   const [supabaseStatus, setSupabaseStatus] = useState(null);
-  const progress = readLocalProgress();
+  const [progress, setProgress] = useState(readLocalProgress);
   const completed = Object.keys(progress.completed || {}).length;
   const total = learningTracks.reduce((sum, track) => sum + track.modules.reduce((inner, module) => inner + module.lessons.length, 0), 0);
 
@@ -63,6 +67,17 @@ export function DashboardPage({ locale }) {
     getApiHealth().then(setHealth).catch(() => setHealth({ ok: false }));
     getStats().then(setStats).catch(() => setStats(null));
     getSupabaseStatus().then(setSupabaseStatus).catch(() => setSupabaseStatus(null));
+    loadRemoteProgress().then((remote) => {
+      if (!remote) return;
+      setProgress((current) => {
+        const merged = mergeDashboardProgress(current, remote);
+        localStorage.setItem("pulsateach-learning-progress", JSON.stringify(merged));
+        return merged;
+      });
+    }).catch(() => {});
+    const onSynced = (event) => setProgress(event.detail);
+    window.addEventListener("pulsateach-progress-synced", onSynced);
+    return () => window.removeEventListener("pulsateach-progress-synced", onSynced);
   }, []);
 
   return (
@@ -130,6 +145,7 @@ export function ProfilePage({ locale }) {
                 <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Profil apprenant" : "Learner profile"}</p>
                 <h1 className="font-display text-3xl font-bold sm:text-4xl">{profile?.displayName || "PulsaTeach Learner"}</h1>
                 <p className="mt-2 font-semibold text-slate-500">{profile?.userId || getUserId()}</p>
+                {profile?.user?.bio && <p className="mt-3 max-w-2xl leading-6 text-slate-600">{profile.user.bio}</p>}
               </div>
             </div>
             <a href="#/learn" className="primary-button">
@@ -194,7 +210,7 @@ export function ProfilePage({ locale }) {
 }
 
 export function SettingsPage({ locale }) {
-  const [form, setForm] = useState({ displayName: "", goal: "frontend-foundations", weeklyMinutes: 120, locale });
+  const [form, setForm] = useState({ displayName: "", goal: "frontend-foundations", weeklyMinutes: 120, locale, bio: "", avatarUrl: "", onboardingCompleted: false });
   const [status, setStatus] = useState("idle");
 
   useEffect(() => {
@@ -202,7 +218,10 @@ export function SettingsPage({ locale }) {
       displayName: user.displayName || "",
       goal: user.goal || "frontend-foundations",
       weeklyMinutes: user.weeklyMinutes || 120,
-      locale: user.locale || locale
+      locale: user.locale || locale,
+      bio: user.bio || "",
+      avatarUrl: user.avatarUrl || "",
+      onboardingCompleted: Boolean(user.onboardingCompleted)
     })).catch(() => {});
   }, [locale]);
 
@@ -233,6 +252,9 @@ export function SettingsPage({ locale }) {
             <SelectField label="Goal" value={form.goal} onChange={(goal) => setForm({ ...form, goal })} options={["frontend-foundations", "portfolio-ready", "job-ready"]} />
             <Field label={locale === "fr" ? "Minutes par semaine" : "Weekly minutes"} value={form.weeklyMinutes} onChange={(weeklyMinutes) => setForm({ ...form, weeklyMinutes })} />
             <SelectField label="Locale" value={form.locale} onChange={(nextLocale) => setForm({ ...form, locale: nextLocale })} options={["fr", "en"]} />
+            <div className="md:col-span-2">
+              <TextAreaField label={locale === "fr" ? "Présentation" : "Bio"} value={form.bio} onChange={(bio) => setForm({ ...form, bio })} />
+            </div>
           </div>
           <button type="submit" className="primary-button mt-5">
             <Send className="size-5" />
@@ -475,12 +497,27 @@ export function ProjectsPage({ locale }) {
 
 export function CertificationPage({ locale }) {
   const [data, setData] = useState(null);
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
     getCertificates().then(setData).catch(() => setData(null));
   }, []);
 
   const certificates = data?.certificates || [];
+
+  const issue = async (certificateId) => {
+    setStatus("issuing");
+    try {
+      const issued = await issueCertificate(certificateId);
+      setData((current) => ({
+        ...current,
+        certificates: current.certificates.map((certificate) => certificate.id === certificateId ? { ...certificate, issued } : certificate)
+      }));
+      setStatus("issued");
+    } catch (error) {
+      setStatus(error.message);
+    }
+  };
 
   return (
     <section className="app-page">
@@ -513,8 +550,19 @@ export function CertificationPage({ locale }) {
                   <ProgressMeter label={locale === "fr" ? "Leçons complétées" : "Lessons completed"} value={certificate.progress.lessonPercent} detail={`${certificate.progress.lessonsCompleted}/${certificate.progress.lessonsRequired}`} />
                   <ProgressMeter label={locale === "fr" ? "Projets approuvés" : "Approved projects"} value={certificate.progress.projectPercent} detail={`${certificate.progress.projectsApproved}/${certificate.progress.projectsRequired}`} />
                 </div>
+                {certificate.issued ? (
+                  <div className="mt-6 rounded-xl border border-green-200 bg-green-50 p-4">
+                    <p className="font-bold text-green-800">{locale === "fr" ? "Certificat délivré et vérifiable publiquement." : "Certificate issued and publicly verifiable."}</p>
+                    <a href={`#/verify/${certificate.issued.verificationCode}`} className="secondary-button mt-3">{locale === "fr" ? "Ouvrir la page publique" : "Open public page"}</a>
+                  </div>
+                ) : certificate.eligible ? (
+                  <button type="button" onClick={() => issue(certificate.id)} disabled={status === "issuing"} className="primary-button mt-6 disabled:opacity-60">
+                    <Award className="size-5" />{locale === "fr" ? "Délivrer mon certificat" : "Issue my certificate"}
+                  </button>
+                ) : null}
               </article>
             ))}
+            {status && !["issuing", "issued"].includes(status) && <p className="status-error rounded-xl p-3" role="alert">{status}</p>}
           </div>
           <aside className="rounded-2xl border border-indigo-700 bg-indigo-700 p-5 text-white shadow-sm">
             <Star className="size-10 text-lemonPop" />
@@ -676,11 +724,24 @@ export function AuthorPage({ locale }) {
 
 export function AdminPage({ locale }) {
   const [submissions, setSubmissions] = useState([]);
+  const [users, setUsers] = useState([]);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     listAllSubmissions().then(setSubmissions).catch(() => setSubmissions([]));
+    listAdminUsers().then(setUsers).catch(() => setUsers([]));
   }, []);
+
+  const toggleRole = async (user, role) => {
+    const roles = user.roles.includes(role) ? user.roles.filter((item) => item !== role) : [...user.roles, role];
+    try {
+      const updated = await updateUserRoles(user.id, roles);
+      setUsers((items) => items.map((item) => item.id === user.id ? { ...item, roles: updated.roles } : item));
+      setMessage(locale === "fr" ? "Rôles mis à jour." : "Roles updated.");
+    } catch (error) {
+      setMessage(error.message);
+    }
+  };
 
   const review = async (submission, status) => {
     const score = status === "approved" ? 88 : 55;
@@ -737,6 +798,25 @@ export function AdminPage({ locale }) {
           {locale === "fr" ? "Exporter les données" : "Export data"}
         </button>
         {message && <p className="status-success mt-4 rounded-xl p-3 text-sm font-semibold" role="status" aria-live="polite">{message}</p>}
+        <section className="surface mt-8">
+          <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Rôles de l'équipe" : "Team roles"}</h2>
+          <p className="mt-2 text-slate-600">{locale === "fr" ? "Les rôles sont enregistrés dans Supabase Auth et contrôlent réellement les routes serveur." : "Roles are stored in Supabase Auth and enforce server routes."}</p>
+          <div className="mt-5 grid gap-3">
+            {users.length === 0 && <p className="empty-state">{locale === "fr" ? "Aucun compte administrable ou accès insuffisant." : "No manageable accounts or insufficient access."}</p>}
+            {users.map((user) => (
+              <article className="muted-surface flex flex-col justify-between gap-4 md:flex-row md:items-center" key={user.id}>
+                <div className="min-w-0"><p className="truncate font-bold">{user.email}</p><p className="mt-1 text-xs text-slate-500">{user.id}</p></div>
+                <div className="flex flex-wrap gap-2">
+                  {["admin", "author", "reviewer"].map((role) => (
+                    <button key={role} type="button" onClick={() => toggleRole(user, role)} className={`rounded-lg border px-3 py-2 text-sm font-bold ${user.roles.includes(role) ? "border-indigoPop bg-indigoPop text-white" : "border-slate-300 bg-white text-slate-700"}`}>
+                      {role}
+                    </button>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
         <div className="mt-8 grid gap-4">
           {submissions.length === 0 && (
             <p className="empty-state">
@@ -903,4 +983,16 @@ function readLocalProgress() {
   } catch {
     return { xp: 0, completed: {}, activity: [] };
   }
+}
+
+function mergeDashboardProgress(local, remote) {
+  return {
+    ...local,
+    ...remote,
+    xp: Math.max(Number(local?.xp) || 0, Number(remote?.xp) || 0),
+    completed: { ...(local?.completed || {}), ...(remote?.completed || {}) },
+    activity: [...(remote?.activity || []), ...(local?.activity || [])]
+      .filter((item, index, items) => items.findIndex((candidate) => `${candidate.id}-${candidate.at}` === `${item.id}-${item.at}`) === index)
+      .slice(0, 100)
+  };
 }

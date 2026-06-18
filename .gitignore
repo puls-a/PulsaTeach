@@ -19,6 +19,8 @@ dist/
 .vite-dev.*.log
 .api.*.log
 data/
+playwright-report/
+test-results/
 
 .vercel
 supabase/.temp/
