@@ -1,0 +1,17 @@
+{
+  "name": "PulsaTeach",
+  "short_name": "PulsaTeach",
+  "description": "Plateforme bilingue d'apprentissage interactif du développement web.",
+  "start_url": "/#/catalog",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

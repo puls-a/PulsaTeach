@@ -1,15 +1,17 @@
 import "dotenv/config";
-import cors from "cors";
 import express from "express";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { learningTracks } from "../src/learningContent.js";
+import { learningTracks } from "../src/content/allTrackRegistry.js";
+import { buildGlossaryIndex } from "../src/features/glossary/glossaryIndex.js";
 import { normalizePublishedCourse, validateCourseForPublication } from "../src/courseSchema.js";
 import { productRoadmap } from "./roadmap.js";
 import { sendWelcomeEmail, transactionalEmailEnabled } from "./emailService.js";
+import { applySecurity, localIdentityEnabled, sensitiveRateLimit } from "./security.js";
 import { deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, readSupabaseStore, requireSupabaseStorage, supabaseAdmin, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
+import { accountDeletionSchema, attemptSchema, avatarUploadSchema, courseCreateSchema, courseUpdateSchema, enrollmentSchema, eventSchema, lessonDraftSchema, lessonDraftUpdateSchema, progressMigrationSchema, progressSchema, quizSessionSchema, reviewSchema, roleUpdateSchema, submissionSchema, userSettingsSchema, validateBody } from "./validation.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = process.env.PULSATEACH_DATA_DIR || (process.env.VERCEL ? "/tmp/pulsateach-data" : path.join(__dirname, "..", "data"));
@@ -22,10 +24,12 @@ const usersFile = path.join(dataDir, "users.json");
 const coursesFile = path.join(dataDir, "course-drafts.json");
 const issuedCertificatesFile = path.join(dataDir, "issued-certificates.json");
 const learningEventsFile = path.join(dataDir, "learning-events.json");
+const quizSessionsFile = path.join(dataDir, "quiz-sessions.json");
 const port = process.env.PORT || 4174;
-const adminAccessKey = process.env.PULSATEACH_ADMIN_KEY || (process.env.PULSATEACH_STORAGE === "json" ? "dev-admin-key" : "");
+const adminAccessKey = localIdentityEnabled ? process.env.PULSATEACH_ADMIN_KEY || "dev-admin-key" : "";
 const supabaseRetryDelayMs = 5 * 60 * 1000;
 let supabaseFallbackUntil = 0;
+const localWriteQueues = new Map();
 const projectLessonIds = ["html-12-final-project", "css-06-final-project", "js-07-final-project"];
 const certificates = [
   {
@@ -38,18 +42,132 @@ const certificates = [
     requiredTracks: ["html", "css", "javascript"],
     requiredProjects: projectLessonIds,
     minProjectScore: 70
+  },
+  {
+    id: "git-github-practitioner",
+    title: { fr: "Git & GitHub Practitioner", en: "Git & GitHub Practitioner" },
+    description: {
+      fr: "Valide un historique propre, les branches, la collaboration par pull request et une première CI.",
+      en: "Validate clean history, branches, pull-request collaboration, and a first CI workflow."
+    },
+    requiredTracks: ["git"],
+    requiredProjects: ["git-02-conflict-project", "git-03-pr-project", "git-04-capstone"],
+    minProjectScore: 70
+  },
+  {
+    id: "web-accessibility-practitioner",
+    title: { fr: "Web Accessibility Practitioner", en: "Web Accessibility Practitioner" },
+    description: {
+      fr: "Valide la structure, le clavier, les formulaires et un audit WCAG reproductible.",
+      en: "Validate structure, keyboard use, forms, and a reproducible WCAG audit."
+    },
+    requiredTracks: ["accessibility"],
+    requiredProjects: ["a11y-02-keyboard-project", "a11y-03-form-project", "a11y-04-capstone"],
+    minProjectScore: 70
+  },
+  {
+    id: "frontend-testing-practitioner",
+    title: { fr: "Frontend Testing Practitioner", en: "Frontend Testing Practitioner" },
+    description: {
+      fr: "Valide une stratégie de tests couvrant unités, composants, E2E, accessibilité et CI.",
+      en: "Validate a testing strategy covering units, components, E2E, accessibility, and CI."
+    },
+    requiredTracks: ["testing"],
+    requiredProjects: ["testing-01-unit-project", "testing-02-component-project", "testing-03-e2e-project", "testing-04-capstone"],
+    minProjectScore: 70
+  },
+  {
+    id: "typescript-practitioner",
+    title: { fr: "TypeScript Practitioner", en: "TypeScript Practitioner" },
+    description: {
+      fr: "Valide la modélisation, les génériques, les frontières runtime et une migration stricte.",
+      en: "Validate modeling, generics, runtime boundaries, and a strict migration."
+    },
+    requiredTracks: ["typescript"],
+    requiredProjects: ["ts-01-model-project", "ts-03-api-project", "ts-04-migration-project"],
+    minProjectScore: 70
+  },
+  {
+    id: "react-application-developer",
+    title: { fr: "React Application Developer", en: "React Application Developer" },
+    description: {
+      fr: "Valide composants, état, données asynchrones, routing, accessibilité, tests et performance.",
+      en: "Validate components, state, asynchronous data, routing, accessibility, tests, and performance."
+    },
+    requiredTracks: ["react"],
+    requiredProjects: ["react-01-library-project", "react-02-form-project", "react-03-data-project", "react-04-capstone"],
+    minProjectScore: 70
+  },
+  {
+    id: "node-api-developer",
+    title: { fr: "Node.js API Developer", en: "Node.js API Developer" },
+    description: {
+      fr: "Valide une API modulaire avec validation, autorisation, tests et observabilité.",
+      en: "Validate a modular API with validation, authorization, tests, and observability."
+    },
+    requiredTracks: ["node-api"],
+    requiredProjects: ["node-01-cli-project", "node-02-api-project", "node-03-auth-project", "node-04-capstone"],
+    minProjectScore: 70
+  },
+  {
+    id: "postgresql-data-modeler",
+    title: { fr: "PostgreSQL Data Modeler", en: "PostgreSQL Data Modeler" },
+    description: {
+      fr: "Valide schéma relationnel, requêtes, transactions, migrations, index et RLS.",
+      en: "Validate relational schema, queries, transactions, migrations, indexes, and RLS."
+    },
+    requiredTracks: ["sql-postgresql"],
+    requiredProjects: ["sql-01-catalog-project", "sql-02-learning-project", "sql-03-quiz-project", "sql-04-capstone"],
+    minProjectScore: 70
+  },
+  {
+    id: "web-security-practitioner",
+    title: { fr: "Web Security Practitioner", en: "Web Security Practitioner" },
+    description: {
+      fr: "Valide menaces, validation, identité, headers, uploads, tests d’abus et incident.",
+      en: "Validate threats, input handling, identity, headers, uploads, abuse tests, and incident response."
+    },
+    requiredTracks: ["web-security"],
+    requiredProjects: ["sec-01-boundary-project", "sec-02-access-project", "sec-03-hardening-project", "sec-04-capstone"],
+    minProjectScore: 75
+  },
+  {
+    id: "web-performance-practitioner",
+    title: { fr: "Web Performance Practitioner", en: "Web Performance Practitioner" },
+    description: {
+      fr: "Valide Web Vitals, ressources critiques, bundles, React, API, SQL et budgets CI.",
+      en: "Validate Web Vitals, critical resources, bundles, React, APIs, SQL, and CI budgets."
+    },
+    requiredTracks: ["web-performance"],
+    requiredProjects: ["perf-01-render-project", "perf-02-bundle-project", "perf-03-api-project", "perf-04-capstone"],
+    minProjectScore: 70
+  },
+  {
+    id: "web-deployment-operator",
+    title: { fr: "Web Deployment Operator", en: "Web Deployment Operator" },
+    description: {
+      fr: "Valide build déterministe, CI/CD, migrations, monitoring, runbooks et rollback.",
+      en: "Validate deterministic builds, CI/CD, migrations, monitoring, runbooks, and rollback."
+    },
+    requiredTracks: ["devops-deployment"],
+    requiredProjects: ["ops-01-release-project", "ops-02-delivery-project", "ops-03-monitoring-project", "ops-04-capstone"],
+    minProjectScore: 70
   }
 ];
 
 const app = express();
+const productionRuntime = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
 
 if (requireSupabaseStorage && !supabaseEnabled) {
   throw new Error("Supabase storage is required. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.");
 }
+if (productionRuntime && !requireSupabaseStorage) {
+  throw new Error("Production requires PULSATEACH_STORAGE=supabase-strict.");
+}
 
-app.use(cors());
-app.use(express.json({ limit: "2mb" }));
 app.use(attachRequestContext);
+applySecurity(app);
+app.use(express.json({ limit: "2mb" }));
 app.use(attachAuthUser);
 
 app.get("/api/health", (_request, response) => {
@@ -93,8 +211,23 @@ app.get("/api/catalog", async (_request, response) => {
   const courses = await readJsonStore(coursesFile, []);
   const publishedTracks = courses.filter((course) => course.status === "published").map(normalizePublishedCourse);
   response.json({
-    tracks: [...learningTracks, ...publishedTracks]
+    tracks: [...learningTracks, ...publishedTracks].map(summarizeTrack)
   });
+});
+
+app.get("/api/catalog/:trackId", async (request, response) => {
+  const courses = await readJsonStore(coursesFile, []);
+  const publishedTracks = courses.filter((course) => course.status === "published").map(normalizePublishedCourse);
+  const track = [...learningTracks, ...publishedTracks].find((item) => item.id === request.params.trackId);
+  if (!track) {
+    response.status(404).json({ error: "Track not found.", requestId: request.requestId });
+    return;
+  }
+  response.json({ track });
+});
+
+app.get("/api/glossary", (_request, response) => {
+  response.json({ terms: buildGlossaryIndex(learningTracks) });
 });
 
 app.get("/api/courses", async (request, response) => {
@@ -103,7 +236,7 @@ app.get("/api/courses", async (request, response) => {
   response.json(canReview ? courses : courses.filter((course) => course.status === "published"));
 });
 
-app.post("/api/courses", requireRole("admin", "author"), async (request, response) => {
+app.post("/api/courses", requireRole("admin", "author"), validateBody(courseCreateSchema), async (request, response) => {
   const payload = request.body;
   if (!isObject(payload) || !payload.title) {
     response.status(400).json({ error: "Course requires a title.", requestId: request.requestId });
@@ -133,7 +266,7 @@ app.post("/api/courses", requireRole("admin", "author"), async (request, respons
   response.status(201).json(course);
 });
 
-app.patch("/api/courses/:id", requireRole("admin", "author", "reviewer"), async (request, response) => {
+app.patch("/api/courses/:id", requireRole("admin", "author", "reviewer"), validateBody(courseUpdateSchema), async (request, response) => {
   const store = await readJsonStore(coursesFile, []);
   const index = store.findIndex((course) => course.id === request.params.id);
   if (index === -1) {
@@ -251,7 +384,7 @@ app.get("/api/analytics", requireRole("admin", "reviewer", "author"), async (_re
 });
 
 app.get("/api/admin/export", requireRole("admin"), async (_request, response) => {
-  const [progress, submissions, attempts, enrollments, drafts, users, courses, issuedCertificates, learningEvents] = await Promise.all([
+  const [progress, submissions, attempts, enrollments, drafts, users, courses, issuedCertificates, learningEvents, quizSessions] = await Promise.all([
     readJsonStore(progressFile, {}),
     readJsonStore(submissionsFile, []),
     readJsonStore(attemptsFile, []),
@@ -260,7 +393,8 @@ app.get("/api/admin/export", requireRole("admin"), async (_request, response) =>
     readJsonStore(usersFile, {}),
     readJsonStore(coursesFile, []),
     readJsonStore(issuedCertificatesFile, []),
-    readJsonStore(learningEventsFile, [])
+    readJsonStore(learningEventsFile, []),
+    readJsonStore(quizSessionsFile, [])
   ]);
   response.json({
     exportedAt: new Date().toISOString(),
@@ -272,7 +406,8 @@ app.get("/api/admin/export", requireRole("admin"), async (_request, response) =>
     users,
     courses,
     issuedCertificates,
-    learningEvents
+    learningEvents,
+    quizSessions
   });
 });
 
@@ -292,7 +427,7 @@ app.get("/api/admin/users", requireRole("admin"), async (_request, response) => 
   })));
 });
 
-app.patch("/api/admin/users/:id/roles", requireRole("admin"), async (request, response) => {
+app.patch("/api/admin/users/:id/roles", requireRole("admin"), validateBody(roleUpdateSchema), async (request, response) => {
   if (!supabaseAdmin) {
     response.status(503).json({ error: "Supabase admin unavailable.", requestId: request.requestId });
     return;
@@ -350,7 +485,7 @@ app.get("/api/users/:userId", async (request, response) => {
   response.json(users[userId] || createDefaultUser(userId));
 });
 
-app.put("/api/users/:userId", async (request, response) => {
+app.put("/api/users/:userId", requireAuthenticatedRequest, validateBody(userSettingsSchema), async (request, response) => {
   if (!requireAuthenticatedWrite(request, response)) return;
   if (!authorizeUserParam(request, response)) return;
   const userId = request.authUserId || request.params.userId;
@@ -391,7 +526,7 @@ app.put("/api/users/:userId", async (request, response) => {
   response.json(users[userId]);
 });
 
-app.post("/api/account/avatar", async (request, response) => {
+app.post("/api/account/avatar", sensitiveRateLimit(20), requireAuthenticatedRequest, validateBody(avatarUploadSchema), async (request, response) => {
   if (!requireAuthenticatedWrite(request, response)) return;
   if (!supabaseAdmin || !request.authUser?.id) {
     response.status(503).json({ error: "Avatar storage unavailable.", requestId: request.requestId });
@@ -422,16 +557,17 @@ app.post("/api/account/avatar", async (request, response) => {
   response.status(201).json({ avatarUrl: data.publicUrl });
 });
 
-app.get("/api/account/export", async (request, response) => {
+app.get("/api/account/export", requireAuthenticatedRequest, async (request, response) => {
   if (!requireAuthenticatedWrite(request, response)) return;
   const userId = request.authUserId;
-  const [progress, submissions, attempts, users, issuedCertificates, learningEvents] = await Promise.all([
+  const [progress, submissions, attempts, users, issuedCertificates, learningEvents, quizSessions] = await Promise.all([
     readProgressStore(),
     readJsonStore(submissionsFile, []),
     readJsonStore(attemptsFile, []),
     readJsonStore(usersFile, {}),
     readJsonStore(issuedCertificatesFile, []),
-    readJsonStore(learningEventsFile, [])
+    readJsonStore(learningEventsFile, []),
+    readJsonStore(quizSessionsFile, [])
   ]);
   response.json({
     exportedAt: new Date().toISOString(),
@@ -444,11 +580,12 @@ app.get("/api/account/export", async (request, response) => {
     submissions: submissions.filter((item) => item.userId === userId),
     attempts: attempts.filter((item) => item.userId === userId),
     certificates: issuedCertificates.filter((item) => item.userId === userId),
-    learningEvents: learningEvents.filter((item) => item.userId === userId)
+    learningEvents: learningEvents.filter((item) => item.userId === userId),
+    quizSessions: quizSessions.filter((item) => item.userId === userId)
   });
 });
 
-app.delete("/api/account", async (request, response) => {
+app.delete("/api/account", sensitiveRateLimit(10), requireAuthenticatedRequest, validateBody(accountDeletionSchema), async (request, response) => {
   if (!requireAuthenticatedWrite(request, response)) return;
   if (String(request.body?.confirmation || "") !== "DELETE") {
     response.status(400).json({ error: "Type DELETE to confirm account deletion.", requestId: request.requestId });
@@ -461,6 +598,7 @@ app.delete("/api/account", async (request, response) => {
       supabaseAdmin.from("issued_certificates").delete().eq("user_id", userId),
       supabaseAdmin.from("submissions").delete().eq("user_id", userId),
       supabaseAdmin.from("attempts").delete().eq("user_id", userId),
+      supabaseAdmin.from("quiz_sessions").delete().eq("user_id", userId),
       supabaseAdmin.from("progress").delete().eq("user_id", userId),
       supabaseAdmin.from("profiles").delete().eq("local_user_id", userId)
     ];
@@ -483,7 +621,7 @@ app.get("/api/enrollments", requireRole("admin", "reviewer"), async (_request, r
   response.json(await readJsonStore(enrollmentsFile, []));
 });
 
-app.post("/api/enrollments", async (request, response) => {
+app.post("/api/enrollments", sensitiveRateLimit(20), validateBody(enrollmentSchema), async (request, response) => {
   const payload = request.body;
   if (!isObject(payload) || !payload.email) {
     response.status(400).json({ error: "Enrollment requires an email." });
@@ -523,7 +661,7 @@ app.get("/api/lesson-drafts", requireRole("admin", "author", "reviewer"), async 
   response.json(normalizedStatus ? store.filter((item) => item.status === normalizedStatus) : store);
 });
 
-app.post("/api/lesson-drafts", requireRole("admin", "author"), async (request, response) => {
+app.post("/api/lesson-drafts", requireRole("admin", "author"), validateBody(lessonDraftSchema), async (request, response) => {
   const payload = request.body;
   if (!isObject(payload) || !payload.trackId || !payload.title) {
     response.status(400).json({ error: "Lesson draft requires trackId and title." });
@@ -552,7 +690,7 @@ app.post("/api/lesson-drafts", requireRole("admin", "author"), async (request, r
   response.status(201).json(draft);
 });
 
-app.patch("/api/lesson-drafts/:id", requireRole("admin", "author", "reviewer"), async (request, response) => {
+app.patch("/api/lesson-drafts/:id", requireRole("admin", "author", "reviewer"), validateBody(lessonDraftUpdateSchema), async (request, response) => {
   const payload = request.body;
   if (!isObject(payload)) {
     response.status(400).json({ error: "Draft update requires an object." });
@@ -607,7 +745,7 @@ app.get("/api/progress/:userId", async (request, response) => {
   response.json(store[userId] || null);
 });
 
-app.put("/api/progress/:userId", async (request, response) => {
+app.put("/api/progress/:userId", requireAuthenticatedRequest, validateBody(progressSchema), async (request, response) => {
   if (!requireAuthenticatedWrite(request, response)) return;
   if (!authorizeUserParam(request, response)) return;
   const userId = request.authUserId || request.params.userId;
@@ -625,7 +763,7 @@ app.put("/api/progress/:userId", async (request, response) => {
   response.json(store[userId]);
 });
 
-app.post("/api/progress/migrate", async (request, response) => {
+app.post("/api/progress/migrate", requireAuthenticatedRequest, validateBody(progressMigrationSchema), async (request, response) => {
   if (!requireAuthenticatedWrite(request, response)) return;
   const localProgress = request.body?.progress;
   if (!isObject(localProgress)) {
@@ -640,23 +778,51 @@ app.post("/api/progress/migrate", async (request, response) => {
   response.json({ migrated: true, progress: store[userId] });
 });
 
+app.get("/api/quizzes/:quizId/session", requireAuthenticatedRequest, async (request, response) => {
+  const store = await readJsonStore(quizSessionsFile, []);
+  const session = store.find((item) => item.userId === request.authUserId && item.quizId === request.params.quizId);
+  response.json(session || null);
+});
+
+app.put("/api/quizzes/:quizId/session", requireAuthenticatedRequest, validateBody(quizSessionSchema), async (request, response) => {
+  const store = await readJsonStore(quizSessionsFile, []);
+  const id = `${request.authUserId}:${request.params.quizId}`;
+  const index = store.findIndex((item) => item.id === id);
+  const session = {
+    id,
+    userId: request.authUserId,
+    quizId: request.params.quizId,
+    ...request.body,
+    updatedAt: new Date().toISOString()
+  };
+  if (index === -1) store.unshift(session);
+  else store[index] = session;
+  await writeJsonStore(quizSessionsFile, store.slice(0, 5000));
+  response.json(session);
+});
+
 app.get("/api/submissions", async (request, response) => {
   const store = await readJsonStore(submissionsFile, []);
   const userId = Array.isArray(request.query.userId) ? request.query.userId[0] : request.query.userId;
   const requestedUserId = typeof userId === "string" ? userId.trim() : "";
-  const normalizedUserId = request.authUserId || requestedUserId;
-  if (request.authUserId && requestedUserId && requestedUserId !== request.authUserId) {
-    response.status(403).json({ error: "Authenticated user cannot access another learner." });
+  const canReview = hasRole(request, "admin", "reviewer");
+  if (!request.authUserId && !canReview) {
+    sendApiError(response, request, 401, "AUTH_REQUIRED", "Authentication required.");
     return;
   }
-  if (!normalizedUserId && !hasRole(request, "admin", "reviewer")) {
-    response.status(403).json({ error: "Reviewer role required to list all submissions." });
+  if (request.authUserId && requestedUserId && requestedUserId !== request.authUserId) {
+    sendApiError(response, request, 403, "USER_ACCESS_DENIED", "Authenticated user cannot access another learner.");
+    return;
+  }
+  const normalizedUserId = request.authUserId || requestedUserId;
+  if (!normalizedUserId && !canReview) {
+    sendApiError(response, request, 403, "ROLE_REQUIRED", "Reviewer role required to list all submissions.");
     return;
   }
   response.json(normalizedUserId ? store.filter((item) => item.userId === normalizedUserId) : store);
 });
 
-app.post("/api/submissions", async (request, response) => {
+app.post("/api/submissions", requireAuthenticatedRequest, validateBody(submissionSchema), async (request, response) => {
   if (!requireAuthenticatedWrite(request, response)) return;
   const payload = request.body;
   if (!isObject(payload) || !payload.projectId || !payload.title) {
@@ -687,11 +853,16 @@ app.get("/api/attempts", async (request, response) => {
   const userId = Array.isArray(request.query.userId) ? request.query.userId[0] : request.query.userId;
   const lessonId = Array.isArray(request.query.lessonId) ? request.query.lessonId[0] : request.query.lessonId;
   const requestedUserId = typeof userId === "string" ? userId.trim() : "";
-  const normalizedUserId = request.authUserId || requestedUserId;
-  if (request.authUserId && requestedUserId && requestedUserId !== request.authUserId) {
-    response.status(403).json({ error: "Authenticated user cannot access another learner." });
+  const canReview = hasRole(request, "admin", "reviewer");
+  if (!request.authUserId && !canReview) {
+    sendApiError(response, request, 401, "AUTH_REQUIRED", "Authentication required.");
     return;
   }
+  if (request.authUserId && requestedUserId && requestedUserId !== request.authUserId) {
+    sendApiError(response, request, 403, "USER_ACCESS_DENIED", "Authenticated user cannot access another learner.");
+    return;
+  }
+  const normalizedUserId = request.authUserId || requestedUserId;
   const normalizedLessonId = typeof lessonId === "string" ? lessonId.trim() : "";
   response.json(
     store.filter((item) =>
@@ -701,7 +872,7 @@ app.get("/api/attempts", async (request, response) => {
   );
 });
 
-app.post("/api/attempts", async (request, response) => {
+app.post("/api/attempts", requireAuthenticatedRequest, validateBody(attemptSchema), async (request, response) => {
   if (!requireAuthenticatedWrite(request, response)) return;
   const payload = request.body;
   if (!isObject(payload) || !payload.lessonId) {
@@ -730,7 +901,7 @@ app.post("/api/attempts", async (request, response) => {
   response.status(201).json(attempt);
 });
 
-app.patch("/api/submissions/:id/review", requireRole("admin", "reviewer"), async (request, response) => {
+app.patch("/api/submissions/:id/review", requireRole("admin", "reviewer"), validateBody(reviewSchema), async (request, response) => {
   const payload = request.body;
   const allowedStatuses = new Set(["approved", "changes_requested", "submitted"]);
   if (!isObject(payload) || !allowedStatuses.has(payload.status)) {
@@ -772,7 +943,7 @@ app.get("/api/certificates/:userId", async (request, response) => {
   response.json(buildCertificatesForUser(userId, progress, userSubmissions, issued));
 });
 
-app.post("/api/certificates/:certificateId/issue", async (request, response) => {
+app.post("/api/certificates/:certificateId/issue", requireAuthenticatedRequest, async (request, response) => {
   if (!requireAuthenticatedWrite(request, response)) return;
   const userId = request.authUserId;
   const progressStore = await readProgressStore();
@@ -831,7 +1002,7 @@ app.get("/api/certificates/public/:verificationCode", async (request, response) 
   });
 });
 
-app.post("/api/events", async (request, response) => {
+app.post("/api/events", sensitiveRateLimit(120), requireAuthenticatedRequest, validateBody(eventSchema), async (request, response) => {
   if (!requireAuthenticatedWrite(request, response)) return;
   const payload = request.body;
   if (!isObject(payload) || !payload.eventType) {
@@ -866,18 +1037,25 @@ app.get("/api/admin/learning-events", requireRole("admin", "reviewer", "author")
 });
 
 app.use((error, request, response, _next) => {
+  const status = Number(error?.status) >= 400 && Number(error?.status) < 600 ? Number(error.status) : 500;
   console.error(JSON.stringify({
-    level: "error",
+    level: status >= 500 ? "error" : "warn",
     message: error?.message || "Unhandled API error",
     requestId: request.requestId,
     method: request.method,
     path: request.path,
-    stack: process.env.NODE_ENV === "production" ? undefined : error?.stack
+    stack: status >= 500 && process.env.NODE_ENV !== "production" ? error?.stack : undefined
   }));
-  response.status(500).json({ error: "Internal server error.", requestId: request.requestId });
+  sendApiError(
+    response,
+    request,
+    status,
+    error?.code || (status === 500 ? "INTERNAL_ERROR" : "REQUEST_REJECTED"),
+    status === 500 ? "Internal server error." : error.message
+  );
 });
 
-if (!process.env.VERCEL) {
+if (!process.env.VERCEL && process.env.NODE_ENV !== "test") {
   app.listen(port, () => {
     console.log(`PulsaTeach API ready on http://127.0.0.1:${port}`);
   });
@@ -932,34 +1110,71 @@ async function writeJsonStore(file, store) {
     throw new Error(`Supabase is required, but ${path.basename(file)} could not be written through Supabase.`);
   }
 
-  await mkdir(dataDir, { recursive: true });
-  await writeFile(file, JSON.stringify(store, null, 2));
+  await writeLocalJson(file, store);
+}
+
+async function writeLocalJson(file, store) {
+  const previous = localWriteQueues.get(file) || Promise.resolve();
+  const next = previous.catch(() => {}).then(async () => {
+    await mkdir(dataDir, { recursive: true });
+    const temporaryFile = `${file}.${process.pid}.${randomUUID()}.tmp`;
+    await writeFile(temporaryFile, JSON.stringify(store, null, 2), "utf8");
+    try {
+      await rename(temporaryFile, file);
+    } catch (error) {
+      if (!["EACCES", "EPERM"].includes(error?.code)) throw error;
+      await copyFile(temporaryFile, file);
+      await unlink(temporaryFile);
+    }
+  });
+  localWriteQueues.set(file, next);
+  try {
+    await next;
+  } finally {
+    if (localWriteQueues.get(file) === next) localWriteQueues.delete(file);
+  }
 }
 
 async function attachAuthUser(request, _response, next) {
-  const authorization = request.headers.authorization || "";
-  const token = authorization.startsWith("Bearer ") ? authorization.slice("Bearer ".length).trim() : "";
-  request.authRoles = [];
+  try {
+    const authorization = request.headers.authorization || "";
+    const token = authorization.startsWith("Bearer ") ? authorization.slice("Bearer ".length).trim() : "";
+    request.authRoles = [];
 
-  if (token && shouldTrySupabase()) {
-    const user = await getUserFromAccessToken(token);
-    if (user?.id) {
-      request.authUser = user;
-      request.authUserId = `supabase-${user.id}`;
-      request.authRoles = rolesFromUser(user);
-      if (supabaseAdmin) {
-        const { data: profile } = await supabaseAdmin.from("profiles").select("roles").eq("auth_user_id", user.id).maybeSingle();
-        request.authRoles = Array.from(new Set([...request.authRoles, ...(profile?.roles || [])]));
+    if (token && shouldTrySupabase()) {
+      const user = await getUserFromAccessToken(token);
+      if (user?.id) {
+        request.authUser = user;
+        request.authUserId = `supabase-${user.id}`;
+        request.authRoles = rolesFromUser(user);
+        if (supabaseAdmin) {
+          const { data: profile } = await supabaseAdmin.from("profiles").select("roles").eq("auth_user_id", user.id).maybeSingle();
+          request.authRoles = Array.from(new Set([...request.authRoles, ...(profile?.roles || [])]));
+        }
       }
     }
-  }
 
-  const providedAdminKey = request.headers["x-pulsateach-admin-key"];
-  if (adminAccessKey && typeof providedAdminKey === "string" && providedAdminKey === adminAccessKey) {
-    request.authRoles = Array.from(new Set([...(request.authRoles || []), "admin", "author", "reviewer"]));
-  }
+    const localUserId = request.headers["x-pulsateach-user-id"];
+    if (!request.authUserId && localIdentityEnabled && typeof localUserId === "string" && /^[a-z0-9][a-z0-9._:@-]{2,159}$/i.test(localUserId)) {
+      request.authUserId = localUserId;
+      request.authUser = {
+        id: localUserId,
+        email: localUserId.startsWith("local-") ? localUserId.slice(6).replaceAll("-", ".") : null,
+        app_metadata: {},
+        user_metadata: {},
+        provider: "local-development"
+      };
+    }
 
-  next();
+    const providedAdminKey = request.headers["x-pulsateach-admin-key"];
+    if (adminAccessKey && typeof providedAdminKey === "string" && providedAdminKey === adminAccessKey) {
+      request.authRoles = Array.from(new Set([...(request.authRoles || []), "admin", "author", "reviewer"]));
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
 }
 
 function attachRequestContext(request, response, next) {
@@ -967,6 +1182,7 @@ function attachRequestContext(request, response, next) {
   request.requestId = String(request.headers["x-request-id"] || randomUUID());
   response.setHeader("X-Request-Id", request.requestId);
   response.on("finish", () => {
+    if (process.env.PULSATEACH_LOG_LEVEL === "silent") return;
     console.log(JSON.stringify({
       level: response.statusCode >= 500 ? "error" : response.statusCode >= 400 ? "warn" : "info",
       requestId: request.requestId,
@@ -989,8 +1205,12 @@ function markSupabaseUnavailable() {
 }
 
 function authorizeUserParam(request, response) {
-  if (request.authUserId && request.params.userId !== request.authUserId) {
-    response.status(403).json({ error: "Authenticated user cannot access another learner." });
+  if (!request.authUserId) {
+    sendApiError(response, request, 401, "AUTH_REQUIRED", "Authentication required.");
+    return false;
+  }
+  if (request.params.userId !== request.authUserId) {
+    sendApiError(response, request, 403, "USER_ACCESS_DENIED", "Authenticated user cannot access another learner.");
     return false;
   }
   return true;
@@ -998,16 +1218,24 @@ function authorizeUserParam(request, response) {
 
 function authorizePayloadUser(request, response, payloadUserId) {
   if (request.authUserId && payloadUserId && payloadUserId !== request.authUserId) {
-    response.status(403).json({ error: "Authenticated user cannot write another learner." });
+    sendApiError(response, request, 403, "USER_ACCESS_DENIED", "Authenticated user cannot write another learner.");
     return false;
   }
   return true;
 }
 
 function requireAuthenticatedWrite(request, response) {
-  if (!requireSupabaseStorage || request.authUserId || request.authRoles?.includes("admin")) return true;
-  response.status(401).json({ error: "Authentication required for remote writes.", requestId: request.requestId });
+  if (request.authUserId || request.authRoles?.includes("admin")) return true;
+  sendApiError(response, request, 401, "AUTH_REQUIRED", "Authentication required.");
   return false;
+}
+
+function requireAuthenticatedRequest(request, response, next) {
+  if (request.authUserId) {
+    next();
+    return;
+  }
+  sendApiError(response, request, 401, "AUTH_REQUIRED", "A learner identity is required.");
 }
 
 function requireRole(...roles) {
@@ -1016,10 +1244,25 @@ function requireRole(...roles) {
       next();
       return;
     }
-    response.status(request.authUser || request.authRoles?.length ? 403 : 401).json({
-      error: `Required role: ${roles.join(" or ")}.`
-    });
+    sendApiError(
+      response,
+      request,
+      request.authUser || request.authRoles?.length ? 403 : 401,
+      request.authUser || request.authRoles?.length ? "ROLE_REQUIRED" : "AUTH_REQUIRED",
+      `Required role: ${roles.join(" or ")}.`
+    );
   };
+}
+
+function sendApiError(response, request, status, code, message, details) {
+  response.status(status).json({
+    error: {
+      code,
+      message,
+      ...(details === undefined ? {} : { details })
+    },
+    requestId: request.requestId
+  });
 }
 
 function hasRole(request, ...roles) {
@@ -1083,6 +1326,47 @@ function getCatalogStats() {
     },
     { tracks: 0, modules: 0, lessons: 0, projects: 0, xp: 0 }
   );
+}
+
+function summarizeTrack(track) {
+  return {
+    id: track.id,
+    label: track.label,
+    title: track.title,
+    summary: track.summary,
+    level: track.level,
+    profession: track.profession,
+    prerequisites: track.prerequisites,
+    outcomes: track.outcomes,
+    capstone: track.capstone,
+    certification: track.certification,
+    source: track.source,
+    version: track.version,
+    isSummary: true,
+    modules: (track.modules || []).map((module) => ({
+      id: module.id,
+      title: module.title,
+      description: module.description,
+      importance: module.importance,
+      deliverable: module.deliverable,
+      prerequisites: module.prerequisites,
+      outcomes: module.outcomes,
+      vocabulary: module.vocabulary,
+      mastery: module.mastery,
+      totalMinutes: module.totalMinutes,
+      lessons: (module.lessons || []).map((lesson) => ({
+        id: lesson.id,
+        type: lesson.type,
+        runtime: lesson.runtime,
+        title: lesson.title,
+        brief: lesson.brief,
+        skills: lesson.skills,
+        difficulty: lesson.difficulty,
+        durationMin: lesson.durationMin,
+        xp: lesson.xp
+      }))
+    }))
+  };
 }
 
 function getLessonsForTracks(trackIds) {
@@ -1176,7 +1460,7 @@ async function deleteLocalAccountData(userId) {
   const users = await readJsonStore(usersFile, {});
   delete users[userId];
   await writeJsonStore(usersFile, users);
-  for (const [file, fallback] of [[attemptsFile, []], [submissionsFile, []], [learningEventsFile, []], [issuedCertificatesFile, []]]) {
+  for (const [file, fallback] of [[attemptsFile, []], [submissionsFile, []], [learningEventsFile, []], [issuedCertificatesFile, []], [quizSessionsFile, []]]) {
     const items = await readJsonStore(file, fallback);
     await writeJsonStore(file, items.filter((item) => item.userId !== userId));
   }

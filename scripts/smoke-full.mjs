@@ -11,7 +11,12 @@ process.env.API_ADMIN_KEY = adminKey;
 process.env.PULSATEACH_ADMIN_KEY = adminKey;
 
 try {
-  processes.push(start("api", "node", ["server/index.js"], { PORT: "4174", PULSATEACH_ADMIN_KEY: adminKey }));
+  processes.push(start("api", "node", ["server/index.js"], {
+    PORT: "4174",
+    PULSATEACH_STORAGE: "json",
+    PULSATEACH_ALLOW_LOCAL_IDENTITY: "true",
+    PULSATEACH_ADMIN_KEY: adminKey
+  }));
   processes.push(start("frontend", process.execPath, ["node_modules/vite/bin/vite.js", "preview", "--host", "127.0.0.1", "--port", "5173"]));
 
   await waitFor(`${apiUrl}/api/health`, "API");

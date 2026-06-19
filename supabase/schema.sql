@@ -58,6 +58,17 @@ create table if not exists public.learning_events (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.quiz_sessions (
+  id text primary key,
+  user_id text not null,
+  quiz_id text not null,
+  payload jsonb not null default '{"currentIndex":0,"responses":{},"rationales":{}}'::jsonb,
+  status text not null default 'draft' check (status in ('draft', 'completed')),
+  score jsonb,
+  updated_at timestamptz not null default now(),
+  unique (user_id, quiz_id)
+);
+
 create table if not exists public.progress (
   user_id text primary key,
   payload jsonb not null default '{}'::jsonb,
@@ -160,6 +171,7 @@ alter table public.lesson_drafts enable row level security;
 alter table public.course_drafts enable row level security;
 alter table public.issued_certificates enable row level security;
 alter table public.learning_events enable row level security;
+alter table public.quiz_sessions enable row level security;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('avatars', 'avatars', true, 1048576, array['image/jpeg', 'image/png', 'image/webp'])

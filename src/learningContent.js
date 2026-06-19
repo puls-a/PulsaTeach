@@ -997,6 +997,16 @@ function lesson({ id, title, brief, course, starterCode, solution, tests, hint, 
 }
 
 function quizLesson({ id, title, brief, question, options, answer, explanation, xp }) {
+  const primaryQuestion = {
+    id: `${id}-question-1`,
+    type: "single",
+    prompt: question,
+    choices: options,
+    answer,
+    explanation,
+    requiresRationale: true,
+    points: 1
+  };
   return {
     id,
     type: "quiz",
@@ -1013,6 +1023,10 @@ function quizLesson({ id, title, brief, question, options, answer, explanation, 
     options,
     answer,
     explanation,
+    questions: [primaryQuestion],
+    passingScore: 70,
+    randomizeQuestions: false,
+    feedbackMode: "immediate",
     starterCode: "",
     solution: "",
     tests: [test("quiz", "correct answer", answer)],

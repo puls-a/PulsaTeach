@@ -14,7 +14,7 @@ export function createModuleDraft(index = 0) {
 }
 
 export function createLessonDraft(type = "html", index = 0) {
-  return {
+  const lesson = {
     id: `lesson-${cryptoId()}`,
     type,
     title: { fr: `Leçon ${index + 1}`, en: `Lesson ${index + 1}` },
@@ -37,10 +37,36 @@ export function createLessonDraft(type = "html", index = 0) {
     hint: { fr: "", en: "" },
     tests: []
   };
+  if (type === "quiz") {
+    lesson.questions = [createQuizQuestionDraft(0), createQuizQuestionDraft(1)];
+    lesson.passingScore = 70;
+    lesson.randomizeQuestions = false;
+    lesson.feedbackMode = "immediate";
+  }
+  return lesson;
 }
 
 export function createTestDraft() {
   return { type: "contains", label: "Critère à vérifier", value: "", amount: 1 };
+}
+
+export function createQuizQuestionDraft(index = 0) {
+  return {
+    id: `question-${cryptoId()}`,
+    type: "single",
+    prompt: { fr: `Question ${index + 1}`, en: `Question ${index + 1}` },
+    code: "",
+    choices: [
+      { id: "a", label: { fr: "Réponse A", en: "Answer A" } },
+      { id: "b", label: { fr: "Réponse B", en: "Answer B" } }
+    ],
+    answer: "a",
+    explanation: { fr: "", en: "" },
+    points: 1,
+    skills: [],
+    glossaryTerms: [],
+    requiresRationale: false
+  };
 }
 
 export function normalizePublishedCourse(course) {
@@ -76,7 +102,16 @@ export function validateCourseForPublication(course) {
       if (!lesson.title?.fr?.trim()) errors.push(`${prefix} : titre obligatoire.`);
       if (!lesson.brief?.fr?.trim()) errors.push(`${prefix} : consigne obligatoire.`);
       if (!lesson.course?.fr?.introduction?.trim()) errors.push(`${prefix} : cours introductif obligatoire.`);
-      if (!Array.isArray(lesson.tests) || !lesson.tests.length) errors.push(`${prefix} : ajoute au moins un test.`);
+      if (lesson.type === "quiz") {
+        if (!Array.isArray(lesson.questions) || lesson.questions.length < 2) errors.push(`${prefix} : ajoute au moins deux questions.`);
+        for (const [questionIndex, question] of (lesson.questions || []).entries()) {
+          if (!question.prompt?.fr?.trim()) errors.push(`${prefix}, question ${questionIndex + 1} : consigne française obligatoire.`);
+          if (question.answer === undefined || question.answer === null || question.answer === "") errors.push(`${prefix}, question ${questionIndex + 1} : réponse obligatoire.`);
+          if (!question.explanation?.fr?.trim()) errors.push(`${prefix}, question ${questionIndex + 1} : explication obligatoire.`);
+        }
+      } else if (!Array.isArray(lesson.tests) || !lesson.tests.length) {
+        errors.push(`${prefix} : ajoute au moins un test.`);
+      }
     });
   });
   return errors;
@@ -100,7 +135,7 @@ function normalizeModule(module, index) {
 }
 
 function normalizeLesson(lesson, index) {
-  const type = ["html", "css", "js", "dom", "quiz", "project"].includes(lesson.type) ? lesson.type : "html";
+  const type = ["html", "css", "js", "dom", "typescript", "react", "node", "sql", "terminal", "text", "quiz", "project"].includes(lesson.type) ? lesson.type : "html";
   return {
     ...lesson,
     id: lesson.id || `lesson-${index + 1}`,
@@ -116,7 +151,11 @@ function normalizeLesson(lesson, index) {
     course: normalizeCourseCopy(lesson.course),
     guide: normalizeGuide(lesson.guide),
     hint: localized(lesson.hint),
-    tests: Array.isArray(lesson.tests) ? lesson.tests : []
+    tests: Array.isArray(lesson.tests) ? lesson.tests : [],
+    questions: Array.isArray(lesson.questions) ? lesson.questions : [],
+    passingScore: Number(lesson.passingScore || 70),
+    randomizeQuestions: Boolean(lesson.randomizeQuestions),
+    feedbackMode: lesson.feedbackMode || "immediate"
   };
 }
 
@@ -189,6 +228,12 @@ function starterCodeFor(type) {
   if (type === "css") return ".demo-surface {\n  /* Écris ton CSS ici */\n}";
   if (type === "js") return "// Écris ton JavaScript ici";
   if (type === "dom") return "<button id=\"action\">Action</button>\n<script>\n  // Ajoute ton interaction\n</script>";
+  if (type === "typescript") return "// Écris ton TypeScript ici";
+  if (type === "react") return "export default function Component() {\n  return <main />;\n}";
+  if (type === "node") return "export function handler(request, response) {\n  // Écris le contrat serveur ici\n}";
+  if (type === "sql") return "-- Écris la migration PostgreSQL ici";
+  if (type === "terminal") return "# Écris les commandes ici";
+  if (type === "text") return "# Rédige ta réponse structurée ici";
   if (type === "quiz") return "";
   return "<main>\n  <h1>Mon exercice</h1>\n</main>";
 }

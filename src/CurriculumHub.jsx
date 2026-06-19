@@ -64,7 +64,7 @@ export default function CurriculumHub({ locale = "fr" }) {
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
             <h2 className="font-display text-2xl font-bold">{locale === "fr" ? "Toutes les formations" : "All courses"}</h2>
-            <p className="mt-1 text-sm text-slate-500">{tracks.length} formations disponibles</p>
+            <p className="mt-1 text-sm text-slate-600">{tracks.length} formations disponibles</p>
           </div>
           <a href="#/studio" className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-ink hover:border-indigoPop hover:text-indigoPop">
             <Plus className="size-4" />{locale === "fr" ? "Créer une formation" : "Create a course"}

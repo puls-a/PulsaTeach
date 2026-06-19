@@ -22,6 +22,7 @@ import {
   UserRound
 } from "lucide-react";
 import AuthNotice from "./components/AuthNotice.jsx";
+import DashCard from "./components/DashCard.jsx";
 import AccountSettings from "./AccountSettings.jsx";
 import InteractiveLearning from "./InteractiveLearning.jsx";
 import {
@@ -30,13 +31,10 @@ import {
   deleteLessonDraft,
   exportAdminData,
   getAnalytics,
-  getApiHealth,
   getCertificates,
   getProfile,
   getRoadmap,
-  getStats,
   getStudyPlan,
-  getSupabaseStatus,
   getUserId,
   getUserSettings,
   issueCertificate,
@@ -44,82 +42,22 @@ import {
   listAllSubmissions,
   listLessonDrafts,
   listSubmissions,
-  loadRemoteProgress,
   reviewSubmission,
   saveUserSettings,
   updateUserRoles,
   updateLessonDraft
 } from "./apiClient.js";
-import { learningTracks } from "./learningContent.js";
 import { useLearningTracks } from "./useLearningTracks.js";
 
 export function LearnPage({ locale }) {
-  const { tracks } = useLearningTracks();
-  return <InteractiveLearning locale={locale} tracks={tracks} />;
-}
-
-export function DashboardPage({ locale }) {
-  const [health, setHealth] = useState(null);
-  const [stats, setStats] = useState(null);
-  const [supabaseStatus, setSupabaseStatus] = useState(null);
-  const [progress, setProgress] = useState(readLocalProgress);
-  const completed = Object.keys(progress.completed || {}).length;
-  const total = learningTracks.reduce((sum, track) => sum + track.modules.reduce((inner, module) => inner + module.lessons.length, 0), 0);
+  const { tracks, loadTrack } = useLearningTracks();
 
   useEffect(() => {
-    getApiHealth().then(setHealth).catch(() => setHealth({ ok: false }));
-    getStats().then(setStats).catch(() => setStats(null));
-    getSupabaseStatus().then(setSupabaseStatus).catch(() => setSupabaseStatus(null));
-    loadRemoteProgress().then((remote) => {
-      if (!remote) return;
-      setProgress((current) => {
-        const merged = mergeDashboardProgress(current, remote);
-        localStorage.setItem("pulsateach-learning-progress", JSON.stringify(merged));
-        return merged;
-      });
-    }).catch(() => {});
-    const onSynced = (event) => setProgress(event.detail);
-    window.addEventListener("pulsateach-progress-synced", onSynced);
-    return () => window.removeEventListener("pulsateach-progress-synced", onSynced);
-  }, []);
+    const trackId = window.location.hash.match(/^#\/learn\/([^/]+)/)?.[1];
+    if (trackId) loadTrack(trackId).catch(() => {});
+  }, [loadTrack]);
 
-  return (
-    <section className="app-page">
-      <div className="mx-auto max-w-7xl">
-        <AuthNotice locale={locale} />
-        <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Dashboard apprenant" : "Learner dashboard"}</p>
-        <h1 className="page-heading">{locale === "fr" ? "Ta progression en un coup d'œil." : "Your progress at a glance."}</h1>
-        <div className="mt-10 grid gap-5 lg:grid-cols-4">
-          <DashCard icon={Trophy} label="XP" value={progress.xp || 0} />
-          <DashCard icon={BookOpenCheck} label={locale === "fr" ? "Leçons" : "Lessons"} value={`${completed}/${total}`} />
-          <DashCard icon={Server} label="API" value={health?.ok ? "online" : "offline"} />
-          <DashCard icon={Database} label="Storage" value={supabaseStatus?.mode || health?.storage || "json"} />
-        </div>
-        <div className="mt-5 grid gap-5 lg:grid-cols-4">
-          <DashCard icon={Activity} label={locale === "fr" ? "Leçons API" : "API lessons"} value={stats?.lessons ?? "..."} />
-          <DashCard icon={FolderKanban} label={locale === "fr" ? "Projets" : "Projects"} value={stats?.projects ?? "..."} />
-          <DashCard icon={ClipboardCheck} label={locale === "fr" ? "Soumissions" : "Submissions"} value={stats?.submissions ?? "..."} />
-          <DashCard icon={Award} label={locale === "fr" ? "Certificats" : "Certificates"} value={stats?.certificates ?? "..."} />
-        </div>
-        <div className="surface mt-8">
-          <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Activité récente" : "Recent activity"}</h2>
-          <div className="mt-4 grid gap-3">
-            {(progress.activity || []).length === 0 && (
-              <p className="rounded-2xl bg-cloud p-4 font-extrabold text-ink/60 clay-soft">
-                {locale === "fr" ? "Aucune activité validée pour le moment." : "No passed activity yet."}
-              </p>
-            )}
-            {(progress.activity || []).map((item) => (
-              <div className="flex items-center justify-between rounded-2xl bg-cloud p-4 font-extrabold clay-soft" key={`${item.id}-${item.at}`}>
-                <span>{item.title?.[locale] || item.id}</span>
-                <span className="rounded-xl bg-lemonPop px-3 py-1">{item.xp} XP</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+  return <InteractiveLearning locale={locale} tracks={tracks} onRequireTrack={loadTrack} />;
 }
 
 export function ProfilePage({ locale }) {
@@ -902,16 +840,6 @@ export function RoadmapPage({ locale }) {
   );
 }
 
-function DashCard({ icon: Icon, label, value }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="mb-4 grid size-9 place-items-center rounded-lg bg-indigo-50 text-indigoPop"><Icon className="size-5" /></div>
-      <p className="font-display text-2xl font-bold text-ink">{value}</p>
-      <p className="mt-1 text-sm font-semibold text-slate-500">{label}</p>
-    </div>
-  );
-}
-
 function ProgressMeter({ label, value, detail }) {
   return (
     <div className="muted-surface">
@@ -982,24 +910,4 @@ function RoadmapList({ title, items }) {
       </ul>
     </div>
   );
-}
-
-function readLocalProgress() {
-  try {
-    return JSON.parse(localStorage.getItem("pulsateach-learning-progress")) || { xp: 0, completed: {}, activity: [] };
-  } catch {
-    return { xp: 0, completed: {}, activity: [] };
-  }
-}
-
-function mergeDashboardProgress(local, remote) {
-  return {
-    ...local,
-    ...remote,
-    xp: Math.max(Number(local?.xp) || 0, Number(remote?.xp) || 0),
-    completed: { ...(local?.completed || {}), ...(remote?.completed || {}) },
-    activity: [...(remote?.activity || []), ...(local?.activity || [])]
-      .filter((item, index, items) => items.findIndex((candidate) => `${candidate.id}-${candidate.at}` === `${item.id}-${item.at}`) === index)
-      .slice(0, 100)
-  };
 }

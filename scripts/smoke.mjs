@@ -62,7 +62,7 @@ console.log(`Smoke test passed: ${routes.length} routes and ${endpoints.length} 
 
 async function check(url, label, protectedEndpoint = false) {
   try {
-    const headers = new Headers();
+    const headers = new Headers({ "X-PulsaTeach-User-Id": "smoke-user" });
     if (protectedEndpoint && adminKey) headers.set("X-PulsaTeach-Admin-Key", adminKey);
     const response = await fetch(url, { headers, signal: AbortSignal.timeout(5000) });
     if (!response.ok) failures.push(`${label}: HTTP ${response.status}`);

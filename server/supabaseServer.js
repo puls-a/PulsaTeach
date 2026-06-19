@@ -32,7 +32,7 @@ export async function getSupabaseStatus() {
     };
   }
 
-  const tables = ["profiles", "progress", "attempts", "submissions", "enrollments", "lesson_drafts", "course_drafts", "issued_certificates", "learning_events"];
+  const tables = ["profiles", "progress", "attempts", "submissions", "enrollments", "lesson_drafts", "course_drafts", "issued_certificates", "learning_events", "quiz_sessions"];
   const checks = await Promise.all(tables.map(async (table) => {
     const { count, error } = await supabaseAdmin.from(table).select("*", { count: "exact", head: true });
     return {
@@ -87,7 +87,7 @@ export async function readSupabaseStore(storeName, fallback) {
   const table = tableForStore(storeName);
   if (!table) return fallback;
 
-  const orderColumn = table === "issued_certificates" ? "issued_at" : "created_at";
+  const orderColumn = table === "issued_certificates" ? "issued_at" : table === "quiz_sessions" ? "updated_at" : "created_at";
   const { data, error } = await supabaseAdmin.from(table).select("*").order(orderColumn, { ascending: false });
   if (error) throw error;
   return (data || []).map((row) => fromSupabaseRow(table, row));
@@ -154,7 +154,8 @@ function tableForStore(storeName) {
     "lesson-drafts.json": "lesson_drafts",
     "course-drafts.json": "course_drafts",
     "issued-certificates.json": "issued_certificates",
-    "learning-events.json": "learning_events"
+    "learning-events.json": "learning_events",
+    "quiz-sessions.json": "quiz_sessions"
   }[storeName];
 }
 
@@ -257,6 +258,19 @@ function fromSupabaseRow(table, row) {
       createdAt: row.created_at
     };
   }
+  if (table === "quiz_sessions") {
+    return {
+      id: row.id,
+      userId: row.user_id,
+      quizId: row.quiz_id,
+      currentIndex: row.payload?.currentIndex || 0,
+      responses: row.payload?.responses || {},
+      rationales: row.payload?.rationales || {},
+      status: row.status || "draft",
+      score: row.score || null,
+      updatedAt: row.updated_at
+    };
+  }
   return row;
 }
 
@@ -357,6 +371,21 @@ function toSupabaseRow(table, item) {
       payload: item.payload || {},
       request_id: item.requestId || null,
       created_at: item.createdAt
+    };
+  }
+  if (table === "quiz_sessions") {
+    return {
+      id: item.id,
+      user_id: item.userId,
+      quiz_id: item.quizId,
+      payload: {
+        currentIndex: item.currentIndex || 0,
+        responses: item.responses || {},
+        rationales: item.rationales || {}
+      },
+      status: item.status || "draft",
+      score: item.score || null,
+      updated_at: item.updatedAt || new Date().toISOString()
     };
   }
   return item;

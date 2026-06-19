@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bookmark,
   BookmarkCheck,
+  BookOpen,
   CheckCircle2,
   Code2,
   Copy,
@@ -15,19 +16,23 @@ import {
   Terminal,
   XCircle
 } from "lucide-react";
-import { learningTracks } from "./learningContent.js";
-import { loadRemoteProgress, recordAttempt, recordLearningEvent, saveRemoteProgress } from "./apiClient.js";
+import { learningTracks } from "./content/trackRegistry.js";
+import { getQuizSession, loadRemoteProgress, recordAttempt, recordLearningEvent, saveQuizSession, saveRemoteProgress } from "./apiClient.js";
 import { createPreview, displayTestLabel, getPreviewKind, runJavaScriptWithConsole, testFailureHelp, validateLesson } from "./lessonRuntime.js";
+import { createQuizDraft, evaluateQuestion, normalizeQuizLesson, scoreQuiz } from "./features/quizzes/quizEngine.js";
 
 const progressKey = "pulsateach-learning-progress";
 const bookmarksKey = "pulsateach-learning-bookmarks";
 const colorClasses = {
   html: { card: "bg-orange-50", button: "bg-orange-500" },
   css: { card: "bg-indigo-50", button: "bg-indigoPop" },
-  javascript: { card: "bg-amber-50", button: "bg-amber-500" }
+  javascript: { card: "bg-amber-50", button: "bg-amber-500" },
+  git: { card: "bg-rose-50", button: "bg-rose-600" },
+  accessibility: { card: "bg-emerald-50", button: "bg-emerald-600" },
+  testing: { card: "bg-cyan-50", button: "bg-cyan-700" }
 };
 
-export default function InteractiveLearning({ locale, tracks = learningTracks }) {
+export default function InteractiveLearning({ locale, tracks = learningTracks, onRequireTrack }) {
   const initialRoute = readLessonRoute();
   const requestedRoute = useRef(initialRoute);
   const [activeTrackId, setActiveTrackId] = useState(initialRoute.trackId);
@@ -38,13 +43,17 @@ export default function InteractiveLearning({ locale, tracks = learningTracks })
   const [lessonQuery, setLessonQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [syncState, setSyncState] = useState("local");
+  const [trackLoadError, setTrackLoadError] = useState("");
 
-  const activeTrack = tracks.find((track) => track.id === activeTrackId) ?? tracks[0] ?? learningTracks[0];
+  const selectedTrack = tracks.find((track) => track.id === activeTrackId);
+  const trackLoading = Boolean(selectedTrack?.isSummary);
+  const activeTrack = (!selectedTrack?.isSummary ? selectedTrack : null) ?? tracks.find((track) => !track.isSummary) ?? learningTracks[0];
   const activeModule = activeTrack.modules.find((module) => module.id === activeModuleId) ?? activeTrack.modules[0];
   const activeLesson = activeModule.lessons.find((lesson) => lesson.id === activeLessonId) ?? activeModule.lessons[0];
 
   useEffect(() => {
     const requestedTrack = tracks.find((track) => track.id === requestedRoute.current.trackId);
+    if (requestedTrack?.isSummary) return;
     const requestedModule = requestedTrack?.modules.find((module) => module.id === requestedRoute.current.moduleId);
     const requestedLesson = requestedModule?.lessons.find((lesson) => lesson.id === requestedRoute.current.lessonId);
     if (requestedTrack && requestedModule && requestedLesson) {
@@ -55,25 +64,36 @@ export default function InteractiveLearning({ locale, tracks = learningTracks })
   }, [tracks]);
 
   useEffect(() => {
+    if (trackLoading) return;
+    const requested = requestedRoute.current;
+    const requestedModule = activeTrack.id === requested.trackId
+      ? activeTrack.modules.find((module) => module.id === requested.moduleId)
+      : null;
+    const requestedLessonExists = requestedModule?.lessons.some(
+      (lesson) => lesson.id === requested.lessonId
+    );
+    if (requestedLessonExists) return;
+
     const firstModule = activeTrack.modules[0];
     const hasModule = activeTrack.modules.some((module) => module.id === activeModuleId);
     if (!hasModule) {
       setActiveModuleId(firstModule.id);
       setActiveLessonId(firstModule.lessons[0].id);
     }
-  }, [activeModuleId, activeTrack]);
+  }, [activeModuleId, activeTrack, trackLoading]);
 
   const activeTrackCompleted = activeTrack.modules.reduce((sum, module) => sum + module.lessons.filter((lesson) => progress.completed[lesson.id]).length, 0);
   const activeTrackTotal = activeTrack.modules.reduce((sum, module) => sum + module.lessons.length, 0);
 
   useEffect(() => {
+    if (trackLoading) return;
     window.history.replaceState(null, "", `#/learn/${activeTrackId}/${activeModuleId}/${activeLessonId}`);
     recordLearningEvent({
       eventType: "lesson_opened",
       lessonId: activeLessonId,
       trackId: activeTrackId
     }).catch(() => {});
-  }, [activeTrackId, activeModuleId, activeLessonId]);
+  }, [activeTrackId, activeModuleId, activeLessonId, trackLoading]);
 
   useEffect(() => {
     let cancelled = false;
@@ -99,10 +119,16 @@ export default function InteractiveLearning({ locale, tracks = learningTracks })
     };
   }, []);
 
-  const handleTrackChange = (track) => {
+  const handleTrackChange = async (track) => {
+    setTrackLoadError("");
     setActiveTrackId(track.id);
-    setActiveModuleId(track.modules[0].id);
-    setActiveLessonId(track.modules[0].lessons[0].id);
+    try {
+      const fullTrack = track.isSummary && onRequireTrack ? await onRequireTrack(track.id) : track;
+      setActiveModuleId(fullTrack.modules[0].id);
+      setActiveLessonId(fullTrack.modules[0].lessons[0].id);
+    } catch {
+      setTrackLoadError(locale === "fr" ? "Impossible de charger cette formation." : "Unable to load this course.");
+    }
   };
 
   const completeLesson = (lesson, passedCount) => {
@@ -146,6 +172,17 @@ export default function InteractiveLearning({ locale, tracks = learningTracks })
     localStorage.setItem(bookmarksKey, JSON.stringify(next));
   };
 
+  if (trackLoading) {
+    return (
+      <section className="grid min-h-screen place-items-center bg-slate-100 px-4 pt-24">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm" role="status">
+          <p className="font-display text-xl font-bold">{locale === "fr" ? "Chargement de la formation…" : "Loading course…"}</p>
+          <p className="mt-2 text-sm text-slate-600">{selectedTrack?.title?.[locale]}</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <FocusedLearningLayout
       locale={locale}
@@ -161,6 +198,7 @@ export default function InteractiveLearning({ locale, tracks = learningTracks })
       lessonQuery={lessonQuery}
       statusFilter={statusFilter}
       syncState={syncState}
+      trackLoadError={trackLoadError}
       onTrackChange={handleTrackChange}
       onQueryChange={setLessonQuery}
       onFilterChange={setStatusFilter}
@@ -197,6 +235,7 @@ function FocusedLearningLayout({
   lessonQuery,
   statusFilter,
   syncState,
+  trackLoadError,
   onTrackChange,
   onQueryChange,
   onFilterChange,
@@ -223,6 +262,7 @@ function FocusedLearningLayout({
             <span className={`rounded-lg px-3 py-2 font-bold ${syncState === "synced" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{syncState}</span>
           </div>
         </header>
+        {trackLoadError && <p className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-800" role="alert">{trackLoadError}</p>}
 
         <div className="grid gap-3 xl:grid-cols-[300px_minmax(0,1fr)]">
           <aside className="max-h-[calc(100vh-7.5rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-sm xl:sticky xl:top-24">
@@ -241,7 +281,7 @@ function FocusedLearningLayout({
             <div className="mt-4 grid gap-4">
               {activeTrack.modules.map((module) => (
                 <div key={module.id}>
-                  <div className="mb-1 flex items-center justify-between px-2"><h2 className="text-xs font-bold uppercase tracking-[.1em] text-slate-400">{module.title[locale]}</h2><span className="text-xs text-slate-400">{module.lessons.length}</span></div>
+                  <div className="mb-1 flex items-center justify-between px-2"><h2 className="text-xs font-bold uppercase tracking-[.1em] text-slate-600">{module.title[locale]}</h2><span className="text-xs text-slate-600">{module.lessons.length}</span></div>
                   <div className="grid gap-1">
                     {module.lessons.filter((lesson) => isVisibleLesson(lesson, progress, bookmarks, lessonQuery, statusFilter, locale)).map((lesson) => {
                       const active = lesson.id === activeLesson.id;
@@ -466,7 +506,7 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
       <div className="mt-4 grid gap-3 xl:grid-cols-2">
         <div className="overflow-hidden rounded-xl border border-slate-800 bg-ink">
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-white">
-            <span className="font-mono text-sm font-bold text-slate-300">{lesson.id}.{lesson.type === "css" ? "css" : lesson.type === "js" ? "js" : "html"}</span>
+            <span className="font-mono text-sm font-bold text-slate-300">{lesson.id}.{lesson.type === "css" ? "css" : lesson.type === "sql" || lesson.runtime === "sql" ? "sql" : lesson.type === "js" || lesson.type === "node" || lesson.runtime === "node" ? "js" : lesson.type === "typescript" || lesson.runtime === "typescript" ? "ts" : lesson.type === "react" || lesson.runtime === "react" ? "jsx" : lesson.type === "terminal" || lesson.runtime === "terminal" ? "sh" : lesson.type === "text" || lesson.runtime === "text" ? "md" : "html"}</span>
             <button
               type="button"
               onClick={() => {
@@ -507,6 +547,24 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
                   <pre className="min-h-20 whitespace-pre-wrap font-mono text-sm text-indigo-100">{consoleOutput || (locale === "fr" ? "Clique Exécuter pour voir les logs." : "Click Run code to see logs.")}</pre>
                 </div>
               </div>
+            ) : previewKind === "terminal" ? (
+              <div className="min-h-[300px] bg-slate-950 p-5 text-slate-100">
+                <div className="flex items-center gap-2 font-display text-lg font-bold"><Terminal className="size-5 text-lemonPop" />{locale === "fr" ? "Terminal simulé" : "Simulated terminal"}</div>
+                <p className="mt-4 text-sm leading-6 text-slate-300">{locale === "fr" ? "Écris la suite de commandes demandée. Les tests vérifient l’intention sans modifier ton ordinateur." : "Write the requested command sequence. Tests verify intent without changing your computer."}</p>
+                <pre className="mt-5 whitespace-pre-wrap rounded-lg bg-black/30 p-4 font-mono text-sm text-green-300">$ {code || "…"}</pre>
+              </div>
+            ) : ["typescript", "react", "node", "sql"].includes(previewKind) ? (
+              <div className="min-h-[300px] bg-slate-950 p-5 text-slate-100">
+                <div className="flex items-center gap-2 font-display text-lg font-bold"><Code2 className="size-5 text-sky-400" />{previewKind === "react" ? (locale === "fr" ? "Composant React" : "React component") : previewKind === "node" ? (locale === "fr" ? "Module Node.js" : "Node.js module") : previewKind === "sql" ? (locale === "fr" ? "Migration PostgreSQL" : "PostgreSQL migration") : (locale === "fr" ? "Contrat TypeScript" : "TypeScript contract")}</div>
+                <p className="mt-4 text-sm leading-6 text-slate-300">{previewKind === "react" ? (locale === "fr" ? "Les tests inspectent la structure JSX, les hooks et les contrats demandés. Le composant sera exécuté dans le projet final assemblé." : "Tests inspect the requested JSX structure, hooks, and contracts. The component will run in the assembled final project.") : previewKind === "node" ? (locale === "fr" ? "Les tests vérifient le contrat serveur sans exécuter ce module privilégié dans le navigateur." : "Tests verify the server contract without executing this privileged module in the browser.") : previewKind === "sql" ? (locale === "fr" ? "Les tests inspectent tables, contraintes, requêtes et politiques sans modifier une base locale." : "Tests inspect tables, constraints, queries, and policies without modifying a local database.") : (locale === "fr" ? "Les tests vérifient les types, signatures et mécanismes demandés sans exécuter ce code dans le navigateur." : "Tests verify the requested types, signatures, and mechanisms without executing this code in the browser.")}</p>
+                <pre className="mt-5 max-h-[420px] overflow-auto whitespace-pre-wrap rounded-lg bg-black/30 p-4 font-mono text-sm text-sky-200">{code || "…"}</pre>
+              </div>
+            ) : previewKind === "text" ? (
+              <div className="min-h-[300px] bg-slate-50 p-5 text-slate-700">
+                <div className="flex items-center gap-2 font-display text-lg font-bold text-ink"><BookOpen className="size-5 text-indigoPop" />{locale === "fr" ? "Réponse structurée" : "Structured response"}</div>
+                <p className="mt-4 text-sm leading-6">{locale === "fr" ? "Rédige une décision, un diagnostic ou un plan vérifiable. Les critères recherchent les notions essentielles." : "Write a verifiable decision, diagnosis, or plan. Criteria look for essential concepts."}</p>
+                <pre className="mt-5 whitespace-pre-wrap rounded-lg border border-slate-200 bg-white p-4 font-mono text-sm">{code || "…"}</pre>
+              </div>
             ) : (
               <iframe key={`${lesson.id}-${preview}`} title="PulsaTeach preview" srcDoc={preview} sandbox="allow-scripts" className="h-[300px] w-full bg-white" />
             )}
@@ -518,7 +576,7 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
               <button
                 type="button"
                 onClick={runTests}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-sm font-bold text-white hover:bg-green-800"
               >
                 <Play className="size-5" />
                 {locale === "fr" ? "Lancer" : "Run"}
@@ -811,7 +869,7 @@ function LessonGuide({ guide, locale }) {
         <article className="rounded-xl border border-slate-200 bg-white p-4" key={section.title}>
           <h4 className={`inline-flex rounded-lg px-2.5 py-1 text-xs font-bold uppercase tracking-[.08em] ${section.tone}`}>{section.title}</h4>
           <ol className="mt-3 grid gap-2 text-sm leading-6 text-slate-600">
-            {section.items.map((item, index) => <li className="flex gap-2" key={item}><span className="font-bold text-slate-400">{index + 1}.</span><span>{item}</span></li>)}
+            {section.items.map((item, index) => <li className="flex gap-2" key={item}><span className="font-bold text-slate-600">{index + 1}.</span><span>{item}</span></li>)}
           </ol>
         </article>
       ))}
@@ -842,19 +900,101 @@ function ProjectRubric({ lesson, locale }) {
 }
 
 function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted, isBookmarked, onToggleBookmark, onComplete, onNext, hasNext }) {
-  const [selected, setSelected] = useState(null);
-  const [checked, setChecked] = useState(false);
-  const [rationale, setRationale] = useState("");
+  const quiz = useMemo(() => normalizeQuizLesson(lesson), [lesson]);
+  const storageKey = `pulsateach-quiz-draft-${lesson.id}`;
+  const [draft, setDraft] = useState(() => createQuizDraft(quiz, readStoredJson(storageKey)));
+  const [feedback, setFeedback] = useState({});
+  const [finalScore, setFinalScore] = useState(null);
   const [note, setNote] = useState("");
-  const isCorrect = selected === lesson.answer;
-  const canValidate = Boolean(selected) && rationale.trim().length >= 12;
+  const question = quiz.questions[draft.currentIndex];
+  const response = draft.responses[question.id];
+  const rationale = draft.rationales[question.id] || "";
+  const questionFeedback = feedback[question.id];
+  const canValidate = hasResponse(response) && (!question.requiresRationale || rationale.trim().length >= 12);
 
   useEffect(() => {
     setNote(localStorage.getItem(`pulsateach-note-${lesson.id}`) || "");
-    setSelected(null);
-    setChecked(false);
-    setRationale("");
-  }, [lesson.id]);
+    setDraft(createQuizDraft(quiz, readStoredJson(storageKey)));
+    setFeedback({});
+    setFinalScore(null);
+  }, [lesson.id, quiz, storageKey]);
+
+  useEffect(() => {
+    localStorage.setItem(storageKey, JSON.stringify({ ...draft, updatedAt: new Date().toISOString() }));
+  }, [draft, storageKey]);
+
+  useEffect(() => {
+    let active = true;
+    const localDraft = readStoredJson(storageKey);
+    getQuizSession(lesson.id).then((remote) => {
+      if (!active || !remote) return;
+      const useRemote = !localDraft.updatedAt || new Date(remote.updatedAt).getTime() > new Date(localDraft.updatedAt).getTime();
+      if (useRemote) setDraft(createQuizDraft(quiz, remote));
+      if (remote.status === "completed" && remote.score) setFinalScore(remote.score);
+    }).catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [lesson.id, quiz, storageKey]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      saveQuizSession(lesson.id, {
+        currentIndex: draft.currentIndex,
+        responses: draft.responses,
+        rationales: draft.rationales,
+        status: finalScore?.passed ? "completed" : "draft",
+        score: finalScore ? {
+          earned: finalScore.earned,
+          available: finalScore.available,
+          percent: finalScore.percent,
+          passed: finalScore.passed
+        } : null
+      }).catch(() => {});
+    }, 400);
+    return () => window.clearTimeout(timeout);
+  }, [draft, finalScore, lesson.id]);
+
+  useEffect(() => {
+    if (question.type === "ordering" && !Array.isArray(response)) {
+      setDraft((current) => ({
+        ...current,
+        responses: { ...current.responses, [question.id]: question.choices.map((choice) => choice.id) }
+      }));
+    }
+  }, [question, response]);
+
+  const setResponse = (value) => {
+    setDraft((current) => ({ ...current, responses: { ...current.responses, [question.id]: value } }));
+    setFeedback((current) => ({ ...current, [question.id]: undefined }));
+    setFinalScore(null);
+  };
+
+  const validateCurrent = () => {
+    const result = evaluateQuestion(question, response);
+    setFeedback((current) => ({ ...current, [question.id]: result }));
+    if (draft.currentIndex < quiz.questions.length - 1) return;
+
+    const score = scoreQuiz(quiz, draft.responses);
+    setFinalScore(score);
+    recordAttempt({
+      lessonId: lesson.id,
+      trackId: activeTrack.id,
+      moduleId: activeModule.id,
+      passed: score.results.filter((item) => item.correct).length,
+      total: score.results.length
+    }).catch(() => {});
+    recordLearningEvent({
+      eventType: score.passed ? "lesson_completed" : "tests_failed",
+      lessonId: lesson.id,
+      trackId: activeTrack.id,
+      payload: { passed: score.earned, total: score.available, percent: score.percent, kind: "quiz" }
+    }).catch(() => {});
+    if (score.passed) {
+      localStorage.removeItem(storageKey);
+      onComplete(lesson, score.results.filter((item) => item.correct).length);
+    }
+  };
 
   return (
     <section className="surface text-ink">
@@ -878,72 +1018,88 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
       <CourseChapter course={lesson.course} theory={lesson.theory} locale={locale} />
       <PedagogyWorkshop pedagogy={lesson.pedagogy} locale={locale} />
       <div className="muted-surface mt-6">
-        <p className="font-display text-2xl font-bold">{lesson.question[locale]}</p>
-        <div className="mt-5 grid gap-3">
-          {lesson.options.map((option) => (
-            <button
-              type="button"
-              key={option.id}
-              onClick={() => {
-                setSelected(option.id);
-                setChecked(false);
-              }}
-              className={`rounded-xl border p-4 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 ${selected === option.id ? "border-indigo-400 bg-indigo-50 text-indigo-800" : "border-slate-200 bg-white hover:border-indigo-200 hover:bg-indigo-50"}`}
-            >
-              {option.label[locale]}
-            </button>
-          ))}
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-bold text-indigoPop">{locale === "fr" ? "Question" : "Question"} {draft.currentIndex + 1}/{quiz.questions.length}</p>
+          <div className="h-2 w-40 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-indigoPop" style={{ width: `${((draft.currentIndex + 1) / quiz.questions.length) * 100}%` }} /></div>
         </div>
-        <label className="mt-5 block text-sm font-bold text-slate-700" htmlFor={`quiz-rationale-${lesson.id}`}>
-          {locale === "fr" ? "Explique ton choix en une phrase" : "Explain your choice in one sentence"}
-        </label>
-        <textarea
-          id={`quiz-rationale-${lesson.id}`}
-          value={rationale}
-          onChange={(event) => {
-            setRationale(event.target.value);
-            setChecked(false);
-          }}
-          placeholder={locale === "fr" ? "Cette réponse est la plus adaptée parce que…" : "This answer is the best choice because…"}
-          className="mt-2 min-h-24 w-full resize-y rounded-xl border border-slate-300 bg-white p-3 text-sm font-semibold outline-none focus:border-indigoPop"
-        />
-        <p className="mt-2 text-xs font-semibold text-slate-500">{locale === "fr" ? "La justification force à raisonner au-delà de la mémorisation." : "The explanation makes you reason beyond memorization."}</p>
+        <p className="mt-4 font-display text-2xl font-bold">{localize(question.prompt, locale)}</p>
+        {question.code && <pre className="mt-4 overflow-x-auto rounded-xl bg-slate-950 p-4 text-sm text-indigo-100"><code>{question.code}</code></pre>}
+        <QuestionInput question={question} response={response} locale={locale} onChange={setResponse} />
+        {question.requiresRationale && <>
+          <label className="mt-5 block text-sm font-bold text-slate-700" htmlFor={`quiz-rationale-${question.id}`}>
+            {locale === "fr" ? "Explique ton choix en une phrase" : "Explain your choice in one sentence"}
+          </label>
+          <textarea
+            id={`quiz-rationale-${question.id}`}
+            value={rationale}
+            onChange={(event) => {
+              setDraft((current) => ({ ...current, rationales: { ...current.rationales, [question.id]: event.target.value } }));
+              setFeedback((current) => ({ ...current, [question.id]: undefined }));
+            }}
+            placeholder={locale === "fr" ? "Cette réponse est la plus adaptée parce que…" : "This answer is the best choice because…"}
+            className="mt-2 min-h-24 w-full resize-y rounded-xl border border-slate-300 bg-white p-3 text-sm font-semibold outline-none focus:border-indigoPop"
+          />
+          <p className="mt-2 text-xs font-semibold text-slate-600">{locale === "fr" ? "La justification force à raisonner au-delà de la mémorisation." : "The explanation makes you reason beyond memorization."}</p>
+        </>}
         <button
           type="button"
           disabled={!canValidate}
-          onClick={() => {
-            setChecked(true);
-            recordAttempt({
-              lessonId: lesson.id,
-              trackId: activeTrack.id,
-              moduleId: activeModule.id,
-              passed: isCorrect ? 1 : 0,
-              total: 1
-            }).catch(() => {});
-            recordLearningEvent({
-              eventType: isCorrect ? "lesson_completed" : "tests_failed",
-              lessonId: lesson.id,
-              trackId: activeTrack.id,
-              payload: { passed: isCorrect ? 1 : 0, total: 1, kind: "quiz" }
-            }).catch(() => {});
-            if (isCorrect) onComplete(lesson, 1);
-          }}
+          onClick={validateCurrent}
           className="primary-button mt-5 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Play className="size-5" />
           {locale === "fr" ? "Valider" : "Check"}
         </button>
+        {questionFeedback && draft.currentIndex < quiz.questions.length - 1 && (
+          <button type="button" onClick={() => setDraft((current) => ({ ...current, currentIndex: current.currentIndex + 1 }))} className="secondary-button ml-3 mt-5">
+            {locale === "fr" ? "Question suivante" : "Next question"}
+          </button>
+        )}
       </div>
-      {checked && (
-        <div className={`mt-5 rounded-xl border p-4 text-sm font-semibold ${isCorrect ? "border-green-200 bg-green-50 text-green-800" : "border-red-200 bg-red-50 text-red-800"}`}>
-          {isCorrect ? <CheckCircle2 className="mb-2 size-6 text-mintPop" /> : <XCircle className="mb-2 size-6 text-rosePop" />}
-          {lesson.explanation[locale]}
+      {questionFeedback && (
+        <div className={`mt-5 rounded-xl border p-4 text-sm font-semibold ${questionFeedback.correct ? "border-green-200 bg-green-50 text-green-800" : "border-red-200 bg-red-50 text-red-800"}`} role="status">
+          {questionFeedback.correct ? <CheckCircle2 className="mb-2 size-6 text-green-700" /> : <XCircle className="mb-2 size-6 text-red-700" />}
+          {localize(question.explanation, locale)}
         </div>
       )}
-      {checked && isCorrect && <CompletionBanner locale={locale} onNext={onNext} hasNext={hasNext} />}
+      {finalScore && <div className={`mt-5 rounded-xl border p-4 font-bold ${finalScore.passed ? "border-green-200 bg-green-50 text-green-800" : "border-amber-200 bg-amber-50 text-amber-900"}`}>{locale === "fr" ? `Score final : ${finalScore.percent} %` : `Final score: ${finalScore.percent}%`}</div>}
+      {finalScore?.passed && <CompletionBanner locale={locale} onNext={onNext} hasNext={hasNext} />}
       <NotesPanel lessonId={lesson.id} locale={locale} note={note} setNote={setNote} />
     </section>
   );
+}
+
+function QuestionInput({ question, response, locale, onChange }) {
+  const choices = question.choices?.length ? question.choices : question.type === "true-false"
+    ? [{ id: "true", label: { fr: "Vrai", en: "True" } }, { id: "false", label: { fr: "Faux", en: "False" } }]
+    : [];
+
+  if (["single", "true-false", "code-reading", "error-identification"].includes(question.type)) {
+    return <div className="mt-5 grid gap-3">{choices.map((choice) => <button type="button" aria-pressed={response === choice.id} key={choice.id} onClick={() => onChange(choice.id)} className={`rounded-xl border p-4 text-left text-sm font-semibold ${response === choice.id ? "border-indigo-400 bg-indigo-50 text-indigo-800" : "border-slate-200 bg-white hover:border-indigo-200"}`}>{localize(choice.label, locale)}</button>)}</div>;
+  }
+  if (question.type === "multiple") {
+    const selected = Array.isArray(response) ? response : [];
+    return <div className="mt-5 grid gap-3">{choices.map((choice) => <button type="button" aria-pressed={selected.includes(choice.id)} key={choice.id} onClick={() => onChange(selected.includes(choice.id) ? selected.filter((id) => id !== choice.id) : [...selected, choice.id])} className={`rounded-xl border p-4 text-left text-sm font-semibold ${selected.includes(choice.id) ? "border-indigo-400 bg-indigo-50 text-indigo-800" : "border-slate-200 bg-white hover:border-indigo-200"}`}>{localize(choice.label, locale)}</button>)}</div>;
+  }
+  if (question.type === "ordering") {
+    const order = Array.isArray(response) ? response : choices.map((choice) => choice.id);
+    return <ol className="mt-5 grid gap-2">{order.map((id, index) => {
+      const choice = choices.find((item) => item.id === id);
+      const move = (offset) => {
+        const target = index + offset;
+        if (target < 0 || target >= order.length) return;
+        const next = [...order];
+        [next[index], next[target]] = [next[target], next[index]];
+        onChange(next);
+      };
+      return <li className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-3" key={id}><span className="flex-1 font-semibold">{index + 1}. {localize(choice?.label, locale)}</span><button type="button" className="icon-button min-h-9 px-2" onClick={() => move(-1)} aria-label={locale === "fr" ? "Monter" : "Move up"}>↑</button><button type="button" className="icon-button min-h-9 px-2" onClick={() => move(1)} aria-label={locale === "fr" ? "Descendre" : "Move down"}>↓</button></li>;
+    })}</ol>;
+  }
+  if (question.type === "matching") {
+    const matches = response && typeof response === "object" && !Array.isArray(response) ? response : {};
+    return <div className="mt-5 grid gap-3">{(question.pairs || []).map((pair) => <label className="grid gap-2 rounded-xl border border-slate-200 bg-white p-3 sm:grid-cols-2 sm:items-center" key={pair.id}><span className="font-semibold">{localize(pair.label, locale)}</span><select className="form-control" value={matches[pair.id] || ""} onChange={(event) => onChange({ ...matches, [pair.id]: event.target.value })}><option value="">{locale === "fr" ? "Choisir" : "Choose"}</option>{(pair.choices || choices).map((choice) => <option value={choice.id} key={choice.id}>{localize(choice.label, locale)}</option>)}</select></label>)}</div>;
+  }
+  return <label className="mt-5 block"><span className="text-sm font-bold text-slate-700">{locale === "fr" ? "Ta réponse" : "Your answer"}</span><textarea className="mt-2 min-h-32 w-full rounded-xl border border-slate-300 bg-white p-3 font-mono text-sm outline-none focus:border-indigoPop" value={typeof response === "string" ? response : ""} onChange={(event) => onChange(event.target.value)} /></label>;
 }
 
 function SkillChips({ skills = [] }) {
@@ -1080,6 +1236,25 @@ function filterLabel(filter, locale) {
     saved: { fr: "Favoris", en: "Saved" }
   };
   return labels[filter][locale];
+}
+
+function readStoredJson(key) {
+  try {
+    return JSON.parse(localStorage.getItem(key)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function localize(value, locale) {
+  if (value && typeof value === "object" && !Array.isArray(value)) return value[locale] || value.en || value.fr || "";
+  return String(value || "");
+}
+
+function hasResponse(value) {
+  if (Array.isArray(value)) return value.length > 0;
+  if (value && typeof value === "object") return Object.keys(value).length > 0 && Object.values(value).every(Boolean);
+  return String(value ?? "").trim().length > 0;
 }
 
 function readBookmarks() {

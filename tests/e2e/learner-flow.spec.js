@@ -2,10 +2,11 @@ import { expect, test } from "@playwright/test";
 
 test("account, onboarding, lesson and progress dashboard", async ({ page }) => {
   await page.goto("/#/signup");
+  await acceptPrivacy(page);
   await page.getByLabel(/Nom affiché|Display name/).fill("Learner E2E");
   await page.getByLabel("Email").fill(`learner-${Date.now()}@example.test`);
   await page.getByLabel(/Mot de passe|Password/).fill("TestPassword123!");
-  await page.getByText(/J'accepte les conditions|I accept the terms/).click();
+  await page.getByRole("checkbox", { name: /J’accepte les|I accept the/ }).check();
   await page.getByRole("button", { name: /Créer mon compte gratuit|Create my free account/ }).click();
 
   await expect(page).toHaveURL(/#\/onboarding/);
@@ -40,18 +41,20 @@ test("account, onboarding, lesson and progress dashboard", async ({ page }) => {
 
 test("direct auth callback route loads the application instead of a 404", async ({ page }) => {
   await page.goto("/auth/callback");
+  await acceptPrivacy(page);
   await expect(page).toHaveURL(/\/auth\/callback/);
   await expect(page.getByText(/Connecte-toi pour personnaliser|Sign in to personalize/)).toBeVisible();
 });
 
 test("signup form explains validation and login methods", async ({ page }) => {
   await page.goto("/#/signup");
+  await acceptPrivacy(page);
   await expect(page.getByRole("tab", { name: /Connexion|Sign in/ })).toBeVisible();
   await expect(page.getByRole("tab", { name: /Créer un compte|Create account/ })).toBeVisible();
   await page.getByLabel(/Nom affiché|Display name/).fill("Camille");
   await page.getByLabel("Email").fill("camille@example.test");
   await page.getByLabel(/Mot de passe|Password/).fill("court");
-  await page.getByText(/J'accepte les conditions|I accept the terms/).click();
+  await page.getByRole("checkbox", { name: /J’accepte les|I accept the/ }).check();
   await page.getByRole("button", { name: /Créer mon compte gratuit|Create my free account/ }).click();
   await expect(page.getByText(/ne respecte pas encore|does not meet/)).toBeVisible();
 
@@ -63,8 +66,14 @@ test("signup form explains validation and login methods", async ({ page }) => {
 test("mobile navigation exposes the essential learner routes", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile-chromium");
   await page.goto("/#/catalog");
+  await acceptPrivacy(page);
   await page.getByRole("button", { name: "Menu" }).click();
   await expect(page.getByRole("link", { name: /Formations|Courses/ }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Continuer|Continue/ }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Progrès|Progress/ }).first()).toBeVisible();
 });
+
+async function acceptPrivacy(page) {
+  const button = page.getByRole("button", { name: /Tout accepter|Accept all/ });
+  if (await button.isVisible()) await button.click();
+}

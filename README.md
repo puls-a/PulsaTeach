@@ -67,6 +67,10 @@ npm run server       # API Express
 npm run dev:full     # Frontend + API
 npm run build        # Build production
 npm run lint         # Analyse ESLint
+npm run test         # Tests unitaires et API avec Vitest
+npm run test:api     # Tests de sécurité et validation API
+npm run test:e2e     # Parcours Playwright desktop et mobile
+npm run test:a11y    # Audit axe des pages critiques
 npm run audit:learning
 npm run validate     # Lint + audit pédagogique + build
 npm run smoke        # Vérifie routes/endpoints avec serveurs déjà lancés
@@ -140,7 +144,11 @@ Les migrations sont versionnées dans `supabase/migrations/`. La configuration A
 
 ## Roadmap
 
-La roadmap complète est dans [`ROADMAP.md`](./ROADMAP.md). Les priorités immédiates :
+La roadmap historique est dans [`ROADMAP.md`](./ROADMAP.md). La nouvelle source de vérité détaillée, incluant le moteur de quiz, le vocabulaire global et les futurs parcours, est dans [`docs/ROADMAP_COMPLETE.md`](./docs/ROADMAP_COMPLETE.md).
+
+Un prompt maître prêt à lancer pour exécuter cette roadmap se trouve dans [`docs/PROMPT_EXECUTION_COMPLETE.md`](./docs/PROMPT_EXECUTION_COMPLETE.md).
+
+Les priorités immédiates :
 
 1. Sécuriser admin/auteur/export.
 2. Isoler l'exécution JavaScript utilisateur.

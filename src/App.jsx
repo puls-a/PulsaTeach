@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   BarChart3,
   BookOpen,
@@ -27,25 +27,28 @@ import { signOutSupabase, useSupabaseSession } from "./authState.js";
 import { languages } from "./content.js";
 import AuthPage from "./AuthPage.jsx";
 import { OnboardingPage, PasswordRecoveryPage, PublicCertificatePage } from "./AccountPages.jsx";
-import CourseStudio from "./CourseStudio.jsx";
 import CurriculumHub from "./CurriculumHub.jsx";
-import { FlexboxArenaPage, JavaScriptArenaPage, LivePlaygroundPage, WorldPage } from "./GamePages.jsx";
 import CookieConsent from "./components/CookieConsent.jsx";
 import { CookiesPage, LegalNoticePage, PrivacyPage, TermsPage } from "./LegalPages.jsx";
 import { openPrivacySettings } from "./privacyConsent.js";
-import {
-  AdminPage,
-  AnalyticsPage,
-  AuthorPage,
-  CertificationPage,
-  DashboardPage,
-  LearnPage,
-  PathPage,
-  ProfilePage,
-  ProjectsPage,
-  RoadmapPage,
-  SettingsPage
-} from "./pages.jsx";
+
+const GlossaryPage = lazy(() => import("./features/glossary/GlossaryPage.jsx"));
+const CourseStudio = lazy(() => import("./CourseStudio.jsx"));
+const FlexboxArenaPage = lazyNamed(() => import("./GamePages.jsx"), "FlexboxArenaPage");
+const JavaScriptArenaPage = lazyNamed(() => import("./GamePages.jsx"), "JavaScriptArenaPage");
+const LivePlaygroundPage = lazyNamed(() => import("./GamePages.jsx"), "LivePlaygroundPage");
+const WorldPage = lazyNamed(() => import("./GamePages.jsx"), "WorldPage");
+const AdminPage = lazyNamed(() => import("./pages.jsx"), "AdminPage");
+const AnalyticsPage = lazyNamed(() => import("./pages.jsx"), "AnalyticsPage");
+const AuthorPage = lazyNamed(() => import("./pages.jsx"), "AuthorPage");
+const CertificationPage = lazyNamed(() => import("./pages.jsx"), "CertificationPage");
+const DashboardPage = lazy(() => import("./features/dashboard/DashboardPage.jsx"));
+const LearnPage = lazyNamed(() => import("./pages.jsx"), "LearnPage");
+const PathPage = lazyNamed(() => import("./pages.jsx"), "PathPage");
+const ProfilePage = lazyNamed(() => import("./pages.jsx"), "ProfilePage");
+const ProjectsPage = lazyNamed(() => import("./pages.jsx"), "ProjectsPage");
+const RoadmapPage = lazyNamed(() => import("./pages.jsx"), "RoadmapPage");
+const SettingsPage = lazyNamed(() => import("./pages.jsx"), "SettingsPage");
 
 const navGroups = [
   {
@@ -55,6 +58,7 @@ const navGroups = [
     icon: BookOpen,
     items: [
       { href: "#/catalog", routes: ["home", "catalog"], icon: Compass, title: { fr: "Toutes les formations", en: "All courses" }, text: { fr: "Explorer le curriculum complet", en: "Explore the full curriculum" } },
+      { href: "#/glossary", routes: ["glossary"], icon: Languages, title: { fr: "Vocabulaire", en: "Glossary" }, text: { fr: "Retrouver les notions de tous les parcours", en: "Find concepts from every track" } },
       { href: "#/learn", routes: ["learn"], icon: Code2, title: { fr: "Continuer une leçon", en: "Continue a lesson" }, text: { fr: "Ouvrir le lab interactif", en: "Open the interactive lab" } },
       { href: "#/path", routes: ["path"], icon: Route, title: { fr: "Mon parcours", en: "My path" }, text: { fr: "Voir la prochaine étape conseillée", en: "See the recommended next step" } },
       { href: "#/dashboard", routes: ["dashboard"], icon: LayoutDashboard, title: { fr: "Ma progression", en: "My progress" }, text: { fr: "Leçons, XP et activité", en: "Lessons, XP, and activity" } }
@@ -96,9 +100,9 @@ function App() {
 
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.title = copy.metaTitle;
+    updatePageMetadata(route, locale, copy.metaTitle);
     localStorage.setItem("pulsateach-locale", locale);
-  }, [copy.metaTitle, locale]);
+  }, [copy.metaTitle, locale, route]);
 
   useEffect(() => {
     const handleHash = () => setRoute(getPageRoute());
@@ -109,7 +113,7 @@ function App() {
   return (
     <div className="min-h-screen">
       <Header locale={locale} route={route} onLanguageToggle={() => setLocale(locale === "fr" ? "en" : "fr")} />
-      <main>{renderRoute(route, locale)}</main>
+      <main><Suspense fallback={<RouteFallback locale={locale} />}>{renderRoute(route, locale)}</Suspense></main>
       <Footer locale={locale} />
       <CookieConsent locale={locale} />
     </div>
@@ -119,6 +123,7 @@ function App() {
 function Header({ locale, route, onLanguageToggle }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const mobilePanelRef = useRef(null);
   const { user } = useSupabaseSession();
   const visibleNavGroups = navGroups.filter((group) => group.id !== "create" || canManageContent(user));
 
@@ -144,9 +149,28 @@ function Header({ locale, route, onLanguageToggle }) {
   useEffect(() => {
     if (!mobileOpen) return undefined;
     const previousOverflow = document.body.style.overflow;
+    const previouslyFocused = document.activeElement;
+    const panel = mobilePanelRef.current;
+    const focusable = panel ? Array.from(panel.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])')) : [];
     document.body.style.overflow = "hidden";
+    focusable[0]?.focus();
+    const trapFocus = (event) => {
+      if (event.key !== "Tab" || focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    panel?.addEventListener("keydown", trapFocus);
     return () => {
       document.body.style.overflow = previousOverflow;
+      panel?.removeEventListener("keydown", trapFocus);
+      previouslyFocused?.focus?.();
     };
   }, [mobileOpen]);
 
@@ -179,7 +203,7 @@ function Header({ locale, route, onLanguageToggle }) {
       {mobileOpen && (
         <>
           <button type="button" className="fixed inset-0 -z-10 bg-slate-950/40 backdrop-blur-sm lg:hidden" aria-label={locale === "fr" ? "Fermer le menu" : "Close menu"} onClick={() => setMobileOpen(false)} />
-          <MobileNavigation locale={locale} user={user} route={route} groups={visibleNavGroups} onClose={() => setMobileOpen(false)} />
+          <MobileNavigation panelRef={mobilePanelRef} locale={locale} user={user} route={route} groups={visibleNavGroups} onClose={() => setMobileOpen(false)} />
         </>
       )}
     </header>
@@ -245,12 +269,12 @@ function AccountMenu({ user, locale, route, open, onToggle, onClose }) {
   );
 }
 
-function MobileNavigation({ locale, user, route, groups, onClose }) {
+function MobileNavigation({ panelRef, locale, user, route, groups, onClose }) {
   const currentGroup = groups.find((group) => group.items.some((item) => item.routes.includes(route)))?.id || "learn";
   const [openGroup, setOpenGroup] = useState(currentGroup);
 
   return (
-    <aside id="mobile-navigation" className="fixed inset-y-0 right-0 z-20 flex w-full max-w-sm flex-col border-l border-slate-200 bg-white shadow-2xl lg:hidden" aria-label={locale === "fr" ? "Menu mobile" : "Mobile menu"}>
+    <aside ref={panelRef} id="mobile-navigation" className="fixed inset-y-0 right-0 z-20 flex w-full max-w-sm flex-col border-l border-slate-200 bg-white shadow-2xl lg:hidden" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Menu mobile" : "Mobile menu"}>
       <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
         <div className="min-w-0">
           <p className="truncate text-sm font-bold text-ink">{user?.email || (locale === "fr" ? "Bienvenue sur PulsaTeach" : "Welcome to PulsaTeach")}</p>
@@ -350,6 +374,7 @@ function renderRoute(route, locale) {
   if (route === "js-arena") return <JavaScriptArenaPage locale={locale} />;
   if (route === "learn") return <LearnPage locale={locale} />;
   if (route === "catalog") return <CurriculumHub locale={locale} />;
+  if (route === "glossary") return <GlossaryPage locale={locale} />;
   if (route === "path") return <PathPage locale={locale} />;
   if (route === "profile") return <ProfilePage locale={locale} />;
   if (route === "settings") return <SettingsPage locale={locale} />;
@@ -372,8 +397,16 @@ function getPageRoute() {
     return new URLSearchParams(window.location.search).has("recovery") ? "recovery" : "onboarding";
   }
   const route = window.location.hash.replace(/^#\/?/, "").split(/[/?#]/)[0];
-  const known = ["auth", "signup", "onboarding", "recovery", "verify", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "catalog", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap", "privacy", "cookies", "terms", "legal"];
+  const known = ["auth", "signup", "onboarding", "recovery", "verify", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "catalog", "glossary", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap", "privacy", "cookies", "terms", "legal"];
   return known.includes(route) ? route : "home";
+}
+
+function RouteFallback({ locale }) {
+  return <div className="app-page min-h-screen"><p className="surface mx-auto max-w-xl text-center font-semibold text-slate-600">{locale === "fr" ? "Chargement de la page…" : "Loading page…"}</p></div>;
+}
+
+function lazyNamed(loader, name) {
+  return lazy(() => loader().then((module) => ({ default: module[name] })));
 }
 
 function canManageContent(user) {
@@ -381,6 +414,40 @@ function canManageContent(user) {
   const metadata = { ...(user?.app_metadata || {}), ...(user?.user_metadata || {}) };
   const roles = Array.isArray(metadata.roles) ? metadata.roles : [metadata.role].filter(Boolean);
   return roles.some((role) => ["admin", "author", "reviewer"].includes(String(role)));
+}
+
+function updatePageMetadata(route, locale, fallbackTitle) {
+  const fr = locale === "fr";
+  const metadata = {
+    home: [fallbackTitle, fr ? "Apprends le développement web avec des leçons, quiz et projets interactifs." : "Learn web development with interactive lessons, quizzes, and projects."],
+    catalog: [fr ? "Formations web interactives | PulsaTeach" : "Interactive web courses | PulsaTeach", fr ? "Explore les parcours HTML, CSS et JavaScript de PulsaTeach." : "Explore PulsaTeach HTML, CSS, and JavaScript tracks."],
+    glossary: [fr ? "Vocabulaire du développement web | PulsaTeach" : "Web development glossary | PulsaTeach", fr ? "Recherche les notions HTML, CSS et JavaScript reliées aux leçons." : "Search HTML, CSS, and JavaScript concepts connected to lessons."],
+    playground: [fr ? "Playground HTML CSS JavaScript | PulsaTeach" : "HTML CSS JavaScript playground | PulsaTeach", fr ? "Écris et prévisualise du code directement dans le navigateur." : "Write and preview code directly in the browser."],
+    privacy: [fr ? "Politique de confidentialité | PulsaTeach" : "Privacy policy | PulsaTeach", fr ? "Découvre comment PulsaTeach protège tes données." : "Learn how PulsaTeach protects your data."],
+    terms: [fr ? "Conditions d’utilisation | PulsaTeach" : "Terms of use | PulsaTeach", fr ? "Conditions d’utilisation de la plateforme PulsaTeach." : "Terms governing the PulsaTeach platform."]
+  }[route] || [fallbackTitle, fr ? "Plateforme bilingue d’apprentissage interactif du développement web." : "Bilingual interactive web development learning platform."];
+  document.title = metadata[0];
+  setMeta("description", metadata[1]);
+  setMeta("robots", ["admin", "author", "analytics", "settings", "profile", "dashboard"].includes(route) ? "noindex,nofollow" : "index,follow");
+  setPropertyMeta("og:title", metadata[0]);
+  setPropertyMeta("og:description", metadata[1]);
+  setMeta("twitter:title", metadata[0]);
+  setMeta("twitter:description", metadata[1]);
+}
+
+function setMeta(name, content) {
+  let element = document.head.querySelector(`meta[name="${name}"]`);
+  if (!element) {
+    element = document.createElement("meta");
+    element.setAttribute("name", name);
+    document.head.appendChild(element);
+  }
+  element.setAttribute("content", content);
+}
+
+function setPropertyMeta(property, content) {
+  const element = document.head.querySelector(`meta[property="${property}"]`);
+  element?.setAttribute("content", content);
 }
 
 export default App;

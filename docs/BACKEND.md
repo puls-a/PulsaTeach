@@ -23,6 +23,8 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_URL=your_project_url
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 PULSATEACH_ADMIN_KEY=local_admin_key_for_development
+PULSATEACH_ALLOW_LOCAL_IDENTITY=true
+PULSATEACH_ALLOWED_ORIGINS=http://127.0.0.1:5173
 ```
 
 The browser only receives the anon key. The service role key is used only by the Express API and must never be exposed to the frontend.
@@ -32,6 +34,8 @@ Admin and author endpoints require one of these controls:
 - Supabase user metadata containing `role` or `roles` with `admin`, `author`, or `reviewer`.
 - Local development header `X-PulsaTeach-Admin-Key`, matching `PULSATEACH_ADMIN_KEY`.
 
+Local learner identity uses `X-PulsaTeach-User-Id` only when
+`PULSATEACH_ALLOW_LOCAL_IDENTITY=true`. This mode is refused in production.
 Do not expose a development admin key in production browser builds.
 
 Storage modes:
@@ -39,6 +43,21 @@ Storage modes:
 - `PULSATEACH_STORAGE=json`: local JSON storage, recommended for development.
 - `PULSATEACH_STORAGE=supabase`: use Supabase with automatic JSON fallback when unavailable.
 - `PULSATEACH_STORAGE=supabase-strict`: require Supabase and fail when unavailable.
+
+Production requires `supabase-strict`, configured allowed origins, and Supabase
+credentials. The API refuses to start in production with a fallback storage mode.
+
+## Security
+
+- Private learner routes require an authenticated Supabase identity, or the explicit
+  local identity mode during development.
+- A learner cannot read or write another learner's progress, profile, attempts,
+  submissions, settings, or certificates.
+- Helmet security headers, CSP, restricted CORS, request rate limiting, payload
+  limits, and Zod validation are enabled.
+- JSON development writes are serialized and replaced atomically.
+- `PULSATEACH_ADMIN_KEY`, `VITE_ADMIN_ACCESS_KEY`, and
+  `PULSATEACH_ALLOW_LOCAL_IDENTITY` must not be configured in production.
 
 ## Auth Providers
 
@@ -60,7 +79,9 @@ PulsaTeach exposes auth at `#/auth`.
 | --- | --- | --- |
 | `GET` | `/api/health` | API status probe |
 | `GET` | `/api/supabase/status` | Supabase configuration and table health |
-| `GET` | `/api/catalog` | Lesson catalog generated from `src/learningContent.js` |
+| `GET` | `/api/catalog` | Lightweight catalog summaries for built-in and published tracks |
+| `GET` | `/api/catalog/:trackId` | Complete content for one track, loaded on demand |
+| `GET` | `/api/glossary` | Canonical bilingual glossary generated from all built-in tracks |
 | `GET` | `/api/roadmap` | Product roadmap data |
 | `GET` | `/api/stats` | Platform stats: lessons, modules, learners, submissions, certificates |
 | `GET` | `/api/analytics` | Funnel, track, and content analytics |
@@ -95,11 +116,19 @@ PulsaTeach exposes auth at `#/auth`.
 | `submissions` | Project submissions and review metadata |
 | `enrollments` | Landing enrollments |
 | `lesson_drafts` | Authoring drafts |
+| `quiz_sessions` | Private quiz drafts, responses, scores, and resume state |
 
-## Next Backend Milestones
+## Browser-test runtime
 
-1. Replace the local admin key with production-only Supabase role management.
-2. Add row-level policies for direct browser reads where needed.
-3. Add server-side exercise attempts and code snapshots.
-4. Add certificate issuance records instead of computed-only certificates.
-5. Add content authoring endpoints with lesson versioning.
+Playwright starts Vite and the Express application from
+`tests/e2e/global-setup.js`, then closes both servers in its teardown. This avoids
+the persistent child-process trees produced by nested `npm` and `concurrently`
+commands on Windows. The E2E runtime explicitly enables JSON storage and local
+identity; neither fallback is accepted by the production runtime.
+
+## Content-loading contract
+
+The catalog endpoint does not expose full lesson theory, corrections, quiz
+answers, or project rubrics. The browser fetches a complete track only when the
+learner opens it. This keeps the initial bundle and API payload stable while the
+number of tracks grows.

@@ -1,4 +1,4 @@
-import { learningTracks } from "../src/learningContent.js";
+import { learningTracks } from "../src/content/allTrackRegistry.js";
 
 const requiredPedagogy = [
   "why",
@@ -14,7 +14,7 @@ const requiredPedagogy = [
   "next"
 ];
 
-const richTracks = ["html", "css", "javascript"];
+const richTracks = ["html", "css", "javascript", "git", "accessibility", "testing", "typescript", "react", "node-api", "sql-postgresql", "web-security", "web-performance", "devops-deployment"];
 const failures = [];
 
 for (const trackId of richTracks) {

@@ -27,16 +27,19 @@ export default function CookieConsent({ locale = "fr" }) {
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[70] p-3 sm:p-5" role="region" aria-label={fr ? "Préférences de confidentialité" : "Privacy preferences"}>
-      <div className="mx-auto max-w-4xl rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl shadow-slate-950/20 sm:p-5">
+    <div className="fixed inset-x-0 bottom-0 z-[70] p-2 sm:p-5" role={details ? "dialog" : "region"} aria-modal={details || undefined} aria-label={fr ? "Préférences de confidentialité" : "Privacy preferences"}>
+      <div className="mx-auto max-h-[min(72vh,38rem)] max-w-4xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl shadow-slate-950/20 sm:p-5">
         <div className="flex items-start gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigoPop" aria-hidden="true"><Cookie className="size-5" /></span>
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigoPop sm:size-10" aria-hidden="true"><Cookie className="size-5" /></span>
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-lg font-bold text-ink">{fr ? "Ta vie privée, simplement" : "Your privacy, simply"}</h2>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
+            <h2 className="font-display text-base font-bold text-ink sm:text-lg">{fr ? "Ta vie privée, simplement" : "Your privacy, simply"}</h2>
+            <p className="mt-1 hidden text-sm leading-6 text-slate-600 sm:block">
               {fr
                 ? "PulsaTeach utilise des stockages nécessaires pour la connexion, la langue et la progression. Les mesures d’audience optionnelles restent désactivées sans ton accord."
                 : "PulsaTeach uses necessary storage for sign-in, language, and progress. Optional audience measurement stays off without your consent."}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-slate-600 sm:hidden">
+              {fr ? "Les mesures optionnelles restent désactivées sans ton accord." : "Optional measurement stays off without your consent."}
             </p>
           </div>
           {readPrivacyConsent() && <button type="button" onClick={() => setOpen(false)} className="nav-icon-button shrink-0 px-2" aria-label={fr ? "Fermer" : "Close"}><X className="size-4" /></button>}
@@ -59,17 +62,17 @@ export default function CookieConsent({ locale = "fr" }) {
           </div>
         )}
 
-        <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
-          <a href="#/cookies" className="inline-flex min-h-11 items-center justify-center px-3 text-sm font-bold text-indigoPop hover:underline">
+        <div className="mt-3 grid grid-cols-1 gap-2 sm:mt-4 sm:flex sm:flex-wrap sm:justify-end">
+          <a href="#/cookies" className="order-4 inline-flex min-h-10 min-w-0 items-center justify-center px-2 text-center text-xs font-bold leading-tight text-indigoPop hover:underline sm:order-none sm:min-h-11 sm:px-3 sm:text-sm">
             {fr ? "Politique cookies" : "Cookie policy"}
           </a>
-          <button type="button" onClick={() => setDetails((value) => !value)} className="secondary-button min-h-11 py-2 text-sm">
+          <button type="button" onClick={() => setDetails((value) => !value)} className="secondary-button order-3 min-h-10 min-w-0 whitespace-normal px-2 py-2 text-center text-xs leading-tight sm:order-none sm:min-h-11 sm:px-3 sm:text-sm">
             <Settings2 className="size-4" />{details ? (fr ? "Masquer les détails" : "Hide details") : (fr ? "Personnaliser" : "Customize")}
           </button>
-          <button type="button" onClick={() => choose(details ? analytics : false)} className="secondary-button min-h-11 py-2 text-sm">
+          <button type="button" onClick={() => choose(details ? analytics : false)} className="secondary-button order-2 min-h-10 min-w-0 whitespace-normal px-2 py-2 text-center text-xs leading-tight sm:order-none sm:min-h-11 sm:px-3 sm:text-sm">
             {fr ? "Nécessaires uniquement" : "Necessary only"}
           </button>
-          <button type="button" onClick={() => choose(true)} className="primary-button min-h-11 py-2 text-sm">
+          <button type="button" onClick={() => choose(true)} className="primary-button order-1 min-h-10 min-w-0 whitespace-normal px-2 py-2 text-center text-xs leading-tight sm:order-none sm:min-h-11 sm:px-3 sm:text-sm">
             {fr ? "Tout accepter" : "Accept all"}
           </button>
         </div>

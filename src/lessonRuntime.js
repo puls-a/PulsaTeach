@@ -30,6 +30,12 @@ export function createPreview(lesson, code) {
 }
 
 export function getPreviewKind(lesson) {
+  if (lesson.type === "terminal" || lesson.runtime === "terminal") return "terminal";
+  if (lesson.type === "text" || lesson.runtime === "text") return "text";
+  if (lesson.type === "typescript" || lesson.runtime === "typescript") return "typescript";
+  if (lesson.type === "react" || lesson.runtime === "react") return "react";
+  if (lesson.type === "node" || lesson.runtime === "node") return "node";
+  if (lesson.type === "sql" || lesson.runtime === "sql") return "sql";
   if (lesson.type === "css" || lesson.id.startsWith("css-")) return "css";
   if (lesson.type === "dom") return "dom";
   if (lesson.type === "js" || lesson.id.startsWith("js-")) return "javascript";

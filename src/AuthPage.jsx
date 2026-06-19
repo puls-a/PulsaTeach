@@ -7,6 +7,7 @@ const useLocalAuth = import.meta.env.VITE_AUTH_MODE === "local";
 
 export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
   const fr = locale === "fr";
+  const authAvailable = useLocalAuth || isSupabaseBrowserConfigured;
   const { session } = useSupabaseSession();
   const [mode, setMode] = useState(defaultMode);
   const [authMethod, setAuthMethod] = useState("password");
@@ -173,13 +174,13 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
               fr ? "Certificats publics et vérifiables" : "Public, verifiable certificates"
             ].map((item) => <li key={item} className="flex items-center gap-3 font-semibold text-slate-700"><span className="grid size-7 place-items-center rounded-full bg-green-100 text-green-700"><Check className="size-4" /></span>{item}</li>)}
           </ul>
-          {!isSupabaseBrowserConfigured && <p className="status-error mt-6 rounded-xl p-4 font-semibold">{fr ? "Le service de compte est temporairement indisponible." : "The account service is temporarily unavailable."}</p>}
+          {!authAvailable && <p className="status-error mt-6 rounded-xl p-4 font-semibold">{fr ? "Le service de compte est temporairement indisponible." : "The account service is temporarily unavailable."}</p>}
         </aside>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-900/5 sm:p-7">
           <div className="grid grid-cols-2 rounded-xl bg-slate-100 p-1" role="tablist" aria-label={fr ? "Type de compte" : "Account action"}>
-            <button type="button" role="tab" aria-selected={mode === "login"} onClick={() => { setMode("login"); setStatus({ type: "idle", message: "" }); }} className={`min-h-11 rounded-lg px-4 text-sm font-bold ${mode === "login" ? "bg-white text-ink shadow-sm" : "text-slate-500"}`}>{fr ? "Connexion" : "Sign in"}</button>
-            <button type="button" role="tab" aria-selected={mode === "signup"} onClick={() => { setMode("signup"); setAuthMethod("password"); setStatus({ type: "idle", message: "" }); }} className={`min-h-11 rounded-lg px-4 text-sm font-bold ${mode === "signup" ? "bg-white text-ink shadow-sm" : "text-slate-500"}`}>{fr ? "Créer un compte" : "Create account"}</button>
+            <button type="button" role="tab" aria-selected={mode === "login"} onClick={() => { setMode("login"); setStatus({ type: "idle", message: "" }); }} className={`min-h-11 rounded-lg px-4 text-sm font-bold ${mode === "login" ? "bg-white text-ink shadow-sm" : "text-slate-600"}`}>{fr ? "Connexion" : "Sign in"}</button>
+            <button type="button" role="tab" aria-selected={mode === "signup"} onClick={() => { setMode("signup"); setAuthMethod("password"); setStatus({ type: "idle", message: "" }); }} className={`min-h-11 rounded-lg px-4 text-sm font-bold ${mode === "signup" ? "bg-white text-ink shadow-sm" : "text-slate-600"}`}>{fr ? "Créer un compte" : "Create account"}</button>
           </div>
 
           {mode === "login" && (
@@ -215,7 +216,7 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
                     </span>
                   </label>
                 )}
-                <button type="submit" disabled={busy || !isSupabaseBrowserConfigured} className="primary-button min-h-12 disabled:cursor-wait disabled:opacity-60">
+                <button type="submit" disabled={busy || !authAvailable} className="primary-button min-h-12 disabled:cursor-wait disabled:opacity-60">
                   {mode === "signup" ? <UserPlus className="size-5" /> : <LockKeyhole className="size-5" />}
                   {busy ? (fr ? "Traitement..." : "Working...") : mode === "signup" ? (fr ? "Créer mon compte gratuit" : "Create my free account") : (fr ? "Se connecter" : "Sign in")}
                 </button>

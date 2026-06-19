@@ -9,13 +9,18 @@
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
     "build": "vite build",
     "lint": "eslint .",
-    "validate": "npm run lint && npm run audit:learning && npm run build",
+    "test": "vitest run",
+    "test:api": "vitest run tests/api",
+    "validate": "npm run lint && npm run test && npm run audit:learning && npm run audit:glossary && npm run build && npm run audit:bundle",
     "audit:learning": "node scripts/audit-learning.mjs",
+    "audit:glossary": "node scripts/audit-glossary.mjs",
+    "audit:bundle": "node scripts/audit-bundle.mjs",
     "smoke": "node scripts/smoke.mjs",
     "smoke:full": "node scripts/smoke-full.mjs",
-    "dev:e2e": "cross-env VITE_AUTH_MODE=local PULSATEACH_STORAGE=json VITE_API_URL=http://127.0.0.1:4188 PORT=4188 concurrently \"npm run server\" \"npm run dev -- --port 5188\"",
+    "dev:e2e": "node scripts/e2e-server.mjs",
     "dev:e2e:supabase": "cross-env VITE_AUTH_MODE=supabase PULSATEACH_STORAGE=supabase-strict VITE_API_URL=http://127.0.0.1:4190 PORT=4190 concurrently \"npm run server\" \"npm run dev -- --port 5190\"",
     "test:e2e": "playwright test",
+    "test:a11y": "playwright test tests/e2e/accessibility.spec.js",
     "test:e2e:supabase": "cross-env E2E_SUPABASE=true playwright test --config=playwright.supabase.config.js",
     "roles:set": "node scripts/set-user-roles.mjs",
     "preview": "vite preview --host 127.0.0.1"
@@ -26,12 +31,16 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "vite": "^8.0.16"
+    "vite": "^8.0.16",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.0",
     "autoprefixer": "^10.4.23",
@@ -41,6 +50,8 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.6.0",
     "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.18"
+    "supertest": "^7.2.2",
+    "tailwindcss": "^3.4.18",
+    "vitest": "^4.1.9"
   }
 }

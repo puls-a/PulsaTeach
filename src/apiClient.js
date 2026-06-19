@@ -32,6 +32,14 @@ export async function getCatalog() {
   return request("/api/catalog");
 }
 
+export async function getTrack(trackId) {
+  return request(`/api/catalog/${encodeURIComponent(trackId)}`);
+}
+
+export async function getGlossary() {
+  return request("/api/glossary");
+}
+
 export async function getStats() {
   return request("/api/stats");
 }
@@ -101,6 +109,18 @@ export async function migrateLocalProgress(progress) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ progress })
+  });
+}
+
+export async function getQuizSession(quizId) {
+  return request(`/api/quizzes/${encodeURIComponent(quizId)}/session`);
+}
+
+export async function saveQuizSession(quizId, payload) {
+  return request(`/api/quizzes/${encodeURIComponent(quizId)}/session`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
   });
 }
 
@@ -232,6 +252,7 @@ export async function deleteLessonDraft(id) {
 
 async function request(path, options = {}) {
   const headers = new Headers(options.headers || {});
+  headers.set("X-PulsaTeach-User-Id", getUserId());
   if (supabase) {
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
@@ -247,7 +268,9 @@ async function request(path, options = {}) {
   }
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
-    const error = new Error(payload.error || `API ${response.status}`);
+    const apiError = payload.error;
+    const error = new Error(typeof apiError === "string" ? apiError : apiError?.message || `API ${response.status}`);
+    error.code = typeof apiError === "object" ? apiError.code : undefined;
     error.status = response.status;
     error.requestId = payload.requestId || response.headers.get("X-Request-Id");
     error.payload = payload;

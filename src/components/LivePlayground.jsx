@@ -215,7 +215,7 @@ export default function LivePlayground({ locale = "en" }) {
           />
         </label>
         {result && (
-          <div className={`border-t border-white/15 px-4 py-3 text-sm font-bold ${result === "pass" ? "bg-green-600 text-white" : "bg-amber-100 text-amber-900"}`}>
+          <div className={`border-t border-white/15 px-4 py-3 text-sm font-bold ${result === "pass" ? "bg-green-700 text-white" : "bg-amber-100 text-amber-900"}`}>
             {result === "pass" ? copy.pass : copy.fail}
           </div>
         )}
@@ -227,12 +227,12 @@ export default function LivePlayground({ locale = "en" }) {
             <Eye className="size-5" />
             {copy.preview}
           </span>
-          <span className={`rounded-full px-3 py-1 text-xs ${previewReady && !runtimeError ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"}`}>
+          <span className={`rounded-full px-3 py-1 text-xs font-bold ${previewReady && !runtimeError ? "bg-green-100 text-green-900" : "bg-slate-100 text-slate-700"}`}>
             {previewReady && !runtimeError ? copy.ready : "iframe"}
           </span>
         </div>
         <iframe title="PulsaTeach live preview" srcDoc={srcDoc} sandbox="allow-scripts allow-forms allow-modals" className="h-full min-h-[430px] w-full bg-white" />
-        <div className={`border-t border-slate-200 p-4 text-sm font-semibold ${runtimeError ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"}`}>
+        <div className={`border-t border-slate-200 p-4 text-sm font-semibold ${runtimeError ? "bg-red-50 text-red-800" : "bg-green-50 text-green-900"}`}>
           <p className="font-display text-xl font-bold text-ink">{copy.errors}</p>
           <p className="mt-1">{runtimeError || copy.noErrors}</p>
         </div>

@@ -15,7 +15,7 @@ import {
   Trash2
 } from "lucide-react";
 import { createCourse, deleteCourse, listCourses, updateCourse } from "./apiClient.js";
-import { createEmptyCourseCurriculum, createLessonDraft, createModuleDraft, createTestDraft, validateCourseForPublication } from "./courseSchema.js";
+import { createEmptyCourseCurriculum, createLessonDraft, createModuleDraft, createQuizQuestionDraft, createTestDraft, validateCourseForPublication } from "./courseSchema.js";
 
 export default function CourseStudio({ locale = "fr" }) {
   const fr = locale === "fr";
@@ -318,7 +318,7 @@ function ModuleEditor({ module, locale, onChange, onAddLesson, onMove, onRemove 
         <ListField label={fr ? "Critères de maîtrise FR" : "Mastery criteria FR"} value={module.mastery?.fr || []} onChange={(items) => onChange({ mastery: { ...(module.mastery || {}), fr: items } })} />
       </div>
       <div className="mt-6 flex flex-wrap gap-2">
-        {["html", "css", "js", "dom", "quiz", "project"].map((type) => <button key={type} type="button" onClick={() => onAddLesson(type)} className="secondary-button"><Plus className="size-4" />{type}</button>)}
+        {["html", "css", "js", "dom", "typescript", "react", "node", "sql", "terminal", "text", "quiz", "project"].map((type) => <button key={type} type="button" onClick={() => onAddLesson(type)} className="secondary-button"><Plus className="size-4" />{type}</button>)}
       </div>
     </section>
   );
@@ -334,7 +334,7 @@ function LessonEditor({ lesson, locale, onChange, onMove, onRemove }) {
         <div className="grid gap-4 md:grid-cols-2">
           <LocalizedField label="Titre" value={lesson.title} onChange={(title) => onChange({ title })} />
           <LocalizedField label={fr ? "Consigne de l'exercice" : "Exercise brief"} value={lesson.brief} multiline onChange={(brief) => onChange({ brief })} />
-          <label className="grid gap-2 text-sm font-bold">Type<select value={lesson.type} onChange={(event) => onChange({ type: event.target.value })} className="form-control">{["html", "css", "js", "dom", "quiz", "project"].map((type) => <option key={type}>{type}</option>)}</select></label>
+          <label className="grid gap-2 text-sm font-bold">Type<select value={lesson.type} onChange={(event) => onChange({ type: event.target.value })} className="form-control">{["html", "css", "js", "dom", "typescript", "react", "node", "sql", "terminal", "text", "quiz", "project"].map((type) => <option key={type}>{type}</option>)}</select></label>
           <label className="grid gap-2 text-sm font-bold">XP<input type="number" min="0" value={lesson.xp} onChange={(event) => onChange({ xp: Number(event.target.value) })} className="form-control" /></label>
           <label className="grid gap-2 text-sm font-bold">{fr ? "Durée estimée" : "Estimated duration"}<input type="number" min="1" value={lesson.durationMin} onChange={(event) => onChange({ durationMin: Number(event.target.value) })} className="form-control" /></label>
           <ListField label={fr ? "Compétences" : "Skills"} value={lesson.skills || []} onChange={(skills) => onChange({ skills })} />
@@ -351,17 +351,62 @@ function LessonEditor({ lesson, locale, onChange, onMove, onRemove }) {
           <TextField label={fr ? "Synthèse" : "Summary"} value={courseFr.summary || ""} multiline onChange={(summary) => onChange({ course: updateLocaleObject(lesson.course, "fr", { summary }) })} />
         </fieldset>
 
-        <fieldset className="rounded-2xl border border-slate-200 p-4">
+        {lesson.type !== "quiz" && <fieldset className="rounded-2xl border border-slate-200 p-4">
           <legend className="flex items-center gap-2 px-2 font-display text-xl font-bold"><Code2 className="size-5 text-indigoPop" />{fr ? "Exercice et correction" : "Exercise and solution"}</legend>
           <TextField label={fr ? "Code initial" : "Starter code"} value={lesson.starterCode || ""} code multiline onChange={(starterCode) => onChange({ starterCode })} />
           {lesson.type === "css" && <TextField label="HTML de prévisualisation" value={lesson.previewHtml || ""} code multiline onChange={(previewHtml) => onChange({ previewHtml })} />}
           <TextField label={fr ? "Solution expliquée / code final" : "Explained solution / final code"} value={lesson.solution || ""} code multiline onChange={(solution) => onChange({ solution })} />
           <LocalizedField label={fr ? "Indice progressif" : "Progressive hint"} value={lesson.hint} multiline onChange={(hint) => onChange({ hint })} />
-        </fieldset>
+        </fieldset>}
 
-        <TestsEditor tests={lesson.tests || []} onChange={(tests) => onChange({ tests })} locale={locale} />
+        {lesson.type === "quiz"
+          ? <QuizEditor lesson={lesson} onChange={onChange} locale={locale} />
+          : <TestsEditor tests={lesson.tests || []} onChange={(tests) => onChange({ tests })} locale={locale} />}
       </div>
     </section>
+  );
+}
+
+function QuizEditor({ lesson, onChange, locale }) {
+  const fr = locale === "fr";
+  const questions = lesson.questions || [];
+  const updateQuestion = (index, patch) => onChange({ questions: questions.map((question, questionIndex) => questionIndex === index ? { ...question, ...patch } : question) });
+  return (
+    <fieldset className="rounded-2xl border border-slate-200 p-4">
+      <legend className="flex items-center gap-2 px-2 font-display text-xl font-bold"><FlaskConical className="size-5 text-indigoPop" />{fr ? "Questions du quiz" : "Quiz questions"}</legend>
+      <div className="grid gap-4 md:grid-cols-3">
+        <label className="grid gap-2 text-sm font-bold">{fr ? "Score requis (%)" : "Passing score (%)"}<input type="number" min="1" max="100" className="form-control" value={lesson.passingScore || 70} onChange={(event) => onChange({ passingScore: Number(event.target.value) })} /></label>
+        <label className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm font-bold"><input type="checkbox" checked={Boolean(lesson.randomizeQuestions)} onChange={(event) => onChange({ randomizeQuestions: event.target.checked })} />{fr ? "Mélanger les questions" : "Randomize questions"}</label>
+        <label className="grid gap-2 text-sm font-bold">Feedback<select className="form-control" value={lesson.feedbackMode || "immediate"} onChange={(event) => onChange({ feedbackMode: event.target.value })}><option value="immediate">Immediate</option><option value="end">End</option></select></label>
+      </div>
+      <div className="mt-5 grid gap-4">
+        {questions.map((question, index) => (
+          <article className="rounded-xl border border-slate-200 bg-slate-50 p-4" key={question.id}>
+            <div className="flex items-center gap-3">
+              <span className="grid size-8 place-items-center rounded-full bg-indigoPop text-sm font-bold text-white">{index + 1}</span>
+              <select className="form-control max-w-64" value={question.type} onChange={(event) => updateQuestion(index, { type: event.target.value })}>
+                {["single", "multiple", "true-false", "matching", "ordering", "fill-blank", "code-reading", "error-identification", "code-correction", "short-open"].map((type) => <option key={type}>{type}</option>)}
+              </select>
+              <button type="button" className="icon-button ml-auto text-red-600" onClick={() => onChange({ questions: questions.filter((_, questionIndex) => questionIndex !== index) })} aria-label={fr ? "Supprimer la question" : "Delete question"}><Trash2 className="size-4" /></button>
+            </div>
+            <div className="mt-4 grid gap-4">
+              <LocalizedField label={fr ? "Question" : "Prompt"} value={question.prompt} multiline onChange={(prompt) => updateQuestion(index, { prompt })} />
+              <TextField label={fr ? "Code optionnel" : "Optional code"} value={question.code || ""} code multiline onChange={(code) => updateQuestion(index, { code })} />
+              {["single", "multiple", "true-false", "ordering", "code-reading", "error-identification"].includes(question.type) && <TextField label={fr ? "Choix (id | français | anglais)" : "Choices (id | French | English)"} value={formatChoices(question.choices)} multiline onChange={(value) => updateQuestion(index, { choices: parseChoices(value) })} />}
+              <TextField label={fr ? "Réponse (sépare les réponses multiples par une virgule)" : "Answer (comma-separated for multiple answers)"} value={formatAnswer(question.answer)} onChange={(value) => updateQuestion(index, { answer: parseAnswer(value, question.type) })} />
+              <LocalizedField label={fr ? "Explication pédagogique" : "Pedagogical explanation"} value={question.explanation} multiline onChange={(explanation) => updateQuestion(index, { explanation })} />
+              <div className="grid gap-4 md:grid-cols-3">
+                <label className="grid gap-2 text-sm font-bold">Points<input className="form-control" type="number" min="1" value={question.points || 1} onChange={(event) => updateQuestion(index, { points: Number(event.target.value) })} /></label>
+                <ListField label={fr ? "Compétences" : "Skills"} value={question.skills || []} onChange={(skills) => updateQuestion(index, { skills })} />
+                <ListField label={fr ? "Termes du glossaire" : "Glossary terms"} value={question.glossaryTerms || []} onChange={(glossaryTerms) => updateQuestion(index, { glossaryTerms })} />
+              </div>
+              <label className="flex items-center gap-3 text-sm font-bold"><input type="checkbox" checked={Boolean(question.requiresRationale)} onChange={(event) => updateQuestion(index, { requiresRationale: event.target.checked })} />{fr ? "Exiger une justification" : "Require a rationale"}</label>
+            </div>
+          </article>
+        ))}
+        <button type="button" onClick={() => onChange({ questions: [...questions, createQuizQuestionDraft(questions.length)] })} className="secondary-button justify-self-start"><Plus className="size-4" />{fr ? "Ajouter une question" : "Add question"}</button>
+      </div>
+    </fieldset>
   );
 }
 
@@ -398,14 +443,19 @@ function LessonPreview({ lesson, locale }) {
       <PreviewList title="Objectifs" items={copy.objectives} />
       <PreviewList title="Vocabulaire" items={copy.vocabulary} />
       <PreviewList title="À retenir" items={copy.rules} />
-      <div className="mt-5 overflow-hidden rounded-xl border border-slate-200">
+      {lesson.type === "quiz" ? (
+        <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p className="font-bold">{lesson.questions?.length || 0} questions · {lesson.passingScore || 70}% requis</p>
+          <ul className="mt-3 grid gap-2 text-sm text-slate-600">{(lesson.questions || []).map((question, index) => <li key={question.id}>{index + 1}. {question.prompt?.[locale] || question.prompt?.fr}</li>)}</ul>
+        </div>
+      ) : <div className="mt-5 overflow-hidden rounded-xl border border-slate-200">
         <div className="bg-slate-900 px-4 py-2 text-xs font-bold text-white">Éditeur · {lesson.type}</div>
         <pre className="max-h-64 overflow-auto bg-slate-950 p-4 text-xs leading-6 text-slate-100"><code>{lesson.starterCode}</code></pre>
-      </div>
-      <div className="mt-4 rounded-xl bg-slate-50 p-4">
+      </div>}
+      {lesson.type !== "quiz" && <div className="mt-4 rounded-xl bg-slate-50 p-4">
         <p className="font-bold">{lesson.tests?.length || 0} tests automatiques</p>
         <ul className="mt-2 grid gap-1 text-xs text-slate-600">{(lesson.tests || []).map((test, index) => <li key={`${test.label}-${index}`}>• {test.label}</li>)}</ul>
-      </div>
+      </div>}
     </aside>
   );
 }
@@ -448,6 +498,35 @@ function ListField({ label, value = [], onChange }) {
 
 function updateLocaleObject(source = {}, locale, patch) {
   return { ...source, [locale]: { ...(source[locale] || {}), ...patch } };
+}
+
+function formatChoices(choices = []) {
+  return choices.map((choice) => `${choice.id} | ${choice.label?.fr || ""} | ${choice.label?.en || ""}`).join("\n");
+}
+
+function parseChoices(value) {
+  return value.split("\n").map((line) => {
+    const [id, fr, en] = line.split("|").map((item) => item.trim());
+    return { id, label: { fr: fr || id, en: en || fr || id } };
+  }).filter((choice) => choice.id);
+}
+
+function formatAnswer(answer) {
+  if (Array.isArray(answer)) return answer.join(", ");
+  if (answer && typeof answer === "object") return JSON.stringify(answer);
+  return String(answer ?? "");
+}
+
+function parseAnswer(value, type) {
+  if (type === "multiple" || type === "ordering") return value.split(",").map((item) => item.trim()).filter(Boolean);
+  if (type === "matching") {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return {};
+    }
+  }
+  return value.trim();
 }
 
 function moveItem(items, id, direction) {
