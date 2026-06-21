@@ -5,6 +5,7 @@ const pages = [
   { name: "catalog", path: "/#/catalog" },
   { name: "signup", path: "/#/signup" },
   { name: "glossary", path: "/#/glossary" },
+  { name: "review", path: "/#/review" },
   { name: "lesson", path: "/#/learn/html/html-foundations/html-01-document-skeleton" },
   { name: "playground", path: "/#/playground" }
 ];

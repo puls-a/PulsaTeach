@@ -1009,7 +1009,7 @@ app.post("/api/events", sensitiveRateLimit(120), requireAuthenticatedRequest, va
     response.status(400).json({ error: "Event type is required.", requestId: request.requestId });
     return;
   }
-  const allowedEvents = new Set(["lesson_opened", "tests_run", "tests_failed", "lesson_completed", "hint_opened", "progress_migrated"]);
+  const allowedEvents = new Set(["lesson_opened", "tests_run", "tests_failed", "lesson_completed", "hint_opened", "progress_migrated", "review_started", "review_answered", "review_completed"]);
   if (!allowedEvents.has(payload.eventType)) {
     response.status(400).json({ error: "Unsupported event type.", requestId: request.requestId });
     return;

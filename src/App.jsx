@@ -17,6 +17,7 @@ import {
   Menu,
   PenTool,
   Route,
+  RotateCcw,
   Settings,
   Shield,
   Sparkles,
@@ -33,6 +34,7 @@ import { CookiesPage, LegalNoticePage, PrivacyPage, TermsPage } from "./LegalPag
 import { openPrivacySettings } from "./privacyConsent.js";
 
 const GlossaryPage = lazy(() => import("./features/glossary/GlossaryPage.jsx"));
+const ReviewPage = lazy(() => import("./features/review/ReviewPage.jsx"));
 const CourseStudio = lazy(() => import("./CourseStudio.jsx"));
 const FlexboxArenaPage = lazyNamed(() => import("./GamePages.jsx"), "FlexboxArenaPage");
 const JavaScriptArenaPage = lazyNamed(() => import("./GamePages.jsx"), "JavaScriptArenaPage");
@@ -70,6 +72,7 @@ const navGroups = [
     label: { fr: "Pratiquer", en: "Practice" },
     icon: Gamepad2,
     items: [
+      { href: "#/review", routes: ["review"], icon: RotateCcw, title: { fr: "Révisions", en: "Reviews" }, text: { fr: "Réactiver les notions au bon moment", en: "Recall concepts at the right time" } },
       { href: "#/playground", routes: ["playground"], icon: Code2, title: { fr: "Playground", en: "Playground" }, text: { fr: "Coder librement dans le navigateur", en: "Code freely in the browser" } },
       { href: "#/world", routes: ["world"], icon: Map, title: { fr: "Monde des défis", en: "Challenge world" }, text: { fr: "Missions et exercices guidés", en: "Missions and guided exercises" } },
       { href: "#/flexbox-arena", routes: ["flexbox-arena"], icon: Sparkles, title: { fr: "Flexbox Arena", en: "Flexbox Arena" }, text: { fr: "Maîtriser les layouts CSS", en: "Master CSS layouts" } },
@@ -375,6 +378,7 @@ function renderRoute(route, locale) {
   if (route === "learn") return <LearnPage locale={locale} />;
   if (route === "catalog") return <CurriculumHub locale={locale} />;
   if (route === "glossary") return <GlossaryPage locale={locale} />;
+  if (route === "review") return <ReviewPage locale={locale} />;
   if (route === "path") return <PathPage locale={locale} />;
   if (route === "profile") return <ProfilePage locale={locale} />;
   if (route === "settings") return <SettingsPage locale={locale} />;
@@ -397,7 +401,7 @@ function getPageRoute() {
     return new URLSearchParams(window.location.search).has("recovery") ? "recovery" : "onboarding";
   }
   const route = window.location.hash.replace(/^#\/?/, "").split(/[/?#]/)[0];
-  const known = ["auth", "signup", "onboarding", "recovery", "verify", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "catalog", "glossary", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap", "privacy", "cookies", "terms", "legal"];
+  const known = ["auth", "signup", "onboarding", "recovery", "verify", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "catalog", "glossary", "review", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap", "privacy", "cookies", "terms", "legal"];
   return known.includes(route) ? route : "home";
 }
 
@@ -421,6 +425,7 @@ function updatePageMetadata(route, locale, fallbackTitle) {
   const metadata = {
     home: [fallbackTitle, fr ? "Apprends le développement web avec des leçons, quiz et projets interactifs." : "Learn web development with interactive lessons, quizzes, and projects."],
     catalog: [fr ? "Formations web interactives | PulsaTeach" : "Interactive web courses | PulsaTeach", fr ? "Explore les parcours HTML, CSS et JavaScript de PulsaTeach." : "Explore PulsaTeach HTML, CSS, and JavaScript tracks."],
+    review: [fr ? "Révisions espacées | PulsaTeach" : "Spaced reviews | PulsaTeach", fr ? "Révise les questions difficiles selon leur prochaine échéance." : "Review difficult questions when they become due."],
     glossary: [fr ? "Vocabulaire du développement web | PulsaTeach" : "Web development glossary | PulsaTeach", fr ? "Recherche les notions HTML, CSS et JavaScript reliées aux leçons." : "Search HTML, CSS, and JavaScript concepts connected to lessons."],
     playground: [fr ? "Playground HTML CSS JavaScript | PulsaTeach" : "HTML CSS JavaScript playground | PulsaTeach", fr ? "Écris et prévisualise du code directement dans le navigateur." : "Write and preview code directly in the browser."],
     privacy: [fr ? "Politique de confidentialité | PulsaTeach" : "Privacy policy | PulsaTeach", fr ? "Découvre comment PulsaTeach protège tes données." : "Learn how PulsaTeach protects your data."],
@@ -428,7 +433,7 @@ function updatePageMetadata(route, locale, fallbackTitle) {
   }[route] || [fallbackTitle, fr ? "Plateforme bilingue d’apprentissage interactif du développement web." : "Bilingual interactive web development learning platform."];
   document.title = metadata[0];
   setMeta("description", metadata[1]);
-  setMeta("robots", ["admin", "author", "analytics", "settings", "profile", "dashboard"].includes(route) ? "noindex,nofollow" : "index,follow");
+  setMeta("robots", ["admin", "author", "analytics", "settings", "profile", "dashboard", "review"].includes(route) ? "noindex,nofollow" : "index,follow");
   setPropertyMeta("og:title", metadata[0]);
   setPropertyMeta("og:description", metadata[1]);
   setMeta("twitter:title", metadata[0]);

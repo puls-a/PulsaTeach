@@ -24,5 +24,33 @@ describe("skill index", () => {
     expect(practicing.find((skill) => skill.id === "accessibility")).toMatchObject({ percent: 50, status: "practicing" });
     expect(practicing.find((skill) => skill.id === "semantic-html")).toMatchObject({ percent: 100, status: "mastered" });
   });
-});
 
+  test("combines lesson, quiz and spaced-review evidence", () => {
+    const now = new Date();
+    const result = computeSkillProgress(tracks, {
+      completed: { l1: {} },
+      quizEvidence: {
+        quiz: { skills: { Accessibility: { percent: 100 } } }
+      },
+      review: {
+        items: {
+          question: {
+            skills: ["Accessibility"],
+            confidence: 1,
+            repetitions: 3,
+            lastReviewedAt: now.toISOString(),
+            dueAt: new Date(now.getTime() + 86400000).toISOString()
+          }
+        }
+      }
+    });
+
+    expect(result.find((skill) => skill.id === "accessibility")).toMatchObject({
+      lessonPercent: 50,
+      quizEvidence: 1,
+      reviewEvidence: 1,
+      percent: 75,
+      status: "practicing"
+    });
+  });
+});

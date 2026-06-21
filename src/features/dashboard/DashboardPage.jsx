@@ -53,13 +53,13 @@ export default function DashboardPage({ locale }) {
         </div>
         <section className="surface mt-8">
           <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Compétences" : "Skills"}</h2>
-          <p className="mt-2 text-sm text-slate-600">{locale === "fr" ? "Chaque niveau est relié aux leçons réellement validées." : "Every level is backed by completed lessons."}</p>
+          <p className="mt-2 text-sm text-slate-600">{locale === "fr" ? "Chaque niveau combine leçons validées, quiz et révisions récentes." : "Every level combines completed lessons, quizzes, and recent reviews."}</p>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             {skills.map((skill) => (
               <article className="rounded-xl border border-slate-200 bg-slate-50 p-4" key={skill.id}>
                 <div className="flex items-center justify-between gap-3"><h3 className="font-bold">{skill.label}</h3><span className="text-sm font-bold text-indigoPop">{skill.percent}%</span></div>
                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-indigoPop" style={{ width: `${skill.percent}%` }} /></div>
-                <p className="mt-2 text-xs font-semibold text-slate-600">{skill.completedLessons}/{skill.totalLessons} {locale === "fr" ? "preuves validées" : "validated pieces of evidence"}</p>
+                <p className="mt-2 text-xs font-semibold text-slate-600">{skill.completedLessons}/{skill.totalLessons} {locale === "fr" ? "leçons" : "lessons"} · {skill.quizEvidence} quiz · {skill.reviewEvidence} {locale === "fr" ? "révisions" : "reviews"}</p>
               </article>
             ))}
           </div>
@@ -95,6 +95,12 @@ function mergeDashboardProgress(local, remote) {
     ...remote,
     xp: Math.max(Number(local?.xp) || 0, Number(remote?.xp) || 0),
     completed: { ...(local?.completed || {}), ...(remote?.completed || {}) },
+    quizEvidence: { ...(local?.quizEvidence || {}), ...(remote?.quizEvidence || {}) },
+    review: {
+      ...(local?.review || {}),
+      ...(remote?.review || {}),
+      items: { ...(local?.review?.items || {}), ...(remote?.review?.items || {}) }
+    },
     activity: [...(remote?.activity || []), ...(local?.activity || [])]
       .filter((item, index, items) => items.findIndex((candidate) => `${candidate.id}-${candidate.at}` === `${item.id}-${item.at}`) === index)
       .slice(0, 100)

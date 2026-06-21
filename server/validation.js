@@ -11,6 +11,43 @@ const localizedText = z.union([
 const curriculum = z.object({
   modules: z.array(z.unknown()).max(100)
 }).passthrough();
+const reviewItemSchema = z.object({
+  id,
+  kind: z.literal("quiz-question"),
+  quizId: id,
+  questionId: id,
+  trackId: z.string().max(160),
+  moduleId: z.string().max(160),
+  lessonId: id,
+  prompt: localizedText,
+  choices: z.array(z.unknown()).max(100),
+  pairs: z.array(z.unknown()).max(100),
+  answer: z.unknown(),
+  acceptedAnswers: z.array(z.unknown()).max(100),
+  keywords: z.array(z.string().max(200)).max(100),
+  explanation: localizedText.optional(),
+  questionType: z.string().max(80),
+  skills: z.array(z.string().max(160)).max(100),
+  glossaryTerms: z.array(z.string().max(160)).max(100),
+  intervalDays: z.coerce.number().min(0).max(36_500),
+  ease: z.coerce.number().min(1.3).max(3),
+  repetitions: z.coerce.number().int().min(0).max(100_000),
+  lapses: z.coerce.number().int().min(0).max(100_000),
+  confidence: z.coerce.number().min(0).max(1),
+  dueAt: z.string().datetime(),
+  lastReviewedAt: z.string().datetime().nullable(),
+  updatedAt: z.string().datetime()
+}).strict();
+const quizEvidenceSchema = z.object({
+  percent: z.coerce.number().min(0).max(100),
+  passed: z.boolean(),
+  skills: z.record(z.string(), z.object({
+    earned: z.coerce.number().min(0),
+    available: z.coerce.number().min(0),
+    percent: z.coerce.number().min(0).max(100)
+  }).strict()),
+  attemptedAt: z.string().datetime()
+}).strict();
 
 export const courseCreateSchema = z.object({
   title: localizedText,
@@ -46,7 +83,12 @@ export const progressSchema = z.object({
   streak: z.object({
     count: z.coerce.number().int().min(0).max(100_000).optional(),
     lastDate: z.string().max(40).nullable().optional()
-  }).strict().optional()
+  }).strict().optional(),
+  review: z.object({
+    items: z.record(z.string(), reviewItemSchema).refine((items) => Object.keys(items).length <= 5000, "Too many review items"),
+    updatedAt: z.string().datetime().optional()
+  }).strict().optional(),
+  quizEvidence: z.record(z.string(), quizEvidenceSchema).refine((items) => Object.keys(items).length <= 5000, "Too much quiz evidence").optional()
 }).passthrough();
 
 export const progressMigrationSchema = z.object({
@@ -93,7 +135,7 @@ export const enrollmentSchema = z.object({
 }).strict();
 
 export const eventSchema = z.object({
-  eventType: z.enum(["lesson_opened", "tests_run", "tests_failed", "lesson_completed", "hint_opened", "progress_migrated"]),
+  eventType: z.enum(["lesson_opened", "tests_run", "tests_failed", "lesson_completed", "hint_opened", "progress_migrated", "review_started", "review_answered", "review_completed"]),
   lessonId: z.string().max(160).optional(),
   trackId: z.string().max(160).optional(),
   payload: z.record(z.string(), z.unknown()).optional().default({})

@@ -20,6 +20,7 @@ import { learningTracks } from "./content/trackRegistry.js";
 import { getQuizSession, loadRemoteProgress, recordAttempt, recordLearningEvent, saveQuizSession, saveRemoteProgress } from "./apiClient.js";
 import { createPreview, displayTestLabel, getPreviewKind, runJavaScriptWithConsole, testFailureHelp, validateLesson } from "./lessonRuntime.js";
 import { createQuizDraft, evaluateQuestion, normalizeQuizLesson, scoreQuiz } from "./features/quizzes/quizEngine.js";
+import { scheduleQuizReview } from "./features/review/spacedRepetition.js";
 
 const progressKey = "pulsateach-learning-progress";
 const bookmarksKey = "pulsateach-learning-bookmarks";
@@ -131,37 +132,52 @@ export default function InteractiveLearning({ locale, tracks = learningTracks, o
     }
   };
 
-  const completeLesson = (lesson, passedCount) => {
-    const next = {
-      ...progress,
-      xp: progress.completed[lesson.id] ? progress.xp : progress.xp + lesson.xp,
-      streak: updateStreak(progress.streak),
-      completed: {
-        ...progress.completed,
-        [lesson.id]: {
-          passedAt: new Date().toISOString(),
-          xp: lesson.xp,
-          passedTests: passedCount
-        }
-      }
-    };
-    if (!progress.completed[lesson.id]) {
-      next.activity = [
-        {
-          id: lesson.id,
-          title: lesson.title,
-          type: lesson.type,
-          xp: lesson.xp,
-          at: new Date().toISOString()
-        },
-        ...(progress.activity || [])
-      ].slice(0, 8);
-    }
-    setProgress(next);
+  const persistProgress = (next) => {
     localStorage.setItem(progressKey, JSON.stringify(next));
     saveRemoteProgress(next)
       .then(() => setSyncState("synced"))
       .catch(() => setSyncState("offline"));
+  };
+
+  const completeLesson = (lesson, passedCount) => {
+    setProgress((current) => {
+      const next = markLessonCompleted(current, lesson, passedCount);
+      persistProgress(next);
+      return next;
+    });
+  };
+
+  const handleQuizResult = (lesson, quiz, score) => {
+    setProgress((current) => {
+      const now = new Date();
+      const reviewItems = scheduleQuizReview(
+        current.review?.items || {},
+        quiz,
+        score,
+        { trackId: activeTrack.id, moduleId: activeModule.id, lessonId: lesson.id },
+        now
+      );
+      let next = {
+        ...current,
+        review: {
+          ...(current.review || {}),
+          items: reviewItems,
+          updatedAt: now.toISOString()
+        },
+        quizEvidence: {
+          ...(current.quizEvidence || {}),
+          [lesson.id]: {
+            percent: score.percent,
+            passed: score.passed,
+            skills: score.skills,
+            attemptedAt: now.toISOString()
+          }
+        }
+      };
+      if (score.passed) next = markLessonCompleted(next, lesson, score.results.filter((item) => item.correct).length, now);
+      persistProgress(next);
+      return next;
+    });
   };
 
   const toggleBookmark = (lessonId) => {
@@ -208,6 +224,7 @@ export default function InteractiveLearning({ locale, tracks = learningTracks, o
       }}
       onToggleBookmark={() => toggleBookmark(activeLesson.id)}
       onComplete={completeLesson}
+      onQuizResult={handleQuizResult}
       onNext={() => {
         const next = getNextLesson(activeTrack, activeModule.id, activeLesson.id);
         if (next) {
@@ -242,6 +259,7 @@ function FocusedLearningLayout({
   onOpenLesson,
   onToggleBookmark,
   onComplete,
+  onQuizResult,
   onNext,
   hasNext
 }) {
@@ -308,6 +326,7 @@ function FocusedLearningLayout({
             isBookmarked={bookmarks.includes(activeLesson.id)}
             onToggleBookmark={onToggleBookmark}
             onComplete={onComplete}
+            onQuizResult={onQuizResult}
             onNext={onNext}
             hasNext={hasNext}
           />
@@ -377,7 +396,7 @@ function MissionBoard({ locale, progress, onOpenLesson }) {
   );
 }
 
-function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted, isBookmarked, onToggleBookmark, onComplete, onNext, hasNext }) {
+function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted, isBookmarked, onToggleBookmark, onComplete, onQuizResult, onNext, hasNext }) {
   const [code, setCode] = useState(lesson.starterCode);
   const [result, setResult] = useState(null);
   const [hintLevel, setHintLevel] = useState(0);
@@ -440,7 +459,7 @@ function LessonWorkspace({ activeTrack, activeModule, lesson, locale, isComplete
   const passed = result?.filter((check) => check.pass).length ?? 0;
 
   if (lesson.type === "quiz") {
-    return <QuizWorkspace activeTrack={activeTrack} activeModule={activeModule} lesson={lesson} locale={locale} isCompleted={isCompleted} isBookmarked={isBookmarked} onToggleBookmark={onToggleBookmark} onComplete={onComplete} onNext={onNext} hasNext={hasNext} />;
+    return <QuizWorkspace activeTrack={activeTrack} activeModule={activeModule} lesson={lesson} locale={locale} isCompleted={isCompleted} isBookmarked={isBookmarked} onToggleBookmark={onToggleBookmark} onQuizResult={onQuizResult} onNext={onNext} hasNext={hasNext} />;
   }
 
   return (
@@ -899,7 +918,7 @@ function ProjectRubric({ lesson, locale }) {
   );
 }
 
-function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted, isBookmarked, onToggleBookmark, onComplete, onNext, hasNext }) {
+function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted, isBookmarked, onToggleBookmark, onQuizResult, onNext, hasNext }) {
   const quiz = useMemo(() => normalizeQuizLesson(lesson), [lesson]);
   const storageKey = `pulsateach-quiz-draft-${lesson.id}`;
   const [draft, setDraft] = useState(() => createQuizDraft(quiz, readStoredJson(storageKey)));
@@ -992,8 +1011,8 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
     }).catch(() => {});
     if (score.passed) {
       localStorage.removeItem(storageKey);
-      onComplete(lesson, score.results.filter((item) => item.correct).length);
     }
+    onQuizResult?.(lesson, quiz, score);
   };
 
   return (
@@ -1277,6 +1296,37 @@ function createEmptyProgress() {
   return { xp: 0, completed: {}, activity: [], streak: { count: 0, lastDate: null } };
 }
 
+function markLessonCompleted(progress, lesson, passedCount, now = new Date()) {
+  const alreadyCompleted = Boolean(progress.completed?.[lesson.id]);
+  const completed = {
+    ...(progress.completed || {}),
+    [lesson.id]: {
+      passedAt: now.toISOString(),
+      xp: Number(lesson.xp || 0),
+      passedTests: Number(passedCount || 0)
+    }
+  };
+
+  return {
+    ...progress,
+    xp: Number(progress.xp || 0) + (alreadyCompleted ? 0 : Number(lesson.xp || 0)),
+    completed,
+    activity: alreadyCompleted
+      ? progress.activity || []
+      : [
+          {
+            id: lesson.id,
+            title: lesson.title,
+            type: lesson.type,
+            xp: Number(lesson.xp || 0),
+            at: now.toISOString()
+          },
+          ...(progress.activity || [])
+        ].slice(0, 8),
+    streak: updateStreak(progress.streak)
+  };
+}
+
 function updateStreak(current = { count: 0, lastDate: null }) {
   const today = new Date().toISOString().slice(0, 10);
   if (current.lastDate === today) return current;
@@ -1301,6 +1351,18 @@ function mergeProgress(local, remote) {
     xp: Math.max(local.xp || 0, remote.xp || 0),
     completed,
     activity,
-    streak: remote.streak || local.streak || createEmptyProgress().streak
+    streak: remote.streak || local.streak || createEmptyProgress().streak,
+    review: {
+      ...(local.review || {}),
+      ...(remote.review || {}),
+      items: {
+        ...(local.review?.items || {}),
+        ...(remote.review?.items || {})
+      }
+    },
+    quizEvidence: {
+      ...(local.quizEvidence || {}),
+      ...(remote.quizEvidence || {})
+    }
   };
 }
