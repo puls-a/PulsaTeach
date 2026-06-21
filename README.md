@@ -108,6 +108,9 @@ npm run smoke:full
 
 Le smoke test simple suppose que le frontend et l'API sont déjà démarrés. Le smoke test complet démarre l'API et le preview Vite automatiquement.
 
+La matrice exigence → preuve et les limites vérifiées sont maintenues dans
+[`docs/ROADMAP_EVIDENCE.md`](./docs/ROADMAP_EVIDENCE.md).
+
 ## Production Supabase
 
 La production Vercel doit utiliser Supabase en mode strict :
@@ -137,10 +140,11 @@ Les migrations sont versionnées dans `supabase/migrations/` et doivent être ap
 
 ## Limites connues
 
-- Les pages admin/auteur sont protégées côté API, mais leur expérience produit reste à renforcer.
-- Les gros fichiers doivent être découpés par domaine.
+- Les pages historiques admin/auteur/analytics restent regroupées dans `pages.jsx`; les domaines apprenant lourds sont désormais chargés séparément.
+- `server/index.js`, `InteractiveLearning.jsx` et le registre pédagogique historique dépassent encore la cible indicative de 500 lignes et constituent la prochaine dette de découpage.
 - Les anciens favoris `#/...` sont conservés par migration automatique vers les routes propres.
 - Le déploiement du workflow éditorial exige l’application préalable de sa migration Supabase.
+- Les blocs pédagogiques enrichis historiques de HTML/CSS/JavaScript utilisent un fallback français explicite lorsque leur traduction anglaise spécialisée n’existe pas encore; les titres, cours, consignes, guides et évaluations principales restent bilingues.
 
 ## Roadmap
 
@@ -148,12 +152,11 @@ La roadmap historique est dans [`ROADMAP.md`](./ROADMAP.md). La nouvelle source 
 
 Un prompt maître prêt à lancer pour exécuter cette roadmap se trouve dans [`docs/PROMPT_EXECUTION_COMPLETE.md`](./docs/PROMPT_EXECUTION_COMPLETE.md).
 
-Les priorités restantes :
+Les opérations externes restantes :
 
-1. Découper les derniers monolithes frontend/backend.
-2. Poursuivre le découpage des pages historiques regroupées dans `pages.jsx`.
-3. Finaliser analytics privés, SEO et preuves de conformité.
-4. Appliquer les migrations, valider Supabase réel, puis promouvoir la release finale.
+1. Appliquer les migrations Supabase de production.
+2. Exécuter la suite Supabase réelle avec les secrets E2E.
+3. Promouvoir la release finale et vérifier le monitoring.
 
 ## Présentation portfolio
 

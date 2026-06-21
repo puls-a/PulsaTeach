@@ -24,7 +24,6 @@ import {
 import AuthNotice from "./components/AuthNotice.jsx";
 import DashCard from "./components/DashCard.jsx";
 import AccountSettings from "./AccountSettings.jsx";
-import InteractiveLearning from "./InteractiveLearning.jsx";
 import {
   createLessonDraft,
   createSubmission,
@@ -47,20 +46,6 @@ import {
   updateUserRoles,
   updateLessonDraft
 } from "./apiClient.js";
-import { useLearningTracks } from "./useLearningTracks.js";
-import { currentPathSegments } from "./navigation.js";
-
-export function LearnPage({ locale }) {
-  const { tracks, loadTrack } = useLearningTracks();
-
-  useEffect(() => {
-    const [route, trackId] = currentPathSegments();
-    if (route !== "learn") return;
-    if (trackId) loadTrack(trackId).catch(() => {});
-  }, [loadTrack]);
-
-  return <InteractiveLearning locale={locale} tracks={tracks} onRequireTrack={loadTrack} />;
-}
 
 export function ProfilePage({ locale }) {
   const [profile, setProfile] = useState(null);
@@ -538,7 +523,7 @@ export function CertificationPage({ locale }) {
           </div>
           <aside className="rounded-2xl border border-indigo-700 bg-indigo-700 p-5 text-white shadow-sm">
             <Star className="size-10 text-lemonPop" />
-            <h2 className="mt-4 font-display text-3xl font-bold">{locale === "fr" ? "Règles V1" : "V1 rules"}</h2>
+            <h2 className="mt-4 font-display text-3xl font-bold">{locale === "fr" ? "Règles éditoriales" : "Editorial rules"}</h2>
             <ul className="mt-5 grid gap-3">
               {[
                 locale === "fr" ? "Terminer toutes les leçons HTML, CSS et JavaScript." : "Finish every HTML, CSS, and JavaScript lesson.",
@@ -769,7 +754,7 @@ export function AdminPage({ locale }) {
           {locale === "fr" ? "Un premier cockpit pour corriger les projets." : "A first cockpit for reviewing projects."}
         </h1>
         <p className="mt-4 max-w-2xl font-semibold leading-7 text-ink/70">
-          {locale === "fr" ? "Cette page simule la revue pédagogique : approuver, demander des changements, stocker un score et un feedback." : "This page simulates educator review: approve, request changes, store a score, and save feedback."}
+          {locale === "fr" ? "Cette page gère la revue pédagogique : approbation, demande de changements, rubric, score et feedback versionné." : "This page manages educator review: approval, change requests, rubric, score, and versioned feedback."}
         </p>
         <button type="button" onClick={exportData} className="primary-button mt-5">
           <Database className="size-5" />

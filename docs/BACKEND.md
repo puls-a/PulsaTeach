@@ -1,4 +1,4 @@
-# PulsaTeach Backend V1
+# PulsaTeach Backend
 
 PulsaTeach uses an Express API backed by Supabase/Postgres.
 

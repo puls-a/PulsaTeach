@@ -50,7 +50,7 @@ export const productRoadmap = {
     }
   ],
   backendPlan: [
-    "Express API V1 with file storage",
+    "Secure Express API with JSON development and strict Supabase production adapters",
     "Progress sync endpoint",
     "Catalog endpoint generated from lesson data",
     "Roadmap endpoint",
