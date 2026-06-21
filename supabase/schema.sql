@@ -26,12 +26,29 @@ create table if not exists public.course_drafts (
   description jsonb not null default '{}'::jsonb,
   level text not null default 'beginner',
   language text not null default 'fr',
-  status text not null default 'draft',
+  status text not null default 'draft' check (status in ('draft', 'review', 'changes_requested', 'approved', 'scheduled', 'published', 'archived')),
+  version integer not null default 1,
   author_user_id text not null,
   curriculum jsonb not null default '{"modules":[]}'::jsonb,
+  workflow_log jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  published_at timestamptz
+  published_at timestamptz,
+  scheduled_at timestamptz,
+  archived_at timestamptz
+);
+
+create table if not exists public.course_versions (
+  id text primary key,
+  course_id text not null references public.course_drafts(id) on delete cascade,
+  version integer not null check (version > 0),
+  status text not null,
+  actor text not null,
+  change_type text not null check (change_type in ('created', 'content', 'transition', 'rollback')),
+  comment text not null default '',
+  snapshot jsonb not null,
+  created_at timestamptz not null default now(),
+  unique (course_id, version)
 );
 
 create table if not exists public.issued_certificates (
@@ -39,11 +56,14 @@ create table if not exists public.issued_certificates (
   verification_code text not null unique,
   user_id text not null,
   certificate_id text not null,
+  certificate_version integer not null default 1,
   learner_name text not null,
   title jsonb not null,
   evidence jsonb not null default '{}'::jsonb,
   issued_at timestamptz not null default now(),
+  expires_at timestamptz,
   revoked_at timestamptz,
+  revocation_reason text,
   unique (user_id, certificate_id)
 );
 
@@ -89,17 +109,29 @@ create table if not exists public.attempts (
 
 create table if not exists public.submissions (
   id text primary key,
+  root_id text not null,
+  supersedes_id text,
+  version integer not null default 1,
   user_id text not null,
   project_id text not null,
   title text not null,
   description text not null default '',
   url text not null default '',
+  repository_url text not null default '',
+  archive_url text not null default '',
+  screenshots jsonb not null default '[]'::jsonb,
+  deliverables jsonb not null default '[]'::jsonb,
+  self_assessment text not null default '',
+  visibility text not null default 'private' check (visibility in ('private', 'unlisted', 'public')),
   status text not null default 'submitted',
   feedback text,
   reviewer text,
   score numeric,
   rubric jsonb not null default '{}'::jsonb,
+  contextual_comments jsonb not null default '{}'::jsonb,
+  review_log jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
   reviewed_at timestamptz
 );
 
@@ -169,6 +201,7 @@ alter table public.submissions enable row level security;
 alter table public.enrollments enable row level security;
 alter table public.lesson_drafts enable row level security;
 alter table public.course_drafts enable row level security;
+alter table public.course_versions enable row level security;
 alter table public.issued_certificates enable row level security;
 alter table public.learning_events enable row level security;
 alter table public.quiz_sessions enable row level security;

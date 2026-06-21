@@ -62,8 +62,20 @@ export const courseUpdateSchema = z.object({
   title: localizedText.optional(),
   description: localizedText.optional(),
   level: z.enum(["beginner", "intermediate", "advanced"]).optional(),
-  status: z.enum(["draft", "review", "published"]).optional(),
-  curriculum: curriculum.optional()
+  status: z.enum(["draft", "review", "changes_requested", "approved", "scheduled", "published", "archived"]).optional(),
+  curriculum: curriculum.optional(),
+  comment: z.string().trim().max(4000).optional(),
+  scheduledAt: z.string().datetime().nullable().optional(),
+  expectedVersion: z.coerce.number().int().min(1).optional()
+}).strict();
+
+export const courseRollbackSchema = z.object({
+  version: z.coerce.number().int().min(1),
+  comment: z.string().trim().min(3).max(4000)
+}).strict();
+
+export const certificateRevokeSchema = z.object({
+  reason: z.string().trim().min(5).max(1000)
 }).strict();
 
 export const userSettingsSchema = z.object({
@@ -113,7 +125,13 @@ export const submissionSchema = z.object({
   projectId: id,
   title: z.string().trim().min(1).max(160),
   description: z.string().max(4000).optional().default(""),
-  url: z.union([z.literal(""), z.string().url().max(1000)]).optional().default("")
+  url: z.union([z.literal(""), z.string().url().max(1000)]).optional().default(""),
+  repositoryUrl: z.union([z.literal(""), z.string().url().max(1000)]).optional().default(""),
+  archiveUrl: z.union([z.literal(""), z.string().url().max(1000)]).optional().default(""),
+  screenshots: z.array(z.string().url().max(1000)).max(8).optional().default([]),
+  deliverables: z.array(z.string().trim().min(1).max(500)).max(30).optional().default([]),
+  selfAssessment: z.string().max(4000).optional().default(""),
+  visibility: z.enum(["private", "unlisted", "public"]).optional().default("private")
 }).strict();
 
 export const attemptSchema = z.object({
@@ -142,11 +160,13 @@ export const eventSchema = z.object({
 }).strict();
 
 export const reviewSchema = z.object({
-  status: z.enum(["approved", "changes_requested", "submitted"]),
+  status: z.enum(["in_review", "approved", "changes_requested"]),
   feedback: z.string().max(4000).optional().default(""),
   reviewer: z.string().max(160).optional().default("PulsaTeach reviewer"),
   score: z.coerce.number().min(0).max(100).nullable().optional(),
-  rubric: z.record(z.string(), z.unknown()).optional().default({})
+  rubric: z.record(z.string(), z.coerce.number().min(0).max(100)).optional().default({}),
+  contextualComments: z.record(z.string(), z.string().max(2000)).optional().default({}),
+  expectedVersion: z.coerce.number().int().min(1).optional()
 }).strict();
 
 export const roleUpdateSchema = z.object({

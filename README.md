@@ -121,7 +121,7 @@ VITE_SUPABASE_ANON_KEY=<public-anon-key>
 VITE_AUTH_MODE=supabase
 ```
 
-Les migrations sont versionnées dans `supabase/migrations/`. La configuration Auth autorise `https://pulsateach.vercel.app` et `http://127.0.0.1:5173` comme URLs de redirection.
+Les migrations sont versionnées dans `supabase/migrations/` et doivent être appliquées avant le déploiement applicatif. La migration `20260621200000_course_workflow_versions.sql` ajoute le workflow éditorial, l’historique Course Studio, les soumissions versionnées et les preuves de certificat. La configuration Auth autorise `https://pulsateach.vercel.app` et `http://127.0.0.1:5173` comme URLs de redirection.
 
 ## Points techniques importants
 
@@ -131,16 +131,16 @@ Les migrations sont versionnées dans `supabase/migrations/`. La configuration A
 - Les endpoints admin/auteur/review sont protégés par rôles côté serveur.
 - En développement JSON local, `PULSATEACH_ADMIN_KEY` et `VITE_ADMIN_ACCESS_KEY` permettent de tester ces écrans sans Supabase.
 - En production, les rôles doivent venir des metadata Supabase (`role` ou `roles`) et la clé dev ne doit pas être exposée au navigateur.
-- Les certificats sont pour l'instant calculés comme éligibilité ; la roadmap prévoit une émission vérifiable.
+- Les certificats sont émis avec un code public, une version, les compétences et preuves associées ; ils peuvent être révoqués sans exposer les données privées du compte.
+- Course Studio suit `draft → review → changes_requested/approved → scheduled/published → archived`, avec contrôle des rôles, verrouillage optimiste, diff et rollback.
 - L'exécution JavaScript utilisateur du lab navigateur passe par un Web Worker avec timeout, stockage simulé et `fetch` simulé.
 
 ## Limites connues
 
 - Les pages admin/auteur sont protégées côté API, mais leur expérience produit reste à renforcer.
-- Le Course Studio ne publie pas encore réellement dans le curriculum actif.
 - Les gros fichiers doivent être découpés par domaine.
-- Il manque encore des tests unitaires/composants/E2E.
-- Le README documente l'état actuel, mais la roadmap décrit le niveau cible.
+- Le routage frontend reste encore basé sur les hashes et doit migrer vers des URLs propres.
+- Le déploiement du workflow éditorial exige l’application préalable de sa migration Supabase.
 
 ## Roadmap
 
@@ -148,14 +148,12 @@ La roadmap historique est dans [`ROADMAP.md`](./ROADMAP.md). La nouvelle source 
 
 Un prompt maître prêt à lancer pour exécuter cette roadmap se trouve dans [`docs/PROMPT_EXECUTION_COMPLETE.md`](./docs/PROMPT_EXECUTION_COMPLETE.md).
 
-Les priorités immédiates :
+Les priorités restantes :
 
-1. Sécuriser admin/auteur/export.
-2. Isoler l'exécution JavaScript utilisateur.
-3. Découper le lab et le contenu.
-4. Améliorer l'expérience mobile et le menu burger.
-5. Ajouter tests E2E/accessibilité.
-6. Transformer Course Studio en vrai système de publication.
+1. Découper les derniers monolithes frontend/backend.
+2. Remplacer le routage hash par des routes propres compatibles avec les anciennes URLs.
+3. Finaliser analytics privés, SEO et preuves de conformité.
+4. Appliquer les migrations, valider Supabase réel, puis promouvoir la release finale.
 
 ## Présentation portfolio
 

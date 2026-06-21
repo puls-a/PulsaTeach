@@ -32,7 +32,7 @@ export async function getSupabaseStatus() {
     };
   }
 
-  const tables = ["profiles", "progress", "attempts", "submissions", "enrollments", "lesson_drafts", "course_drafts", "issued_certificates", "learning_events", "quiz_sessions"];
+  const tables = ["profiles", "progress", "attempts", "submissions", "enrollments", "lesson_drafts", "course_drafts", "course_versions", "issued_certificates", "learning_events", "quiz_sessions"];
   const checks = await Promise.all(tables.map(async (table) => {
     const { count, error } = await supabaseAdmin.from(table).select("*", { count: "exact", head: true });
     return {
@@ -153,6 +153,7 @@ function tableForStore(storeName) {
     "enrollments.json": "enrollments",
     "lesson-drafts.json": "lesson_drafts",
     "course-drafts.json": "course_drafts",
+    "course-versions.json": "course_versions",
     "issued-certificates.json": "issued_certificates",
     "learning-events.json": "learning_events",
     "quiz-sessions.json": "quiz_sessions"
@@ -176,17 +177,29 @@ function fromSupabaseRow(table, row) {
   if (table === "submissions") {
     return {
       id: row.id,
+      rootId: row.root_id || row.id,
+      supersedesId: row.supersedes_id,
+      version: row.version || 1,
       userId: row.user_id,
       projectId: row.project_id,
       title: row.title,
       description: row.description || "",
       url: row.url || "",
+      repositoryUrl: row.repository_url || "",
+      archiveUrl: row.archive_url || "",
+      screenshots: row.screenshots || [],
+      deliverables: row.deliverables || [],
+      selfAssessment: row.self_assessment || "",
+      visibility: row.visibility || "private",
       status: row.status,
       feedback: row.feedback || "",
       reviewer: row.reviewer || "",
       score: row.score,
       rubric: row.rubric || {},
+      contextualComments: row.contextual_comments || {},
+      reviewLog: row.review_log || [],
       createdAt: row.created_at,
+      updatedAt: row.updated_at || row.created_at,
       reviewedAt: row.reviewed_at
     };
   }
@@ -226,11 +239,28 @@ function fromSupabaseRow(table, row) {
       level: row.level,
       language: row.language,
       status: row.status,
+      version: row.version || 1,
       authorUserId: row.author_user_id,
       curriculum: row.curriculum || { modules: [] },
+      workflowLog: row.workflow_log || [],
       createdAt: row.created_at,
       updatedAt: row.updated_at,
-      publishedAt: row.published_at
+      publishedAt: row.published_at,
+      scheduledAt: row.scheduled_at,
+      archivedAt: row.archived_at
+    };
+  }
+  if (table === "course_versions") {
+    return {
+      id: row.id,
+      courseId: row.course_id,
+      version: row.version,
+      status: row.status,
+      actor: row.actor,
+      changeType: row.change_type,
+      comment: row.comment || "",
+      snapshot: row.snapshot || {},
+      createdAt: row.created_at
     };
   }
   if (table === "issued_certificates") {
@@ -239,11 +269,14 @@ function fromSupabaseRow(table, row) {
       verificationCode: row.verification_code,
       userId: row.user_id,
       certificateId: row.certificate_id,
+      certificateVersion: row.certificate_version || 1,
       learnerName: row.learner_name,
       title: row.title,
       evidence: row.evidence || {},
       issuedAt: row.issued_at,
-      revokedAt: row.revoked_at
+      expiresAt: row.expires_at,
+      revokedAt: row.revoked_at,
+      revocationReason: row.revocation_reason
     };
   }
   if (table === "learning_events") {
@@ -291,17 +324,29 @@ function toSupabaseRow(table, item) {
   if (table === "submissions") {
     return {
       id: item.id,
+      root_id: item.rootId || item.id,
+      supersedes_id: item.supersedesId || null,
+      version: item.version || 1,
       user_id: item.userId,
       project_id: item.projectId,
       title: item.title,
       description: item.description || "",
       url: item.url || "",
+      repository_url: item.repositoryUrl || "",
+      archive_url: item.archiveUrl || "",
+      screenshots: item.screenshots || [],
+      deliverables: item.deliverables || [],
+      self_assessment: item.selfAssessment || "",
+      visibility: item.visibility || "private",
       status: item.status || "submitted",
       feedback: item.feedback || null,
       reviewer: item.reviewer || null,
       score: item.score,
       rubric: item.rubric || {},
+      contextual_comments: item.contextualComments || {},
+      review_log: item.reviewLog || [],
       created_at: item.createdAt,
+      updated_at: item.updatedAt || item.createdAt,
       reviewed_at: item.reviewedAt || null
     };
   }
@@ -341,11 +386,28 @@ function toSupabaseRow(table, item) {
       level: item.level || "beginner",
       language: item.language || "fr",
       status: item.status || "draft",
+      version: item.version || 1,
       author_user_id: item.authorUserId,
       curriculum: item.curriculum || { modules: [] },
+      workflow_log: item.workflowLog || [],
       created_at: item.createdAt,
       updated_at: item.updatedAt,
-      published_at: item.publishedAt || null
+      published_at: item.publishedAt || null,
+      scheduled_at: item.scheduledAt || null,
+      archived_at: item.archivedAt || null
+    };
+  }
+  if (table === "course_versions") {
+    return {
+      id: item.id,
+      course_id: item.courseId,
+      version: item.version,
+      status: item.status,
+      actor: item.actor,
+      change_type: item.changeType,
+      comment: item.comment || "",
+      snapshot: item.snapshot || {},
+      created_at: item.createdAt
     };
   }
   if (table === "issued_certificates") {
@@ -354,11 +416,14 @@ function toSupabaseRow(table, item) {
       verification_code: item.verificationCode,
       user_id: item.userId,
       certificate_id: item.certificateId,
+      certificate_version: item.certificateVersion || 1,
       learner_name: item.learnerName,
       title: item.title,
       evidence: item.evidence || {},
       issued_at: item.issuedAt,
-      revoked_at: item.revokedAt || null
+      expires_at: item.expiresAt || null,
+      revoked_at: item.revokedAt || null,
+      revocation_reason: item.revocationReason || null
     };
   }
   if (table === "learning_events") {

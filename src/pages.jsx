@@ -83,7 +83,7 @@ export function ProfilePage({ locale }) {
                 ? <img src={profile.user.avatarUrl} alt="" className="size-16 rounded-2xl border border-slate-200 object-cover" />
                 : <div className="grid size-16 place-items-center rounded-2xl bg-indigo-50"><UserRound className="size-10 text-indigoPop" /></div>}
               <div>
-                <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Profil apprenant" : "Learner profile"}</p>
+                <p className="font-display text-lg font-bold text-orange-700">{locale === "fr" ? "Profil apprenant" : "Learner profile"}</p>
                 <h1 className="font-display text-3xl font-bold sm:text-4xl">{profile?.displayName || "PulsaTeach Learner"}</h1>
                 <p className="mt-2 font-semibold text-slate-500">{profile?.userId || getUserId()}</p>
                 {profile?.user?.bio && <p className="mt-3 max-w-2xl leading-6 text-slate-600">{profile.user.bio}</p>}
@@ -181,7 +181,7 @@ function LegacySettingsPage({ locale }) {
   return (
     <section className="app-page">
       <div className="mx-auto max-w-4xl">
-        <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Préférences" : "Settings"}</p>
+        <p className="font-display text-lg font-bold text-orange-700">{locale === "fr" ? "Préférences" : "Settings"}</p>
         <h1 className="page-heading">{locale === "fr" ? "Personnalise ton apprentissage." : "Personalize your learning."}</h1>
         <form onSubmit={submit} className="surface mt-8">
           <div className="mb-5 flex items-center gap-3">
@@ -226,7 +226,7 @@ export function PathPage({ locale }) {
   return (
     <section className="app-page">
       <div className="mx-auto max-w-7xl">
-        <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Plan personnalisé" : "Personalized path"}</p>
+        <p className="font-display text-lg font-bold text-orange-700">{locale === "fr" ? "Plan personnalisé" : "Personalized path"}</p>
         <h1 className="page-heading">
           {locale === "fr" ? "PulsaTeach te dit quoi travailler ensuite." : "PulsaTeach tells you what to study next."}
         </h1>
@@ -308,7 +308,7 @@ export function AnalyticsPage({ locale }) {
   return (
     <section className="app-page">
       <div className="mx-auto max-w-7xl">
-        <p className="font-display text-lg font-bold text-orangePop">Analytics</p>
+        <p className="font-display text-lg font-bold text-orange-700">Analytics</p>
         <h1 className="page-heading">
           {locale === "fr" ? "Regarde où la plateforme respire, bloque ou progresse." : "See where the platform breathes, blocks, or grows."}
         </h1>
@@ -360,7 +360,7 @@ export function AnalyticsPage({ locale }) {
 
 export function ProjectsPage({ locale }) {
   const [submissions, setSubmissions] = useState([]);
-  const [form, setForm] = useState({ projectId: "html-12-final-project", title: "", url: "", description: "" });
+  const [form, setForm] = useState({ projectId: "html-12-final-project", title: "", url: "", repositoryUrl: "", description: "", deliverables: "", selfAssessment: "", visibility: "private" });
   const [status, setStatus] = useState("idle");
 
   useEffect(() => {
@@ -371,9 +371,12 @@ export function ProjectsPage({ locale }) {
     event.preventDefault();
     setStatus("saving");
     try {
-      const created = await createSubmission(form);
+      const created = await createSubmission({
+        ...form,
+        deliverables: form.deliverables.split("\n").map((item) => item.trim()).filter(Boolean)
+      });
       setSubmissions((items) => [created, ...items]);
-      setForm({ projectId: "html-12-final-project", title: "", url: "", description: "" });
+      setForm({ projectId: "html-12-final-project", title: "", url: "", repositoryUrl: "", description: "", deliverables: "", selfAssessment: "", visibility: "private" });
       setStatus("saved");
     } catch {
       setStatus("error");
@@ -383,7 +386,7 @@ export function ProjectsPage({ locale }) {
   return (
     <section className="app-page">
       <div className="mx-auto max-w-7xl">
-        <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Projets portfolio" : "Portfolio projects"}</p>
+        <p className="font-display text-lg font-bold text-orange-700">{locale === "fr" ? "Projets portfolio" : "Portfolio projects"}</p>
         <h1 className="page-heading">{locale === "fr" ? "Construis et partage tes projets." : "Build and share your projects."}</h1>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[.85fr_1.15fr]">
@@ -396,6 +399,7 @@ export function ProjectsPage({ locale }) {
               <Field label="Project ID" value={form.projectId} onChange={(projectId) => setForm({ ...form, projectId })} />
               <Field label={locale === "fr" ? "Titre" : "Title"} value={form.title} onChange={(title) => setForm({ ...form, title })} required />
               <Field label="URL" value={form.url} onChange={(url) => setForm({ ...form, url })} />
+              <Field label={locale === "fr" ? "Dépôt Git" : "Git repository"} value={form.repositoryUrl} onChange={(repositoryUrl) => setForm({ ...form, repositoryUrl })} />
               <label className="grid gap-2 text-sm font-semibold text-slate-700">
                 {locale === "fr" ? "Description" : "Description"}
                 <textarea
@@ -403,6 +407,22 @@ export function ProjectsPage({ locale }) {
                   onChange={(event) => setForm({ ...form, description: event.target.value })}
                   className="form-control min-h-32 py-3"
                 />
+              </label>
+              <label className="grid gap-2 text-sm font-semibold text-slate-700">
+                {locale === "fr" ? "Livrables, un par ligne" : "Deliverables, one per line"}
+                <textarea value={form.deliverables} onChange={(event) => setForm({ ...form, deliverables: event.target.value })} className="form-control min-h-24 py-3" />
+              </label>
+              <label className="grid gap-2 text-sm font-semibold text-slate-700">
+                {locale === "fr" ? "Auto-évaluation" : "Self-assessment"}
+                <textarea value={form.selfAssessment} onChange={(event) => setForm({ ...form, selfAssessment: event.target.value })} className="form-control min-h-28 py-3" />
+              </label>
+              <label className="grid gap-2 text-sm font-semibold text-slate-700">
+                {locale === "fr" ? "Visibilité portfolio" : "Portfolio visibility"}
+                <select value={form.visibility} onChange={(event) => setForm({ ...form, visibility: event.target.value })} className="form-control">
+                  <option value="private">{locale === "fr" ? "Privé" : "Private"}</option>
+                  <option value="unlisted">{locale === "fr" ? "Non listé" : "Unlisted"}</option>
+                  <option value="public">{locale === "fr" ? "Public" : "Public"}</option>
+                </select>
               </label>
               <button type="submit" className="primary-button">
                 <Send className="size-5" />
@@ -425,11 +445,15 @@ export function ProjectsPage({ locale }) {
                 <article className="muted-surface" key={submission.id}>
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <h3 className="font-display text-2xl font-bold">{submission.title}</h3>
-                    <span className="status-badge status-warning">{submission.status}</span>
+                    <div className="flex items-center gap-2"><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold">v{submission.version || 1}</span><span className="status-badge status-warning">{submission.status}</span></div>
                   </div>
                   <p className="mt-2 text-sm font-bold text-indigoPop">{submission.projectId}</p>
                   {submission.url && <a className="mt-2 block break-all text-sm font-bold text-indigoPop hover:underline" href={submission.url} target="_blank" rel="noreferrer">{submission.url}</a>}
                   <p className="mt-2 font-bold text-ink/65">{submission.description}</p>
+                  {submission.repositoryUrl && <a className="mt-2 block break-all text-sm font-bold text-indigoPop hover:underline" href={submission.repositoryUrl} target="_blank" rel="noreferrer">{submission.repositoryUrl}</a>}
+                  {submission.selfAssessment && <p className="mt-3 rounded-xl bg-white p-3 text-sm text-slate-600"><strong>{locale === "fr" ? "Auto-évaluation :" : "Self-assessment:"}</strong> {submission.selfAssessment}</p>}
+                  {submission.feedback && <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"><strong>Feedback:</strong> {submission.feedback}</p>}
+                  {submission.reviewLog?.length > 0 && <details className="mt-3"><summary className="cursor-pointer text-sm font-bold text-indigoPop">{locale === "fr" ? "Journal des décisions" : "Decision log"} ({submission.reviewLog.length})</summary><ul className="mt-2 grid gap-2">{submission.reviewLog.map((entry) => <li key={`${entry.at}-${entry.status}`} className="rounded-lg bg-slate-100 p-3 text-xs text-slate-600">{entry.status} · {entry.score ?? "—"}/100 · {entry.feedback}</li>)}</ul></details>}
                 </article>
               ))}
             </div>
@@ -467,7 +491,7 @@ export function CertificationPage({ locale }) {
   return (
     <section className="app-page">
       <div className="mx-auto max-w-7xl">
-        <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Certifications" : "Certifications"}</p>
+        <p className="font-display text-lg font-bold text-orange-700">{locale === "fr" ? "Certifications" : "Certifications"}</p>
         <h1 className="page-heading">
           {locale === "fr" ? "Un vrai objectif final, pas juste une suite de cartes." : "A real finish line, not just a stack of cards."}
         </h1>
@@ -596,7 +620,7 @@ export function AuthorPage({ locale }) {
   return (
     <section className="app-page">
       <div className="mx-auto max-w-7xl">
-        <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Auteur de cours" : "Course authoring"}</p>
+        <p className="font-display text-lg font-bold text-orange-700">{locale === "fr" ? "Auteur de cours" : "Course authoring"}</p>
         <h1 className="page-heading">
           {locale === "fr" ? "Prépare les prochaines leçons sans casser le lab." : "Prepare the next lessons without breaking the lab."}
         </h1>
@@ -699,10 +723,16 @@ export function AdminPage({ locale }) {
         status,
         score,
         feedback,
+        expectedVersion: submission.version,
         rubric: {
           accessibility: status === "approved" ? 90 : 50,
           responsiveness: status === "approved" ? 86 : 58,
           codeQuality: status === "approved" ? 88 : 56
+        },
+        contextualComments: {
+          accessibility: status === "approved" ? "Keyboard and semantics validated." : "Document focus order and fix labels.",
+          responsiveness: status === "approved" ? "Mobile and desktop layouts validated." : "Correct narrow viewport overflow.",
+          codeQuality: status === "approved" ? "Readable structure and naming." : "Explain architecture choices."
         }
       });
       setSubmissions((items) => items.map((item) => (item.id === updated.id ? updated : item)));
@@ -731,7 +761,7 @@ export function AdminPage({ locale }) {
   return (
     <section className="app-page">
       <div className="mx-auto max-w-7xl">
-        <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Admin contenu" : "Content admin"}</p>
+        <p className="font-display text-lg font-bold text-orange-700">{locale === "fr" ? "Admin contenu" : "Content admin"}</p>
         <h1 className="page-heading">
           {locale === "fr" ? "Un premier cockpit pour corriger les projets." : "A first cockpit for reviewing projects."}
         </h1>
@@ -776,10 +806,15 @@ export function AdminPage({ locale }) {
                   <p className="mt-1 text-sm font-bold text-indigoPop">{submission.projectId}</p>
                   <p className="mt-2 font-bold text-ink/65">{submission.description}</p>
                   {submission.feedback && <p className="mt-3 rounded-2xl bg-cloud p-3 font-bold text-ink/70 clay-soft">{submission.feedback}</p>}
+                  <p className="mt-2 text-xs font-bold text-slate-500">v{submission.version || 1} · {submission.reviewLog?.length || 0} {locale === "fr" ? "décisions" : "decisions"}</p>
                 </div>
                 <span className="status-badge status-warning">{submission.status}</span>
               </div>
               <div className="mt-5 flex flex-wrap gap-3">
+                <button type="button" onClick={() => review(submission, "in_review")} className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-3 text-sm font-bold text-white hover:bg-indigo-700">
+                  <ClipboardCheck className="size-5" />
+                  {locale === "fr" ? "Prendre en review" : "Start review"}
+                </button>
                 <button type="button" onClick={() => review(submission, "approved")} className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-3 text-sm font-bold text-white hover:bg-green-700">
                   <CheckCircle2 className="size-5" />
                   {locale === "fr" ? "Approuver" : "Approve"}
@@ -816,7 +851,7 @@ export function RoadmapPage({ locale }) {
   return (
     <section className="app-page">
       <div className="mx-auto max-w-7xl">
-        <p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Ultra roadmap" : "Ultra roadmap"}</p>
+        <p className="font-display text-lg font-bold text-orange-700">{locale === "fr" ? "Ultra roadmap" : "Ultra roadmap"}</p>
         <h1 className="page-heading">{data.vision[locale]}</h1>
         <div className="mt-10 grid gap-5">
           {data.phases.map((phase, index) => (

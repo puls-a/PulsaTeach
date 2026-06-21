@@ -63,9 +63,21 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
     expect(createdCourse.ok()).toBeTruthy();
     const course = await createdCourse.json();
     courseId = course.id;
+    const submitted = await request.patch(`http://127.0.0.1:4190/api/courses/${course.id}`, {
+      headers,
+      data: { status: "review", expectedVersion: course.version }
+    });
+    expect(submitted.ok()).toBeTruthy();
+    const submittedCourse = await submitted.json();
+    const approved = await request.patch(`http://127.0.0.1:4190/api/courses/${course.id}`, {
+      headers,
+      data: { status: "approved", comment: "Validated by Supabase E2E", expectedVersion: submittedCourse.version }
+    });
+    expect(approved.ok()).toBeTruthy();
+    const approvedCourse = await approved.json();
     const published = await request.patch(`http://127.0.0.1:4190/api/courses/${course.id}`, {
       headers,
-      data: { status: "published", curriculum: { modules: [module] } }
+      data: { status: "published", expectedVersion: approvedCourse.version }
     });
     expect(published.ok()).toBeTruthy();
 

@@ -1,7 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import request from "supertest";
-import { rm } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { createLessonDraft, createModuleDraft } from "../../src/courseSchema.js";
 
 const testDataDir = path.join(process.cwd(), "test-results", "api-security-data");
 let app;
@@ -114,5 +115,168 @@ describe("API security boundaries", () => {
       .get("/api/lesson-drafts")
       .set("X-PulsaTeach-Admin-Key", "test-admin-key")
       .expect(200);
+  });
+
+  test("versions, reviews, publishes and rolls back a Course Studio course", async () => {
+    const headers = { "X-PulsaTeach-Admin-Key": "test-admin-key" };
+    const module = createModuleDraft(0);
+    module.title = { fr: "Fondations workflow", en: "Workflow foundations" };
+    const lesson = createLessonDraft("html", 0);
+    lesson.title = { fr: "Leçon workflow", en: "Workflow lesson" };
+    lesson.brief = { fr: "Construis une structure valide.", en: "Build a valid structure." };
+    lesson.course.fr.introduction = "Une introduction suffisamment complète pour publier.";
+    lesson.tests = [{ type: "selector", label: "Titre principal", value: "h1", amount: 1 }];
+    module.lessons = [lesson];
+
+    const created = await request(app)
+      .post("/api/courses")
+      .set(headers)
+      .send({
+        title: { fr: "Formation workflow", en: "Workflow course" },
+        description: { fr: "Apprendre le workflow éditorial.", en: "Learn the editorial workflow." },
+        curriculum: { modules: [module] }
+      })
+      .expect(201);
+    const id = created.body.id;
+    expect(created.body).toMatchObject({ status: "draft", version: 1 });
+
+    const denied = await request(app)
+      .patch(`/api/courses/${id}`)
+      .set(headers)
+      .send({ status: "published", expectedVersion: 1 })
+      .expect(403);
+    expect(denied.body.error.code).toBe("COURSE_TRANSITION_DENIED");
+
+    const edited = await request(app)
+      .patch(`/api/courses/${id}`)
+      .set(headers)
+      .send({ title: { fr: "Formation workflow v2", en: "Workflow course v2" }, expectedVersion: 1 })
+      .expect(200);
+    expect(edited.body.version).toBe(2);
+
+    const review = await request(app)
+      .patch(`/api/courses/${id}`)
+      .set(headers)
+      .send({ status: "review", comment: "Prête pour relecture", expectedVersion: 2 })
+      .expect(200);
+    const approved = await request(app)
+      .patch(`/api/courses/${id}`)
+      .set(headers)
+      .send({ status: "approved", comment: "Contenu validé", expectedVersion: review.body.version })
+      .expect(200);
+    const published = await request(app)
+      .patch(`/api/courses/${id}`)
+      .set(headers)
+      .send({ status: "published", comment: "Publication validée", expectedVersion: approved.body.version })
+      .expect(200);
+    expect(published.body).toMatchObject({ status: "published", version: 5 });
+
+    const versions = await request(app).get(`/api/courses/${id}/versions`).set(headers).expect(200);
+    expect(versions.body).toHaveLength(5);
+    const diff = await request(app).get(`/api/courses/${id}/versions/2/diff?against=1`).set(headers).expect(200);
+    expect(diff.body.changes.some((change) => change.path === "title.fr")).toBe(true);
+
+    const rolledBack = await request(app)
+      .post(`/api/courses/${id}/rollback`)
+      .set(headers)
+      .send({ version: 1, comment: "Retour à la version initiale" })
+      .expect(200);
+    expect(rolledBack.body).toMatchObject({
+      status: "draft",
+      version: 6,
+      title: { fr: "Formation workflow", en: "Workflow course" }
+    });
+    expect(rolledBack.body.workflowLog[0]).toMatchObject({ kind: "rollback", sourceVersion: 1 });
+
+    await request(app).delete(`/api/courses/${id}`).set(headers).expect(200);
+  });
+
+  test("keeps immutable project versions and a contextual review journal", async () => {
+    const learner = { "X-PulsaTeach-User-Id": "project-user" };
+    const reviewer = { "X-PulsaTeach-Admin-Key": "test-admin-key" };
+    const first = await request(app)
+      .post("/api/submissions")
+      .set(learner)
+      .send({
+        projectId: "project-versioned",
+        title: "Version 1",
+        repositoryUrl: "https://github.com/example/project",
+        deliverables: ["README", "Application"],
+        selfAssessment: "La structure est terminée.",
+        visibility: "unlisted"
+      })
+      .expect(201);
+    expect(first.body).toMatchObject({ version: 1, status: "submitted", rootId: first.body.id });
+
+    await request(app)
+      .patch(`/api/submissions/${first.body.id}/review`)
+      .set(reviewer)
+      .send({ status: "in_review", expectedVersion: 1, feedback: "Review started" })
+      .expect(200);
+    const changes = await request(app)
+      .patch(`/api/submissions/${first.body.id}/review`)
+      .set(reviewer)
+      .send({
+        status: "changes_requested",
+        expectedVersion: 1,
+        score: 58,
+        feedback: "Corrige la navigation clavier.",
+        rubric: { accessibility: 50, codeQuality: 66 },
+        contextualComments: { accessibility: "Le focus doit rester visible." }
+      })
+      .expect(200);
+    expect(changes.body.reviewLog).toHaveLength(2);
+
+    const second = await request(app)
+      .post("/api/submissions")
+      .set(learner)
+      .send({
+        projectId: "project-versioned",
+        title: "Version 2",
+        repositoryUrl: "https://github.com/example/project",
+        selfAssessment: "La navigation clavier est corrigée."
+      })
+      .expect(201);
+    expect(second.body).toMatchObject({
+      version: 2,
+      rootId: first.body.id,
+      supersedesId: first.body.id,
+      status: "submitted"
+    });
+  });
+
+  test("publishes minimal certificate evidence and exposes revocation status", async () => {
+    await mkdir(testDataDir, { recursive: true });
+    await writeFile(path.join(testDataDir, "issued-certificates.json"), JSON.stringify([{
+      id: "certificate-test",
+      verificationCode: "verify-test",
+      userId: "user-a",
+      certificateId: "frontend-foundations",
+      certificateVersion: 1,
+      learnerName: "Test Learner",
+      title: { fr: "Fondations", en: "Foundations" },
+      evidence: {
+        skills: ["semantic-html"],
+        trackVersions: { html: "2026.06" },
+        progress: { lessonsCompleted: 1, lessonsRequired: 1, projectsApproved: 1, projectsRequired: 1 }
+      },
+      issuedAt: new Date().toISOString(),
+      expiresAt: null,
+      revokedAt: null,
+      revocationReason: null
+    }], null, 2));
+
+    const valid = await request(app).get("/api/certificates/public/verify-test").expect(200);
+    expect(valid.body).toMatchObject({ valid: true, status: "valid" });
+    expect(valid.body.certificate.evidence.skills).toEqual(["semantic-html"]);
+
+    await request(app)
+      .patch("/api/certificates/certificate-test/revoke")
+      .set("X-PulsaTeach-Admin-Key", "test-admin-key")
+      .send({ reason: "Evidence invalidated by reviewer." })
+      .expect(200);
+    const revoked = await request(app).get("/api/certificates/public/verify-test").expect(200);
+    expect(revoked.body).toMatchObject({ valid: false, status: "revoked" });
+    expect(revoked.body.certificate.revocationReason).toContain("invalidated");
   });
 });

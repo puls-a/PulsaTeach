@@ -6,6 +6,9 @@ const pages = [
   { name: "signup", path: "/#/signup" },
   { name: "glossary", path: "/#/glossary" },
   { name: "review", path: "/#/review" },
+  { name: "projects", path: "/#/projects" },
+  { name: "certification", path: "/#/certification" },
+  { name: "studio", path: "/#/studio" },
   { name: "lesson", path: "/#/learn/html/html-foundations/html-01-document-skeleton" },
   { name: "playground", path: "/#/playground" }
 ];

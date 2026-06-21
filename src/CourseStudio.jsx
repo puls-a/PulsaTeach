@@ -2,19 +2,23 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
+  Archive,
   BookOpen,
+  CalendarClock,
   CheckCircle2,
   ChevronRight,
   Code2,
   Eye,
   FileText,
   FlaskConical,
+  History,
   Plus,
+  RotateCcw,
   Save,
   Send,
   Trash2
 } from "lucide-react";
-import { createCourse, deleteCourse, listCourses, updateCourse } from "./apiClient.js";
+import { createCourse, deleteCourse, getCourseVersionDiff, listCourses, listCourseVersions, rollbackCourse, updateCourse } from "./apiClient.js";
 import { createEmptyCourseCurriculum, createLessonDraft, createModuleDraft, createQuizQuestionDraft, createTestDraft, validateCourseForPublication } from "./courseSchema.js";
 
 export default function CourseStudio({ locale = "fr" }) {
@@ -26,6 +30,10 @@ export default function CourseStudio({ locale = "fr" }) {
   const [status, setStatus] = useState("loading");
   const [message, setMessage] = useState("");
   const [previewOpen, setPreviewOpen] = useState(true);
+  const [versions, setVersions] = useState([]);
+  const [reviewComment, setReviewComment] = useState("");
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [versionDiff, setVersionDiff] = useState(null);
 
   const selectedCourse = courses.find((course) => course.id === selectedId) || null;
   const modules = selectedCourse?.curriculum?.modules || [];
@@ -59,6 +67,14 @@ export default function CourseStudio({ locale = "fr" }) {
       });
   }, []);
 
+  useEffect(() => {
+    if (!selectedId) {
+      setVersions([]);
+      return;
+    }
+    listCourseVersions(selectedId).then(setVersions).catch(() => setVersions([]));
+  }, [selectedId]);
+
   const createNewCourse = async () => {
     setStatus("saving");
     try {
@@ -90,9 +106,11 @@ export default function CourseStudio({ locale = "fr" }) {
         title: selectedCourse.title,
         description: selectedCourse.description,
         level: selectedCourse.level,
-        curriculum: selectedCourse.curriculum
+        curriculum: selectedCourse.curriculum,
+        expectedVersion: selectedCourse.version
       });
       setCourses((items) => items.map((course) => course.id === updated.id ? updated : course));
+      setVersions(await listCourseVersions(selectedCourse.id));
       setStatus("idle");
       setMessage(fr ? "Toutes les modifications sont enregistrées." : "All changes are saved.");
     } catch (error) {
@@ -106,19 +124,49 @@ export default function CourseStudio({ locale = "fr" }) {
     setStatus("saving");
     try {
       const updated = await updateCourse(selectedCourse.id, {
-        title: selectedCourse.title,
-        description: selectedCourse.description,
-        level: selectedCourse.level,
-        curriculum: selectedCourse.curriculum,
-        status: nextStatus
+        status: nextStatus,
+        comment: reviewComment,
+        scheduledAt: nextStatus === "scheduled" ? new Date(scheduledAt).toISOString() : undefined,
+        expectedVersion: selectedCourse.version
       });
       setCourses((items) => items.map((course) => course.id === updated.id ? updated : course));
       setStatus("idle");
+      setReviewComment("");
+      setScheduledAt("");
+      setVersions(await listCourseVersions(selectedCourse.id));
       setMessage(nextStatus === "published" ? (fr ? "Formation publiée dans le catalogue." : "Course published to the catalog.") : (fr ? "Statut mis à jour." : "Status updated."));
     } catch (error) {
       setStatus("error");
       const details = error.payload?.validationErrors?.join(" ") || error.message;
       setMessage(details);
+    }
+  };
+
+  const inspectVersion = async (version) => {
+    if (version <= 1) {
+      setVersionDiff({ fromVersion: null, toVersion: version, changes: [] });
+      return;
+    }
+    try {
+      setVersionDiff(await getCourseVersionDiff(selectedCourse.id, version, version - 1));
+    } catch (error) {
+      setMessage(error.message);
+    }
+  };
+
+  const rollbackToVersion = async (version) => {
+    if (!selectedCourse || !window.confirm(fr ? `Restaurer la version ${version} dans un nouveau brouillon ?` : `Restore version ${version} into a new draft?`)) return;
+    setStatus("saving");
+    try {
+      const updated = await rollbackCourse(selectedCourse.id, version, reviewComment || `Rollback to version ${version}`);
+      setCourses((items) => items.map((course) => course.id === updated.id ? updated : course));
+      setVersions(await listCourseVersions(selectedCourse.id));
+      setReviewComment("");
+      setStatus("idle");
+      setMessage(fr ? `Version ${version} restaurée dans le brouillon v${updated.version}.` : `Version ${version} restored into draft v${updated.version}.`);
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.message);
     }
   };
 
@@ -223,7 +271,7 @@ export default function CourseStudio({ locale = "fr" }) {
               {courses.map((course) => (
                 <button key={course.id} type="button" onClick={() => { setSelectedId(course.id); setSelectedModuleId(null); setSelectedLessonId(null); }} className={`rounded-xl border p-3 text-left ${course.id === selectedId ? "border-indigoPop bg-indigo-50" : "border-slate-200 hover:border-indigo-200"}`}>
                   <span className="block truncate font-bold">{course.title?.[locale] || course.title?.fr}</span>
-                  <span className="mt-1 flex items-center justify-between gap-2 text-xs text-slate-500"><span>{course.status}</span><span>{course.curriculum?.modules?.length || 0} modules</span></span>
+                  <span className="mt-1 flex items-center justify-between gap-2 text-xs text-slate-700"><span>{course.status}</span><span>{course.curriculum?.modules?.length || 0} modules</span></span>
                 </button>
               ))}
             </div>
@@ -273,16 +321,62 @@ export default function CourseStudio({ locale = "fr" }) {
         </div>
 
         {selectedCourse && (
-          <footer className="sticky bottom-3 mt-5 flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-xl backdrop-blur sm:flex-row sm:items-center">
+          <section className="surface mt-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="eyebrow"><History className="size-4" />{fr ? "Versioning éditorial" : "Editorial versioning"}</p>
+                <h2 className="mt-3 font-display text-2xl font-bold">{fr ? `Historique · version ${selectedCourse.version || 1}` : `History · version ${selectedCourse.version || 1}`}</h2>
+              </div>
+              <span className="status-badge status-warning">{selectedCourse.status}</span>
+            </div>
+            <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]">
+              <div className="grid gap-2">
+                {versions.map((version) => (
+                  <div key={version.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <button type="button" onClick={() => inspectVersion(version.version)} className="min-w-0 flex-1 text-left">
+                      <span className="block font-bold">v{version.version} · {version.status}</span>
+                      <span className="mt-1 block text-xs text-slate-500">{version.changeType} · {new Date(version.createdAt).toLocaleString(locale)}</span>
+                      {version.comment && <span className="mt-1 block truncate text-sm text-slate-600">{version.comment}</span>}
+                    </button>
+                    {version.version !== selectedCourse.version && <button type="button" onClick={() => rollbackToVersion(version.version)} className="secondary-button"><RotateCcw className="size-4" />Rollback</button>}
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <h3 className="font-display text-lg font-bold">{fr ? "Diff de la version" : "Version diff"}</h3>
+                {!versionDiff && <p className="mt-3 text-sm text-slate-500">{fr ? "Sélectionne une version pour voir les champs modifiés." : "Select a version to inspect changed fields."}</p>}
+                {versionDiff && (
+                  <div className="mt-3">
+                    <p className="text-sm font-bold">{versionDiff.changes.length} {fr ? "modifications" : "changes"}</p>
+                    <ul className="mt-3 max-h-64 space-y-2 overflow-auto text-xs text-slate-600">
+                      {versionDiff.changes.map((change) => <li key={change.path} className="rounded-lg bg-slate-50 p-2 font-mono">{change.path}</li>)}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {selectedCourse && (
+          <footer className="mt-5 flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-xl backdrop-blur sm:sticky sm:bottom-3 sm:flex-row sm:items-center">
             <div>
               <p className="font-bold">{publicationErrors.length ? (fr ? `${publicationErrors.length} points bloquent la publication` : `${publicationErrors.length} issues block publishing`) : (fr ? "Formation prête à publier" : "Course ready to publish")}</p>
               <p className="mt-1 text-xs text-slate-500">{publicationErrors[0] || `${modules.length} modules · ${modules.reduce((sum, module) => sum + (module.lessons?.length || 0), 0)} leçons`}</p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => setPreviewOpen((open) => !open)} className="secondary-button"><Eye className="size-4" />{previewOpen ? (fr ? "Masquer l'aperçu" : "Hide preview") : (fr ? "Afficher l'aperçu" : "Show preview")}</button>
-              <button type="button" onClick={() => changeStatus("review")} className="secondary-button"><Send className="size-4" />Review</button>
-              <button type="button" onClick={() => changeStatus("published")} disabled={publicationErrors.length > 0} className="primary-button disabled:cursor-not-allowed disabled:opacity-50"><CheckCircle2 className="size-4" />{fr ? "Publier" : "Publish"}</button>
-              <button type="button" onClick={removeCourse} className="icon-button text-red-600" aria-label={fr ? "Supprimer la formation" : "Delete course"}><Trash2 className="size-4" /></button>
+            <div className="grid gap-2 sm:min-w-[420px]">
+              <textarea value={reviewComment} onChange={(event) => setReviewComment(event.target.value)} className="form-control min-h-20" placeholder={fr ? "Commentaire de workflow ou de review" : "Workflow or review comment"} />
+              {selectedCourse.status === "approved" && <label className="grid gap-1 text-xs font-bold">{fr ? "Publication planifiée" : "Scheduled publication"}<input type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} className="form-control" /></label>}
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={() => setPreviewOpen((open) => !open)} className="secondary-button"><Eye className="size-4" />{previewOpen ? (fr ? "Masquer l'aperçu" : "Hide preview") : (fr ? "Afficher l'aperçu" : "Show preview")}</button>
+                {["draft", "changes_requested"].includes(selectedCourse.status) && <button type="button" onClick={() => changeStatus("review")} className="secondary-button"><Send className="size-4" />Review</button>}
+                {selectedCourse.status === "review" && <button type="button" onClick={() => changeStatus("changes_requested")} disabled={!reviewComment.trim()} className="secondary-button disabled:opacity-50">{fr ? "Demander des changements" : "Request changes"}</button>}
+                {selectedCourse.status === "review" && <button type="button" onClick={() => changeStatus("approved")} disabled={publicationErrors.length > 0} className="primary-button disabled:opacity-50"><CheckCircle2 className="size-4" />{fr ? "Approuver" : "Approve"}</button>}
+                {selectedCourse.status === "approved" && <button type="button" onClick={() => changeStatus("scheduled")} disabled={!scheduledAt} className="secondary-button disabled:opacity-50"><CalendarClock className="size-4" />{fr ? "Planifier" : "Schedule"}</button>}
+                {["approved", "scheduled"].includes(selectedCourse.status) && <button type="button" onClick={() => changeStatus("published")} className="primary-button"><CheckCircle2 className="size-4" />{fr ? "Publier" : "Publish"}</button>}
+                {selectedCourse.status === "published" && <button type="button" onClick={() => changeStatus("archived")} className="secondary-button"><Archive className="size-4" />{fr ? "Archiver" : "Archive"}</button>}
+                <button type="button" onClick={removeCourse} className="icon-button text-red-600" aria-label={fr ? "Supprimer la formation" : "Delete course"}><Trash2 className="size-4" /></button>
+              </div>
             </div>
           </footer>
         )}

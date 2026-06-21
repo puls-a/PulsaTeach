@@ -283,10 +283,10 @@ function FocusedLearningLayout({
         {trackLoadError && <p className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-800" role="alert">{trackLoadError}</p>}
 
         <div className="grid gap-3 xl:grid-cols-[300px_minmax(0,1fr)]">
-          <aside className="max-h-[calc(100vh-7.5rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-sm xl:sticky xl:top-24">
+          <aside className="min-w-0 max-h-[calc(100vh-7.5rem)] overflow-x-hidden overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-sm xl:sticky xl:top-24">
             <div className="grid grid-cols-3 gap-1">
               {tracks.map((track) => (
-                <button key={track.id} type="button" onClick={() => onTrackChange(track)} className={`rounded-lg px-2 py-2 text-xs font-bold ${activeTrackId === track.id ? "bg-indigoPop text-white" : "bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigoPop"}`}>{track.label}</button>
+                <button key={track.id} type="button" onClick={() => onTrackChange(track)} title={track.label} className={`min-w-0 truncate rounded-lg px-2 py-2 text-xs font-bold ${activeTrackId === track.id ? "bg-indigoPop text-white" : "bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigoPop"}`}>{track.label}</button>
               ))}
             </div>
             <label className="relative mt-3 block">

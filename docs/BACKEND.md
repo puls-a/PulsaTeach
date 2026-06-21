@@ -104,7 +104,14 @@ PulsaTeach exposes auth at `#/auth`.
 | `GET` | `/api/submissions` | List all submissions for the admin page, reviewer/admin only |
 | `POST` | `/api/submissions` | Create a project submission |
 | `PATCH` | `/api/submissions/:id/review` | Approve or request changes on a submission, reviewer/admin only |
+| `DELETE` | `/api/submissions/:id` | Remove a submission, admin only |
 | `GET` | `/api/certificates/:userId` | Compute certificate readiness for a learner |
+| `POST` | `/api/certificates/:certificateId/issue` | Issue an eligible certificate |
+| `GET` | `/api/certificates/public/:verificationCode` | Verify the minimal public certificate evidence |
+| `PATCH` | `/api/certificates/:id/revoke` | Revoke an issued certificate, reviewer/admin only |
+| `GET` | `/api/courses/:id/versions` | List immutable Course Studio versions |
+| `GET` | `/api/courses/:id/versions/:version/diff` | Compare two course snapshots |
+| `POST` | `/api/courses/:id/rollback` | Restore a version into a new draft |
 
 ## Current Data Stores
 
@@ -116,7 +123,28 @@ PulsaTeach exposes auth at `#/auth`.
 | `submissions` | Project submissions and review metadata |
 | `enrollments` | Landing enrollments |
 | `lesson_drafts` | Authoring drafts |
+| `course_drafts` | Current Course Studio state and workflow log |
+| `course_versions` | Immutable content snapshots used by diff and rollback |
+| `issued_certificates` | Public verification code and minimal evidence |
 | `quiz_sessions` | Private quiz drafts, responses, scores, and resume state |
+
+## Course Studio workflow
+
+The API enforces:
+
+```text
+draft → review → changes_requested → review
+review → approved → scheduled/published → archived
+```
+
+Authors edit only `draft` and `changes_requested` content. Reviewers approve,
+schedule, publish, archive, and roll back. Every save or transition increments
+the version and records an immutable snapshot. Clients send `expectedVersion`
+to reject stale writes with `409 COURSE_VERSION_CONFLICT`.
+
+Apply every file in `supabase/migrations/` before deploying code that consumes
+new columns. Never deploy the Course Studio workflow release against an older
+production schema.
 
 ## Browser-test runtime
 

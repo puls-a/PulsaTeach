@@ -7,11 +7,12 @@ import { fileURLToPath } from "node:url";
 import { learningTracks } from "../src/content/allTrackRegistry.js";
 import { buildGlossaryIndex } from "../src/features/glossary/glossaryIndex.js";
 import { normalizePublishedCourse, validateCourseForPublication } from "../src/courseSchema.js";
+import { appendWorkflowLog, authorizeCourseTransition, createCourseVersion, diffCourseVersions, restoreCourseVersion } from "./courseWorkflow.js";
 import { productRoadmap } from "./roadmap.js";
 import { sendWelcomeEmail, transactionalEmailEnabled } from "./emailService.js";
 import { applySecurity, localIdentityEnabled, sensitiveRateLimit } from "./security.js";
 import { deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, readSupabaseStore, requireSupabaseStorage, supabaseAdmin, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
-import { accountDeletionSchema, attemptSchema, avatarUploadSchema, courseCreateSchema, courseUpdateSchema, enrollmentSchema, eventSchema, lessonDraftSchema, lessonDraftUpdateSchema, progressMigrationSchema, progressSchema, quizSessionSchema, reviewSchema, roleUpdateSchema, submissionSchema, userSettingsSchema, validateBody } from "./validation.js";
+import { accountDeletionSchema, attemptSchema, avatarUploadSchema, certificateRevokeSchema, courseCreateSchema, courseRollbackSchema, courseUpdateSchema, enrollmentSchema, eventSchema, lessonDraftSchema, lessonDraftUpdateSchema, progressMigrationSchema, progressSchema, quizSessionSchema, reviewSchema, roleUpdateSchema, submissionSchema, userSettingsSchema, validateBody } from "./validation.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = process.env.PULSATEACH_DATA_DIR || (process.env.VERCEL ? "/tmp/pulsateach-data" : path.join(__dirname, "..", "data"));
@@ -22,6 +23,7 @@ const enrollmentsFile = path.join(dataDir, "enrollments.json");
 const draftsFile = path.join(dataDir, "lesson-drafts.json");
 const usersFile = path.join(dataDir, "users.json");
 const coursesFile = path.join(dataDir, "course-drafts.json");
+const courseVersionsFile = path.join(dataDir, "course-versions.json");
 const issuedCertificatesFile = path.join(dataDir, "issued-certificates.json");
 const learningEventsFile = path.join(dataDir, "learning-events.json");
 const quizSessionsFile = path.join(dataDir, "quiz-sessions.json");
@@ -30,6 +32,7 @@ const adminAccessKey = localIdentityEnabled ? process.env.PULSATEACH_ADMIN_KEY |
 const supabaseRetryDelayMs = 5 * 60 * 1000;
 let supabaseFallbackUntil = 0;
 const localWriteQueues = new Map();
+const storeMutationQueues = new Map();
 const projectLessonIds = ["html-12-final-project", "css-06-final-project", "js-07-final-project"];
 const certificates = [
   {
@@ -208,6 +211,7 @@ app.get("/api/me", (request, response) => {
 });
 
 app.get("/api/catalog", async (_request, response) => {
+  await publishDueScheduledCourses();
   const courses = await readJsonStore(coursesFile, []);
   const publishedTracks = courses.filter((course) => course.status === "published").map(normalizePublishedCourse);
   response.json({
@@ -216,6 +220,7 @@ app.get("/api/catalog", async (_request, response) => {
 });
 
 app.get("/api/catalog/:trackId", async (request, response) => {
+  await publishDueScheduledCourses();
   const courses = await readJsonStore(coursesFile, []);
   const publishedTracks = courses.filter((course) => course.status === "published").map(normalizePublishedCourse);
   const track = [...learningTracks, ...publishedTracks].find((item) => item.id === request.params.trackId);
@@ -231,12 +236,14 @@ app.get("/api/glossary", (_request, response) => {
 });
 
 app.get("/api/courses", async (request, response) => {
+  await publishDueScheduledCourses();
   const courses = await readJsonStore(coursesFile, []);
   const canReview = hasRole(request, "admin", "author", "reviewer");
   response.json(canReview ? courses : courses.filter((course) => course.status === "published"));
 });
 
 app.post("/api/courses", requireRole("admin", "author"), validateBody(courseCreateSchema), async (request, response) => {
+  await withStoreMutation("courses", async () => {
   const payload = request.body;
   if (!isObject(payload) || !payload.title) {
     response.status(400).json({ error: "Course requires a title.", requestId: request.requestId });
@@ -255,18 +262,34 @@ app.post("/api/courses", requireRole("admin", "author"), validateBody(courseCrea
     level: String(payload.level || "beginner"),
     language: String(payload.language || "fr"),
     status: "draft",
+    version: 1,
     authorUserId: request.authUserId || "admin",
     curriculum: isObject(payload.curriculum) ? payload.curriculum : { modules: [] },
+    workflowLog: [{
+      from: null,
+      to: "draft",
+      actor: request.authUserId || "admin",
+      comment: "Course created",
+      at: now,
+      kind: "created"
+    }],
     createdAt: now,
     updatedAt: now,
-    publishedAt: null
+    publishedAt: null,
+    scheduledAt: null,
+    archivedAt: null
   };
   store.unshift(course);
+  const versions = await readJsonStore(courseVersionsFile, []);
+  versions.unshift(createCourseVersion(course, request.authUserId || "admin", "created", "Course created", new Date(now)));
   await writeJsonStore(coursesFile, store);
+  await writeJsonStore(courseVersionsFile, versions);
   response.status(201).json(course);
+  });
 });
 
 app.patch("/api/courses/:id", requireRole("admin", "author", "reviewer"), validateBody(courseUpdateSchema), async (request, response) => {
+  await withStoreMutation("courses", async () => {
   const store = await readJsonStore(coursesFile, []);
   const index = store.findIndex((course) => course.id === request.params.id);
   if (index === -1) {
@@ -274,37 +297,128 @@ app.patch("/api/courses/:id", requireRole("admin", "author", "reviewer"), valida
     return;
   }
   const payload = isObject(request.body) ? request.body : {};
-  const allowedStatuses = new Set(["draft", "review", "published"]);
-  const nextStatus = allowedStatuses.has(payload.status) ? payload.status : store[index].status;
-  if (nextStatus === "published" && !hasRole(request, "admin", "reviewer")) {
-    response.status(403).json({ error: "Reviewer role required to publish.", requestId: request.requestId });
+  const current = store[index];
+  if (payload.expectedVersion && Number(payload.expectedVersion) !== Number(current.version || 1)) {
+    sendApiError(response, request, 409, "COURSE_VERSION_CONFLICT", "Course was updated by another editor.", { currentVersion: current.version || 1 });
+    return;
+  }
+  const nextStatus = payload.status || current.status;
+  const transition = authorizeCourseTransition(current.status, nextStatus, request.authRoles || []);
+  if (!transition.allowed) {
+    sendApiError(response, request, 403, "COURSE_TRANSITION_DENIED", `Transition ${current.status} → ${nextStatus} is not allowed for this role.`, { requiredRoles: transition.requiredRoles });
+    return;
+  }
+  const hasContentChanges = ["title", "description", "curriculum", "level"].some((field) => payload[field] !== undefined);
+  if (hasContentChanges && !hasRole(request, "admin", "author")) {
+    sendApiError(response, request, 403, "COURSE_EDIT_DENIED", "Author role required to edit course content.");
+    return;
+  }
+  if (hasContentChanges && !["draft", "changes_requested"].includes(current.status)) {
+    sendApiError(response, request, 409, "COURSE_CONTENT_LOCKED", "Course content can only be edited in draft or changes_requested status.");
+    return;
+  }
+  if (nextStatus === "changes_requested" && !payload.comment?.trim()) {
+    sendApiError(response, request, 400, "REVIEW_COMMENT_REQUIRED", "A review comment is required when changes are requested.");
     return;
   }
   const candidate = {
-    ...store[index],
+    ...current,
     ...(payload.title ? { title: normalizeLocalizedText(payload.title) } : {}),
     ...(payload.description ? { description: normalizeLocalizedText(payload.description) } : {}),
     ...(payload.curriculum && isObject(payload.curriculum) ? { curriculum: payload.curriculum } : {}),
     ...(payload.level ? { level: String(payload.level) } : {})
   };
-  if (nextStatus === "published") {
+  if (["approved", "scheduled", "published"].includes(nextStatus)) {
     const validationErrors = validateCourseForPublication(candidate);
     if (validationErrors.length) {
       response.status(422).json({ error: "Course is not ready for publication.", validationErrors, requestId: request.requestId });
       return;
     }
   }
+  if (nextStatus === "scheduled" && (!payload.scheduledAt || new Date(payload.scheduledAt).getTime() <= Date.now())) {
+    sendApiError(response, request, 400, "INVALID_SCHEDULE", "A future scheduledAt value is required.");
+    return;
+  }
+  const now = new Date();
+  const changedStatus = nextStatus !== current.status;
+  const nextVersion = Number(current.version || 1) + 1;
   store[index] = {
     ...candidate,
     status: nextStatus,
-    updatedAt: new Date().toISOString(),
-    publishedAt: nextStatus === "published" ? store[index].publishedAt || new Date().toISOString() : null
+    version: nextVersion,
+    updatedAt: now.toISOString(),
+    publishedAt: nextStatus === "published" ? current.publishedAt || now.toISOString() : nextStatus === "archived" ? current.publishedAt : null,
+    scheduledAt: nextStatus === "scheduled" ? payload.scheduledAt : null,
+    archivedAt: nextStatus === "archived" ? now.toISOString() : null,
+    workflowLog: changedStatus
+      ? appendWorkflowLog(current.workflowLog, {
+          from: current.status,
+          to: nextStatus,
+          actor: request.authUserId || request.authRoles?.join(",") || "system",
+          comment: payload.comment || "",
+          at: now.toISOString(),
+          kind: "transition"
+        })
+      : current.workflowLog || []
   };
+  const versions = await readJsonStore(courseVersionsFile, []);
+  if (!versions.some((entry) => entry.courseId === current.id)) {
+    versions.unshift(createCourseVersion({ ...current, version: Number(current.version || 1) }, current.authorUserId || "system", "created", "Legacy baseline"));
+  }
+  versions.unshift(createCourseVersion(store[index], request.authUserId || "admin", changedStatus ? "transition" : "content", payload.comment, now));
   await writeJsonStore(coursesFile, store);
+  await writeJsonStore(courseVersionsFile, versions.slice(0, 5000));
   response.json(store[index]);
+  });
+});
+
+app.get("/api/courses/:id/versions", requireRole("admin", "author", "reviewer"), async (request, response) => {
+  const courses = await readJsonStore(coursesFile, []);
+  if (!courses.some((course) => course.id === request.params.id)) {
+    sendApiError(response, request, 404, "COURSE_NOT_FOUND", "Course not found.");
+    return;
+  }
+  const versions = await readJsonStore(courseVersionsFile, []);
+  response.json(versions.filter((version) => version.courseId === request.params.id).map(({ snapshot: _snapshot, ...version }) => version));
+});
+
+app.get("/api/courses/:id/versions/:version/diff", requireRole("admin", "author", "reviewer"), async (request, response) => {
+  const versions = (await readJsonStore(courseVersionsFile, [])).filter((entry) => entry.courseId === request.params.id);
+  const target = versions.find((entry) => entry.version === Number(request.params.version));
+  const againstVersion = Number(request.query.against) || Number(request.params.version) - 1;
+  const against = versions.find((entry) => entry.version === againstVersion);
+  if (!target || !against) {
+    sendApiError(response, request, 404, "COURSE_VERSION_NOT_FOUND", "Course version not found.");
+    return;
+  }
+  response.json(diffCourseVersions(against, target));
+});
+
+app.post("/api/courses/:id/rollback", requireRole("admin", "reviewer"), validateBody(courseRollbackSchema), async (request, response) => {
+  await withStoreMutation("courses", async () => {
+  const store = await readJsonStore(coursesFile, []);
+  const index = store.findIndex((course) => course.id === request.params.id);
+  if (index === -1) {
+    sendApiError(response, request, 404, "COURSE_NOT_FOUND", "Course not found.");
+    return;
+  }
+  const versions = await readJsonStore(courseVersionsFile, []);
+  const source = versions.find((entry) => entry.courseId === request.params.id && entry.version === request.body.version);
+  if (!source) {
+    sendApiError(response, request, 404, "COURSE_VERSION_NOT_FOUND", "Course version not found.");
+    return;
+  }
+  const now = new Date();
+  store[index] = restoreCourseVersion(store[index], source, request.authUserId || "admin", request.body.comment, now);
+  versions.unshift(createCourseVersion(store[index], request.authUserId || "admin", "rollback", request.body.comment, now));
+  await writeJsonStore(coursesFile, store);
+  await writeJsonStore(courseVersionsFile, versions.slice(0, 5000));
+  response.json(store[index]);
+  });
 });
 
 app.delete("/api/courses/:id", requireRole("admin", "author"), async (request, response) => {
+  await withStoreMutation("courses", async () => {
   const store = await readJsonStore(coursesFile, []);
   const course = store.find((item) => item.id === request.params.id);
   if (!course) {
@@ -317,7 +431,17 @@ app.delete("/api/courses/:id", requireRole("admin", "author"), async (request, r
   }
   if (shouldTrySupabase()) await deleteSupabaseRecord("course-drafts.json", course.id);
   else await writeJsonStore(coursesFile, store.filter((item) => item.id !== course.id));
+  const versions = await readJsonStore(courseVersionsFile, []);
+  const remainingVersions = versions.filter((entry) => entry.courseId !== course.id);
+  if (shouldTrySupabase()) {
+    for (const entry of versions.filter((item) => item.courseId === course.id)) {
+      await deleteSupabaseRecord("course-versions.json", entry.id);
+    }
+  } else {
+    await writeJsonStore(courseVersionsFile, remainingVersions);
+  }
   response.json({ ok: true, id: course.id });
+  });
 });
 
 app.get("/api/roadmap", (_request, response) => {
@@ -823,6 +947,7 @@ app.get("/api/submissions", async (request, response) => {
 });
 
 app.post("/api/submissions", requireAuthenticatedRequest, validateBody(submissionSchema), async (request, response) => {
+  await withStoreMutation("submissions", async () => {
   if (!requireAuthenticatedWrite(request, response)) return;
   const payload = request.body;
   if (!isObject(payload) || !payload.projectId || !payload.title) {
@@ -833,19 +958,40 @@ app.post("/api/submissions", requireAuthenticatedRequest, validateBody(submissio
   if (!userId || !authorizePayloadUser(request, response, payload.userId)) return;
 
   const store = await readJsonStore(submissionsFile, []);
+  const previous = store
+    .filter((item) => item.userId === userId && item.projectId === payload.projectId)
+    .sort((left, right) => Number(right.version || 1) - Number(left.version || 1))[0];
+  if (previous && !["changes_requested", "approved"].includes(previous.status)) {
+    sendApiError(response, request, 409, "SUBMISSION_ALREADY_ACTIVE", "Wait for review before submitting a new version.");
+    return;
+  }
+  const now = new Date().toISOString();
   const submission = {
-    id: `sub-${Date.now()}`,
+    id: `sub-${randomUUID()}`,
+    rootId: previous?.rootId || previous?.id || null,
+    supersedesId: previous?.id || null,
+    version: Number(previous?.version || 0) + 1,
     userId: String(userId),
     projectId: String(payload.projectId),
     title: String(payload.title),
     description: String(payload.description || ""),
     url: String(payload.url || ""),
+    repositoryUrl: String(payload.repositoryUrl || ""),
+    archiveUrl: String(payload.archiveUrl || ""),
+    screenshots: payload.screenshots || [],
+    deliverables: payload.deliverables || [],
+    selfAssessment: String(payload.selfAssessment || ""),
+    visibility: payload.visibility || "private",
     status: "submitted",
-    createdAt: new Date().toISOString()
+    reviewLog: [],
+    createdAt: now,
+    updatedAt: now
   };
+  if (!submission.rootId) submission.rootId = submission.id;
   store.unshift(submission);
   await writeJsonStore(submissionsFile, store.slice(0, 500));
   response.status(201).json(submission);
+  });
 });
 
 app.get("/api/attempts", async (request, response) => {
@@ -902,8 +1048,9 @@ app.post("/api/attempts", requireAuthenticatedRequest, validateBody(attemptSchem
 });
 
 app.patch("/api/submissions/:id/review", requireRole("admin", "reviewer"), validateBody(reviewSchema), async (request, response) => {
+  await withStoreMutation("submissions", async () => {
   const payload = request.body;
-  const allowedStatuses = new Set(["approved", "changes_requested", "submitted"]);
+  const allowedStatuses = new Set(["in_review", "approved", "changes_requested"]);
   if (!isObject(payload) || !allowedStatuses.has(payload.status)) {
     response.status(400).json({ error: "Review requires a valid status." });
     return;
@@ -915,21 +1062,52 @@ app.patch("/api/submissions/:id/review", requireRole("admin", "reviewer"), valid
     response.status(404).json({ error: "Submission not found." });
     return;
   }
+  if (payload.expectedVersion && payload.expectedVersion !== Number(store[index].version || 1)) {
+    sendApiError(response, request, 409, "SUBMISSION_VERSION_CONFLICT", "Submission version changed before this review was saved.");
+    return;
+  }
 
+  const reviewedAt = new Date().toISOString();
   const review = {
     status: payload.status,
     feedback: String(payload.feedback || ""),
     reviewer: String(payload.reviewer || "PulsaTeach reviewer"),
     score: Number.isFinite(Number(payload.score)) ? Number(payload.score) : null,
     rubric: isObject(payload.rubric) ? payload.rubric : {},
-    reviewedAt: new Date().toISOString()
+    contextualComments: isObject(payload.contextualComments) ? payload.contextualComments : {},
+    reviewedAt,
+    updatedAt: reviewedAt
   };
   store[index] = {
     ...store[index],
-    ...review
+    ...review,
+    reviewLog: [{
+      status: review.status,
+      feedback: review.feedback,
+      reviewer: review.reviewer,
+      score: review.score,
+      rubric: review.rubric,
+      contextualComments: review.contextualComments,
+      at: reviewedAt
+    }, ...(store[index].reviewLog || [])].slice(0, 100)
   };
   await writeJsonStore(submissionsFile, store);
   response.json(store[index]);
+  });
+});
+
+app.delete("/api/submissions/:id", requireRole("admin"), async (request, response) => {
+  await withStoreMutation("submissions", async () => {
+  const store = await readJsonStore(submissionsFile, []);
+  const submission = store.find((item) => item.id === request.params.id);
+  if (!submission) {
+    sendApiError(response, request, 404, "SUBMISSION_NOT_FOUND", "Submission not found.");
+    return;
+  }
+  if (shouldTrySupabase()) await deleteSupabaseRecord("submissions.json", submission.id);
+  else await writeJsonStore(submissionsFile, store.filter((item) => item.id !== submission.id));
+  response.json({ ok: true, id: submission.id });
+  });
 });
 
 app.get("/api/certificates/:userId", async (request, response) => {
@@ -973,9 +1151,12 @@ app.post("/api/certificates/:certificateId/issue", requireAuthenticatedRequest, 
     certificateId: evaluation.id,
     learnerName: users[userId]?.displayName || request.authUser?.email || "PulsaTeach Learner",
     title: evaluation.title,
-    evidence: evaluation.progress,
+    certificateVersion: evaluation.certificateVersion,
+    evidence: evaluation.evidence,
     issuedAt: now,
-    revokedAt: null
+    expiresAt: null,
+    revokedAt: null,
+    revocationReason: null
   };
   issued.unshift(certificate);
   await writeJsonStore(issuedCertificatesFile, issued);
@@ -990,16 +1171,36 @@ app.get("/api/certificates/public/:verificationCode", async (request, response) 
     return;
   }
   response.json({
-    valid: !certificate.revokedAt,
+    valid: !certificate.revokedAt && (!certificate.expiresAt || new Date(certificate.expiresAt).getTime() > Date.now()),
+    status: certificate.revokedAt ? "revoked" : certificate.expiresAt && new Date(certificate.expiresAt).getTime() <= Date.now() ? "expired" : "valid",
     certificate: {
       verificationCode: certificate.verificationCode,
       learnerName: certificate.learnerName,
       title: certificate.title,
+      certificateVersion: certificate.certificateVersion || 1,
       evidence: certificate.evidence,
       issuedAt: certificate.issuedAt,
-      revokedAt: certificate.revokedAt
+      expiresAt: certificate.expiresAt || null,
+      revokedAt: certificate.revokedAt,
+      revocationReason: certificate.revocationReason || null
     }
   });
+});
+
+app.patch("/api/certificates/:id/revoke", requireRole("admin", "reviewer"), validateBody(certificateRevokeSchema), async (request, response) => {
+  const issued = await readJsonStore(issuedCertificatesFile, []);
+  const index = issued.findIndex((certificate) => certificate.id === request.params.id);
+  if (index === -1) {
+    sendApiError(response, request, 404, "CERTIFICATE_NOT_FOUND", "Certificate not found.");
+    return;
+  }
+  issued[index] = {
+    ...issued[index],
+    revokedAt: new Date().toISOString(),
+    revocationReason: request.body.reason
+  };
+  await writeJsonStore(issuedCertificatesFile, issued);
+  response.json(issued[index]);
 });
 
 app.post("/api/events", sensitiveRateLimit(120), requireAuthenticatedRequest, validateBody(eventSchema), async (request, response) => {
@@ -1132,6 +1333,17 @@ async function writeLocalJson(file, store) {
     await next;
   } finally {
     if (localWriteQueues.get(file) === next) localWriteQueues.delete(file);
+  }
+}
+
+async function withStoreMutation(key, operation) {
+  const previous = storeMutationQueues.get(key) || Promise.resolve();
+  const next = previous.catch(() => {}).then(operation);
+  storeMutationQueues.set(key, next);
+  try {
+    return await next;
+  } finally {
+    if (storeMutationQueues.get(key) === next) storeMutationQueues.delete(key);
   }
 }
 
@@ -1328,6 +1540,38 @@ function getCatalogStats() {
   );
 }
 
+async function publishDueScheduledCourses(now = new Date()) {
+  await withStoreMutation("courses", async () => {
+  const courses = await readJsonStore(coursesFile, []);
+  const due = courses.filter((course) =>
+    course.status === "scheduled"
+    && course.scheduledAt
+    && new Date(course.scheduledAt).getTime() <= now.getTime()
+  );
+  if (!due.length) return;
+
+  const versions = await readJsonStore(courseVersionsFile, []);
+  for (const course of due) {
+    course.status = "published";
+    course.version = Number(course.version || 1) + 1;
+    course.publishedAt = course.publishedAt || now.toISOString();
+    course.scheduledAt = null;
+    course.updatedAt = now.toISOString();
+    course.workflowLog = appendWorkflowLog(course.workflowLog, {
+      from: "scheduled",
+      to: "published",
+      actor: "system",
+      comment: "Scheduled publication",
+      at: now.toISOString(),
+      kind: "transition"
+    });
+    versions.unshift(createCourseVersion(course, "system", "transition", "Scheduled publication", now));
+  }
+  await writeJsonStore(coursesFile, courses);
+  await writeJsonStore(courseVersionsFile, versions.slice(0, 5000));
+  });
+}
+
 function summarizeTrack(track) {
   return {
     id: track.id,
@@ -1387,12 +1631,26 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
         userSubmissions.some((submission) => submission.projectId === projectId && submission.status === "approved" && (submission.score ?? 0) >= certificate.minProjectScore)
       );
       const completedRequiredLessons = requiredLessons.filter((lesson) => completedLessonIds.includes(lesson.id));
+      const requiredExams = requiredLessons.filter((lesson) => lesson.purpose === "exam" || /final-exam|exam/i.test(lesson.id));
+      const completedExams = requiredExams.filter((lesson) => completedLessonIds.includes(lesson.id));
+      const demonstratedSkills = [...new Set(requiredLessons.flatMap((lesson) => lesson.skills || []))].sort();
+      const projectEvidence = certificate.requiredProjects.map((projectId) => {
+        const submission = userSubmissions
+          .filter((item) => item.projectId === projectId && item.status === "approved")
+          .sort((left, right) => Number(right.version || 1) - Number(left.version || 1))[0];
+        return submission ? { projectId, submissionId: submission.id, version: submission.version || 1, score: submission.score } : { projectId, submissionId: null };
+      });
+      const trackVersions = Object.fromEntries(certificate.requiredTracks.map((trackId) => {
+        const track = learningTracks.find((item) => item.id === trackId);
+        return [trackId, track?.version || "2026.06"];
+      }));
       const lessonPercent = requiredLessons.length ? Math.round((completedRequiredLessons.length / requiredLessons.length) * 100) : 0;
       const projectPercent = certificate.requiredProjects.length ? Math.round((approvedProjects.length / certificate.requiredProjects.length) * 100) : 0;
       const eligible = lessonPercent === 100 && projectPercent === 100;
 
       return {
         ...certificate,
+        certificateVersion: 1,
         eligible,
         issued: issuedCertificates.find((item) => item.userId === userId && item.certificateId === certificate.id && !item.revokedAt) || null,
         progress: {
@@ -1402,6 +1660,22 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
           lessonsRequired: requiredLessons.length,
           projectsApproved: approvedProjects.length,
           projectsRequired: certificate.requiredProjects.length
+        },
+        evidence: {
+          certificateVersion: 1,
+          trackVersions,
+          skills: demonstratedSkills,
+          exams: {
+            completed: completedExams.map((lesson) => lesson.id),
+            required: requiredExams.map((lesson) => lesson.id)
+          },
+          projects: projectEvidence,
+          progress: {
+            lessonsCompleted: completedRequiredLessons.length,
+            lessonsRequired: requiredLessons.length,
+            projectsApproved: approvedProjects.length,
+            projectsRequired: certificate.requiredProjects.length
+          }
         }
       };
     })

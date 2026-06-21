@@ -6,7 +6,9 @@ export default async function globalSetup() {
     VITE_AUTH_MODE: "local",
     PULSATEACH_STORAGE: "json",
     PULSATEACH_ALLOW_LOCAL_IDENTITY: "true",
+    PULSATEACH_ADMIN_KEY: "dev-admin-key",
     PULSATEACH_LOG_LEVEL: "silent",
+    VITE_ADMIN_ACCESS_KEY: "dev-admin-key",
     VITE_API_URL: "http://127.0.0.1:4188",
     PORT: "4188"
   });

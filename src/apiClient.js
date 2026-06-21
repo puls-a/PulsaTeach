@@ -188,6 +188,23 @@ export async function updateCourse(id, payload) {
   });
 }
 
+export async function listCourseVersions(id) {
+  return request(`/api/courses/${encodeURIComponent(id)}/versions`);
+}
+
+export async function getCourseVersionDiff(id, version, against) {
+  const query = against ? `?against=${encodeURIComponent(against)}` : "";
+  return request(`/api/courses/${encodeURIComponent(id)}/versions/${encodeURIComponent(version)}/diff${query}`);
+}
+
+export async function rollbackCourse(id, version, comment) {
+  return request(`/api/courses/${encodeURIComponent(id)}/rollback`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ version, comment })
+  });
+}
+
 export async function deleteCourse(id) {
   return request(`/api/courses/${encodeURIComponent(id)}`, { method: "DELETE" });
 }

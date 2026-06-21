@@ -154,7 +154,20 @@ export function PublicCertificatePage({ locale = "fr", verificationCode }) {
         <p className="mt-8 text-lg text-slate-600">{fr ? "Délivré à" : "Issued to"}</p>
         <p className="mt-2 font-display text-3xl font-bold">{certificate.learnerName}</p>
         <p className="mt-8 text-sm font-semibold text-slate-500">{new Date(certificate.issuedAt).toLocaleDateString(locale)}</p>
+        <p className="mt-2 text-sm font-semibold text-slate-500">{fr ? "Version du certificat" : "Certificate version"} {certificate.certificateVersion || 1}</p>
+        {certificate.evidence?.skills?.length > 0 && (
+          <div className="mt-8 text-left">
+            <h2 className="font-display text-xl font-bold">{fr ? "Compétences vérifiées" : "Verified skills"}</h2>
+            <div className="mt-3 flex flex-wrap gap-2">{certificate.evidence.skills.map((skill) => <span key={skill} className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-800">{skill}</span>)}</div>
+          </div>
+        )}
+        <div className="mt-8 grid gap-3 text-left sm:grid-cols-2">
+          <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-bold uppercase text-slate-500">{fr ? "Leçons" : "Lessons"}</p><p className="mt-2 text-xl font-black">{certificate.evidence?.progress?.lessonsCompleted ?? "—"}/{certificate.evidence?.progress?.lessonsRequired ?? "—"}</p></div>
+          <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-bold uppercase text-slate-500">{fr ? "Projets approuvés" : "Approved projects"}</p><p className="mt-2 text-xl font-black">{certificate.evidence?.progress?.projectsApproved ?? "—"}/{certificate.evidence?.progress?.projectsRequired ?? "—"}</p></div>
+        </div>
+        {certificate.revocationReason && <p className="mt-6 rounded-xl bg-red-50 p-4 font-bold text-red-800">{certificate.revocationReason}</p>}
         <p className="mt-2 break-all font-mono text-xs text-slate-400">{certificate.verificationCode}</p>
+        <button type="button" onClick={() => window.print()} className="secondary-button mt-6 print:hidden">{fr ? "Imprimer le certificat" : "Print certificate"}</button>
       </article>
     </section>
   );
