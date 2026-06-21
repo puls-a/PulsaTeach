@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://pulsateach.vercel.app/</loc></url>
+  <url><loc>https://pulsateach.vercel.app/catalog</loc></url>
+  <url><loc>https://pulsateach.vercel.app/glossary</loc></url>
+  <url><loc>https://pulsateach.vercel.app/playground</loc></url>
+  <url><loc>https://pulsateach.vercel.app/world</loc></url>
+  <url><loc>https://pulsateach.vercel.app/flexbox-arena</loc></url>
+  <url><loc>https://pulsateach.vercel.app/js-arena</loc></url>
+  <url><loc>https://pulsateach.vercel.app/signup</loc></url>
+  <url><loc>https://pulsateach.vercel.app/privacy</loc></url>
+  <url><loc>https://pulsateach.vercel.app/terms</loc></url>
+  <url><loc>https://pulsateach.vercel.app/legal</loc></url>
 </urlset>

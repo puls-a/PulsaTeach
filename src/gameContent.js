@@ -10,7 +10,7 @@ export const assetPaths = {
 export const worldZones = [
   {
     id: "html-forge",
-    href: "#/learn/html/html-foundations/html-01-document-skeleton",
+    href: "/learn/html/html-foundations/html-01-document-skeleton",
     tone: "bg-orangePop",
     badge: "Markup Smith",
     levels: 15,
@@ -22,7 +22,7 @@ export const worldZones = [
   },
   {
     id: "css-garden",
-    href: "#/learn/css/css-selectors/css-01-selectors",
+    href: "/learn/css/css-selectors/css-01-selectors",
     tone: "bg-mintPop",
     badge: "Style Sprinter",
     levels: 16,
@@ -34,7 +34,7 @@ export const worldZones = [
   },
   {
     id: "flexbox-arena",
-    href: "#/flexbox-arena",
+    href: "/flexbox-arena",
     tone: "bg-aquaPop",
     badge: "Alignment Ace",
     levels: 6,
@@ -46,7 +46,7 @@ export const worldZones = [
   },
   {
     id: "grid-kingdom",
-    href: "#/learn/css/css-grid/css-04-grid",
+    href: "/learn/css/css-grid/css-04-grid",
     tone: "bg-lemonPop",
     badge: "Grid Builder",
     levels: 5,
@@ -58,7 +58,7 @@ export const worldZones = [
   },
   {
     id: "javascript-lab",
-    href: "#/js-arena",
+    href: "/js-arena",
     tone: "bg-rosePop",
     badge: "Logic Shooter",
     levels: 8,
@@ -70,7 +70,7 @@ export const worldZones = [
   },
   {
     id: "dom-tower",
-    href: "#/learn/javascript/js-dom-events/js-04-dom-events",
+    href: "/learn/javascript/js-dom-events/js-04-dom-events",
     tone: "bg-indigoPop",
     badge: "DOM Climber",
     levels: 5,
@@ -82,7 +82,7 @@ export const worldZones = [
   },
   {
     id: "api-harbor",
-    href: "#/learn/javascript/js-storage-async/js-06-fetch",
+    href: "/learn/javascript/js-storage-async/js-06-fetch",
     tone: "bg-aquaPop",
     badge: "API Navigator",
     levels: 4,
@@ -94,7 +94,7 @@ export const worldZones = [
   },
   {
     id: "final-project-district",
-    href: "#/projects",
+    href: "/projects",
     tone: "bg-orangePop",
     badge: "Portfolio Maker",
     levels: 6,

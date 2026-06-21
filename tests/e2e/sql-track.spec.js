@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 
 test("SQL track validates a constrained PostgreSQL table", async ({ page }) => {
-  await page.goto("/#/catalog");
+  await page.goto("/catalog");
   const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await consent.isVisible()) await consent.click();
   await expect(page.getByText(/SQL et PostgreSQL/).first()).toBeVisible();
 
-  await page.goto("/#/learn/sql-postgresql/sql-foundations/sql-01-tables", {
+  await page.goto("/learn/sql-postgresql/sql-foundations/sql-01-tables", {
     waitUntil: "networkidle"
   });
   await expect(page.getByRole("heading", { name: /Créer tables et types|Create tables and types/ }).first()).toBeVisible();

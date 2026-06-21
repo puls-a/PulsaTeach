@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 
 test("TypeScript track loads on demand and validates a typed contract", async ({ page }) => {
-  await page.goto("/#/catalog");
+  await page.goto("/catalog");
   const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await consent.isVisible()) await consent.click();
   await expect(page.getByText(/TypeScript professionnel|Professional TypeScript/).first()).toBeVisible();
 
-  await page.goto("/#/learn/typescript/typescript-foundations/ts-01-unions", {
+  await page.goto("/learn/typescript/typescript-foundations/ts-01-unions", {
     waitUntil: "networkidle"
   });
   await expect(page.getByRole("heading", { name: /Unions littérales et raffinement|Literal unions and narrowing/ }).first()).toBeVisible();

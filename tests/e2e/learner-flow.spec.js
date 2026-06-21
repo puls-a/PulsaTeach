@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("account, onboarding, lesson and progress dashboard", async ({ page }) => {
-  await page.goto("/#/signup");
+  await page.goto("/signup");
   await acceptPrivacy(page);
   await page.getByLabel(/Nom affiché|Display name/).fill("Learner E2E");
   await page.getByLabel("Email").fill(`learner-${Date.now()}@example.test`);
@@ -9,7 +9,7 @@ test("account, onboarding, lesson and progress dashboard", async ({ page }) => {
   await page.getByRole("checkbox", { name: /J’accepte les|I accept the/ }).check();
   await page.getByRole("button", { name: /Créer mon compte gratuit|Create my free account/ }).click();
 
-  await expect(page).toHaveURL(/#\/onboarding/);
+  await expect(page).toHaveURL(/\/onboarding$/);
   await page.getByLabel(/Nom affiché|Display name/).fill("Learner E2E");
   await page.getByRole("button", { name: /Continuer|Continue/ }).click();
   await page.getByRole("button", { name: /Comprendre les bases|Learn foundations/ }).click();
@@ -17,7 +17,7 @@ test("account, onboarding, lesson and progress dashboard", async ({ page }) => {
   await page.getByRole("button", { name: /120 min/ }).click();
   await page.getByRole("button", { name: /Commencer mon parcours|Start my path/ }).click();
 
-  await expect(page).toHaveURL(/#\/dashboard/);
+  await expect(page).toHaveURL(/\/dashboard$/);
   await page.evaluate(() => {
     globalThis.localStorage.setItem("pulsateach-learning-progress", JSON.stringify({
       xp: 25,
@@ -34,7 +34,7 @@ test("account, onboarding, lesson and progress dashboard", async ({ page }) => {
   await page.reload();
   await expect(page.getByText("25", { exact: true }).first()).toBeVisible();
 
-  await page.goto("/#/learn/html/html-foundations/html-01-document-skeleton");
+  await page.goto("/learn/html/html-foundations/html-01-document-skeleton");
   await expect(page.getByText(/Le squelette d'une page|Document skeleton/).first()).toBeVisible();
   await expect(page.getByText(/Aperçu live|Live preview/).first()).toBeVisible();
 });
@@ -47,7 +47,7 @@ test("direct auth callback route loads the application instead of a 404", async 
 });
 
 test("signup form explains validation and login methods", async ({ page }) => {
-  await page.goto("/#/signup");
+  await page.goto("/signup");
   await acceptPrivacy(page);
   await expect(page.getByRole("tab", { name: /Connexion|Sign in/ })).toBeVisible();
   await expect(page.getByRole("tab", { name: /Créer un compte|Create account/ })).toBeVisible();
@@ -65,12 +65,19 @@ test("signup form explains validation and login methods", async ({ page }) => {
 
 test("mobile navigation exposes the essential learner routes", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile-chromium");
-  await page.goto("/#/catalog");
+  await page.goto("/catalog");
   await acceptPrivacy(page);
   await page.getByRole("button", { name: "Menu" }).click();
   await expect(page.getByRole("link", { name: /Formations|Courses/ }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Continuer|Continue/ }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Progrès|Progress/ }).first()).toBeVisible();
+});
+
+test("legacy hash links migrate to clean URLs", async ({ page }) => {
+  await page.goto("/#/catalog");
+  await acceptPrivacy(page);
+  await expect(page).toHaveURL(/\/catalog$/);
+  await expect(page.getByRole("heading", { name: /Choisis une formation|Choose a course/ })).toBeVisible();
 });
 
 async function acceptPrivacy(page) {

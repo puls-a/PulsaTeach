@@ -32,6 +32,7 @@ import CurriculumHub from "./CurriculumHub.jsx";
 import CookieConsent from "./components/CookieConsent.jsx";
 import { CookiesPage, LegalNoticePage, PrivacyPage, TermsPage } from "./LegalPages.jsx";
 import { openPrivacySettings } from "./privacyConsent.js";
+import { currentPathSegments, migrateLegacyHashRoute } from "./navigation.js";
 
 const GlossaryPage = lazy(() => import("./features/glossary/GlossaryPage.jsx"));
 const ReviewPage = lazy(() => import("./features/review/ReviewPage.jsx"));
@@ -43,12 +44,12 @@ const WorldPage = lazyNamed(() => import("./GamePages.jsx"), "WorldPage");
 const AdminPage = lazyNamed(() => import("./pages.jsx"), "AdminPage");
 const AnalyticsPage = lazyNamed(() => import("./pages.jsx"), "AnalyticsPage");
 const AuthorPage = lazyNamed(() => import("./pages.jsx"), "AuthorPage");
-const CertificationPage = lazyNamed(() => import("./pages.jsx"), "CertificationPage");
+const CertificationPage = lazy(() => import("./features/certificates/CertificationPage.jsx"));
 const DashboardPage = lazy(() => import("./features/dashboard/DashboardPage.jsx"));
-const LearnPage = lazyNamed(() => import("./pages.jsx"), "LearnPage");
+const LearnPage = lazy(() => import("./features/learn/LearnPage.jsx"));
 const PathPage = lazyNamed(() => import("./pages.jsx"), "PathPage");
 const ProfilePage = lazyNamed(() => import("./pages.jsx"), "ProfilePage");
-const ProjectsPage = lazyNamed(() => import("./pages.jsx"), "ProjectsPage");
+const ProjectsPage = lazy(() => import("./features/projects/ProjectsPage.jsx"));
 const RoadmapPage = lazyNamed(() => import("./pages.jsx"), "RoadmapPage");
 const SettingsPage = lazyNamed(() => import("./pages.jsx"), "SettingsPage");
 
@@ -59,11 +60,11 @@ const navGroups = [
     label: { fr: "Apprendre", en: "Learn" },
     icon: BookOpen,
     items: [
-      { href: "#/catalog", routes: ["home", "catalog"], icon: Compass, title: { fr: "Toutes les formations", en: "All courses" }, text: { fr: "Explorer le curriculum complet", en: "Explore the full curriculum" } },
-      { href: "#/glossary", routes: ["glossary"], icon: Languages, title: { fr: "Vocabulaire", en: "Glossary" }, text: { fr: "Retrouver les notions de tous les parcours", en: "Find concepts from every track" } },
-      { href: "#/learn", routes: ["learn"], icon: Code2, title: { fr: "Continuer une leçon", en: "Continue a lesson" }, text: { fr: "Ouvrir le lab interactif", en: "Open the interactive lab" } },
-      { href: "#/path", routes: ["path"], icon: Route, title: { fr: "Mon parcours", en: "My path" }, text: { fr: "Voir la prochaine étape conseillée", en: "See the recommended next step" } },
-      { href: "#/dashboard", routes: ["dashboard"], icon: LayoutDashboard, title: { fr: "Ma progression", en: "My progress" }, text: { fr: "Leçons, XP et activité", en: "Lessons, XP, and activity" } }
+      { href: "/catalog", routes: ["home", "catalog"], icon: Compass, title: { fr: "Toutes les formations", en: "All courses" }, text: { fr: "Explorer le curriculum complet", en: "Explore the full curriculum" } },
+      { href: "/glossary", routes: ["glossary"], icon: Languages, title: { fr: "Vocabulaire", en: "Glossary" }, text: { fr: "Retrouver les notions de tous les parcours", en: "Find concepts from every track" } },
+      { href: "/learn", routes: ["learn"], icon: Code2, title: { fr: "Continuer une leçon", en: "Continue a lesson" }, text: { fr: "Ouvrir le lab interactif", en: "Open the interactive lab" } },
+      { href: "/path", routes: ["path"], icon: Route, title: { fr: "Mon parcours", en: "My path" }, text: { fr: "Voir la prochaine étape conseillée", en: "See the recommended next step" } },
+      { href: "/dashboard", routes: ["dashboard"], icon: LayoutDashboard, title: { fr: "Ma progression", en: "My progress" }, text: { fr: "Leçons, XP et activité", en: "Lessons, XP, and activity" } }
     ]
   },
   {
@@ -72,13 +73,13 @@ const navGroups = [
     label: { fr: "Pratiquer", en: "Practice" },
     icon: Gamepad2,
     items: [
-      { href: "#/review", routes: ["review"], icon: RotateCcw, title: { fr: "Révisions", en: "Reviews" }, text: { fr: "Réactiver les notions au bon moment", en: "Recall concepts at the right time" } },
-      { href: "#/playground", routes: ["playground"], icon: Code2, title: { fr: "Playground", en: "Playground" }, text: { fr: "Coder librement dans le navigateur", en: "Code freely in the browser" } },
-      { href: "#/world", routes: ["world"], icon: Map, title: { fr: "Monde des défis", en: "Challenge world" }, text: { fr: "Missions et exercices guidés", en: "Missions and guided exercises" } },
-      { href: "#/flexbox-arena", routes: ["flexbox-arena"], icon: Sparkles, title: { fr: "Flexbox Arena", en: "Flexbox Arena" }, text: { fr: "Maîtriser les layouts CSS", en: "Master CSS layouts" } },
-      { href: "#/js-arena", routes: ["js-arena"], icon: Gamepad2, title: { fr: "JavaScript Arena", en: "JavaScript Arena" }, text: { fr: "Résoudre des défis de logique", en: "Solve logic challenges" } },
-      { href: "#/projects", routes: ["projects"], icon: FolderKanban, title: { fr: "Mes projets", en: "My projects" }, text: { fr: "Soumettre des réalisations", en: "Submit your work" } },
-      { href: "#/certification", routes: ["certification"], icon: FileBadge, title: { fr: "Certifications", en: "Certifications" }, text: { fr: "Valider les parcours terminés", en: "Validate completed paths" } }
+      { href: "/review", routes: ["review"], icon: RotateCcw, title: { fr: "Révisions", en: "Reviews" }, text: { fr: "Réactiver les notions au bon moment", en: "Recall concepts at the right time" } },
+      { href: "/playground", routes: ["playground"], icon: Code2, title: { fr: "Playground", en: "Playground" }, text: { fr: "Coder librement dans le navigateur", en: "Code freely in the browser" } },
+      { href: "/world", routes: ["world"], icon: Map, title: { fr: "Monde des défis", en: "Challenge world" }, text: { fr: "Missions et exercices guidés", en: "Missions and guided exercises" } },
+      { href: "/flexbox-arena", routes: ["flexbox-arena"], icon: Sparkles, title: { fr: "Flexbox Arena", en: "Flexbox Arena" }, text: { fr: "Maîtriser les layouts CSS", en: "Master CSS layouts" } },
+      { href: "/js-arena", routes: ["js-arena"], icon: Gamepad2, title: { fr: "JavaScript Arena", en: "JavaScript Arena" }, text: { fr: "Résoudre des défis de logique", en: "Solve logic challenges" } },
+      { href: "/projects", routes: ["projects"], icon: FolderKanban, title: { fr: "Mes projets", en: "My projects" }, text: { fr: "Soumettre des réalisations", en: "Submit your work" } },
+      { href: "/certification", routes: ["certification"], icon: FileBadge, title: { fr: "Certifications", en: "Certifications" }, text: { fr: "Valider les parcours terminés", en: "Validate completed paths" } }
     ]
   },
   {
@@ -87,18 +88,21 @@ const navGroups = [
     label: { fr: "Créer", en: "Create" },
     icon: PenTool,
     items: [
-      { href: "#/studio", routes: ["studio"], icon: BookOpen, title: { fr: "Course Studio", en: "Course Studio" }, text: { fr: "Créer et organiser des formations", en: "Create and organize courses" } },
-      { href: "#/author", routes: ["author"], icon: PenTool, title: { fr: "Éditeur de leçons", en: "Lesson editor" }, text: { fr: "Rédiger les contenus et exercices", en: "Write content and exercises" } },
-      { href: "#/analytics", routes: ["analytics"], icon: BarChart3, title: { fr: "Statistiques", en: "Analytics" }, text: { fr: "Analyser l’usage du contenu", en: "Analyze content usage" } },
-      { href: "#/admin", routes: ["admin"], icon: Shield, title: { fr: "Administration", en: "Administration" }, text: { fr: "Relire les projets et publier", en: "Review projects and publish" } },
-      { href: "#/roadmap", routes: ["roadmap"], icon: Map, title: { fr: "Roadmap produit", en: "Product roadmap" }, text: { fr: "Suivre les prochaines évolutions", en: "Track upcoming improvements" } }
+      { href: "/studio", routes: ["studio"], icon: BookOpen, title: { fr: "Course Studio", en: "Course Studio" }, text: { fr: "Créer et organiser des formations", en: "Create and organize courses" } },
+      { href: "/author", routes: ["author"], icon: PenTool, title: { fr: "Éditeur de leçons", en: "Lesson editor" }, text: { fr: "Rédiger les contenus et exercices", en: "Write content and exercises" } },
+      { href: "/analytics", routes: ["analytics"], icon: BarChart3, title: { fr: "Statistiques", en: "Analytics" }, text: { fr: "Analyser l’usage du contenu", en: "Analyze content usage" } },
+      { href: "/admin", routes: ["admin"], icon: Shield, title: { fr: "Administration", en: "Administration" }, text: { fr: "Relire les projets et publier", en: "Review projects and publish" } },
+      { href: "/roadmap", routes: ["roadmap"], icon: Map, title: { fr: "Roadmap produit", en: "Product roadmap" }, text: { fr: "Suivre les prochaines évolutions", en: "Track upcoming improvements" } }
     ]
   }
 ];
 
 function App() {
   const [locale, setLocale] = useState(() => localStorage.getItem("pulsateach-locale") || "fr");
-  const [route, setRoute] = useState(getPageRoute);
+  const [route, setRoute] = useState(() => {
+    migrateLegacyHashRoute();
+    return getPageRoute();
+  });
   const copy = languages[locale];
 
   useEffect(() => {
@@ -108,9 +112,29 @@ function App() {
   }, [copy.metaTitle, locale, route]);
 
   useEffect(() => {
-    const handleHash = () => setRoute(getPageRoute());
-    window.addEventListener("hashchange", handleHash);
-    return () => window.removeEventListener("hashchange", handleHash);
+    const handleNavigation = () => {
+      migrateLegacyHashRoute();
+      setRoute(getPageRoute());
+      window.scrollTo({ top: 0, behavior: "instant" });
+    };
+    const handleInternalLink = (event) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const anchor = event.target.closest("a[href]");
+      if (!anchor || anchor.target || anchor.hasAttribute("download")) return;
+      const url = new URL(anchor.href, window.location.href);
+      if (url.origin !== window.location.origin || !url.pathname.startsWith("/")) return;
+      event.preventDefault();
+      window.history.pushState(null, "", `${url.pathname}${url.search}${url.hash}`);
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    };
+    window.addEventListener("popstate", handleNavigation);
+    window.addEventListener("hashchange", handleNavigation);
+    document.addEventListener("click", handleInternalLink);
+    return () => {
+      window.removeEventListener("popstate", handleNavigation);
+      window.removeEventListener("hashchange", handleNavigation);
+      document.removeEventListener("click", handleInternalLink);
+    };
   }, []);
 
   return (
@@ -140,10 +164,12 @@ function Header({ locale, route, onLanguageToggle }) {
       if (!event.target.closest("[data-navigation-root]")) setActiveMenu(null);
     };
     window.addEventListener("hashchange", close);
+    window.addEventListener("popstate", close);
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("pointerdown", onPointerDown);
     return () => {
       window.removeEventListener("hashchange", close);
+      window.removeEventListener("popstate", close);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("pointerdown", onPointerDown);
     };
@@ -183,7 +209,7 @@ function Header({ locale, route, onLanguageToggle }) {
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3" data-navigation-root>
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 rounded-2xl border border-slate-200/90 bg-white/95 px-3 shadow-lg shadow-slate-900/5 backdrop-blur-xl sm:px-4" aria-label="Navigation principale">
-        <a href="#/catalog" className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 font-display text-xl font-bold text-ink hover:bg-slate-100">
+        <a href="/catalog" className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 font-display text-xl font-bold text-ink hover:bg-slate-100">
           <span className="grid size-9 place-items-center rounded-xl bg-indigoPop text-white" aria-hidden="true"><Braces className="size-5" /></span>
           <span>Pulsa<span className="text-indigoPop">Teach</span></span>
         </a>
@@ -246,12 +272,12 @@ function DropdownItem({ item, locale, active, onClick }) {
 function AccountMenu({ user, locale, route, open, onToggle, onClose }) {
   const items = user
     ? [
-        { href: "#/profile", routes: ["profile"], icon: UserRound, title: { fr: "Mon profil", en: "My profile" }, text: { fr: "Activité, projets et certificats", en: "Activity, projects, and certificates" } },
-        { href: "#/settings", routes: ["settings"], icon: Settings, title: { fr: "Paramètres", en: "Settings" }, text: { fr: "Objectif, langue et rythme", en: "Goal, language, and pace" } }
+        { href: "/profile", routes: ["profile"], icon: UserRound, title: { fr: "Mon profil", en: "My profile" }, text: { fr: "Activité, projets et certificats", en: "Activity, projects, and certificates" } },
+        { href: "/settings", routes: ["settings"], icon: Settings, title: { fr: "Paramètres", en: "Settings" }, text: { fr: "Objectif, langue et rythme", en: "Goal, language, and pace" } }
       ]
     : [
-        { href: "#/signup", routes: ["signup"], icon: UserRound, title: { fr: "Créer un compte gratuit", en: "Create a free account" }, text: { fr: "Sauvegarder toute ta progression", en: "Save all your progress" } },
-        { href: "#/auth", routes: ["auth"], icon: LogIn, title: { fr: "Se connecter", en: "Sign in" }, text: { fr: "Reprendre une progression existante", en: "Resume existing progress" } }
+        { href: "/signup", routes: ["signup"], icon: UserRound, title: { fr: "Créer un compte gratuit", en: "Create a free account" }, text: { fr: "Sauvegarder toute ta progression", en: "Save all your progress" } },
+        { href: "/auth", routes: ["auth"], icon: LogIn, title: { fr: "Se connecter", en: "Sign in" }, text: { fr: "Reprendre une progression existante", en: "Resume existing progress" } }
       ];
 
   return (
@@ -288,9 +314,9 @@ function MobileNavigation({ panelRef, locale, user, route, groups, onClose }) {
 
       <div className="grid grid-cols-3 gap-2 border-b border-slate-200 p-4">
         {[
-          { href: "#/catalog", icon: Compass, label: locale === "fr" ? "Formations" : "Courses" },
-          { href: "#/learn", icon: Code2, label: locale === "fr" ? "Continuer" : "Continue" },
-          { href: "#/dashboard", icon: BarChart3, label: locale === "fr" ? "Progrès" : "Progress" }
+          { href: "/catalog", icon: Compass, label: locale === "fr" ? "Formations" : "Courses" },
+          { href: "/learn", icon: Code2, label: locale === "fr" ? "Continuer" : "Continue" },
+          { href: "/dashboard", icon: BarChart3, label: locale === "fr" ? "Progrès" : "Progress" }
         ].map((item) => {
           const Icon = item.icon;
           return <a href={item.href} onClick={onClose} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-xl bg-slate-100 px-2 text-center text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigoPop" key={item.href}><Icon className="size-5" />{item.label}</a>;
@@ -316,8 +342,8 @@ function MobileNavigation({ panelRef, locale, user, route, groups, onClose }) {
 
       <div className="border-t border-slate-200 bg-slate-50 p-4">
         <div className="grid gap-2">
-          <a href={user ? "#/profile" : "#/signup"} onClick={onClose} className="primary-button">{user ? (locale === "fr" ? "Voir mon profil" : "View profile") : (locale === "fr" ? "Créer un compte gratuit" : "Create free account")}</a>
-          <a href={user ? "#/settings" : "#/auth"} onClick={onClose} className="secondary-button">
+          <a href={user ? "/profile" : "/signup"} onClick={onClose} className="primary-button">{user ? (locale === "fr" ? "Voir mon profil" : "View profile") : (locale === "fr" ? "Créer un compte gratuit" : "Create free account")}</a>
+          <a href={user ? "/settings" : "/auth"} onClick={onClose} className="secondary-button">
             {user ? <Settings className="size-4" /> : <LogIn className="size-4" />}
             {user ? (locale === "fr" ? "Paramètres" : "Settings") : (locale === "fr" ? "Se connecter" : "Sign in")}
           </a>
@@ -344,10 +370,10 @@ function Footer({ locale }) {
       <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 text-sm text-slate-500 sm:flex-row">
         <p>© 2026 PulsaTeach</p>
         <div className="flex flex-wrap gap-x-5 gap-y-3 font-semibold">
-          <a href="#/privacy">{locale === "fr" ? "Confidentialité" : "Privacy"}</a>
-          <a href="#/cookies">Cookies</a>
-          <a href="#/terms">{locale === "fr" ? "Conditions" : "Terms"}</a>
-          <a href="#/legal">{locale === "fr" ? "Mentions légales" : "Legal notice"}</a>
+          <a href="/privacy">{locale === "fr" ? "Confidentialité" : "Privacy"}</a>
+          <a href="/cookies">Cookies</a>
+          <a href="/terms">{locale === "fr" ? "Conditions" : "Terms"}</a>
+          <a href="/legal">{locale === "fr" ? "Mentions légales" : "Legal notice"}</a>
           <button type="button" onClick={openPrivacySettings} className="font-semibold hover:text-ink">{locale === "fr" ? "Gérer mes choix" : "Manage choices"}</button>
         </div>
       </div>
@@ -369,7 +395,7 @@ function renderRoute(route, locale) {
   if (route === "signup") return <AuthPage locale={locale} defaultMode="signup" />;
   if (route === "onboarding") return <OnboardingPage locale={locale} />;
   if (route === "recovery") return <PasswordRecoveryPage locale={locale} />;
-  if (route === "verify") return <PublicCertificatePage locale={locale} verificationCode={window.location.hash.split("/")[2] || ""} />;
+  if (route === "verify") return <PublicCertificatePage locale={locale} verificationCode={currentPathSegments()[1] || ""} />;
   if (route === "studio") return <CourseStudio locale={locale} />;
   if (route === "world") return <WorldPage locale={locale} />;
   if (route === "playground") return <LivePlaygroundPage locale={locale} />;
@@ -400,7 +426,7 @@ function getPageRoute() {
   if (window.location.pathname.startsWith("/auth/callback")) {
     return new URLSearchParams(window.location.search).has("recovery") ? "recovery" : "onboarding";
   }
-  const route = window.location.hash.replace(/^#\/?/, "").split(/[/?#]/)[0];
+  const route = currentPathSegments()[0] || "home";
   const known = ["auth", "signup", "onboarding", "recovery", "verify", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "catalog", "glossary", "review", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap", "privacy", "cookies", "terms", "legal"];
   return known.includes(route) ? route : "home";
 }
@@ -436,8 +462,47 @@ function updatePageMetadata(route, locale, fallbackTitle) {
   setMeta("robots", ["admin", "author", "analytics", "settings", "profile", "dashboard", "review"].includes(route) ? "noindex,nofollow" : "index,follow");
   setPropertyMeta("og:title", metadata[0]);
   setPropertyMeta("og:description", metadata[1]);
+  setPropertyMeta("og:url", canonicalUrl());
   setMeta("twitter:title", metadata[0]);
   setMeta("twitter:description", metadata[1]);
+  let canonical = document.head.querySelector('link[rel="canonical"]');
+  if (!canonical) {
+    canonical = document.createElement("link");
+    canonical.setAttribute("rel", "canonical");
+    document.head.appendChild(canonical);
+  }
+  canonical.setAttribute("href", canonicalUrl());
+  updateStructuredData(route, locale, metadata);
+}
+
+function canonicalUrl() {
+  const path = window.location.pathname === "/" ? "/" : window.location.pathname.replace(/\/+$/, "");
+  return `https://pulsateach.vercel.app${path}`;
+}
+
+function updateStructuredData(route, locale, metadata) {
+  let script = document.head.querySelector("#pulsateach-route-schema");
+  if (!script) {
+    script = document.createElement("script");
+    script.id = "pulsateach-route-schema";
+    script.type = "application/ld+json";
+    document.head.appendChild(script);
+  }
+  const type = route === "catalog" || route === "glossary" ? "CollectionPage" : route === "learn" ? "Course" : "WebPage";
+  script.textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": type,
+    name: metadata[0],
+    description: metadata[1],
+    url: canonicalUrl(),
+    inLanguage: locale,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "PulsaTeach",
+      url: "https://pulsateach.vercel.app/"
+    },
+    ...(type === "Course" ? { provider: { "@type": "Organization", name: "PulsaTeach" } } : {})
+  });
 }
 
 function setMeta(name, content) {

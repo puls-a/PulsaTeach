@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import { copyFile, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { learningTracks } from "../src/content/allTrackRegistry.js";
@@ -481,11 +481,11 @@ app.get("/api/analytics", requireRole("admin", "reviewer", "author"), async (_re
 
   response.json({
     funnel: [
-      { id: "enrolled", label: "Enrolled", value: enrollments.length },
-      { id: "attempted", label: "Ran tests", value: new Set(attempts.map((item) => item.userId)).size },
-      { id: "completed", label: "Completed lesson", value: progressItems.filter((item) => Object.keys(item.completed || {}).length > 0).length },
-      { id: "submitted", label: "Submitted project", value: new Set(submissions.map((item) => item.userId)).size },
-      { id: "approved", label: "Approved project", value: new Set(submissions.filter((item) => item.status === "approved").map((item) => item.userId)).size }
+      privacyMetric("enrolled", "Enrolled", enrollments.length),
+      privacyMetric("attempted", "Ran tests", new Set(attempts.map((item) => item.userId)).size),
+      privacyMetric("completed", "Completed lesson", progressItems.filter((item) => Object.keys(item.completed || {}).length > 0).length),
+      privacyMetric("submitted", "Submitted project", new Set(submissions.map((item) => item.userId)).size),
+      privacyMetric("approved", "Approved project", new Set(submissions.filter((item) => item.status === "approved").map((item) => item.userId)).size)
     ],
     tracks: learningTracks.map((track) => {
       const lessonIds = track.modules.flatMap((module) => module.lessons.map((lesson) => lesson.id));
@@ -494,14 +494,20 @@ app.get("/api/analytics", requireRole("admin", "reviewer", "author"), async (_re
         id: track.id,
         label: track.label,
         lessons: lessonIds.length,
-        completions: completed,
-        attempts: attempts.filter((attempt) => attempt.trackId === track.id).length
+        completions: privacyValue(completed),
+        attempts: privacyValue(attempts.filter((attempt) => attempt.trackId === track.id).length)
       };
     }),
     content: {
       drafts: drafts.length,
       review: drafts.filter((item) => item.status === "review").length,
       published: drafts.filter((item) => item.status === "published").length
+    },
+    privacy: {
+      aggregation: "cohort",
+      minimumCohort: 3,
+      identifiersExposed: false,
+      eventRetentionDays: 180
     },
     generatedAt: new Date().toISOString()
   });
@@ -1227,14 +1233,20 @@ app.post("/api/events", sensitiveRateLimit(120), requireAuthenticatedRequest, va
     createdAt: new Date().toISOString()
   };
   store.unshift(event);
-  await writeJsonStore(learningEventsFile, store.slice(0, 10000));
+  const retentionStart = Date.now() - 180 * 24 * 60 * 60 * 1000;
+  await writeJsonStore(learningEventsFile, store.filter((item) => new Date(item.createdAt).getTime() >= retentionStart).slice(0, 10000));
   response.status(201).json(event);
 });
 
 app.get("/api/admin/learning-events", requireRole("admin", "reviewer", "author"), async (request, response) => {
   const store = await readJsonStore(learningEventsFile, []);
   const failedOnly = request.query.failed === "true";
-  response.json((failedOnly ? store.filter((event) => event.eventType === "tests_failed") : store).slice(0, 500));
+  const includeIdentity = request.query.includeIdentity === "true" && hasRole(request, "admin");
+  response.json((failedOnly ? store.filter((event) => event.eventType === "tests_failed") : store).slice(0, 500).map((event) => ({
+    ...event,
+    userKey: analyticsUserKey(event.userId),
+    ...(includeIdentity ? {} : { userId: undefined })
+  })));
 });
 
 app.use((error, request, response, _next) => {
@@ -1538,6 +1550,23 @@ function getCatalogStats() {
     },
     { tracks: 0, modules: 0, lessons: 0, projects: 0, xp: 0 }
   );
+}
+
+function privacyMetric(id, label, count) {
+  const value = privacyValue(count);
+  return { id, label, value, suppressed: value === null };
+}
+
+function privacyValue(count) {
+  const numeric = Number(count) || 0;
+  return numeric > 0 && numeric < 3 ? null : numeric;
+}
+
+function analyticsUserKey(userId) {
+  return createHash("sha256")
+    .update(`${process.env.PULSATEACH_ANALYTICS_SALT || "pulsateach-analytics"}:${userId || "anonymous"}`)
+    .digest("hex")
+    .slice(0, 16);
 }
 
 async function publishDueScheduledCourses(now = new Date()) {

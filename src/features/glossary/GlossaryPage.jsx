@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Bookmark, BookmarkCheck, BookOpen, Languages, Search, Volume2 } from "lucide-react";
 import { getGlossary } from "../../apiClient.js";
 import { getGlossaryTerm, searchGlossary } from "./glossaryIndex.js";
+import { currentPathSegments } from "../../navigation.js";
 
 const favoritesKey = "pulsateach-glossary-favorites";
 const historyKey = "pulsateach-glossary-history";
@@ -40,7 +41,11 @@ export default function GlossaryPage({ locale = "fr" }) {
   useEffect(() => {
     const update = () => setSelectedSlug(readSelectedSlug());
     window.addEventListener("hashchange", update);
-    return () => window.removeEventListener("hashchange", update);
+    window.addEventListener("popstate", update);
+    return () => {
+      window.removeEventListener("hashchange", update);
+      window.removeEventListener("popstate", update);
+    };
   }, []);
 
   useEffect(() => {
@@ -87,7 +92,7 @@ export default function GlossaryPage({ locale = "fr" }) {
                 {favorites.includes(term.slug) ? <BookmarkCheck className="size-5 text-indigoPop" aria-label={fr ? "Favori" : "Favorite"} /> : <Bookmark className="size-5 text-slate-500" aria-hidden="true" />}
               </div>
               <p className="mt-4 flex-1 text-sm leading-6 text-slate-600">{term.shortDefinition[locale]}</p>
-              <a href={`#/glossary/${term.slug}`} className="secondary-button mt-5 min-h-10 py-2 text-sm"><BookOpen className="size-4" />{fr ? "Voir le terme" : "View term"}</a>
+              <a href={`/glossary/${term.slug}`} className="secondary-button mt-5 min-h-10 py-2 text-sm"><BookOpen className="size-4" />{fr ? "Voir le terme" : "View term"}</a>
             </article>
           ))}
         </div>
@@ -104,7 +109,7 @@ function GlossaryDetail({ term, terms, locale, bilingual, onBilingual, favorites
   return (
     <section className="app-page min-h-screen bg-slate-50">
       <article className="surface mx-auto max-w-4xl">
-        <a href="#/glossary" className="text-sm font-bold text-indigoPop">← {fr ? "Tout le vocabulaire" : "All vocabulary"}</a>
+        <a href="/glossary" className="text-sm font-bold text-indigoPop">← {fr ? "Tout le vocabulaire" : "All vocabulary"}</a>
         <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="eyebrow">{term.languages.join(" · ")}</p>
@@ -122,11 +127,11 @@ function GlossaryDetail({ term, terms, locale, bilingual, onBilingual, favorites
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           <section>
             <h2 className="font-display text-xl font-bold">{fr ? "Leçons associées" : "Related lessons"}</h2>
-            <ul className="mt-3 grid gap-2">{term.lessonRefs.map((reference) => <li key={reference.lessonId}><a className="font-semibold text-indigoPop hover:underline" href={`#/learn/${reference.trackId}/${reference.moduleId}/${reference.lessonId}`}>→ {reference.lessonId}</a></li>)}</ul>
+            <ul className="mt-3 grid gap-2">{term.lessonRefs.map((reference) => <li key={reference.lessonId}><a className="font-semibold text-indigoPop hover:underline" href={`/learn/${reference.trackId}/${reference.moduleId}/${reference.lessonId}`}>→ {reference.lessonId}</a></li>)}</ul>
           </section>
           <section>
             <h2 className="font-display text-xl font-bold">{fr ? "Termes associés" : "Related terms"}</h2>
-            <div className="mt-3 flex flex-wrap gap-2">{related.map((item) => <a className="rounded-full bg-indigo-50 px-3 py-2 text-sm font-bold text-indigo-800" href={`#/glossary/${item.slug}`} key={item.id}>{item.term[locale]}</a>)}</div>
+            <div className="mt-3 flex flex-wrap gap-2">{related.map((item) => <a className="rounded-full bg-indigo-50 px-3 py-2 text-sm font-bold text-indigo-800" href={`/glossary/${item.slug}`} key={item.id}>{item.term[locale]}</a>)}</div>
           </section>
         </div>
       </article>
@@ -158,5 +163,6 @@ function remember(slug) {
 }
 
 function readSelectedSlug() {
-  return window.location.hash.match(/^#\/glossary\/([^/?#]+)/)?.[1] || "";
+  const [route, slug] = currentPathSegments();
+  return route === "glossary" ? slug || "" : "";
 }

@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 
 test("security track validates strict untrusted input handling", async ({ page }) => {
-  await page.goto("/#/catalog");
+  await page.goto("/catalog");
   const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await consent.isVisible()) await consent.click();
   await expect(page.getByText(/Sécurité web appliquée|Applied web security/).first()).toBeVisible();
 
-  await page.goto("/#/learn/web-security/security-threats-input/sec-01-validation", {
+  await page.goto("/learn/web-security/security-threats-input/sec-01-validation", {
     waitUntil: "networkidle"
   });
   await expect(page.getByRole("heading", { name: /Valider une entrée non fiable|Validate untrusted input/ }).first()).toBeVisible();

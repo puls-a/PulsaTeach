@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Check, Eye, EyeOff, LockKeyhole, LogOut, Mail, RotateCcw, ShieldCheck, UserPlus } from "lucide-react";
 import { createLocalSession, signOutSupabase, syncSessionUserId, useSupabaseSession } from "./authState.js";
 import { isSupabaseBrowserConfigured, supabase } from "./supabaseClient.js";
+import { navigate } from "./navigation.js";
 
 const useLocalAuth = import.meta.env.VITE_AUTH_MODE === "local";
 
@@ -69,7 +70,7 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
         }
         syncSessionUserId(result.data.session);
         if (result.data.session) {
-          window.location.assign(mode === "signup" ? "/auth/callback#/onboarding" : "/#/dashboard");
+          window.location.assign(mode === "signup" ? "/auth/callback/onboarding" : "//dashboard");
         } else {
           setStatus({
             type: "confirmation",
@@ -93,7 +94,7 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
     }
     createLocalSession(email);
     setBusy(false);
-    window.location.hash = mode === "signup" ? "#/onboarding" : "#/dashboard";
+    navigate(mode === "signup" ? "/onboarding" : "/dashboard");
   };
 
   const sendMagicLink = async (event) => {
@@ -150,7 +151,7 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
           <h1 className="mt-4 font-display text-4xl font-bold">{fr ? "Ton compte est connecté" : "Your account is connected"}</h1>
           <p className="mt-3 break-all font-semibold text-slate-600">{session.user.email || session.user.id}</p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <a href="#/dashboard" className="primary-button">{fr ? "Voir ma progression" : "View progress"}</a>
+            <a href="/dashboard" className="primary-button">{fr ? "Voir ma progression" : "View progress"}</a>
             <button type="button" onClick={signOutSupabase} className="secondary-button"><LogOut className="size-5" />{fr ? "Se déconnecter" : "Sign out"}</button>
           </div>
         </div>
@@ -210,9 +211,9 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
                     <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} className="mt-1 size-4" />
                     <span>
                       {fr ? "J’accepte les " : "I accept the "}
-                      <a href="#/terms" className="font-bold text-indigoPop underline">{fr ? "conditions d’utilisation" : "terms of use"}</a>
+                      <a href="/terms" className="font-bold text-indigoPop underline">{fr ? "conditions d’utilisation" : "terms of use"}</a>
                       {fr ? " et la " : " and "}
-                      <a href="#/privacy" className="font-bold text-indigoPop underline">{fr ? "politique de confidentialité" : "privacy policy"}</a>.
+                      <a href="/privacy" className="font-bold text-indigoPop underline">{fr ? "politique de confidentialité" : "privacy policy"}</a>.
                     </span>
                   </label>
                 )}

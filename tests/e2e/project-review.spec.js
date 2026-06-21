@@ -8,7 +8,7 @@ test("learner resubmits a project after contextual review", async ({ page, reque
   const createdIds = [];
 
   try {
-    await page.goto("/#/projects");
+    await page.goto("/projects");
     const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
     if (await consent.isVisible()) await consent.click();
     await page.getByLabel("Project ID").fill(projectId);

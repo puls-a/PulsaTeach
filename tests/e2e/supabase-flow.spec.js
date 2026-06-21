@@ -31,11 +31,11 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
     authUserId = created.user.id;
     localUserId = `supabase-${authUserId}`;
 
-    await page.goto("/#/auth");
+    await page.goto("/auth");
     await page.getByLabel("Email").fill(email);
     await page.getByLabel(/Mot de passe|Password/).fill(password);
     await page.getByRole("button", { name: /Se connecter|Sign in/ }).last().click();
-    await expect(page).toHaveURL(/#\/dashboard/);
+    await expect(page).toHaveURL(/\/dashboard$/);
 
     const { data: signedIn, error: signInError } = await anon.auth.signInWithPassword({ email, password });
     if (signInError) throw signInError;
@@ -81,7 +81,7 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
     });
     expect(published.ok()).toBeTruthy();
 
-    await page.goto("/#/studio");
+    await page.goto("/studio");
     await expect(page.getByText("Formation CI dynamique").first()).toBeVisible();
     await expect(page.getByText(/Plan de cours|Course outline/)).toBeVisible();
     await page.getByText("Fondations CI").click();
@@ -89,9 +89,9 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
     await expect(page.getByText(/Éditer la leçon|Edit lesson/)).toBeVisible();
     await expect(page.getByText(/Prévisualisation apprenant|Learner preview/)).toBeVisible();
 
-    await page.goto("/#/catalog");
+    await page.goto("/catalog");
     await expect(page.getByText("Formation CI dynamique")).toBeVisible();
-    await page.goto(`/#/learn/${course.slug}/${module.id}/${lesson.id}`);
+    await page.goto(`/learn/${course.slug}/${module.id}/${lesson.id}`);
     await expect(page.getByText("Première leçon CI").first()).toBeVisible();
 
     const exported = await request.get("http://127.0.0.1:4190/api/account/export", { headers });

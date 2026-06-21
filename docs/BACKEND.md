@@ -71,7 +71,7 @@ Enable providers in Supabase Dashboard:
    - Redirect URLs: `http://127.0.0.1:5173/**`
    - OAuth callback page: `http://127.0.0.1:5173/auth/callback`
 
-PulsaTeach exposes auth at `#/auth`.
+PulsaTeach exposes auth at `/auth`. Legacy `#/auth` links are migrated automatically.
 
 ## Endpoints
 

@@ -88,7 +88,7 @@ export default function InteractiveLearning({ locale, tracks = learningTracks, o
 
   useEffect(() => {
     if (trackLoading) return;
-    window.history.replaceState(null, "", `#/learn/${activeTrackId}/${activeModuleId}/${activeLessonId}`);
+    window.history.replaceState(null, "", `/learn/${activeTrackId}/${activeModuleId}/${activeLessonId}`);
     recordLearningEvent({
       eventType: "lesson_opened",
       lessonId: activeLessonId,
@@ -269,7 +269,7 @@ function FocusedLearningLayout({
         <header className="mb-3 flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm lg:flex-row lg:items-center">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500">
-              <a href="#/catalog" className="hover:text-indigoPop">{locale === "fr" ? "Formations" : "Courses"}</a>
+              <a href="/catalog" className="hover:text-indigoPop">{locale === "fr" ? "Formations" : "Courses"}</a>
               <span>/</span><span>{activeTrack.title[locale]}</span><span>/</span><span>{activeModule.title[locale]}</span>
             </div>
             <h1 className="mt-1 truncate font-display text-xl font-bold text-ink sm:text-2xl">{activeLesson.title[locale]}</h1>
@@ -1221,7 +1221,9 @@ function readLessonRoute() {
     lessonId: fallbackModule.lessons[0].id
   };
 
-  const match = window.location.hash.match(/^#\/?learn\/([^/]+)\/([^/]+)\/([^/]+)$/);
+  const cleanMatch = window.location.pathname.match(/^\/learn\/([^/]+)\/([^/]+)\/([^/]+)\/?$/);
+  const legacyMatch = window.location.hash.match(/^#\/?learn\/([^/]+)\/([^/]+)\/([^/]+)$/);
+  const match = cleanMatch || legacyMatch;
   if (!match) return fallback;
 
   const [, trackId, moduleId, lessonId] = match;

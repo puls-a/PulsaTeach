@@ -46,7 +46,7 @@ const endpoints = [
 const failures = [];
 
 for (const route of routes) {
-  await check(`${frontend}/#/${route}`, `route ${route || "home"}`);
+  await check(`${frontend}/${route}`, `route ${route || "home"}`);
 }
 
 for (const endpoint of endpoints) {

@@ -1,5 +1,13 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /admin
+Disallow: /analytics
+Disallow: /author
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /review
+Disallow: /settings
+Disallow: /studio
 
 Sitemap: https://pulsateach.vercel.app/sitemap.xml

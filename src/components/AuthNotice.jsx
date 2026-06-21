@@ -13,7 +13,7 @@ export default function AuthNotice({ locale = "en" }) {
           ? "Connecte-toi pour sauvegarder ta progression dans Supabase."
           : "Sign in to save your progress in Supabase."}
       </span>
-      <a href="#/auth" className="inline-flex w-fit rounded-xl bg-ink px-4 py-2 text-white hover:bg-indigoPop">
+      <a href="/auth" className="inline-flex w-fit rounded-xl bg-ink px-4 py-2 text-white hover:bg-indigoPop">
         {locale === "fr" ? "Connexion" : "Sign in"}
       </a>
     </div>

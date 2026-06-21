@@ -81,7 +81,7 @@ npm run smoke:full   # Lance API + preview puis exécute le smoke test
 
 ```text
 src/
-  App.jsx                  Navigation et routage hash
+  App.jsx                  Navigation SPA et routes propres avec compatibilité hash
   InteractiveLearning.jsx  Lab pédagogique interactif
   CurriculumHub.jsx        Catalogue des formations
   pages.jsx                Pages dashboard, profil, admin, auteur, etc.
@@ -139,7 +139,7 @@ Les migrations sont versionnées dans `supabase/migrations/` et doivent être ap
 
 - Les pages admin/auteur sont protégées côté API, mais leur expérience produit reste à renforcer.
 - Les gros fichiers doivent être découpés par domaine.
-- Le routage frontend reste encore basé sur les hashes et doit migrer vers des URLs propres.
+- Les anciens favoris `#/...` sont conservés par migration automatique vers les routes propres.
 - Le déploiement du workflow éditorial exige l’application préalable de sa migration Supabase.
 
 ## Roadmap
@@ -151,7 +151,7 @@ Un prompt maître prêt à lancer pour exécuter cette roadmap se trouve dans [`
 Les priorités restantes :
 
 1. Découper les derniers monolithes frontend/backend.
-2. Remplacer le routage hash par des routes propres compatibles avec les anciennes URLs.
+2. Poursuivre le découpage des pages historiques regroupées dans `pages.jsx`.
 3. Finaliser analytics privés, SEO et preuves de conformité.
 4. Appliquer les migrations, valider Supabase réel, puis promouvoir la release finale.
 

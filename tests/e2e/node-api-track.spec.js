@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 
 test("Node API track validates a strict request schema", async ({ page }) => {
-  await page.goto("/#/catalog");
+  await page.goto("/catalog");
   const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await consent.isVisible()) await consent.click();
   await expect(page.getByText(/Node\.js et API sécurisées|Node\.js and secure APIs/).first()).toBeVisible();
 
-  await page.goto("/#/learn/node-api/node-http/node-02-validation", {
+  await page.goto("/learn/node-api/node-http/node-02-validation", {
     waitUntil: "networkidle"
   });
   await expect(page.getByRole("heading", { name: /Valider paramètres et body|Validate parameters and body/ }).first()).toBeVisible();

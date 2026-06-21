@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 
 test("DevOps track validates a deterministic release command sequence", async ({ page }) => {
-  await page.goto("/#/catalog");
+  await page.goto("/catalog");
   const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await consent.isVisible()) await consent.click();
   await expect(page.getByText(/Déploiement et DevOps web|Web deployment and DevOps/).first()).toBeVisible();
 
-  await page.goto("/#/learn/devops-deployment/ops-foundations/ops-01-build", {
+  await page.goto("/learn/devops-deployment/ops-foundations/ops-01-build", {
     waitUntil: "networkidle"
   });
   await expect(page.getByRole("heading", { name: /Créer un build déterministe|Create a deterministic build/ }).first()).toBeVisible();

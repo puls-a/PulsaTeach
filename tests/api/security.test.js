@@ -279,4 +279,37 @@ describe("API security boundaries", () => {
     expect(revoked.body).toMatchObject({ valid: false, status: "revoked" });
     expect(revoked.body.certificate.revocationReason).toContain("invalidated");
   });
+
+  test("pseudonymizes learning events and documents aggregate privacy rules", async () => {
+    await request(app)
+      .post("/api/events")
+      .set("X-PulsaTeach-User-Id", "analytics-user")
+      .send({ eventType: "lesson_opened", lessonId: "lesson-1", trackId: "html" })
+      .expect(201);
+
+    const events = await request(app)
+      .get("/api/admin/learning-events")
+      .set("X-PulsaTeach-Admin-Key", "test-admin-key")
+      .expect(200);
+    const event = events.body.find((item) => item.lessonId === "lesson-1");
+    expect(event.userId).toBeUndefined();
+    expect(event.userKey).toMatch(/^[a-f0-9]{16}$/);
+
+    const identified = await request(app)
+      .get("/api/admin/learning-events?includeIdentity=true")
+      .set("X-PulsaTeach-Admin-Key", "test-admin-key")
+      .expect(200);
+    expect(identified.body.find((item) => item.lessonId === "lesson-1").userId).toBe("analytics-user");
+
+    const analytics = await request(app)
+      .get("/api/analytics")
+      .set("X-PulsaTeach-Admin-Key", "test-admin-key")
+      .expect(200);
+    expect(analytics.body.privacy).toMatchObject({
+      aggregation: "cohort",
+      minimumCohort: 3,
+      identifiersExposed: false,
+      eventRetentionDays: 180
+    });
+  });
 });

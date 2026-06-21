@@ -1,12 +1,12 @@
 import { Activity, BookOpen, Code2, Gamepad2, Map, Route, Trophy } from "lucide-react";
 
 const workspaceLinks = [
-  { href: "#/catalog", icon: BookOpen, label: { en: "Courses", fr: "Formations" } },
-  { href: "#/learn", icon: Code2, label: { en: "Lessons", fr: "Leçons" } },
-  { href: "#/path", icon: Route, label: { en: "My path", fr: "Mon parcours" } },
-  { href: "#/playground", icon: Gamepad2, label: { en: "Playground", fr: "Playground" } },
-  { href: "#/world", icon: Map, label: { en: "Challenges", fr: "Défis" } },
-  { href: "#/dashboard", icon: Activity, label: { en: "Progress", fr: "Progression" } }
+  { href: "/catalog", icon: BookOpen, label: { en: "Courses", fr: "Formations" } },
+  { href: "/learn", icon: Code2, label: { en: "Lessons", fr: "Leçons" } },
+  { href: "/path", icon: Route, label: { en: "My path", fr: "Mon parcours" } },
+  { href: "/playground", icon: Gamepad2, label: { en: "Playground", fr: "Playground" } },
+  { href: "/world", icon: Map, label: { en: "Challenges", fr: "Défis" } },
+  { href: "/dashboard", icon: Activity, label: { en: "Progress", fr: "Progression" } }
 ];
 
 export default function LearningShell({ locale = "en", kicker, title, description, stat, children }) {
@@ -22,7 +22,7 @@ export default function LearningShell({ locale = "en", kicker, title, descriptio
             </div>
             <div className="flex shrink-0 flex-wrap items-center gap-2">
               {stat && <div className="rounded-xl bg-indigo-50 px-4 py-2.5 text-sm font-bold text-indigoPop">{stat}</div>}
-              <a href="#/dashboard" className="inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-bold text-white hover:bg-indigoPop"><Trophy className="size-4" />{locale === "fr" ? "Ma progression" : "My progress"}</a>
+              <a href="/dashboard" className="inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-bold text-white hover:bg-indigoPop"><Trophy className="size-4" />{locale === "fr" ? "Ma progression" : "My progress"}</a>
             </div>
           </div>
 

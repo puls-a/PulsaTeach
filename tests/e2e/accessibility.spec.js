@@ -2,15 +2,15 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 const pages = [
-  { name: "catalog", path: "/#/catalog" },
-  { name: "signup", path: "/#/signup" },
-  { name: "glossary", path: "/#/glossary" },
-  { name: "review", path: "/#/review" },
-  { name: "projects", path: "/#/projects" },
-  { name: "certification", path: "/#/certification" },
-  { name: "studio", path: "/#/studio" },
-  { name: "lesson", path: "/#/learn/html/html-foundations/html-01-document-skeleton" },
-  { name: "playground", path: "/#/playground" }
+  { name: "catalog", path: "/catalog" },
+  { name: "signup", path: "/signup" },
+  { name: "glossary", path: "/glossary" },
+  { name: "review", path: "/review" },
+  { name: "projects", path: "/projects" },
+  { name: "certification", path: "/certification" },
+  { name: "studio", path: "/studio" },
+  { name: "lesson", path: "/learn/html/html-foundations/html-01-document-skeleton" },
+  { name: "playground", path: "/playground" }
 ];
 
 for (const entry of pages) {
@@ -18,6 +18,7 @@ for (const entry of pages) {
     await page.goto(entry.path);
     const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
     if (await consent.isVisible()) await consent.click();
+    await page.waitForTimeout(350);
 
     const results = await new AxeBuilder({ page })
       .exclude("iframe")

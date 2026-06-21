@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Download, Send, Settings, Trash2, Upload, UserRound } from "lucide-react";
 import { deleteAccount, exportAccountData, getUserSettings, saveUserSettings, uploadAvatar } from "./apiClient.js";
 import { signOutSupabase } from "./authState.js";
+import { navigate } from "./navigation.js";
 
 export default function AccountSettings({ locale = "fr" }) {
   const fr = locale === "fr";
@@ -69,7 +70,7 @@ export default function AccountSettings({ locale = "fr" }) {
       await signOutSupabase();
       localStorage.removeItem("pulsateach-learning-progress");
       localStorage.removeItem("pulsateach-user-id");
-      window.location.hash = "#/catalog";
+      navigate("/catalog");
     } catch {
       setStatus("delete-error");
     }

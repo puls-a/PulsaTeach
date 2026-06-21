@@ -119,7 +119,7 @@ export default function ReviewPage({ locale }) {
           <section className="surface mt-6" aria-live="polite">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm font-bold text-indigo-700">{fr ? `Question ${index + 1} sur ${session.length}` : `Question ${index + 1} of ${session.length}`}</p>
-              <a className="text-sm font-bold text-indigoPop underline" href={`#/learn/${item.trackId}/${item.moduleId}/${item.lessonId}`}>{fr ? "Revoir la leçon" : "Review lesson"}</a>
+              <a className="text-sm font-bold text-indigoPop underline" href={`/learn/${item.trackId}/${item.moduleId}/${item.lessonId}`}>{fr ? "Revoir la leçon" : "Review lesson"}</a>
             </div>
             <h2 className="mt-5 font-display text-2xl font-bold">{localize(item.prompt, locale)}</h2>
             <ReviewQuestionInput item={item} response={response} locale={locale} onChange={(value) => {

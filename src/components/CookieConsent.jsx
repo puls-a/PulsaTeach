@@ -63,7 +63,7 @@ export default function CookieConsent({ locale = "fr" }) {
         )}
 
         <div className="mt-3 grid grid-cols-1 gap-2 sm:mt-4 sm:flex sm:flex-wrap sm:justify-end">
-          <a href="#/cookies" className="order-4 inline-flex min-h-10 min-w-0 items-center justify-center px-2 text-center text-xs font-bold leading-tight text-indigoPop hover:underline sm:order-none sm:min-h-11 sm:px-3 sm:text-sm">
+          <a href="/cookies" className="order-4 inline-flex min-h-10 min-w-0 items-center justify-center px-2 text-center text-xs font-bold leading-tight text-indigoPop hover:underline sm:order-none sm:min-h-11 sm:px-3 sm:text-sm">
             {fr ? "Politique cookies" : "Cookie policy"}
           </a>
           <button type="button" onClick={() => setDetails((value) => !value)} className="secondary-button order-3 min-h-10 min-w-0 whitespace-normal px-2 py-2 text-center text-xs leading-tight sm:order-none sm:min-h-11 sm:px-3 sm:text-sm">

@@ -3,6 +3,7 @@ import { Award, CheckCircle2, KeyRound, Target, UserRound } from "lucide-react";
 import { getPublicCertificate, getUserSettings, saveUserSettings } from "./apiClient.js";
 import { useSupabaseSession } from "./authState.js";
 import { supabase } from "./supabaseClient.js";
+import { navigate } from "./navigation.js";
 
 export function OnboardingPage({ locale = "fr" }) {
   const fr = locale === "fr";
@@ -34,7 +35,7 @@ export function OnboardingPage({ locale = "fr" }) {
     try {
       await saveUserSettings({ ...form, onboardingCompleted: true });
       setStatus("saved");
-      window.location.hash = "#/dashboard";
+      navigate("/dashboard");
     } catch (error) {
       setStatus(error.message || "error");
     }
@@ -45,7 +46,7 @@ export function OnboardingPage({ locale = "fr" }) {
     return (
       <AccountState
         text={fr ? "Connecte-toi pour personnaliser ton parcours." : "Sign in to personalize your path."}
-        action={{ href: "#/signup", label: fr ? "Créer un compte" : "Create account" }}
+        action={{ href: "/signup", label: fr ? "Créer un compte" : "Create account" }}
       />
     );
   }

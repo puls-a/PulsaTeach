@@ -79,7 +79,7 @@ export function WorldPage({ locale }) {
             </div>
           ))}
         </div>
-        <a href="#/playground" className="primary-button mt-5 w-fit">
+        <a href="/playground" className="primary-button mt-5 w-fit">
           <Compass className="size-5" />
           {locale === "fr" ? "Commencer" : "Start"}
         </a>

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("quiz saves a reasoned answer, scores it and completes the lesson", async ({ page }) => {
-  await page.goto("/#/learn/html/html-a11y-final/html-10-accessibility-quiz");
+  await page.goto("/learn/html/html-a11y-final/html-10-accessibility-quiz");
   const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await consent.isVisible()) await consent.click();
 

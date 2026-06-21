@@ -33,7 +33,7 @@ test("Course Studio reviews, publishes and rolls back an immutable version histo
   const created = await createdResponse.json();
 
   try {
-    await page.goto("/#/studio");
+    await page.goto("/studio");
     const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
     if (await consent.isVisible()) await consent.click();
 
