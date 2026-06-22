@@ -70,7 +70,7 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
         }
         syncSessionUserId(result.data.session);
         if (result.data.session) {
-          window.location.assign(mode === "signup" ? "/auth/callback/onboarding" : "//dashboard");
+          window.location.assign(mode === "signup" ? "/auth/callback/onboarding" : "/dashboard");
         } else {
           setStatus({
             type: "confirmation",

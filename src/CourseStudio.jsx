@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowDown,
-  ArrowUp,
   Archive,
   BookOpen,
   CalendarClock,
@@ -20,6 +18,9 @@ import {
 } from "lucide-react";
 import { createCourse, deleteCourse, getCourseVersionDiff, listCourses, listCourseVersions, rollbackCourse, updateCourse } from "./apiClient.js";
 import { createEmptyCourseCurriculum, createLessonDraft, createModuleDraft, createQuizQuestionDraft, createTestDraft, validateCourseForPublication } from "./courseSchema.js";
+import { CourseEditor, EditorHeader, ListField, LocalizedField, ModuleEditor, TextField } from "./components/CourseStudioFields.jsx";
+import LessonPreview from "./components/CourseStudioPreview.jsx";
+import { formatAnswer, formatChoices, moveItem, parseAnswer, parseChoices, updateLocaleObject } from "./courseStudioUtils.js";
 
 export default function CourseStudio({ locale = "fr" }) {
   const fr = locale === "fr";
@@ -385,39 +386,6 @@ export default function CourseStudio({ locale = "fr" }) {
   );
 }
 
-function CourseEditor({ course, locale, onChange, onAddModule }) {
-  const fr = locale === "fr";
-  return (
-    <section className="surface">
-      <h2 className="font-display text-3xl font-bold">{fr ? "Identité de la formation" : "Course identity"}</h2>
-      <div className="mt-5 grid gap-4 md:grid-cols-2">
-        <LocalizedField label="Titre" value={course.title} onChange={(title) => onChange((next) => ({ ...next, title }))} />
-        <LocalizedField label="Promesse pédagogique" value={course.description} multiline onChange={(description) => onChange((next) => ({ ...next, description }))} />
-        <label className="grid gap-2 text-sm font-bold">{fr ? "Niveau" : "Level"}<select value={course.level} onChange={(event) => onChange((next) => ({ ...next, level: event.target.value }))} className="form-control"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
-      </div>
-      <button type="button" onClick={onAddModule} className="primary-button mt-6"><Plus className="size-4" />{fr ? "Ajouter le premier module" : "Add first module"}</button>
-    </section>
-  );
-}
-
-function ModuleEditor({ module, locale, onChange, onAddLesson, onMove, onRemove }) {
-  const fr = locale === "fr";
-  return (
-    <section className="surface">
-      <EditorHeader icon={BookOpen} title={fr ? "Configurer le module" : "Configure module"} onMove={onMove} onRemove={onRemove} />
-      <div className="mt-5 grid gap-4">
-        <LocalizedField label="Titre" value={module.title} onChange={(title) => onChange({ title })} />
-        <LocalizedField label={fr ? "Pourquoi ce module compte" : "Why this module matters"} value={module.description} multiline onChange={(description) => onChange({ description })} />
-        <LocalizedField label={fr ? "Livrable final" : "Final deliverable"} value={module.deliverable} onChange={(deliverable) => onChange({ deliverable })} />
-        <ListField label={fr ? "Critères de maîtrise FR" : "Mastery criteria FR"} value={module.mastery?.fr || []} onChange={(items) => onChange({ mastery: { ...(module.mastery || {}), fr: items } })} />
-      </div>
-      <div className="mt-6 flex flex-wrap gap-2">
-        {["html", "css", "js", "dom", "typescript", "react", "node", "sql", "terminal", "text", "quiz", "project"].map((type) => <button key={type} type="button" onClick={() => onAddLesson(type)} className="secondary-button"><Plus className="size-4" />{type}</button>)}
-      </div>
-    </section>
-  );
-}
-
 function LessonEditor({ lesson, locale, onChange, onMove, onRemove }) {
   const fr = locale === "fr";
   const courseFr = lesson.course?.fr || {};
@@ -525,109 +493,4 @@ function TestsEditor({ tests, onChange, locale }) {
       </div>
     </fieldset>
   );
-}
-
-function LessonPreview({ lesson, locale }) {
-  const copy = lesson.course?.[locale] || lesson.course?.fr || {};
-  return (
-    <aside className="h-fit rounded-2xl border border-indigo-200 bg-white p-5 shadow-sm 2xl:sticky 2xl:top-24">
-      <div className="flex items-center gap-2 text-sm font-bold text-indigoPop"><Eye className="size-4" />Prévisualisation apprenant</div>
-      <h2 className="mt-4 font-display text-3xl font-bold">{lesson.title?.[locale] || lesson.title?.fr}</h2>
-      <p className="mt-3 leading-7 text-slate-600">{copy.introduction || lesson.brief?.[locale]}</p>
-      <PreviewList title="Objectifs" items={copy.objectives} />
-      <PreviewList title="Vocabulaire" items={copy.vocabulary} />
-      <PreviewList title="À retenir" items={copy.rules} />
-      {lesson.type === "quiz" ? (
-        <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <p className="font-bold">{lesson.questions?.length || 0} questions · {lesson.passingScore || 70}% requis</p>
-          <ul className="mt-3 grid gap-2 text-sm text-slate-600">{(lesson.questions || []).map((question, index) => <li key={question.id}>{index + 1}. {question.prompt?.[locale] || question.prompt?.fr}</li>)}</ul>
-        </div>
-      ) : <div className="mt-5 overflow-hidden rounded-xl border border-slate-200">
-        <div className="bg-slate-900 px-4 py-2 text-xs font-bold text-white">Éditeur · {lesson.type}</div>
-        <pre className="max-h-64 overflow-auto bg-slate-950 p-4 text-xs leading-6 text-slate-100"><code>{lesson.starterCode}</code></pre>
-      </div>}
-      {lesson.type !== "quiz" && <div className="mt-4 rounded-xl bg-slate-50 p-4">
-        <p className="font-bold">{lesson.tests?.length || 0} tests automatiques</p>
-        <ul className="mt-2 grid gap-1 text-xs text-slate-600">{(lesson.tests || []).map((test, index) => <li key={`${test.label}-${index}`}>• {test.label}</li>)}</ul>
-      </div>}
-    </aside>
-  );
-}
-
-function PreviewList({ title, items = [] }) {
-  if (!items.length) return null;
-  return <div className="mt-5"><h3 className="font-bold">{title}</h3><ul className="mt-2 grid gap-2 text-sm text-slate-600">{items.map((item, index) => <li key={`${item}-${index}`} className="flex gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-green-600" />{typeof item === "string" ? item : JSON.stringify(item)}</li>)}</ul></div>;
-}
-
-function EditorHeader({ icon: Icon, title, onMove, onRemove }) {
-  return (
-    <div className="flex flex-wrap items-center gap-3">
-      <Icon className="size-7 text-indigoPop" />
-      <h2 className="min-w-0 flex-1 font-display text-3xl font-bold">{title}</h2>
-      <button type="button" onClick={() => onMove(-1)} className="icon-button" aria-label="Monter"><ArrowUp className="size-4" /></button>
-      <button type="button" onClick={() => onMove(1)} className="icon-button" aria-label="Descendre"><ArrowDown className="size-4" /></button>
-      <button type="button" onClick={onRemove} className="icon-button text-red-600" aria-label="Supprimer"><Trash2 className="size-4" /></button>
-    </div>
-  );
-}
-
-function LocalizedField({ label, value = {}, onChange, multiline = false }) {
-  return (
-    <fieldset className="grid gap-3 rounded-xl border border-slate-200 p-3">
-      <legend className="px-2 text-sm font-bold">{label}</legend>
-      <TextField label="FR" value={value?.fr || ""} multiline={multiline} onChange={(fr) => onChange({ ...value, fr })} />
-      <TextField label="EN" value={value?.en || ""} multiline={multiline} onChange={(en) => onChange({ ...value, en })} />
-    </fieldset>
-  );
-}
-
-function TextField({ label, value, onChange, multiline = false, code = false }) {
-  const Component = multiline ? "textarea" : "input";
-  return <label className="grid gap-2 text-sm font-bold">{label}<Component value={value} onChange={(event) => onChange(event.target.value)} className={`form-control ${multiline ? "min-h-28 resize-y" : ""} ${code ? "font-mono text-xs leading-6" : ""}`} /></label>;
-}
-
-function ListField({ label, value = [], onChange }) {
-  return <TextField label={label} value={value.join("\n")} multiline onChange={(text) => onChange(text.split("\n").map((item) => item.trim()).filter(Boolean))} />;
-}
-
-function updateLocaleObject(source = {}, locale, patch) {
-  return { ...source, [locale]: { ...(source[locale] || {}), ...patch } };
-}
-
-function formatChoices(choices = []) {
-  return choices.map((choice) => `${choice.id} | ${choice.label?.fr || ""} | ${choice.label?.en || ""}`).join("\n");
-}
-
-function parseChoices(value) {
-  return value.split("\n").map((line) => {
-    const [id, fr, en] = line.split("|").map((item) => item.trim());
-    return { id, label: { fr: fr || id, en: en || fr || id } };
-  }).filter((choice) => choice.id);
-}
-
-function formatAnswer(answer) {
-  if (Array.isArray(answer)) return answer.join(", ");
-  if (answer && typeof answer === "object") return JSON.stringify(answer);
-  return String(answer ?? "");
-}
-
-function parseAnswer(value, type) {
-  if (type === "multiple" || type === "ordering") return value.split(",").map((item) => item.trim()).filter(Boolean);
-  if (type === "matching") {
-    try {
-      return JSON.parse(value);
-    } catch {
-      return {};
-    }
-  }
-  return value.trim();
-}
-
-function moveItem(items, id, direction) {
-  const index = items.findIndex((item) => item.id === id);
-  const target = index + direction;
-  if (index < 0 || target < 0 || target >= items.length) return items;
-  const next = [...items];
-  [next[index], next[target]] = [next[target], next[index]];
-  return next;
 }

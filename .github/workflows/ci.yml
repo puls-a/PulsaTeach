@@ -18,6 +18,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run validate
       - run: npm run test:e2e
+      - run: npm run audit:lighthouse
 
   supabase-e2e:
     runs-on: ubuntu-latest

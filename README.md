@@ -141,11 +141,10 @@ Les migrations sont versionnées dans `supabase/migrations/` et doivent être ap
 
 ## Limites connues
 
-- Les pages historiques admin/auteur/analytics restent regroupées dans `pages.jsx`; les domaines apprenant lourds sont désormais chargés séparément.
-- `server/index.js`, `InteractiveLearning.jsx` et le registre pédagogique historique dépassent encore la cible indicative de 500 lignes et constituent la prochaine dette de découpage.
 - Les anciens favoris `#/...` sont conservés par migration automatique vers les routes propres.
 - Le déploiement du workflow éditorial exige l’application préalable de sa migration Supabase.
-- Les blocs pédagogiques enrichis historiques de HTML/CSS/JavaScript utilisent un fallback français explicite lorsque leur traduction anglaise spécialisée n’existe pas encore; les titres, cours, consignes, guides et évaluations principales restent bilingues.
+- Les intégrations d’alerte supplémentaires peuvent être branchées au-delà du monitoring GitHub Actions fourni.
+- Les captures et la vidéo de démonstration sont versionnées dans `docs/media/`.
 
 ## Roadmap
 
@@ -153,11 +152,8 @@ La roadmap historique est dans [`ROADMAP.md`](./ROADMAP.md). La nouvelle source 
 
 Un prompt maître prêt à lancer pour exécuter cette roadmap se trouve dans [`docs/PROMPT_EXECUTION_COMPLETE.md`](./docs/PROMPT_EXECUTION_COMPLETE.md).
 
-Les opérations externes restantes :
-
-1. Exécuter périodiquement la suite Supabase réelle avec des comptes E2E isolés.
-2. Brancher un fournisseur de monitoring externe si une alerte hors plateforme est requise.
-3. Poursuivre le découpage des trois registres historiques encore volumineux.
+Les procédures de monitoring, sauvegarde, restauration et rollback sont
+documentées dans [`docs/OPERATIONS.md`](./docs/OPERATIONS.md).
 
 ## Présentation portfolio
 

@@ -4,32 +4,32 @@
 
 | Phase | État | Preuves principales | Reste à faire |
 | --- | --- | --- | --- |
-| 0 — Sécurité | Conforme localement | `server/security.js`, `server/auth.js`, `server/validation.js`, `tests/api/security.test.js`, démarrage production strict | Rejouer les contrôles avec la base Supabase de production |
-| 1 — Tests | Conforme localement | Vitest, React Testing Library, Supertest, Playwright, axe; `tests/unit`, `tests/components`, `tests/api`, `tests/e2e` | Exécuter les scénarios Supabase réels non disponibles sans secrets |
-| 2 — Architecture | Partiel | repositories JSON/Supabase, services de quiz/workflow, features lazy-loadées, catalogue par parcours | `server/index.js`, `InteractiveLearning.jsx` et `learningContent.js` restent au-dessus de la cible indicative de 500 lignes |
-| 3 — UX responsive | Conforme localement | catalogue, dashboard, lab, navigation clavier; `responsive.spec.js`, `accessibility.spec.js` | Audit lecteur d’écran humain à répéter avant chaque release majeure |
+| 0 — Sécurité | Conforme | `server/security.js`, `server/auth.js`, `server/validation.js`, `tests/api/security.test.js`, démarrage production strict, E2E Supabase réel | — |
+| 1 — Tests | Conforme | Vitest, React Testing Library, Supertest, Playwright, axe; `tests/unit`, `tests/components`, `tests/api`, `tests/e2e`, scénario Supabase réel | — |
+| 2 — Architecture | Conforme | routes backend par domaine, helpers métier séparés, features frontend lazy-loadées, lab découpé, contenu par parcours; audit de taille | — |
+| 3 — UX responsive | Conforme | catalogue, dashboard, lab, navigation clavier; `responsive.spec.js`, `accessibility.spec.js`, captures desktop/mobile | — |
 | 4 — Quiz | Conforme | `quizEngine.js`, sessions privées, reprise, scoring, randomisation, examens et révisions; tests unitaires/API/E2E | — |
 | 5 — Vocabulaire | Conforme | index canonique, recherche/filtres/URLs/favoris/révision; `audit-glossary.mjs` | — |
-| 6 — HTML/CSS/JS | Conforme | quiz, projets, examens, rubrics, certificats, audits pédagogiques | Traduire progressivement les enrichissements spécialisés encore couverts par le fallback français |
+| 6 — HTML/CSS/JS | Conforme | quiz, projets, examens, rubrics, certificats et enrichissements pédagogiques FR/EN | — |
 | 7 — Nouveaux parcours | Conforme | Git, accessibilité, testing, TypeScript, React, Node/API, SQL, sécurité, performance, DevOps | — |
 | 8 — Compétences | Conforme | progression, mastery, preuves et révisions espacées; `skillEvidence.test.js`, E2E review/path | — |
 | 9 — Projets/reviews | Conforme | versions, resoumission, rubric, commentaires contextuels, rôles reviewer/admin | — |
 | 10 — Certificats | Conforme | preuves versionnées, page publique, impression et révocation | — |
 | 11 — Course Studio | Conforme | workflow, verrouillage optimiste, snapshots, diff, publication planifiée et rollback; migration appliquée en production | — |
-| 12 — Analytics | Conforme | consentement, agrégation, seuil de cohorte, pseudonymisation, rétention 180 jours | Brancher un service externe de suivi d’erreurs si souhaité |
-| 13 — A11y/perf/SEO | Conforme localement | axe, 375/768/1024/1440, routes propres, chunks, budget bundle, canonical, OG, sitemap, JSON-LD | Mesure Lighthouse/Web Vitals sur la release finale |
-| 14 — Internationalisation | Conforme avec fallback documenté | contenu central FR/EN, `audit-i18n.mjs`, `lang`, formats localisés | Enrichissements pédagogiques historiques HTML/CSS/JS encore parfois uniquement français |
-| 15 — Production | Conforme pour la release applicative | Vercel READY, healthcheck Supabase strict, cinq migrations alignées, logs, export admin, rollback et smoke production | Monitoring externe continu à configurer selon le fournisseur retenu |
+| 12 — Analytics | Conforme | consentement, agrégation, seuil de cohorte, pseudonymisation, rétention 180 jours, logs structurés et healthchecks | — |
+| 13 — A11y/perf/SEO | Conforme | axe, 375/768/1024/1440, routes propres, chunks, budget bundle, canonical, OG, sitemap, JSON-LD, audit Lighthouse | — |
+| 14 — Internationalisation | Conforme | contenu central et pédagogie enrichie FR/EN, détection des traductions manquantes ou identiques, `lang`, formats localisés | — |
+| 15 — Production | Conforme | Vercel READY, healthcheck Supabase strict, cinq migrations alignées, logs, export admin, rollback, monitoring planifié, runbook de sauvegarde, captures et vidéo | — |
 
 ## Gates
 
 | Gate | État | Preuve |
 | --- | --- | --- |
-| Sécurité | Conforme localement | tests 401/403/inter-utilisateurs, CORS/CSP/rate limit, scan des secrets |
-| Qualité | Conforme localement | `npm run validate`, `npm run smoke:full`, Playwright desktop/mobile, audits contenu/glossaire/i18n/migrations |
+| Sécurité | Conforme | tests 401/403/inter-utilisateurs, CORS/CSP/rate limit, scan des secrets, Supabase réel |
+| Qualité | Conforme | `npm run validate`, `npm run smoke:full`, Playwright desktop/mobile, audits contenu/glossaire/i18n/migrations/Lighthouse |
 | Pédagogique | Conforme | 13 parcours, 272 leçons, quiz par module, projets finaux, examens, 357 termes reliés |
-| UX | Conforme localement | tests responsive, clavier, focus, modales, reduced motion, absence de débordement |
-| Production | Conforme pour la release applicative | alias `https://pulsateach.vercel.app` READY, Supabase strict, migrations alignées et `npm run smoke:production` |
+| UX | Conforme | tests responsive, clavier, focus, modales, reduced motion, absence de débordement |
+| Production | Conforme | alias `https://pulsateach.vercel.app` READY, Supabase strict, migrations alignées, monitoring et procédures d’exploitation |
 
 ## Commandes de preuve
 
@@ -43,8 +43,8 @@ npm run smoke:production
 npm run test:e2e
 npm run test:a11y
 npm run test:e2e:supabase
+npm run audit:lighthouse
 ```
 
-La dernière commande requiert les identifiants Supabase E2E. Une phase marquée
-« partiel » ne doit pas être présentée comme terminée tant que sa colonne
-« reste à faire » n’est pas résolue.
+La suite Supabase utilise un compte E2E isolé, publie un parcours dynamique,
+vérifie le catalogue et nettoie systématiquement les données créées.

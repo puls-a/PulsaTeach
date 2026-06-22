@@ -18,6 +18,7 @@ dist/
 .vite*.log
 .vite-dev.*.log
 .api.*.log
+debug.log
 data/
 playwright-report/
 playwright-report-supabase/

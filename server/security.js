@@ -3,7 +3,14 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
 const isProduction = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
-const localOrigins = ["http://127.0.0.1:5173", "http://127.0.0.1:5188", "http://localhost:5173"];
+const localOrigins = [
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5188",
+  "http://127.0.0.1:5190",
+  "http://localhost:5173",
+  "http://localhost:5188",
+  "http://localhost:5190"
+];
 const configuredOrigins = String(process.env.PULSATEACH_ALLOWED_ORIGINS || "")
   .split(",")
   .map((origin) => origin.trim())
