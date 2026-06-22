@@ -3,6 +3,7 @@ import { supabase } from "./supabaseClient.js";
 const apiBase = String(import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 const adminAccessKey = import.meta.env.VITE_ADMIN_ACCESS_KEY;
 const userIdKey = "pulsateach-user-id";
+const localIdentityMode = import.meta.env.VITE_AUTH_MODE === "local";
 
 export function getUserId() {
   const existing = localStorage.getItem(userIdKey);
@@ -270,12 +271,19 @@ export async function deleteLessonDraft(id) {
 async function request(path, options = {}) {
   const headers = new Headers(options.headers || {});
   headers.set("X-PulsaTeach-User-Id", getUserId());
+  let token = "";
   if (supabase) {
     const { data } = await supabase.auth.getSession();
-    const token = data.session?.access_token;
+    token = data.session?.access_token || "";
     if (token) headers.set("Authorization", `Bearer ${token}`);
   }
   if (adminAccessKey) headers.set("X-PulsaTeach-Admin-Key", adminAccessKey);
+  if (!token && !adminAccessKey && !localIdentityMode && requiresAuthentication(path, options.method)) {
+    const error = new Error("Authentication required");
+    error.code = "AUTH_REQUIRED";
+    error.status = 401;
+    throw error;
+  }
 
   let response;
   try {
@@ -294,4 +302,32 @@ async function request(path, options = {}) {
     throw error;
   }
   return response.json();
+}
+
+function requiresAuthentication(path, method = "GET") {
+  const normalizedMethod = String(method || "GET").toUpperCase();
+  if (path.startsWith("/api/certificates/public/")) return false;
+  if (path === "/api/courses" && normalizedMethod === "GET") return false;
+  return [
+    "/api/me",
+    "/api/account",
+    "/api/admin",
+    "/api/analytics",
+    "/api/attempts",
+    "/api/certificates",
+    "/api/events",
+    "/api/lesson-drafts",
+    "/api/path",
+    "/api/profile",
+    "/api/progress",
+    "/api/quizzes",
+    "/api/submissions",
+    "/api/users"
+  ].some((prefix) => path === prefix || path.startsWith(`${prefix}/`) || path.startsWith(`${prefix}?`))
+    || (path.startsWith("/api/courses/") && (
+      normalizedMethod !== "GET"
+      || path.includes("/versions")
+      || path.endsWith("/rollback")
+    ))
+    || (path === "/api/courses" && normalizedMethod !== "GET");
 }

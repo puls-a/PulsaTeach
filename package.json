@@ -19,6 +19,7 @@
     "audit:bundle": "node scripts/audit-bundle.mjs",
     "smoke": "node scripts/smoke.mjs",
     "smoke:full": "node scripts/smoke-full.mjs",
+    "smoke:production": "node scripts/smoke-production.mjs",
     "dev:e2e": "node scripts/e2e-server.mjs",
     "dev:e2e:supabase": "cross-env VITE_AUTH_MODE=supabase PULSATEACH_STORAGE=supabase-strict VITE_API_URL=http://127.0.0.1:4190 PORT=4190 concurrently \"npm run server\" \"npm run dev -- --port 5190\"",
     "test:e2e": "playwright test",

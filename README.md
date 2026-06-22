@@ -104,6 +104,7 @@ Avant de pousser une modification importante :
 ```bash
 npm run validate
 npm run smoke:full
+npm run smoke:production
 ```
 
 Le smoke test simple suppose que le frontend et l'API sont déjà démarrés. Le smoke test complet démarre l'API et le preview Vite automatiquement.
@@ -154,9 +155,9 @@ Un prompt maître prêt à lancer pour exécuter cette roadmap se trouve dans [`
 
 Les opérations externes restantes :
 
-1. Appliquer les migrations Supabase de production.
-2. Exécuter la suite Supabase réelle avec les secrets E2E.
-3. Promouvoir la release finale et vérifier le monitoring.
+1. Exécuter périodiquement la suite Supabase réelle avec des comptes E2E isolés.
+2. Brancher un fournisseur de monitoring externe si une alerte hors plateforme est requise.
+3. Poursuivre le découpage des trois registres historiques encore volumineux.
 
 ## Présentation portfolio
 
