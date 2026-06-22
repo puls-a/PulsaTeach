@@ -29,7 +29,7 @@
 | Qualité | Conforme localement | `npm run validate`, `npm run smoke:full`, Playwright desktop/mobile, audits contenu/glossaire/i18n/migrations |
 | Pédagogique | Conforme | 13 parcours, 272 leçons, quiz par module, projets finaux, examens, 357 termes reliés |
 | UX | Conforme localement | tests responsive, clavier, focus, modales, reduced motion, absence de débordement |
-| Production | Conforme pour la release applicative | déploiement `dpl_D74zZVHXs6EZ2PRbMfRse331Euey`, Supabase strict, migrations alignées et `npm run smoke:production` |
+| Production | Conforme pour la release applicative | alias `https://pulsateach.vercel.app` READY, Supabase strict, migrations alignées et `npm run smoke:production` |
 
 ## Commandes de preuve
 
