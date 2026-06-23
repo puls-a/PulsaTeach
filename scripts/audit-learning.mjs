@@ -16,6 +16,12 @@ const requiredPedagogy = [
 
 const richTracks = ["html", "css", "javascript", "git", "accessibility", "testing", "typescript", "react", "node-api", "sql-postgresql", "web-security", "web-performance", "devops-deployment"];
 const failures = [];
+const forbiddenBoilerplate = [
+  "répond à un problème concret du parcours",
+  "partir du besoin utilisateur.",
+  "applique la correction minimale.",
+  "conserver une preuve reproductible."
+];
 
 for (const trackId of richTracks) {
   const track = learningTracks.find((item) => item.id === trackId);
@@ -47,6 +53,10 @@ for (const trackId of richTracks) {
       if ((lesson.pedagogy?.fr?.hints?.length || 0) < 3) failures.push(`${lesson.id}: needs at least 3 progressive hints`);
       if ((lesson.pedagogy?.fr?.correction?.length || 0) < 3) failures.push(`${lesson.id}: explained correction is too short`);
       if (!lesson.course?.fr?.introduction) failures.push(`${lesson.id}: missing course introduction`);
+      const serializedLesson = JSON.stringify({ course: lesson.course?.fr, pedagogy: lesson.pedagogy?.fr }).toLowerCase();
+      for (const phrase of forbiddenBoilerplate) {
+        if (serializedLesson.includes(phrase)) failures.push(`${lesson.id}: generic boilerplate remains: "${phrase}"`);
+      }
       if ((lesson.course?.fr?.sections?.length || 0) < 3) failures.push(`${lesson.id}: course needs at least 3 specific sections`);
       if (lesson.type === "project" && (lesson.rubric?.fr?.length || 0) < 4) failures.push(`${lesson.id}: project rubric needs at least 4 criteria`);
       if (lesson.type === "project" && lesson.durationMin < 90) failures.push(`${lesson.id}: project duration is not realistic`);

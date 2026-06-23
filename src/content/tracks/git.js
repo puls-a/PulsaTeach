@@ -19,7 +19,7 @@ export const gitTrack = {
   prerequisites: { fr: ["Savoir utiliser des fichiers et dossiers", "Connaître quelques commandes de terminal"], en: ["Know how to use files and folders", "Know a few terminal commands"] },
   outcomes: { fr: ["Créer un historique lisible", "Travailler avec des branches", "Collaborer par pull request", "Automatiser une vérification GitHub Actions"], en: ["Create readable history", "Work with branches", "Collaborate through pull requests", "Automate a GitHub Actions check"] },
   capstone: { fr: "Publier un dépôt portfolio avec historique, branches, pull request et CI.", en: "Publish a portfolio repository with history, branches, pull request, and CI." },
-  certification: { fr: ["Valider les quatre quiz", "Livrer les deux mini-projets", "Réussir l’examen final", "Livrer le dépôt final"], en: ["Pass all four quizzes", "Ship both mini-projects", "Pass the final exam", "Ship the final repository"] },
+  certification: { fr: ["Livrer les deux mini-projets", "Réussir l’examen final", "Livrer le dépôt final"], en: ["Ship both mini-projects", "Pass the final exam", "Ship the final repository"] },
   modules: [
     gitModule("git-foundations", ["Fondations et historique", "Foundations and history"], [
       terminalLesson("git-01-terminal", ["Se repérer dans le terminal", "Navigate the terminal"], ["Crée un dossier de travail et place-toi dedans.", "Create a working folder and enter it."], "pwd\nls\nmkdir pulsa-git\ncd pulsa-git", ["pwd", "mkdir", "cd"], [sharedVocabulary.repository, ["chemin", "path", "Adresse d’un fichier ou dossier.", "The address of a file or folder."]], ["terminal", "filesystem"]),

@@ -6,7 +6,6 @@ test("a failed quiz question enters spaced review and receives a new due date", 
   if (await consent.isVisible()) await consent.click();
 
   await page.getByRole("button", { name: /placeholder seulement|placeholder only/ }).click();
-  await page.getByLabel(/Explique ton choix|Explain your choice/).fill("Je vérifie volontairement le chemin de reprise après une erreur.");
   await page.getByRole("button", { name: /Valider|Check/ }).click();
   await expect(page.getByText(/Score final : 0|Final score: 0/)).toBeVisible();
 

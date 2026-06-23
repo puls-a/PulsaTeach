@@ -375,7 +375,7 @@ function Footer({ locale }) {
           <a href="/cookies">Cookies</a>
           <a href="/terms">{locale === "fr" ? "Conditions" : "Terms"}</a>
           <a href="/legal">{locale === "fr" ? "Mentions légales" : "Legal notice"}</a>
-          <button type="button" onClick={openPrivacySettings} className="font-semibold hover:text-ink">{locale === "fr" ? "Gérer mes choix" : "Manage choices"}</button>
+          <button type="button" onClick={openPrivacySettings} className="font-semibold hover:text-ink">{locale === "fr" ? "Stockages utilisés" : "Storage used"}</button>
         </div>
       </div>
     </footer>

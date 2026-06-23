@@ -22,7 +22,7 @@ import {
   readStoredJson
 } from "./features/learn/learningState.js";
 import { CompletionBanner, difficultyLabel, NotesPanel, SkillChips } from "./features/learn/LearningShared.jsx";
-import { CourseChapter, PedagogyWorkshop } from "./features/learn/LearningPedagogy.jsx";
+import { CourseChapter } from "./features/learn/LearningPedagogy.jsx";
 import { FocusedLearningLayout } from "./features/learn/LearningLayout.jsx";
 
 const progressKey = "pulsateach-learning-progress";
@@ -331,7 +331,7 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
   };
 
   return (
-    <section className="surface text-ink">
+    <section className="surface min-w-0 overflow-hidden p-4 text-ink sm:p-6">
       <div className="flex flex-wrap items-center gap-3">
         <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold uppercase text-indigoPop">quiz</span>
         <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">{lesson.xp} XP</span>
@@ -346,17 +346,19 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
           {isBookmarked ? (locale === "fr" ? "Sauvé" : "Saved") : (locale === "fr" ? "Favori" : "Save")}
         </button>
       </div>
-      <h3 className="mt-4 font-display text-4xl font-bold">{lesson.title[locale]}</h3>
-      <p className="mt-3 max-w-3xl text-lg font-bold leading-8 text-ink/70">{lesson.brief[locale]}</p>
+      <h3 className="mt-4 font-display text-3xl font-bold leading-tight sm:text-4xl">{lesson.title[locale]}</h3>
+      <p className="mt-3 max-w-3xl text-base font-semibold leading-7 text-ink/70 sm:text-lg">{lesson.brief[locale]}</p>
       <SkillChips skills={lesson.skills} />
-      <CourseChapter course={lesson.course} theory={lesson.theory} locale={locale} />
-      <PedagogyWorkshop pedagogy={lesson.pedagogy} locale={locale} />
-      <div className="muted-surface mt-6">
-        <div className="flex items-center justify-between gap-3">
+      <details className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+        <summary className="cursor-pointer text-sm font-bold text-slate-700">{locale === "fr" ? "Besoin de réviser avant le bilan ?" : "Need a quick review first?"}</summary>
+        <CourseChapter course={lesson.course} theory={lesson.theory} locale={locale} />
+      </details>
+      <div className="muted-surface mt-4 min-w-0 p-3 sm:mt-6 sm:p-5">
+        <div className="flex min-w-0 items-center justify-between gap-3">
           <p className="text-sm font-bold text-indigoPop">{locale === "fr" ? "Question" : "Question"} {draft.currentIndex + 1}/{quiz.questions.length}</p>
-          <div className="h-2 w-40 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-indigoPop" style={{ width: `${((draft.currentIndex + 1) / quiz.questions.length) * 100}%` }} /></div>
+          <div className="h-2 min-w-16 flex-1 overflow-hidden rounded-full bg-slate-200 sm:max-w-40"><div className="h-full rounded-full bg-indigoPop" style={{ width: `${((draft.currentIndex + 1) / quiz.questions.length) * 100}%` }} /></div>
         </div>
-        <p className="mt-4 font-display text-2xl font-bold">{localize(question.prompt, locale)}</p>
+        <p className="mt-4 break-words font-display text-xl font-bold leading-snug sm:text-2xl">{localize(question.prompt, locale)}</p>
         {question.code && <pre className="mt-4 overflow-x-auto rounded-xl bg-slate-950 p-4 text-sm text-indigo-100"><code>{question.code}</code></pre>}
         <QuestionInput question={question} response={response} locale={locale} onChange={setResponse} />
         {question.requiresRationale && <>
@@ -375,20 +377,10 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
           />
           <p className="mt-2 text-xs font-semibold text-slate-600">{locale === "fr" ? "La justification force à raisonner au-delà de la mémorisation." : "The explanation makes you reason beyond memorization."}</p>
         </>}
-        <button
-          type="button"
-          disabled={!canValidate}
-          onClick={validateCurrent}
-          className="primary-button mt-5 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Play className="size-5" />
-          {locale === "fr" ? "Valider" : "Check"}
-        </button>
-        {questionFeedback && draft.currentIndex < quiz.questions.length - 1 && (
-          <button type="button" onClick={() => setDraft((current) => ({ ...current, currentIndex: current.currentIndex + 1 }))} className="secondary-button ml-3 mt-5">
-            {locale === "fr" ? "Question suivante" : "Next question"}
-          </button>
-        )}
+        <div className="mt-5 grid gap-2 sm:flex">
+          <button type="button" disabled={!canValidate} onClick={validateCurrent} className="primary-button w-full disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"><Play className="size-5" />{locale === "fr" ? "Valider" : "Check"}</button>
+          {questionFeedback && draft.currentIndex < quiz.questions.length - 1 && <button type="button" onClick={() => setDraft((current) => ({ ...current, currentIndex: current.currentIndex + 1 }))} className="secondary-button w-full sm:w-auto">{locale === "fr" ? "Question suivante" : "Next question"}</button>}
+        </div>
       </div>
       {questionFeedback && (
         <div className={`mt-5 rounded-xl border p-4 text-sm font-semibold ${questionFeedback.correct ? "border-green-200 bg-green-50 text-green-800" : "border-red-200 bg-red-50 text-red-800"}`} role="status">
@@ -398,7 +390,7 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
       )}
       {finalScore && <div className={`mt-5 rounded-xl border p-4 font-bold ${finalScore.passed ? "border-green-200 bg-green-50 text-green-800" : "border-amber-200 bg-amber-50 text-amber-900"}`}>{locale === "fr" ? `Score final : ${finalScore.percent} %` : `Final score: ${finalScore.percent}%`}</div>}
       {finalScore?.passed && <CompletionBanner locale={locale} onNext={onNext} hasNext={hasNext} />}
-      <NotesPanel lessonId={lesson.id} locale={locale} note={note} setNote={setNote} />
+      <div className="mt-5"><NotesPanel lessonId={lesson.id} locale={locale} note={note} setNote={setNote} /></div>
     </section>
   );
 }

@@ -4,8 +4,16 @@ const progressKey = "pulsateach-learning-progress";
 const bookmarksKey = "pulsateach-learning-bookmarks";
 
 export function getNextLesson(track, moduleId, lessonId) {
-  const flat = track.modules.flatMap((module) => module.lessons.map((lesson) => ({ moduleId: module.id, lessonId: lesson.id })));
+  const flat = track.modules.flatMap((module) => module.lessons
+    .filter((lesson) => lesson.type !== "quiz" || lesson.purpose === "exam")
+    .map((lesson) => ({ moduleId: module.id, lessonId: lesson.id })));
   const index = flat.findIndex((item) => item.moduleId === moduleId && item.lessonId === lessonId);
+  if (index < 0) {
+    const moduleIndex = track.modules.findIndex((module) => module.id === moduleId);
+    const next = track.modules.slice(moduleIndex + 1)
+      .flatMap((module) => module.lessons.filter((lesson) => lesson.type !== "quiz").map((lesson) => ({ moduleId: module.id, lessonId: lesson.id })))[0];
+    return next || null;
+  }
   return index >= 0 ? flat[index + 1] : null;
 }
 

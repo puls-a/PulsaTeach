@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const widths = [375, 768, 1024, 1440];
-const routes = ["/catalog", "/signup", "/glossary", "/review", "/projects", "/certification", "/studio", "/learn/html/html-foundations/html-01-document-skeleton", "/learn/html/html-a11y-final/html-10-accessibility-quiz", "/learn/git/git-foundations/git-01-terminal", "/learn/accessibility/a11y-foundations/a11y-01-semantics", "/learn/testing/testing-strategy/testing-01-vitest", "/learn/typescript/typescript-foundations/ts-01-unions", "/learn/react/react-components/react-01-component", "/learn/node-api/node-http/node-02-validation", "/learn/sql-postgresql/sql-foundations/sql-01-tables", "/learn/web-security/security-threats-input/sec-01-validation", "/learn/web-performance/performance-javascript-react/perf-02-splitting", "/learn/devops-deployment/ops-foundations/ops-01-build", "/playground"];
+const routes = ["/catalog", "/signup", "/glossary", "/review", "/projects", "/certification", "/studio", "/privacy", "/cookies", "/terms", "/legal", "/learn/html/html-foundations/html-01-document-skeleton", "/learn/html/html-a11y-final/html-10-accessibility-quiz", "/learn/git/git-foundations/git-01-terminal", "/learn/accessibility/a11y-foundations/a11y-01-semantics", "/learn/testing/testing-strategy/testing-01-vitest", "/learn/typescript/typescript-foundations/ts-01-unions", "/learn/react/react-components/react-01-component", "/learn/node-api/node-http/node-02-validation", "/learn/sql-postgresql/sql-foundations/sql-01-tables", "/learn/web-security/security-threats-input/sec-01-validation", "/learn/web-performance/performance-javascript-react/perf-02-splitting", "/learn/devops-deployment/ops-foundations/ops-01-build", "/playground"];
 
 test.describe("responsive layout", () => {
   for (const width of widths) {
@@ -39,4 +39,15 @@ test("mobile menu traps focus and restores it when closed", async ({ page }, tes
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
   await expect(trigger).toBeFocused();
+});
+
+test("iPhone Pro Max shows the active quiz before the curriculum", async ({ page }) => {
+  await page.setViewportSize({ width: 430, height: 932 });
+  await page.goto("/learn/html/html-a11y-final/html-10-accessibility-quiz");
+  await expect(page.getByRole("heading", { name: /Quiz accessibilité|Accessibility quiz/ }).first()).toBeVisible();
+  await expect(page.getByText(/Quel élément rend un input|Which element makes an input/)).toBeVisible();
+  await expect(page.getByRole("button", { name: /Programme|Curriculum/ })).toBeVisible();
+  await page.getByRole("button", { name: /Programme|Curriculum/ }).click();
+  await expect(page.getByRole("heading", { name: /Programme|Curriculum/ }).last()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Fermer", exact: true })).toBeVisible();
 });

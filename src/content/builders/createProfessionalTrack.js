@@ -9,7 +9,10 @@ export function createProfessionalTrack(config) {
     prerequisites: localizedList(config.prerequisites),
     outcomes: localizedList(config.outcomes),
     capstone: localized(config.capstone),
-    certification: localizedList(config.certification),
+    certification: localizedList((config.certification || []).filter((criterion) => {
+      const values = Array.isArray(criterion) ? criterion : [criterion];
+      return !values.some((value) => /quiz/i.test(String(value)));
+    })),
     modules: config.modules.map((module) => createModule(config, module))
   };
 }
@@ -133,27 +136,30 @@ function courseLocale(track, module, lesson, vocabulary, locale) {
   const title = lesson.title[index];
   const brief = lesson.brief[index];
   const verification = lesson.verification?.[index] || (locale === "fr" ? "Vérifie le résultat avec une méthode manuelle et un test automatisé pertinent." : "Verify the result with a manual method and a relevant automated test.");
+  const requirements = readableRequirements(lesson.requirements || [], locale);
+  const implementation = requirements.length
+    ? (locale === "fr" ? `La réalisation doit rendre visibles ces preuves : ${requirements.join(", ")}.` : `The implementation must expose this evidence: ${requirements.join(", ")}.`)
+    : (locale === "fr" ? "Décompose le résultat attendu en comportements observables avant d’écrire la solution." : "Break the expected result into observable behaviors before writing the solution.");
+  const firstTerm = vocabulary[0]?.[index] || title;
   return {
     introduction: locale === "fr"
-      ? `${title} répond à un problème concret du parcours ${track.title[0]}. ${brief}`
-      : `${title} addresses a concrete problem in the ${track.title[1]} track. ${brief}`,
+      ? `${title} — ${brief} Dans ce module, tu vas relier ${firstTerm}, le code fourni et une preuve que tu peux reproduire.`
+      : `${title} — ${brief} In this module, you will connect ${firstTerm}, the provided code, and evidence you can reproduce.`,
     objectives: locale === "fr"
-      ? [`Expliquer le problème traité par ${title}.`, "Appliquer une solution observable.", "Vérifier le résultat et documenter la preuve."]
-      : [`Explain the problem addressed by ${title}.`, "Apply an observable solution.", "Verify the result and document evidence."],
+      ? [`Expliquer le rôle de ${firstTerm} dans ce cas précis.`, `Construire « ${title} » à partir du brief.`, `Prouver le résultat avec ${requirements[0] || "un contrôle observable"}.`]
+      : [`Explain the role of ${firstTerm} in this exact case.`, `Build “${title}” from the brief.`, `Prove the result with ${requirements[0] || "an observable check"}.`],
     vocabulary: vocabulary.map((entry) => [entry[index], entry[index + 2]]),
     sections: [
-      { title: locale === "fr" ? "Comprendre le risque" : "Understand the risk", paragraphs: [module.description[index]], example: lesson.badExample || "" },
-      { title: locale === "fr" ? "Construire la solution" : "Build the solution", paragraphs: [brief], example: lesson.solution || lesson.example || "" },
-      { title: locale === "fr" ? "Prouver le résultat" : "Prove the result", paragraphs: [verification], example: lesson.verificationExample || "" }
+      { title: locale === "fr" ? "Le problème à résoudre" : "The problem to solve", paragraphs: [module.description[index], brief], example: lesson.badExample || "" },
+      { title: locale === "fr" ? "Le contrat de la solution" : "The solution contract", paragraphs: [implementation], example: lesson.solution || lesson.example || "" },
+      { title: locale === "fr" ? "La preuve attendue" : "Expected evidence", paragraphs: [verification, requirements.length ? (locale === "fr" ? `Contrôles ciblés : ${requirements.join(" · ")}.` : `Targeted checks: ${requirements.join(" · ")}.`) : ""].filter(Boolean), example: lesson.verificationExample || "" }
     ],
-    rules: locale === "fr"
-      ? ["Partir du besoin utilisateur.", "Choisir la solution la plus simple qui couvre le risque.", "Conserver une preuve reproductible."]
-      : ["Start from the user need.", "Choose the simplest solution that covers the risk.", "Keep reproducible evidence."],
+    rules: requirements.slice(0, 3).length ? requirements.slice(0, 3) : [brief, verification],
     check: locale === "fr"
-      ? ["Je peux expliquer la décision.", "Je peux reproduire le test.", "Je connais une erreur fréquente."]
-      : ["I can explain the decision.", "I can reproduce the test.", "I know a common mistake."],
-    summary: locale === "fr" ? `${title} relie besoin, mise en œuvre et vérification.` : `${title} connects need, implementation, and verification.`,
-    next: locale === "fr" ? "Réutilise cette méthode dans la prochaine situation." : "Reuse this method in the next situation."
+      ? [`Je peux expliquer pourquoi ${firstTerm} est utilisé ici.`, `Je sais retrouver ${requirements[0] || "la preuve principale"} dans le résultat.`, "Je peux faire échouer puis réussir le contrôle."]
+      : [`I can explain why ${firstTerm} is used here.`, `I can locate ${requirements[0] || "the main evidence"} in the result.`, "I can make the check fail and then pass."],
+    summary: locale === "fr" ? `${title} est acquis lorsque le brief et les contrôles passent sans contournement.` : `${title} is acquired when the brief and checks pass without workarounds.`,
+    next: locale === "fr" ? `Garde ${firstTerm} comme repère dans la prochaine activité du module.` : `Keep ${firstTerm} as a reference in the next module activity.`
   };
 }
 
@@ -161,11 +167,13 @@ function pedagogyLocale(track, lesson, vocabulary, locale) {
   const index = locale === "fr" ? 0 : 1;
   const title = lesson.title[index];
   const solution = lesson.solution || lesson.example || "";
+  const requirements = readableRequirements(lesson.requirements || [], locale);
+  const primaryCheck = requirements[0] || (locale === "fr" ? "le résultat visible" : "the visible result");
   return {
-    why: locale === "fr" ? `${title} évite une exclusion ou une régression mesurable.` : `${title} prevents measurable exclusion or regression.`,
+    why: locale === "fr" ? `${title} permet de vérifier ${primaryCheck} au lieu de se fier à une impression.` : `${title} verifies ${primaryCheck} instead of relying on an impression.`,
     objectives: locale === "fr"
-      ? [`Identifier le besoin lié à ${title}.`, "Mettre en œuvre une correction ciblée.", "Produire une preuve de validation."]
-      : [`Identify the need related to ${title}.`, "Implement a focused fix.", "Produce validation evidence."],
+      ? [`Repérer ${primaryCheck} dans le brief.`, `Implémenter ${title} sans ajouter de comportement inutile.`, "Lire le résultat de chaque contrôle et corriger sa cause."]
+      : [`Locate ${primaryCheck} in the brief.`, `Implement ${title} without unnecessary behavior.`, "Read each check result and fix its cause."],
     prerequisites: locale === "fr"
       ? ["Connaître le contexte du module.", "Savoir lire l’exemple fourni.", "Pouvoir décrire le résultat attendu."]
       : ["Know the module context.", "Be able to read the provided example.", "Describe the expected result."],
@@ -175,18 +183,29 @@ function pedagogyLocale(track, lesson, vocabulary, locale) {
       bad: { title: locale === "fr" ? "Correction cosmétique" : "Cosmetic fix", code: lesson.badExample || "// aucune preuve", explanation: locale === "fr" ? "La cause et l’usage réel ne sont pas traités." : "The root cause and real usage are not addressed." }
     },
     guided: locale === "fr"
-      ? ["Décris le problème avec un exemple utilisateur.", "Applique la correction minimale.", "Teste au clavier, avec l’outil adapté ou par inspection."]
-      : ["Describe the problem with a user example.", "Apply the minimal fix.", "Test with keyboard, the relevant tool, or inspection."],
+      ? [`Repère dans le code l’endroit qui doit produire ${primaryCheck}.`, `Ajoute les éléments attendus : ${requirements.join(", ") || title}.`, "Lance les contrôles un par un et relie chaque échec à une ligne précise."]
+      : [`Find where the code must produce ${primaryCheck}.`, `Add the expected elements: ${requirements.join(", ") || title}.`, "Run checks one by one and connect each failure to a precise line."],
     autonomous: locale === "fr" ? `Trouve un second cas où ${title} doit être appliqué et documente ton test.` : `Find a second case where ${title} should be applied and document your test.`,
     hints: locale === "fr"
-      ? ["Commence par le besoin utilisateur.", "Relis les critères et le vocabulaire.", "Ajoute une preuve observable."]
-      : ["Start from the user need.", "Review criteria and vocabulary.", "Add observable evidence."],
+      ? [`Commence par ${primaryCheck}.`, `Compare ton code à ces marqueurs : ${requirements.join(", ") || firstVocabulary(vocabulary, index)}.`, "Ne charge la solution qu’après avoir identifié le contrôle qui échoue."]
+      : [`Start with ${primaryCheck}.`, `Compare your code with these markers: ${requirements.join(", ") || firstVocabulary(vocabulary, index)}.`, "Load the solution only after identifying the failing check."],
     correction: locale === "fr"
       ? ["Le besoin est formulé avant la technique.", "La correction cible la cause.", "La validation combine inspection et usage."]
       : ["The need is stated before the technique.", "The fix targets the cause.", "Validation combines inspection and usage."],
-    summary: locale === "fr" ? `${title} devient une compétence lorsqu’il est expliqué et vérifié.` : `${title} becomes a skill when it is explained and verified.`,
-    next: locale === "fr" ? `Continue le parcours ${track.title[0]} avec cette méthode.` : `Continue the ${track.title[1]} track with this method.`
+    summary: locale === "fr" ? `${title} est validé par des marqueurs concrets : ${requirements.join(", ") || primaryCheck}.` : `${title} is validated by concrete markers: ${requirements.join(", ") || primaryCheck}.`,
+    next: locale === "fr" ? `Dans la prochaine activité ${track.title[0]}, réutilise le contrôle « ${primaryCheck} ».` : `In the next ${track.title[1]} activity, reuse the “${primaryCheck}” check.`
   };
+}
+
+function readableRequirements(requirements, locale) {
+  return requirements.map((requirement) => {
+    if (typeof requirement === "string") return requirement.replaceAll(/[{};"']/g, "").trim();
+    return requirement?.label || requirement?.value?.property || requirement?.value || "";
+  }).filter(Boolean).map((value) => locale === "fr" ? String(value) : String(value));
+}
+
+function firstVocabulary(vocabulary, index) {
+  return vocabulary[0]?.[index] || "the expected result";
 }
 
 function normalizeQuestion(question) {

@@ -41,7 +41,7 @@ function quizLesson({ id, title, brief, question, options, answer, explanation, 
     choices: options,
     answer,
     explanation,
-    requiresRationale: true,
+    requiresRationale: false,
     points: 1
   };
   return {

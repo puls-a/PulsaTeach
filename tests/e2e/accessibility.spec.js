@@ -9,6 +9,8 @@ const pages = [
   { name: "projects", path: "/projects" },
   { name: "certification", path: "/certification" },
   { name: "studio", path: "/studio" },
+  { name: "privacy", path: "/privacy" },
+  { name: "legal", path: "/legal" },
   { name: "lesson", path: "/learn/html/html-foundations/html-01-document-skeleton" },
   { name: "playground", path: "/playground" }
 ];
