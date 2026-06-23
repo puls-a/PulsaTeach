@@ -9,10 +9,22 @@
   "theme_color": "#4f46e5",
   "icons": [
     {
+      "src": "/assets/pwa-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/pwa-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/assets/favicon.ico",
       "sizes": "16x16 32x32 48x48 64x64 128x128 256x256",
       "type": "image/x-icon",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/assets/logo_horizontale.webp",

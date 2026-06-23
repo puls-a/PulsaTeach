@@ -1,5 +1,45 @@
 # PulsaTeach - Roadmap stratégique complète
 
+## Priorités produit actuelles — 23 juin 2026
+
+### P0 — Impact immédiat produit et confiance
+
+- Landing page `/` avec promesse claire, CTA et contenu pré-rendu.
+- Suppression du copy mort et des statistiques non prouvées.
+- README et roadmap mis à jour.
+- Correction i18n visible : “formations disponibles” et langue HTML initiale en français.
+- Course Studio et création de formation masqués aux non-auteurs, avec garde côté route.
+- Icônes PWA carrées, Apple Touch Icon PNG, favicon ICO et image Open Graph dédiée 1200×630.
+
+### P1 — Qualité perçue
+
+- Unifier les registres de formations côté client.
+- Ajouter icônes/couleurs par parcours dans le catalogue.
+- Renforcer la personnalité typographique.
+- Ajouter breadcrumbs UI.
+- Finaliser une page 404 utile.
+- Relier World/Arena à la progression principale.
+- Simplifier le dashboard apprenant.
+- Rendre les certificats plus premium et partageables.
+
+### P2 — SEO et performance
+
+- Pré-rendre les pages publiques riches.
+- Lazy-load Supabase hors pages auth.
+- Ajouter un service worker PWA basique.
+- Définir une stratégie locale URL ou hreflang.
+- Implémenter la recherche catalogue avant de réactiver `SearchAction`.
+- Conserver un skip link global.
+
+### P3 — Architecture et maintenance
+
+- Étudier React Router ou une route map typée.
+- Continuer le split de `pages.jsx` et `InteractiveLearning.jsx`.
+- Centraliser les strings UI i18n.
+- Supprimer les modules legacy après migration complète.
+- Documenter l’API en OpenAPI.
+- Ajouter coverage et davantage de tests composants.
+
 ## Positionnement
 
 PulsaTeach doit devenir une plateforme pédagogique interactive de niveau portfolio professionnel : un produit qui prouve des compétences en UX, React, architecture frontend, backend Node, sécurité, data, pédagogie, accessibilité, testing et déploiement.

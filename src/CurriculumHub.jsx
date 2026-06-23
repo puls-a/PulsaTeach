@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, BookOpen, Check, ChevronDown, Clock3, Code2, Flag, GraduationCap, Plus, Trophy } from "lucide-react";
 import { useSupabaseSession } from "./authState.js";
+import { canManageContent } from "./authRoles.js";
 import { useLearningTracks } from "./useLearningTracks.js";
 
-const trackIcons = { html: BookOpen, css: Code2, javascript: Code2 };
+const trackIcons = { html: BookOpen, css: Code2, javascript: Code2, react: Code2, typescript: Code2 };
 
 export default function CurriculumHub({ locale = "fr" }) {
   const { user } = useSupabaseSession();
@@ -13,6 +14,7 @@ export default function CurriculumHub({ locale = "fr" }) {
   const courseDrafts = useMemo(readCourseDrafts, []);
   const completedCount = Object.keys(progress.completed || {}).length;
   const totalLessons = tracks.reduce((total, track) => total + countLessons(track), 0);
+  const canCreateCourses = canManageContent(user);
 
   useEffect(() => {
     if (!openTrack && tracks[0]) setOpenTrack(tracks[0].id);
@@ -23,11 +25,11 @@ export default function CurriculumHub({ locale = "fr" }) {
       <div className="mx-auto max-w-4xl">
         <header className="py-8 text-center sm:py-12">
           <p className="text-sm font-bold uppercase tracking-[.18em] text-indigoPop">
-            {locale === "fr" ? "Curriculum PulsaTeach" : "PulsaTeach curriculum"}
+            {locale === "fr" ? "Catalogue PulsaTeach" : "PulsaTeach catalog"}
           </p>
           <h1 className="mt-4 font-display text-3xl font-bold tracking-tight text-ink sm:text-5xl">
             {user
-              ? (locale === "fr" ? "Reprends là où tu t'es arrêté." : "Continue where you left off.")
+              ? (locale === "fr" ? "Reprends là où tu t’es arrêté." : "Continue where you left off.")
               : (locale === "fr" ? "Choisis une formation et commence à coder." : "Choose a course and start coding.")}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-slate-600">
@@ -63,12 +65,14 @@ export default function CurriculumHub({ locale = "fr" }) {
 
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
-            <h2 className="font-display text-2xl font-bold">{locale === "fr" ? "Toutes les formations" : "All courses"}</h2>
-            <p className="mt-1 text-sm text-slate-600">{tracks.length} formations disponibles</p>
+            <h2 className="font-display text-2xl font-bold">{locale === "fr" ? "Formations disponibles" : "Available courses"}</h2>
+            <p className="mt-1 text-sm text-slate-600">{tracks.length} {locale === "fr" ? "formations disponibles" : "available courses"}</p>
           </div>
-          <a href="/studio" className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-ink hover:border-indigoPop hover:text-indigoPop">
-            <Plus className="size-4" />{locale === "fr" ? "Créer une formation" : "Create a course"}
-          </a>
+          {canCreateCourses && (
+            <a href="/studio" className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-ink hover:border-indigoPop hover:text-indigoPop">
+              <Plus className="size-4" />{locale === "fr" ? "Créer une formation" : "Create a course"}
+            </a>
+          )}
         </div>
 
         <div className="grid gap-3">
@@ -86,7 +90,7 @@ export default function CurriculumHub({ locale = "fr" }) {
           ))}
         </div>
 
-        {courseDrafts.length > 0 && (
+        {canCreateCourses && courseDrafts.length > 0 && (
           <section className="mt-10">
             <div className="mb-4 flex items-end justify-between gap-4">
               <div><h2 className="font-display text-2xl font-bold">{locale === "fr" ? "Formations en préparation" : "Courses in preparation"}</h2><p className="mt-1 text-sm text-slate-500">{locale === "fr" ? "Ajoute des modules et des leçons avant publication." : "Add modules and lessons before publishing."}</p></div>
@@ -124,7 +128,7 @@ function TrackCard({ track, locale, progress, open, onToggle }) {
         <span className="grid size-12 shrink-0 place-items-center border border-slate-300 bg-slate-100 text-ink"><Icon className="size-6" /></span>
         <span className="min-w-0 flex-1">
           <span className="block font-display text-lg font-bold sm:text-xl">{track.title[locale]}</span>
-          <span className="mt-1 block text-sm text-slate-500">{track.level?.[locale]} · {track.modules.length} modules · {lessons} leçons · {completed} terminées</span>
+          <span className="mt-1 block text-sm text-slate-500">{track.level?.[locale]} · {track.modules.length} modules · {lessons} {locale === "fr" ? "leçons" : "lessons"} · {completed} {locale === "fr" ? "terminées" : "completed"}</span>
           <span className="mt-3 block h-1.5 rounded-full bg-slate-200"><span className="block h-full rounded-full bg-indigoPop" style={{ width: `${percent}%` }} /></span>
         </span>
         <span className="text-sm font-bold text-slate-500">{percent}%</span>

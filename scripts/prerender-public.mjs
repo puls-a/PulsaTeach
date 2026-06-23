@@ -6,6 +6,13 @@ const siteUrl = "https://pulsateach.vercel.app";
 const distUrl = new URL("../dist/", import.meta.url);
 const template = await readFile(new URL("index.html", distUrl), "utf8");
 
+await renderPage("", {
+  title: "PulsaTeach : apprendre le développement web gratuitement",
+  description: "Formations gratuites en HTML, CSS, JavaScript, React, TypeScript, Node.js, SQL, Git, tests, accessibilité, sécurité et performance web.",
+  body: `<main><h1>Apprendre le développement web en construisant</h1><p>PulsaTeach propose ${learningTracks.length} formations gratuites, ${lessonTotal()} leçons bilingues, des quiz, des projets, des révisions et des certificats vérifiables.</p><p><a href="/catalog">Voir les formations gratuites</a> <a href="/learn/html/html-foundations/html-01-document-skeleton">Essayer une leçon HTML</a></p><section><h2>Formations disponibles</h2>${learningTracks.slice(0, 8).map(trackCard).join("")}</section><section><h2>Pourquoi PulsaTeach ?</h2><p>Chaque parcours relie théorie, vocabulaire, pratique guidée, validation, projet final et certification. L’objectif est de comprendre, construire et prouver sa progression.</p></section></main>`,
+  schema: homeSchema()
+});
+
 await renderPage("catalog", {
   title: "Formations développement web gratuites | PulsaTeach",
   description: "Apprends HTML, CSS, JavaScript, React, TypeScript, Node.js, SQL, Git, les tests, la sécurité et la performance avec des parcours gratuits, quiz, projets et certificats.",
@@ -37,10 +44,10 @@ for (const track of learningTracks) {
   }
 }
 
-console.log(`Prerendered ${learningTracks.reduce((sum, track) => sum + track.modules.reduce((inner, module) => inner + module.lessons.length, 0), 0) + 2} public pages.`);
+console.log(`Prerendered ${learningTracks.reduce((sum, track) => sum + track.modules.reduce((inner, module) => inner + module.lessons.length, 0), 0) + 3} public pages.`);
 
 async function renderPage(route, page) {
-  const canonical = `${siteUrl}/${route}`;
+  const canonical = route ? `${siteUrl}/${route}` : `${siteUrl}/`;
   const html = template
     .replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(page.title)}</title>`)
     .replace(/<link rel="canonical" href="[^"]*"\s*\/>/, `<link rel="canonical" href="${canonical}" />`)
@@ -52,7 +59,7 @@ async function renderPage(route, page) {
     .replace(/<meta name="twitter:description" content="[^"]*"\s*\/>/, `<meta name="twitter:description" content="${escapeAttribute(page.description)}" />`)
     .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/, `<script type="application/ld+json">${safeJson(page.schema)}</script>`)
     .replace('<div id="root"></div>', `<div id="root">${page.body}</div>`);
-  const directory = new URL(`${route}/`, distUrl);
+  const directory = route ? new URL(`${route}/`, distUrl) : distUrl;
   await mkdir(directory, { recursive: true });
   await writeFile(new URL("index.html", directory), html, "utf8");
 }
@@ -103,8 +110,7 @@ function collectionSchema() {
         "@type": "WebSite",
         name: "PulsaTeach",
         url: siteUrl,
-        inLanguage: ["fr", "en"],
-        potentialAction: { "@type": "SearchAction", target: `${siteUrl}/catalog?q={search_term_string}`, "query-input": "required name=search_term_string" }
+        inLanguage: ["fr", "en"]
       },
       {
         "@type": "ItemList",
@@ -124,6 +130,37 @@ function collectionSchema() {
           faq("Quels langages apprendre sur PulsaTeach ?", "PulsaTeach couvre HTML, CSS, JavaScript, TypeScript, React, Node.js, SQL, Git, tests, sécurité, accessibilité, performance et déploiement."),
           faq("Les cours sont-ils adaptés aux mobiles ?", "Oui. Les pages critiques sont testées en mobile et desktop, avec navigation clavier et contraintes d’accessibilité.")
         ]
+      }
+    ]
+  };
+}
+
+function homeSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        name: "PulsaTeach",
+        url: siteUrl,
+        logo: `${siteUrl}/assets/logo_horizontale.webp`
+      },
+      {
+        "@type": "WebSite",
+        name: "PulsaTeach",
+        url: siteUrl,
+        inLanguage: ["fr", "en"]
+      },
+      {
+        "@type": "ItemList",
+        name: "Formations gratuites PulsaTeach",
+        numberOfItems: learningTracks.length,
+        itemListElement: learningTracks.map((track, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: track.title.fr,
+          url: `${siteUrl}/learn/${track.id}/${track.modules[0].id}/${track.modules[0].lessons[0].id}`
+        }))
       }
     ]
   };

@@ -17,6 +17,7 @@
 
 @layer components {
   .nav-item { @apply inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 hover:text-ink; }
+  .skip-link { @apply fixed left-4 top-4 z-[100] -translate-y-20 rounded-xl bg-ink px-4 py-3 text-sm font-bold text-white shadow-xl focus:translate-y-0; }
   .icon-button { @apply inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-ink; }
   .primary-button { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-indigoPop px-5 py-3 font-bold text-white hover:bg-indigo-700; }
   .secondary-button { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 font-bold text-ink hover:border-slate-400 hover:bg-slate-50; }

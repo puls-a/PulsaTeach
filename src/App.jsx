@@ -24,10 +24,11 @@ import {
   X
 } from "lucide-react";
 import { signOutSupabase, useSupabaseSession } from "./authState.js";
+import { canManageContent } from "./authRoles.js";
 import { languages } from "./content.js";
 import AuthPage from "./AuthPage.jsx";
 import { OnboardingPage, PasswordRecoveryPage, PublicCertificatePage } from "./AccountPages.jsx";
-import CurriculumHub from "./CurriculumHub.jsx";
+import LandingPage from "./LandingPage.jsx";
 import CookieConsent from "./components/CookieConsent.jsx";
 import { CookiesPage, LegalNoticePage, PrivacyPage, TermsPage } from "./LegalPages.jsx";
 import { openPrivacySettings } from "./privacyConsent.js";
@@ -37,6 +38,7 @@ import { updatePageMetadata } from "./appMetadata.js";
 const GlossaryPage = lazy(() => import("./features/glossary/GlossaryPage.jsx"));
 const ReviewPage = lazy(() => import("./features/review/ReviewPage.jsx"));
 const CourseStudio = lazy(() => import("./CourseStudio.jsx"));
+const CurriculumHub = lazy(() => import("./CurriculumHub.jsx"));
 const FlexboxArenaPage = lazyNamed(() => import("./GamePages.jsx"), "FlexboxArenaPage");
 const JavaScriptArenaPage = lazyNamed(() => import("./GamePages.jsx"), "JavaScriptArenaPage");
 const LivePlaygroundPage = lazyNamed(() => import("./GamePages.jsx"), "LivePlaygroundPage");
@@ -139,8 +141,9 @@ function App() {
 
   return (
     <div className="min-h-screen">
+      <a href="#main-content" className="skip-link">{locale === "fr" ? "Aller au contenu principal" : "Skip to main content"}</a>
       <Header locale={locale} route={route} onLanguageToggle={() => setLocale(locale === "fr" ? "en" : "fr")} />
-      <main><Suspense fallback={<RouteFallback locale={locale} />}>{renderRoute(route, locale)}</Suspense></main>
+      <main id="main-content" tabIndex={-1}><Suspense fallback={<RouteFallback locale={locale} />}>{renderRoute(route, locale)}</Suspense></main>
       <Footer locale={locale} />
       <CookieConsent locale={locale} />
     </div>
@@ -401,12 +404,13 @@ function menuDescription(id, locale) {
 }
 
 function renderRoute(route, locale) {
+  if (route === "home") return <LandingPage locale={locale} />;
   if (route === "auth") return <AuthPage locale={locale} />;
   if (route === "signup") return <AuthPage locale={locale} defaultMode="signup" />;
   if (route === "onboarding") return <OnboardingPage locale={locale} />;
   if (route === "recovery") return <PasswordRecoveryPage locale={locale} />;
   if (route === "verify") return <PublicCertificatePage locale={locale} verificationCode={currentPathSegments()[1] || ""} />;
-  if (route === "studio") return <CourseStudio locale={locale} />;
+  if (route === "studio") return <AuthorGate locale={locale}><CourseStudio locale={locale} /></AuthorGate>;
   if (route === "world") return <WorldPage locale={locale} />;
   if (route === "playground") return <LivePlaygroundPage locale={locale} />;
   if (route === "flexbox-arena") return <FlexboxArenaPage locale={locale} />;
@@ -421,15 +425,15 @@ function renderRoute(route, locale) {
   if (route === "projects") return <ProjectsPage locale={locale} />;
   if (route === "certification") return <CertificationPage locale={locale} />;
   if (route === "dashboard") return <DashboardPage locale={locale} />;
-  if (route === "analytics") return <AnalyticsPage locale={locale} />;
-  if (route === "author") return <AuthorPage locale={locale} />;
-  if (route === "admin") return <AdminPage locale={locale} />;
-  if (route === "roadmap") return <RoadmapPage locale={locale} />;
+  if (route === "analytics") return <AuthorGate locale={locale}><AnalyticsPage locale={locale} /></AuthorGate>;
+  if (route === "author") return <AuthorGate locale={locale}><AuthorPage locale={locale} /></AuthorGate>;
+  if (route === "admin") return <AuthorGate locale={locale}><AdminPage locale={locale} /></AuthorGate>;
+  if (route === "roadmap") return <AuthorGate locale={locale}><RoadmapPage locale={locale} /></AuthorGate>;
   if (route === "privacy") return <PrivacyPage locale={locale} />;
   if (route === "cookies") return <CookiesPage locale={locale} />;
   if (route === "terms") return <TermsPage locale={locale} />;
   if (route === "legal") return <LegalNoticePage locale={locale} />;
-  return <CurriculumHub locale={locale} />;
+  return <NotFoundPage locale={locale} />;
 }
 
 function getPageRoute() {
@@ -438,7 +442,7 @@ function getPageRoute() {
   }
   const route = currentPathSegments()[0] || "home";
   const known = ["auth", "signup", "onboarding", "recovery", "verify", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "catalog", "glossary", "review", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap", "privacy", "cookies", "terms", "legal"];
-  return known.includes(route) ? route : "home";
+  return known.includes(route) ? route : "not-found";
 }
 
 function RouteFallback({ locale }) {
@@ -449,11 +453,31 @@ function lazyNamed(loader, name) {
   return lazy(() => loader().then((module) => ({ default: module[name] })));
 }
 
-function canManageContent(user) {
-  if (import.meta.env.VITE_ADMIN_ACCESS_KEY) return true;
-  const metadata = { ...(user?.app_metadata || {}), ...(user?.user_metadata || {}) };
-  const roles = Array.isArray(metadata.roles) ? metadata.roles : [metadata.role].filter(Boolean);
-  return roles.some((role) => ["admin", "author", "reviewer"].includes(String(role)));
+function AuthorGate({ locale, children }) {
+  const { user } = useSupabaseSession();
+  if (canManageContent(user)) return children;
+  return <NotFoundPage locale={locale} restricted />;
+}
+
+function NotFoundPage({ locale, restricted = false }) {
+  return (
+    <section className="app-page grid min-h-screen place-items-center bg-slate-50">
+      <div className="surface max-w-xl text-center">
+        <p className="eyebrow">404</p>
+        <h1 className="mt-3 font-display text-3xl font-black text-ink">
+          {restricted
+            ? (locale === "fr" ? "Espace réservé aux auteurs" : "Author area")
+            : (locale === "fr" ? "Page introuvable" : "Page not found")}
+        </h1>
+        <p className="mt-3 leading-7 text-slate-600">
+          {restricted
+            ? (locale === "fr" ? "Cette zone est masquée aux comptes apprenants pour garder l’expérience claire." : "This area is hidden from learner accounts to keep the experience focused.")
+            : (locale === "fr" ? "La page demandée n’existe pas ou a été déplacée." : "The requested page does not exist or has moved.")}
+        </p>
+        <a href="/catalog" className="primary-button mt-6">{locale === "fr" ? "Retour aux formations" : "Back to courses"}</a>
+      </div>
+    </section>
+  );
 }
 
 export default App;
