@@ -2,7 +2,6 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   BarChart3,
   BookOpen,
-  Braces,
   ChevronDown,
   Code2,
   Compass,
@@ -210,9 +209,8 @@ function Header({ locale, route, onLanguageToggle }) {
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3" data-navigation-root>
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 rounded-2xl border border-slate-200/90 bg-white/95 px-3 shadow-lg shadow-slate-900/5 backdrop-blur-xl sm:px-4" aria-label="Navigation principale">
-        <a href="/catalog" className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 font-display text-xl font-bold text-ink hover:bg-slate-100">
-          <span className="grid size-9 place-items-center rounded-xl bg-indigoPop text-white" aria-hidden="true"><Braces className="size-5" /></span>
-          <span>Pulsa<span className="text-indigoPop">Teach</span></span>
+        <a href="/catalog" className="flex min-w-0 items-center rounded-xl px-2 py-1.5 hover:bg-slate-100" aria-label="PulsaTeach">
+          <img src="/assets/logo_horizontale.webp" alt="PulsaTeach" className="h-9 w-auto max-w-[160px] object-contain sm:max-w-[190px]" width="380" height="96" />
         </a>
 
         <div className="hidden items-center gap-1 lg:flex">
@@ -368,14 +366,25 @@ function MobileMenuItem({ item, locale, active, onClick }) {
 function Footer({ locale }) {
   return (
     <footer className="border-t border-slate-200 bg-white px-5 py-8">
-      <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 text-sm text-slate-500 sm:flex-row">
-        <p>© 2026 PulsaTeach</p>
-        <div className="flex flex-wrap gap-x-5 gap-y-3 font-semibold">
+      <div className="mx-auto flex max-w-7xl flex-col gap-5 text-sm text-slate-500">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <a href="/catalog" className="inline-flex w-fit items-center rounded-xl p-1 hover:bg-slate-50" aria-label="PulsaTeach">
+            <img src="/assets/logo_horizontale.webp" alt="PulsaTeach" className="h-9 w-auto max-w-[180px] object-contain" width="380" height="96" loading="lazy" />
+          </a>
+          <div className="flex flex-wrap gap-x-5 gap-y-3 font-semibold">
           <a href="/privacy">{locale === "fr" ? "Confidentialité" : "Privacy"}</a>
           <a href="/cookies">Cookies</a>
           <a href="/terms">{locale === "fr" ? "Conditions" : "Terms"}</a>
           <a href="/legal">{locale === "fr" ? "Mentions légales" : "Legal notice"}</a>
           <button type="button" onClick={openPrivacySettings} className="font-semibold hover:text-ink">{locale === "fr" ? "Stockages utilisés" : "Storage used"}</button>
+          </div>
+        </div>
+        <div className="flex flex-col justify-between gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center">
+          <p>© 2026 PulsaTeach</p>
+          <a href="https://pulsaflow.fr" target="_blank" rel="noreferrer" className="inline-flex w-fit items-center gap-2 self-start rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.12em] text-indigoPop transition hover:-translate-y-0.5 hover:bg-indigo-100 sm:self-auto" aria-label="Powered by PulsaFlow">
+            <span className="size-2 rounded-full bg-indigoPop shadow-[0_0_0_4px_rgba(85,70,246,0.14)]" aria-hidden="true" />
+            Powered by PulsaFlow
+          </a>
         </div>
       </div>
     </footer>

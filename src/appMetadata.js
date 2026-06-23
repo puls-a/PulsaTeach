@@ -1,6 +1,6 @@
 const SITE_URL = "https://pulsateach.vercel.app";
-const SOCIAL_IMAGE = `${SITE_URL}/assets/favicon.webp`;
-const BRAND_ICON = `${SITE_URL}/assets/favicon.webp`;
+const SOCIAL_IMAGE = `${SITE_URL}/assets/logo_horizontale.webp`;
+const BRAND_ICON = `${SITE_URL}/assets/logo_horizontale.webp`;
 
 const routeMetadata = {
   home: {
