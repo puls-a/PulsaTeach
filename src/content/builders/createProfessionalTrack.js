@@ -141,24 +141,35 @@ function courseLocale(track, module, lesson, vocabulary, locale) {
     ? (locale === "fr" ? `La réalisation doit rendre visibles ces preuves : ${requirements.join(", ")}.` : `The implementation must expose this evidence: ${requirements.join(", ")}.`)
     : (locale === "fr" ? "Décompose le résultat attendu en comportements observables avant d’écrire la solution." : "Break the expected result into observable behaviors before writing the solution.");
   const firstTerm = vocabulary[0]?.[index] || title;
+  const secondTerm = vocabulary[1]?.[index] || (locale === "fr" ? "contrainte" : "constraint");
+  const thirdTerm = vocabulary[2]?.[index] || (locale === "fr" ? "preuve" : "evidence");
+  const professionalContext = locale === "fr"
+    ? `Dans une vraie équipe, « ${title} » n’est pas une astuce isolée : c’est une décision que tu dois pouvoir relier à ${firstTerm}, ${secondTerm} et ${thirdTerm}.`
+    : `In a real team, “${title}” is not an isolated trick: it is a decision you must connect to ${firstTerm}, ${secondTerm}, and ${thirdTerm}.`;
+  const reviewChecklist = locale === "fr"
+    ? `Avant de valider, prépare une mini revue : quel utilisateur est aidé, quel risque est réduit, quel contrôle prouve le résultat, et quelle limite reste connue ?`
+    : `Before validating, prepare a mini review: which user is helped, which risk is reduced, which check proves the result, and which known limitation remains?`;
+  const productionTransfer = locale === "fr"
+    ? `Transfert en production : garde un exemple minimal, une preuve reproductible et une phrase de justification. Ce trio rend la compétence réutilisable hors de l’exercice.`
+    : `Production transfer: keep a minimal example, reproducible evidence, and one justification sentence. This trio makes the skill reusable outside the exercise.`;
   return {
     introduction: locale === "fr"
-      ? `${title} — ${brief} Dans ce module, tu vas relier ${firstTerm}, le code fourni et une preuve que tu peux reproduire.`
-      : `${title} — ${brief} In this module, you will connect ${firstTerm}, the provided code, and evidence you can reproduce.`,
+      ? `${title} — ${brief} Dans ce module, tu vas relier ${firstTerm}, le code fourni et une preuve que tu peux reproduire. ${professionalContext}`
+      : `${title} — ${brief} In this module, you will connect ${firstTerm}, the provided code, and evidence you can reproduce. ${professionalContext}`,
     objectives: locale === "fr"
       ? [`Expliquer le rôle de ${firstTerm} dans ce cas précis.`, `Construire « ${title} » à partir du brief.`, `Prouver le résultat avec ${requirements[0] || "un contrôle observable"}.`]
       : [`Explain the role of ${firstTerm} in this exact case.`, `Build “${title}” from the brief.`, `Prove the result with ${requirements[0] || "an observable check"}.`],
     vocabulary: vocabulary.map((entry) => [entry[index], entry[index + 2]]),
     sections: [
-      { title: locale === "fr" ? "Le problème à résoudre" : "The problem to solve", paragraphs: [module.description[index], brief], example: lesson.badExample || "" },
-      { title: locale === "fr" ? "Le contrat de la solution" : "The solution contract", paragraphs: [implementation], example: lesson.solution || lesson.example || "" },
-      { title: locale === "fr" ? "La preuve attendue" : "Expected evidence", paragraphs: [verification, requirements.length ? (locale === "fr" ? `Contrôles ciblés : ${requirements.join(" · ")}.` : `Targeted checks: ${requirements.join(" · ")}.`) : ""].filter(Boolean), example: lesson.verificationExample || "" }
+      { title: locale === "fr" ? "Le problème à résoudre" : "The problem to solve", paragraphs: [module.description[index], brief, professionalContext], example: lesson.badExample || "" },
+      { title: locale === "fr" ? "Le contrat de la solution" : "The solution contract", paragraphs: [implementation, reviewChecklist], example: lesson.solution || lesson.example || "" },
+      { title: locale === "fr" ? "La preuve attendue" : "Expected evidence", paragraphs: [verification, requirements.length ? (locale === "fr" ? `Contrôles ciblés : ${requirements.join(" · ")}.` : `Targeted checks: ${requirements.join(" · ")}.`) : "", productionTransfer].filter(Boolean), example: lesson.verificationExample || "" }
     ],
     rules: requirements.slice(0, 3).length ? requirements.slice(0, 3) : [brief, verification],
     check: locale === "fr"
       ? [`Je peux expliquer pourquoi ${firstTerm} est utilisé ici.`, `Je sais retrouver ${requirements[0] || "la preuve principale"} dans le résultat.`, "Je peux faire échouer puis réussir le contrôle."]
       : [`I can explain why ${firstTerm} is used here.`, `I can locate ${requirements[0] || "the main evidence"} in the result.`, "I can make the check fail and then pass."],
-    summary: locale === "fr" ? `${title} est acquis lorsque le brief et les contrôles passent sans contournement.` : `${title} is acquired when the brief and checks pass without workarounds.`,
+    summary: locale === "fr" ? `${title} est acquis lorsque le brief, les contrôles et la justification tiennent ensemble sans contournement.` : `${title} is acquired when the brief, checks, and rationale hold together without workarounds.`,
     next: locale === "fr" ? `Garde ${firstTerm} comme repère dans la prochaine activité du module.` : `Keep ${firstTerm} as a reference in the next module activity.`
   };
 }

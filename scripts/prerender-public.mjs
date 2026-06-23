@@ -8,8 +8,8 @@ const template = await readFile(new URL("index.html", distUrl), "utf8");
 
 await renderPage("catalog", {
   title: "Formations développement web gratuites | PulsaTeach",
-  description: "Apprends HTML, CSS, JavaScript, React, TypeScript, Node.js, SQL, Git, les tests, la sécurité et la performance avec 13 parcours gratuits.",
-  body: `<main><h1>Formations gratuites en développement web</h1><p>272 leçons bilingues, des quiz approfondis, des exercices et des projets.</p>${learningTracks.map(trackCard).join("")}</main>`,
+  description: "Apprends HTML, CSS, JavaScript, React, TypeScript, Node.js, SQL, Git, les tests, la sécurité et la performance avec des parcours gratuits, quiz, projets et certificats.",
+  body: `<main><h1>Formations gratuites en développement web</h1><p>Apprends par la pratique avec ${lessonTotal()} leçons bilingues, des quiz approfondis, des exercices guidés, des mini-projets, des examens et des certificats vérifiables.</p><section><h2>Parcours disponibles</h2>${learningTracks.map(trackCard).join("")}</section><section><h2>Comment apprendre sur PulsaTeach ?</h2><p>Chaque parcours combine contexte professionnel, vocabulaire, exemples, erreurs fréquentes, quiz multi-types, révision et projets. Les cours sont pensés pour progresser depuis les bases jusqu’à un livrable démontrable.</p></section></main>`,
   schema: collectionSchema()
 });
 
@@ -18,7 +18,7 @@ await renderPage("glossary", {
   title: "Glossaire du développement web | PulsaTeach",
   description: `${glossary.length} définitions bilingues reliées aux cours HTML, CSS, JavaScript et aux technologies web modernes.`,
   body: `<main><h1>Glossaire du développement web</h1><p>${glossary.length} termes expliqués en français et en anglais.</p><dl>${glossary.slice(0, 180).map((term) => `<dt>${escapeHtml(term.term?.fr || term.label?.fr || term.id)}</dt><dd>${escapeHtml(term.definition?.fr || "")}</dd>`).join("")}</dl></main>`,
-  schema: pageSchema("glossary", "Glossaire du développement web")
+  schema: glossarySchema(glossary)
 });
 
 for (const track of learningTracks) {
@@ -27,11 +27,10 @@ for (const track of learningTracks) {
       const route = `learn/${track.id}/${module.id}/${lesson.id}`;
       const title = `${lesson.title.fr} — Cours ${track.title.fr} gratuit | PulsaTeach`;
       const description = String(lesson.brief?.fr || track.summary?.fr || "").slice(0, 155);
-      const chapterText = lesson.course?.fr?.introduction || lesson.theory?.fr || "";
       await renderPage(route, {
         title,
         description,
-        body: `<main><nav><a href="/catalog">Formations</a> / ${escapeHtml(track.title.fr)} / ${escapeHtml(module.title.fr)}</nav><article><h1>${escapeHtml(lesson.title.fr)}</h1><p>${escapeHtml(lesson.brief?.fr || "")}</p>${chapterText ? `<section><h2>Ce que tu vas apprendre</h2><p>${escapeHtml(chapterText)}</p></section>` : ""}<p><a href="/learn/${track.id}/${module.id}/${lesson.id}">Ouvrir la leçon interactive</a></p></article></main>`,
+        body: lessonBody(track, module, lesson),
         schema: courseSchema(track, module, lesson, route, description)
       });
     }
@@ -62,7 +61,21 @@ function trackCard(track) {
   const firstModule = track.modules[0];
   const firstLesson = firstModule.lessons[0];
   const lessons = track.modules.reduce((sum, module) => sum + module.lessons.length, 0);
-  return `<article><h2>${escapeHtml(track.title.fr)}</h2><p>${escapeHtml(track.summary.fr)}</p><p>${lessons} leçons · ${track.modules.length} modules</p><a href="/learn/${track.id}/${firstModule.id}/${firstLesson.id}">Commencer ${escapeHtml(track.title.fr)}</a></article>`;
+  const modules = track.modules.map((module) => `<li>${escapeHtml(module.title.fr)} — ${module.lessons.length} leçons</li>`).join("");
+  return `<article><h3>${escapeHtml(track.title.fr)}</h3><p>${escapeHtml(track.summary.fr)}</p><p>${lessons} leçons · ${track.modules.length} modules · gratuit · français et anglais</p><ul>${modules}</ul><a href="/learn/${track.id}/${firstModule.id}/${firstLesson.id}">Commencer ${escapeHtml(track.title.fr)}</a></article>`;
+}
+
+function lessonBody(track, module, lesson) {
+  const course = lesson.course?.fr || {};
+  const vocabulary = (course.vocabulary || []).slice(0, 5).map((entry) => `<li><strong>${escapeHtml(entry[0])}</strong> — ${escapeHtml(entry[1])}</li>`).join("");
+  const sections = (course.sections || []).map((section) => `<section><h2>${escapeHtml(section.title)}</h2>${(section.paragraphs || []).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}${section.example ? `<pre><code>${escapeHtml(section.example)}</code></pre>` : ""}</section>`).join("");
+  const objectives = (course.objectives || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const checks = (course.check || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  return `<main><nav><a href="/catalog">Formations</a> / ${escapeHtml(track.title.fr)} / ${escapeHtml(module.title.fr)}</nav><article><h1>${escapeHtml(lesson.title.fr)}</h1><p>${escapeHtml(lesson.brief?.fr || "")}</p><section><h2>Objectifs de la leçon</h2><ul>${objectives}</ul></section>${sections}<section><h2>Vocabulaire lié</h2><ul>${vocabulary}</ul></section><section><h2>Validation</h2><ul>${checks}</ul><p>${escapeHtml(course.summary || "")}</p></section><p><a href="/learn/${track.id}/${module.id}/${lesson.id}">Ouvrir la leçon interactive</a></p></article></main>`;
+}
+
+function lessonTotal() {
+  return learningTracks.reduce((sum, track) => sum + track.modules.reduce((inner, module) => inner + module.lessons.length, 0), 0);
 }
 
 function courseSchema(track, module, lesson, route, description) {
@@ -71,6 +84,7 @@ function courseSchema(track, module, lesson, route, description) {
     "@context": "https://schema.org",
     "@graph": [
       { "@type": "Course", name: lesson.title.fr, description, url, inLanguage: ["fr", "en"], isAccessibleForFree: true, provider: { "@type": "Organization", name: "PulsaTeach", url: siteUrl } },
+      { "@type": "LearningResource", name: lesson.title.fr, description, url, inLanguage: ["fr", "en"], educationalLevel: track.level?.fr || "Débutant à intermédiaire", teaches: lesson.skills || [], timeRequired: `PT${lesson.durationMin || 30}M`, isAccessibleForFree: true },
       { "@type": "BreadcrumbList", itemListElement: [
         listItem(1, "Accueil", `${siteUrl}/`),
         listItem(2, "Formations", `${siteUrl}/catalog`),
@@ -84,20 +98,49 @@ function courseSchema(track, module, lesson, route, description) {
 function collectionSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "ItemList",
-    name: "Formations PulsaTeach",
-    numberOfItems: learningTracks.length,
-    itemListElement: learningTracks.map((track, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      name: track.title.fr,
-      url: `${siteUrl}/learn/${track.id}/${track.modules[0].id}/${track.modules[0].lessons[0].id}`
-    }))
+    "@graph": [
+      {
+        "@type": "WebSite",
+        name: "PulsaTeach",
+        url: siteUrl,
+        inLanguage: ["fr", "en"],
+        potentialAction: { "@type": "SearchAction", target: `${siteUrl}/catalog?q={search_term_string}`, "query-input": "required name=search_term_string" }
+      },
+      {
+        "@type": "ItemList",
+        name: "Formations PulsaTeach",
+        numberOfItems: learningTracks.length,
+        itemListElement: learningTracks.map((track, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: track.title.fr,
+          url: `${siteUrl}/learn/${track.id}/${track.modules[0].id}/${track.modules[0].lessons[0].id}`
+        }))
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: [
+          faq("PulsaTeach est-il gratuit ?", "Oui. Les parcours, quiz, projets et révisions sont accessibles gratuitement."),
+          faq("Quels langages apprendre sur PulsaTeach ?", "PulsaTeach couvre HTML, CSS, JavaScript, TypeScript, React, Node.js, SQL, Git, tests, sécurité, accessibilité, performance et déploiement."),
+          faq("Les cours sont-ils adaptés aux mobiles ?", "Oui. Les pages critiques sont testées en mobile et desktop, avec navigation clavier et contraintes d’accessibilité.")
+        ]
+      }
+    ]
   };
 }
 
-function pageSchema(route, name) {
-  return { "@context": "https://schema.org", "@type": "CollectionPage", name, url: `${siteUrl}/${route}`, isPartOf: { "@type": "WebSite", name: "PulsaTeach", url: siteUrl } };
+function glossarySchema(glossary) {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      { "@type": "CollectionPage", name: "Glossaire du développement web", url: `${siteUrl}/glossary`, isPartOf: { "@type": "WebSite", name: "PulsaTeach", url: siteUrl } },
+      { "@type": "DefinedTermSet", name: "Glossaire PulsaTeach", hasDefinedTerm: glossary.slice(0, 80).map((term) => ({ "@type": "DefinedTerm", name: term.term?.fr || term.label?.fr || term.id, description: term.definition?.fr || "" })) }
+    ]
+  };
+}
+
+function faq(name, text) {
+  return { "@type": "Question", name, acceptedAnswer: { "@type": "Answer", text } };
 }
 
 function listItem(position, name, item) {

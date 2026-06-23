@@ -14,9 +14,17 @@ describe("quiz engine", () => {
       answer: "a",
       explanation: { fr: "Oui", en: "Yes" }
     });
-    expect(quiz.questions).toHaveLength(4);
+    expect(quiz.questions).toHaveLength(6);
     expect(quiz.questions[0].type).toBe("single");
     expect(quiz.questions[1].type).toBe("error-identification");
+    expect(quiz.questions.map((question) => question.type)).toEqual([
+      "single",
+      "error-identification",
+      "true-false",
+      "multiple",
+      "ordering",
+      "short-open"
+    ]);
   });
 
   test.each([

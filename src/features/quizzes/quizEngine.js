@@ -25,7 +25,7 @@ export function normalizeQuizLesson(lesson) {
         skills: lesson.skills || [],
         requiresRationale: true
       }];
-  const targetCount = lesson.purpose === "exam" ? 7 : 4;
+  const targetCount = lesson.purpose === "exam" ? 10 : 6;
   const questions = expandQuizQuestions(sourceQuestions, targetCount);
 
   return {
@@ -54,7 +54,7 @@ function expandQuizQuestions(sourceQuestions, targetCount) {
     const correct = (source.choices || []).find((choice) => normalize(choice.id) === normalize(source.answer));
     const wrong = (source.choices || []).find((choice) => normalize(choice.id) !== normalize(source.answer));
     if (!correct || !wrong) break;
-    const variation = Math.floor(sourceIndex / sourceQuestions.length) % 3;
+    const variation = sourceIndex % 5;
     const shared = {
       id: `${source.id || "question"}-extension-${sourceIndex + 1}`,
       points: source.points || 1,
@@ -92,6 +92,41 @@ function expandQuizQuestions(sourceQuestions, targetCount) {
           `${localizedText(source.explanation, "en")} Context and evidence prevent a memorized answer without understanding.`
         )
       });
+    } else if (variation === 3) {
+      questions.push({
+        ...shared,
+        type: "ordering",
+        prompt: localizedPair(
+          "Remets la méthode de résolution dans l'ordre le plus fiable.",
+          "Put the resolution method in the most reliable order."
+        ),
+        choices: [
+          { id: "context", label: localizedPair("Relire le scénario et identifier la contrainte", "Reread the scenario and identify the constraint") },
+          { id: "decision", label: localizedPair(`Choisir « ${localizedText(correct.label, "fr")} »`, `Choose “${localizedText(correct.label, "en")}”`) },
+          { id: "evidence", label: localizedPair("Vérifier avec une preuve observable", "Verify with observable evidence") },
+          { id: "explain", label: localizedPair("Expliquer pourquoi les distracteurs échouent", "Explain why distractors fail") }
+        ],
+        answer: ["context", "decision", "evidence", "explain"],
+        explanation: localizedPair(
+          `${localizedText(source.explanation, "fr")} Une bonne réponse suit une méthode : contexte, décision, preuve, explication.`,
+          `${localizedText(source.explanation, "en")} A strong answer follows a method: context, decision, evidence, explanation.`
+        )
+      });
+    } else if (variation === 4) {
+      questions.push({
+        ...shared,
+        type: "short-open",
+        prompt: localizedPair(
+          `Explique en une phrase pourquoi « ${localizedText(correct.label, "fr")} » est la meilleure décision.`,
+          `Explain in one sentence why “${localizedText(correct.label, "en")}” is the best decision.`
+        ),
+        answer: keywordsFromAnswer(correct.label),
+        keywords: keywordsFromAnswer(correct.label),
+        explanation: localizedPair(
+          `${localizedText(source.explanation, "fr")} La réponse attendue doit citer la décision et la relier à la contrainte du scénario.`,
+          `${localizedText(source.explanation, "en")} The expected answer should name the decision and connect it to the scenario constraint.`
+        )
+      });
     } else questions.push({
       ...shared,
       type: "error-identification",
@@ -113,6 +148,16 @@ function expandQuizQuestions(sourceQuestions, targetCount) {
     sourceIndex += 1;
   }
   return questions;
+}
+
+function keywordsFromAnswer(label) {
+  const text = `${localizedText(label, "fr")} ${localizedText(label, "en")}`;
+  const words = text
+    .toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, " ")
+    .split(/\s+/)
+    .filter((word) => word.length >= 4);
+  return [...new Set(words)].slice(0, 2);
 }
 
 function localizedPair(fr, en) {

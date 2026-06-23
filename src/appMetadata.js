@@ -1,5 +1,6 @@
 const SITE_URL = "https://pulsateach.vercel.app";
-const SOCIAL_IMAGE = `${SITE_URL}/assets/backgrounds/academy-map.svg`;
+const SOCIAL_IMAGE = `${SITE_URL}/assets/favicon.webp`;
+const BRAND_ICON = `${SITE_URL}/assets/favicon.webp`;
 
 const routeMetadata = {
   home: {
@@ -120,7 +121,7 @@ function updateStructuredData(route, language, title, description, courseMetadat
       "@id": `${SITE_URL}/#organization`,
       name: "PulsaTeach",
       url: `${SITE_URL}/`,
-      logo: `${SITE_URL}/favicon.svg`
+      logo: BRAND_ICON
     },
     {
       "@type": "WebSite",
