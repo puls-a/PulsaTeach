@@ -51,6 +51,17 @@ export async function getSupabaseStatus() {
   };
 }
 
+export async function checkSupabaseReadiness() {
+  if (!supabaseAdmin) return { ok: false, latencyMs: 0, error: "Supabase is not configured." };
+  const startedAt = Date.now();
+  const { error } = await supabaseAdmin.from("profiles").select("id", { head: true, count: "exact" }).limit(1);
+  return {
+    ok: !error,
+    latencyMs: Date.now() - startedAt,
+    error: error?.message || null
+  };
+}
+
 export async function readSupabaseStore(storeName, fallback) {
   if (!supabaseAdmin) return fallback;
 

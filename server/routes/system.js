@@ -16,6 +16,7 @@ export function registerSystemRoutes(app, context) {
     sensitiveRateLimit,
     deleteSupabaseRecord,
     getSupabaseStatus,
+    checkSupabaseReadiness,
     supabaseAdmin,
     supabaseEnabled,
     requireSupabaseStorage,
@@ -36,6 +37,7 @@ export function registerSystemRoutes(app, context) {
     reviewSchema,
     roleUpdateSchema,
     submissionSchema,
+    telemetrySchema,
     userSettingsSchema,
     validateBody,
     progressFile,
@@ -88,13 +90,35 @@ export function registerSystemRoutes(app, context) {
     createHash
   } = context;
 
+  const healthPayload = () => ({
+    ok: true,
+    service: "pulsateach-api",
+    storage: requireSupabaseStorage ? "supabase-strict" : shouldTrySupabase() ? "supabase-with-json-fallback" : "json-fallback",
+    email: transactionalEmailEnabled ? "resend" : "disabled",
+    version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) || process.env.npm_package_version || "development",
+    timestamp: new Date().toISOString()
+  });
+
+  app.get("/api/health/live", (_request, response) => {
+    response.setHeader("Cache-Control", "no-store");
+    response.json({ ok: true, service: "pulsateach-api", timestamp: new Date().toISOString() });
+  });
+
+  app.get("/api/health/ready", async (_request, response) => {
+    const database = await checkSupabaseReadiness();
+    const ready = requireSupabaseStorage ? database.ok : true;
+    response.setHeader("Cache-Control", "no-store");
+    response.status(ready ? 200 : 503).json({
+      ...healthPayload(),
+      ok: ready,
+      checks: { database }
+    });
+  });
+
   app.get("/api/health", (_request, response) => {
+    response.setHeader("Cache-Control", "no-store");
     response.json({
-      ok: true,
-      service: "pulsateach-api",
-      storage: requireSupabaseStorage ? "supabase-strict" : shouldTrySupabase() ? "supabase-with-json-fallback" : "json-fallback",
-      email: transactionalEmailEnabled ? "resend" : "disabled",
-      timestamp: new Date().toISOString()
+      ...healthPayload()
     });
   });
 
@@ -129,6 +153,7 @@ export function registerSystemRoutes(app, context) {
     await publishDueScheduledCourses();
     const courses = await readJsonStore(coursesFile, []);
     const publishedTracks = courses.filter((course) => course.status === "published").map(normalizePublishedCourse);
+    response.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
     response.json({
       tracks: [...learningTracks, ...publishedTracks].map(summarizeTrack)
     });
@@ -143,10 +168,27 @@ export function registerSystemRoutes(app, context) {
       response.status(404).json({ error: "Track not found.", requestId: request.requestId });
       return;
     }
+    response.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=1800");
     response.json({ track });
   });
 
   app.get("/api/glossary", (_request, response) => {
+    response.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=1800");
     response.json({ terms: buildGlossaryIndex(learningTracks) });
+  });
+
+  app.post("/api/telemetry", sensitiveRateLimit(60), validateBody(telemetrySchema), (request, response) => {
+    console.log(JSON.stringify({
+      level: request.body.type === "client_error" ? "warn" : "info",
+      event: request.body.type,
+      name: request.body.name,
+      value: request.body.value,
+      rating: request.body.rating,
+      route: request.body.route,
+      fingerprint: request.body.fingerprint,
+      navigationType: request.body.navigationType,
+      requestId: request.requestId
+    }));
+    response.status(202).end();
   });
 }

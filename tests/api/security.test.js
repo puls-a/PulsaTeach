@@ -25,6 +25,8 @@ describe("API security boundaries", () => {
     const response = await request(app).get("/api/catalog").expect(200);
     expect(response.headers["content-security-policy"]).toContain("default-src 'none'");
     expect(response.headers["x-content-type-options"]).toBe("nosniff");
+    expect(response.headers["cache-control"]).toContain("public");
+    expect(response.headers.etag).toBeTruthy();
     expect(response.body.tracks[0].isSummary).toBe(true);
     expect(response.body.tracks[0].modules[0].lessons[0].course).toBeUndefined();
 
@@ -33,6 +35,40 @@ describe("API security boundaries", () => {
     expect(fullTrack.body.track.modules[0].lessons[0].course).toBeDefined();
 
     await request(app).get("/api/catalog/unknown-track").expect(404);
+  });
+
+  test("exposes separate liveness and readiness probes", async () => {
+    const live = await request(app).get("/api/health/live").expect(200);
+    expect(live.body).toMatchObject({ ok: true, service: "pulsateach-api" });
+    expect(live.headers["cache-control"]).toBe("no-store");
+
+    const ready = await request(app).get("/api/health/ready").expect(200);
+    expect(ready.body).toMatchObject({
+      ok: true,
+      checks: { database: { ok: false } }
+    });
+  });
+
+  test("sanitizes request IDs and accepts privacy-preserving telemetry", async () => {
+    const response = await request(app)
+      .post("/api/telemetry")
+      .set("X-Request-Id", "bad")
+      .send({ type: "web_vital", name: "LCP", value: 2100, rating: "good", route: "/catalog", navigationType: "navigate" })
+      .expect(202);
+    expect(response.headers["x-request-id"]).toMatch(/^[a-f0-9-]{36}$/);
+
+    await request(app)
+      .post("/api/telemetry")
+      .send({ type: "client_error", name: "TypeError", route: "/catalog", fingerprint: "abc123" })
+      .expect(400);
+  });
+
+  test("rejects oversized standard JSON payloads", async () => {
+    await request(app)
+      .post("/api/telemetry")
+      .set("Content-Type", "application/json")
+      .send({ type: "client_error", name: "x".repeat(300_000), route: "/" })
+      .expect(413);
   });
 
   test("rejects a disallowed browser origin", async () => {

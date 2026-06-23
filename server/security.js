@@ -5,9 +5,11 @@ import helmet from "helmet";
 const isProduction = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
 const localOrigins = [
   "http://127.0.0.1:5173",
+  "http://127.0.0.1:4173",
   "http://127.0.0.1:5188",
   "http://127.0.0.1:5190",
   "http://localhost:5173",
+  "http://localhost:4173",
   "http://localhost:5188",
   "http://localhost:5190"
 ];
@@ -21,6 +23,7 @@ export const localIdentityEnabled = process.env.PULSATEACH_ALLOW_LOCAL_IDENTITY 
 
 export function applySecurity(app) {
   app.disable("x-powered-by");
+  app.set("etag", "strong");
   if (isProduction) app.set("trust proxy", 1);
 
   app.use(helmet({
@@ -30,10 +33,23 @@ export function applySecurity(app) {
         defaultSrc: ["'none'"],
         baseUri: ["'none'"],
         frameAncestors: ["'none'"],
-        formAction: ["'none'"]
+        formAction: ["'none'"],
+        objectSrc: ["'none'"]
       }
-    }
+    },
+    crossOriginOpenerPolicy: { policy: "same-origin" },
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    strictTransportSecurity: isProduction
+      ? { maxAge: 63_072_000, includeSubDomains: true, preload: true }
+      : false
   }));
+
+  app.use((request, response, next) => {
+    response.setHeader("Cache-Control", "no-store");
+    response.setHeader("Pragma", "no-cache");
+    response.setHeader("X-Robots-Tag", request.path.startsWith("/api/") ? "noindex, nofollow" : "noindex");
+    next();
+  });
 
   app.use(cors({
     origin(origin, callback) {

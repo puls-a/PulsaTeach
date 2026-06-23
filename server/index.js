@@ -11,8 +11,8 @@ import { appendWorkflowLog, authorizeCourseTransition, createCourseVersion, diff
 import { productRoadmap } from "./roadmap.js";
 import { sendWelcomeEmail, transactionalEmailEnabled } from "./emailService.js";
 import { applySecurity, localIdentityEnabled, sensitiveRateLimit } from "./security.js";
-import { deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, readSupabaseStore, requireSupabaseStorage, supabaseAdmin, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
-import { accountDeletionSchema, attemptSchema, avatarUploadSchema, certificateRevokeSchema, courseCreateSchema, courseRollbackSchema, courseUpdateSchema, enrollmentSchema, eventSchema, lessonDraftSchema, lessonDraftUpdateSchema, progressMigrationSchema, progressSchema, quizSessionSchema, reviewSchema, roleUpdateSchema, submissionSchema, userSettingsSchema, validateBody } from "./validation.js";
+import { checkSupabaseReadiness, deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, readSupabaseStore, requireSupabaseStorage, supabaseAdmin, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
+import { accountDeletionSchema, attemptSchema, avatarUploadSchema, certificateRevokeSchema, courseCreateSchema, courseRollbackSchema, courseUpdateSchema, enrollmentSchema, eventSchema, lessonDraftSchema, lessonDraftUpdateSchema, progressMigrationSchema, progressSchema, quizSessionSchema, reviewSchema, roleUpdateSchema, submissionSchema, telemetrySchema, userSettingsSchema, validateBody } from "./validation.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = process.env.PULSATEACH_DATA_DIR || (process.env.VERCEL ? "/tmp/pulsateach-data" : path.join(__dirname, "..", "data"));
@@ -55,7 +55,8 @@ if (productionRuntime && !requireSupabaseStorage) {
 
 app.use(attachRequestContext);
 applySecurity(app);
-app.use(express.json({ limit: "2mb" }));
+app.use("/api/account/avatar", express.json({ limit: "1200kb", strict: true }));
+app.use(express.json({ limit: "256kb", strict: true }));
 app.use(attachAuthUser);
 
 const routeContext = {
@@ -74,6 +75,7 @@ const routeContext = {
   sensitiveRateLimit,
   deleteSupabaseRecord,
   getSupabaseStatus,
+  checkSupabaseReadiness,
   supabaseAdmin,
   supabaseEnabled,
   requireSupabaseStorage,
@@ -94,6 +96,7 @@ const routeContext = {
   reviewSchema,
   roleUpdateSchema,
   submissionSchema,
+  telemetrySchema,
   userSettingsSchema,
   validateBody,
   progressFile,
@@ -307,7 +310,8 @@ async function attachAuthUser(request, _response, next) {
 
 function attachRequestContext(request, response, next) {
   const startedAt = Date.now();
-  request.requestId = String(request.headers["x-request-id"] || randomUUID());
+  const providedRequestId = String(request.headers["x-request-id"] || "");
+  request.requestId = /^[a-zA-Z0-9._:-]{8,100}$/.test(providedRequestId) ? providedRequestId : randomUUID();
   response.setHeader("X-Request-Id", request.requestId);
   response.on("finish", () => {
     if (process.env.PULSATEACH_LOG_LEVEL === "silent") return;

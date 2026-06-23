@@ -162,6 +162,16 @@ export const eventSchema = z.object({
   payload: z.record(z.string(), z.unknown()).optional().default({})
 }).strict();
 
+export const telemetrySchema = z.object({
+  type: z.enum(["web_vital", "client_error"]),
+  name: z.string().trim().min(1).max(40),
+  value: z.coerce.number().finite().min(0).max(10_000_000).optional(),
+  rating: z.enum(["good", "needs-improvement", "poor"]).optional(),
+  route: z.string().trim().regex(/^\/[a-zA-Z0-9/_-]*$/).max(300),
+  fingerprint: z.string().trim().regex(/^[a-f0-9]{16,64}$/).optional(),
+  navigationType: z.enum(["navigate", "reload", "back-forward", "prerender", "unknown"]).optional()
+}).strict();
+
 export const reviewSchema = z.object({
   status: z.enum(["in_review", "approved", "changes_requested"]),
   feedback: z.string().max(4000).optional().default(""),

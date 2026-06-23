@@ -7,6 +7,8 @@ const [indexHtml, robots, sitemap, metadata] = await Promise.all([
   readFile(new URL("../public/sitemap.xml", import.meta.url), "utf8"),
   readFile(new URL("../src/appMetadata.js", import.meta.url), "utf8")
 ]);
+const prerenderedCatalog = await readFile(new URL("../dist/catalog/index.html", import.meta.url), "utf8").catch(() => "");
+const prerenderedLesson = await readFile(new URL("../dist/learn/html/html-foundations/html-01-document-skeleton/index.html", import.meta.url), "utf8").catch(() => "");
 
 const expectedLessonCount = learningTracks.reduce(
   (total, track) => total + track.modules.reduce((sum, module) => sum + module.lessons.length, 0),
@@ -21,7 +23,9 @@ const checks = [
   [metadata.includes('"BreadcrumbList"'), "breadcrumb structured data"],
   [metadata.includes('"Course"'), "course structured data"],
   [metadata.includes("max-image-preview:large"), "expanded robots directives"],
-  [(sitemap.match(/<url>/g) || []).length >= expectedLessonCount + 10, "all public learning URLs in sitemap"]
+  [(sitemap.match(/<url>/g) || []).length >= expectedLessonCount + 10, "all public learning URLs in sitemap"],
+  [prerenderedCatalog.includes("<h1>Formations gratuites"), "prerendered catalog content"],
+  [prerenderedLesson.includes('"@type":"Course"'), "prerendered lesson course schema"]
 ];
 
 const failures = checks.filter(([passed]) => !passed).map(([, label]) => label);
