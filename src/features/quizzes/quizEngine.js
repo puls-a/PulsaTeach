@@ -12,7 +12,7 @@ export const supportedQuestionTypes = [
 ];
 
 export function normalizeQuizLesson(lesson) {
-  const questions = Array.isArray(lesson.questions) && lesson.questions.length
+  const sourceQuestions = Array.isArray(lesson.questions) && lesson.questions.length
     ? lesson.questions
     : [{
         id: `${lesson.id}-question-1`,
@@ -25,6 +25,8 @@ export function normalizeQuizLesson(lesson) {
         skills: lesson.skills || [],
         requiresRationale: true
       }];
+  const targetCount = lesson.purpose === "exam" ? 7 : 4;
+  const questions = expandQuizQuestions(sourceQuestions, targetCount);
 
   return {
     id: lesson.id,
@@ -42,6 +44,85 @@ export function normalizeQuizLesson(lesson) {
       type: supportedQuestionTypes.includes(question.type) ? question.type : "single"
     }))
   };
+}
+
+function expandQuizQuestions(sourceQuestions, targetCount) {
+  const questions = [...sourceQuestions];
+  let sourceIndex = 0;
+  while (questions.length < targetCount && sourceQuestions.length) {
+    const source = sourceQuestions[sourceIndex % sourceQuestions.length];
+    const correct = (source.choices || []).find((choice) => normalize(choice.id) === normalize(source.answer));
+    const wrong = (source.choices || []).find((choice) => normalize(choice.id) !== normalize(source.answer));
+    if (!correct || !wrong) break;
+    const variation = Math.floor(sourceIndex / sourceQuestions.length) % 3;
+    const shared = {
+      id: `${source.id || "question"}-extension-${sourceIndex + 1}`,
+      points: source.points || 1,
+      skills: source.skills || [],
+      glossaryTerms: source.glossaryTerms || [],
+      requiresRationale: false
+    };
+    if (variation === 1) {
+      questions.push({
+        ...shared,
+        type: "true-false",
+        prompt: localizedPair(
+          `Vrai ou faux : pour « ${localizedText(source.prompt, "fr")} », « ${localizedText(correct.label, "fr")} » répond au besoin.`,
+          `True or false: for “${localizedText(source.prompt, "en")}”, “${localizedText(correct.label, "en")}” addresses the need.`
+        ),
+        answer: "true",
+        explanation: source.explanation
+      });
+    } else if (variation === 2) {
+      questions.push({
+        ...shared,
+        type: "multiple",
+        prompt: localizedPair(
+          "Quels réflexes permettent de confirmer la réponse dans un cas réel ?",
+          "Which practices confirm the answer in a real situation?"
+        ),
+        choices: [
+          { id: "context", label: localizedPair("Relire le contexte et la contrainte", "Review the context and constraint") },
+          { id: "evidence", label: localizedPair("Vérifier avec une preuve observable", "Verify with observable evidence") },
+          { id: "appearance", label: localizedPair("Se fier uniquement à l’apparence", "Rely only on appearance") }
+        ],
+        answer: ["context", "evidence"],
+        explanation: localizedPair(
+          `${localizedText(source.explanation, "fr")} Le contexte et une preuve évitent une réponse mémorisée sans compréhension.`,
+          `${localizedText(source.explanation, "en")} Context and evidence prevent a memorized answer without understanding.`
+        )
+      });
+    } else questions.push({
+      ...shared,
+      type: "error-identification",
+      prompt: localizedPair(
+        `Une personne répond « ${localizedText(wrong.label, "fr")} » à la question « ${localizedText(source.prompt, "fr")} ». Quel diagnostic est juste ?`,
+        `Someone answers “${localizedText(wrong.label, "en")}” to “${localizedText(source.prompt, "en")}”. What is the correct diagnosis?`
+      ),
+      choices: [
+        { id: "reject", label: localizedPair("La réponse ne traite pas correctement le problème", "The answer does not address the problem correctly") },
+        { id: "accept", label: localizedPair("La réponse est recommandée", "The answer is recommended") },
+        { id: "neutral", label: localizedPair("Les réponses sont équivalentes", "The answers are equivalent") }
+      ],
+      answer: "reject",
+      explanation: localizedPair(
+        `${localizedText(source.explanation, "fr")} La réponse attendue était « ${localizedText(correct.label, "fr")} ».`,
+        `${localizedText(source.explanation, "en")} The expected answer was “${localizedText(correct.label, "en")}”.`
+      ),
+    });
+    sourceIndex += 1;
+  }
+  return questions;
+}
+
+function localizedPair(fr, en) {
+  return { fr, en };
+}
+
+function localizedText(value, locale) {
+  if (Array.isArray(value)) return String(value[locale === "fr" ? 0 : 1] || value[0] || "");
+  if (value && typeof value === "object") return String(value[locale] || value.fr || value.en || "");
+  return String(value || "");
 }
 
 export function evaluateQuestion(question, response) {
@@ -170,4 +251,3 @@ function normalize(value) {
 function normalizeCode(value) {
   return normalize(value).replace(/\s+/g, " ").replace(/\s*([{}();,:=<>+\-*/])\s*/g, "$1");
 }
-

@@ -1,4 +1,5 @@
 import { learningTracks } from "../src/content/allTrackRegistry.js";
+import { normalizeQuizLesson } from "../src/features/quizzes/quizEngine.js";
 
 const requiredPedagogy = [
   "why",
@@ -61,6 +62,13 @@ for (const trackId of richTracks) {
       if (lesson.type === "project" && (lesson.rubric?.fr?.length || 0) < 4) failures.push(`${lesson.id}: project rubric needs at least 4 criteria`);
       if (lesson.type === "project" && lesson.durationMin < 90) failures.push(`${lesson.id}: project duration is not realistic`);
       if (lesson.type !== "project" && lesson.durationMin < 15) failures.push(`${lesson.id}: lesson duration is not realistic`);
+      if (lesson.type === "quiz") {
+        const normalizedQuiz = normalizeQuizLesson(lesson);
+        const minimum = lesson.purpose === "exam" ? 7 : 4;
+        if (normalizedQuiz.questions.length < minimum) failures.push(`${lesson.id}: quiz needs at least ${minimum} questions`);
+        if (new Set(normalizedQuiz.questions.map((question) => question.type)).size < 2) failures.push(`${lesson.id}: quiz needs varied question types`);
+        if (normalizedQuiz.questions.some((question) => !question.explanation?.fr || !question.explanation?.en)) failures.push(`${lesson.id}: every question needs bilingual feedback`);
+      }
     }
   }
 }

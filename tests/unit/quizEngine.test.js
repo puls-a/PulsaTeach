@@ -2,17 +2,21 @@ import { describe, expect, test } from "vitest";
 import { buildReviewQueue, createQuizDraft, evaluateQuestion, normalizeQuizLesson, scoreQuiz, shuffleQuestions } from "../../src/features/quizzes/quizEngine.js";
 
 describe("quiz engine", () => {
-  test("normalizes a legacy single-question lesson", () => {
+  test("expands a legacy single-question lesson into a fuller diagnostic", () => {
     const quiz = normalizeQuizLesson({
       id: "legacy",
       title: { fr: "Quiz", en: "Quiz" },
       question: { fr: "Question", en: "Question" },
-      options: [{ id: "a", label: { fr: "A", en: "A" } }],
+      options: [
+        { id: "a", label: { fr: "A", en: "A" } },
+        { id: "b", label: { fr: "B", en: "B" } }
+      ],
       answer: "a",
       explanation: { fr: "Oui", en: "Yes" }
     });
-    expect(quiz.questions).toHaveLength(1);
+    expect(quiz.questions).toHaveLength(4);
     expect(quiz.questions[0].type).toBe("single");
+    expect(quiz.questions[1].type).toBe("error-identification");
   });
 
   test.each([
@@ -56,4 +60,3 @@ describe("quiz engine", () => {
     expect(shuffleQuestions(["a", "b", "c"], () => values.shift())).toEqual(["b", "c", "a"]);
   });
 });
-

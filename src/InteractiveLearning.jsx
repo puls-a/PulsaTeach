@@ -245,6 +245,7 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
   const rationale = draft.rationales[question.id] || "";
   const questionFeedback = feedback[question.id];
   const canValidate = hasResponse(response) && (!question.requiresRationale || rationale.trim().length >= 12);
+  const answeredCount = quiz.questions.filter((item) => hasResponse(draft.responses[item.id])).length;
 
   useEffect(() => {
     setNote(localStorage.getItem(`pulsateach-note-${lesson.id}`) || "");
@@ -330,6 +331,13 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
     onQuizResult?.(lesson, quiz, score);
   };
 
+  const restartQuiz = () => {
+    localStorage.removeItem(storageKey);
+    setDraft(createQuizDraft(quiz));
+    setFeedback({});
+    setFinalScore(null);
+  };
+
   return (
     <section className="surface min-w-0 overflow-hidden p-4 text-ink sm:p-6">
       <div className="flex flex-wrap items-center gap-3">
@@ -355,7 +363,7 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
       </details>
       <div className="muted-surface mt-4 min-w-0 p-3 sm:mt-6 sm:p-5">
         <div className="flex min-w-0 items-center justify-between gap-3">
-          <p className="text-sm font-bold text-indigoPop">{locale === "fr" ? "Question" : "Question"} {draft.currentIndex + 1}/{quiz.questions.length}</p>
+          <p className="text-sm font-bold text-indigoPop">{locale === "fr" ? "Question" : "Question"} {draft.currentIndex + 1}/{quiz.questions.length} · {answeredCount} {locale === "fr" ? "répondues" : "answered"}</p>
           <div className="h-2 min-w-16 flex-1 overflow-hidden rounded-full bg-slate-200 sm:max-w-40"><div className="h-full rounded-full bg-indigoPop" style={{ width: `${((draft.currentIndex + 1) / quiz.questions.length) * 100}%` }} /></div>
         </div>
         <p className="mt-4 break-words font-display text-xl font-bold leading-snug sm:text-2xl">{localize(question.prompt, locale)}</p>
@@ -378,6 +386,7 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
           <p className="mt-2 text-xs font-semibold text-slate-600">{locale === "fr" ? "La justification force à raisonner au-delà de la mémorisation." : "The explanation makes you reason beyond memorization."}</p>
         </>}
         <div className="mt-5 grid gap-2 sm:flex">
+          {draft.currentIndex > 0 && <button type="button" onClick={() => setDraft((current) => ({ ...current, currentIndex: current.currentIndex - 1 }))} className="secondary-button w-full sm:w-auto">{locale === "fr" ? "Question précédente" : "Previous question"}</button>}
           <button type="button" disabled={!canValidate} onClick={validateCurrent} className="primary-button w-full disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"><Play className="size-5" />{locale === "fr" ? "Valider" : "Check"}</button>
           {questionFeedback && draft.currentIndex < quiz.questions.length - 1 && <button type="button" onClick={() => setDraft((current) => ({ ...current, currentIndex: current.currentIndex + 1 }))} className="secondary-button w-full sm:w-auto">{locale === "fr" ? "Question suivante" : "Next question"}</button>}
         </div>
@@ -388,11 +397,25 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
           {localize(question.explanation, locale)}
         </div>
       )}
-      {finalScore && <div className={`mt-5 rounded-xl border p-4 font-bold ${finalScore.passed ? "border-green-200 bg-green-50 text-green-800" : "border-amber-200 bg-amber-50 text-amber-900"}`}>{locale === "fr" ? `Score final : ${finalScore.percent} %` : `Final score: ${finalScore.percent}%`}</div>}
+      {finalScore && <QuizResults quiz={quiz} score={finalScore} locale={locale} onRestart={restartQuiz} />}
       {finalScore?.passed && <CompletionBanner locale={locale} onNext={onNext} hasNext={hasNext} />}
       <div className="mt-5"><NotesPanel lessonId={lesson.id} locale={locale} note={note} setNote={setNote} /></div>
     </section>
   );
+}
+
+function QuizResults({ quiz, score, locale, onRestart }) {
+  const correctCount = score.results.filter((result) => result.correct).length;
+  return <section className={`mt-5 rounded-xl border p-4 ${score.passed ? "border-green-200 bg-green-50" : "border-amber-200 bg-amber-50"}`} aria-label={locale === "fr" ? "Résultats du quiz" : "Quiz results"}>
+    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+      <div><p className={`font-display text-2xl font-bold ${score.passed ? "text-green-900" : "text-amber-950"}`}>{locale === "fr" ? `Score final : ${score.percent} %` : `Final score: ${score.percent}%`}</p><p className="mt-1 text-sm font-semibold text-slate-700">{correctCount}/{score.results.length} {locale === "fr" ? "réponses correctes" : "correct answers"} · {locale === "fr" ? `seuil ${quiz.passingScore} %` : `${quiz.passingScore}% required`}</p></div>
+      <button type="button" onClick={onRestart} className="secondary-button">{locale === "fr" ? "Recommencer le bilan" : "Restart check"}</button>
+    </div>
+    <ol className="mt-4 grid gap-2">{quiz.questions.map((question, index) => {
+      const result = score.results.find((item) => item.questionId === question.id);
+      return <li className={`rounded-lg border bg-white p-3 text-sm ${result?.correct ? "border-green-200" : "border-red-200"}`} key={question.id}><div className="flex items-start gap-2">{result?.correct ? <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-green-700" /> : <XCircle className="mt-0.5 size-5 shrink-0 text-red-700" />}<div><p className="font-bold text-ink">{index + 1}. {localize(question.prompt, locale)}</p><p className="mt-1 leading-6 text-slate-600">{localize(question.explanation, locale)}</p></div></div></li>;
+    })}</ol>
+  </section>;
 }
 
 function QuestionInput({ question, response, locale, onChange }) {
