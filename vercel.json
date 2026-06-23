@@ -55,6 +55,23 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/favicon.ico",
+      "destination": "/assets/favicon.ico",
+      "permanent": true
+    },
+    {
+      "source": "/assets/favicon.webp",
+      "destination": "/assets/favicon.ico",
+      "permanent": true
+    },
+    {
+      "source": "/assets/logo_horizontale.ico",
+      "destination": "/assets/logo_horizontale.webp",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
