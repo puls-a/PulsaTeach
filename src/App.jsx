@@ -211,9 +211,9 @@ function Header({ locale, route, onLanguageToggle }) {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3" data-navigation-root>
-      <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-4 rounded-2xl border border-slate-200/90 bg-white/95 px-3 shadow-lg shadow-slate-900/5 backdrop-blur-xl sm:px-4" aria-label="Navigation principale">
-        <a href="/catalog" className="flex min-w-0 items-center rounded-xl px-2 py-1.5 hover:bg-slate-100" aria-label="PulsaTeach">
-          <img src="/assets/logo_horizontale.webp" alt="PulsaTeach" className="h-12 w-auto max-w-[220px] object-contain sm:max-w-[260px]" width="380" height="96" />
+      <nav className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-4 rounded-2xl border border-slate-200/90 bg-white/95 px-3 shadow-lg shadow-slate-900/5 backdrop-blur-xl sm:px-4" aria-label="Navigation principale">
+        <a href="/catalog" className="brand-logo-link brand-logo-link--nav flex min-w-0 items-center rounded-xl hover:bg-slate-100" aria-label="PulsaTeach">
+          <img src="/assets/logo_horizontale.webp" alt="PulsaTeach" className="brand-logo-image" width="380" height="96" />
         </a>
 
         <div className="hidden items-center gap-1 lg:flex">
@@ -371,8 +371,8 @@ function Footer({ locale }) {
     <footer className="border-t border-slate-200 bg-white px-5 py-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-5 text-sm text-slate-500">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <a href="/catalog" className="inline-flex w-fit items-center rounded-xl p-1 hover:bg-slate-50" aria-label="PulsaTeach">
-            <img src="/assets/logo_horizontale.webp" alt="PulsaTeach" className="h-12 w-auto max-w-[260px] object-contain" width="380" height="96" loading="lazy" />
+          <a href="/catalog" className="brand-logo-link brand-logo-link--footer inline-flex items-center rounded-xl hover:bg-slate-50" aria-label="PulsaTeach">
+            <img src="/assets/logo_horizontale.webp" alt="PulsaTeach" className="brand-logo-image" width="380" height="96" loading="lazy" />
           </a>
           <div className="flex flex-wrap gap-x-5 gap-y-3 font-semibold">
           <a href="/privacy">{locale === "fr" ? "Confidentialité" : "Privacy"}</a>
@@ -384,7 +384,7 @@ function Footer({ locale }) {
         </div>
         <div className="flex flex-col justify-between gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center">
           <p>© 2026 PulsaTeach</p>
-          <a href="https://pulsaflow.fr" target="_blank" rel="noreferrer" className="pulsaflow-badge inline-flex w-fit items-center gap-1.5 self-start rounded-full border border-indigo-100 bg-indigo-50/80 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.11em] text-indigoPop transition hover:-translate-y-0.5 hover:bg-indigo-100 sm:self-auto" aria-label="Powered by PulsaFlow">
+          <a href="https://pulsaflow.fr" target="_blank" rel="noreferrer" className="pulsaflow-badge inline-flex w-fit items-center gap-1 self-start rounded-full border border-indigo-100 bg-indigo-50/70 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-[0.06em] text-indigoPop transition hover:-translate-y-0.5 hover:bg-indigo-100 sm:self-auto" aria-label="Powered by PulsaFlow">
             <span className="pulsaflow-badge-dot size-1.5 rounded-full bg-indigoPop" aria-hidden="true" />
             Powered by PulsaFlow
           </a>

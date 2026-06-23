@@ -1,96 +1,181 @@
-import { ArrowRight, CheckCircle2, Code2, FileBadge, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  BookOpenCheck,
+  BrainCircuit,
+  CheckCircle2,
+  Code2,
+  FileBadge,
+  Flame,
+  GraduationCap,
+  Layers3,
+  PlayCircle,
+  ShieldCheck,
+  Sparkles,
+  Trophy
+} from "lucide-react";
 
-const landingStats = { tracks: 13, lessons: 272 };
+const landingStats = { tracks: 13, lessons: 272, projects: 34 };
+
 const featuredTracks = [
-  { id: "html", label: "HTML", title: { fr: "HTML interactif", en: "Interactive HTML" }, summary: { fr: "Structure, sémantique, formulaires, accessibilité et projet final.", en: "Structure, semantics, forms, accessibility, and final project." }, modules: 4, lessons: 22, href: "/learn/html/html-foundations/html-01-document-skeleton" },
-  { id: "css", label: "CSS", title: { fr: "CSS responsive", en: "Responsive CSS" }, summary: { fr: "Flexbox, grilles, responsive, animations sobres et interfaces solides.", en: "Flexbox, grids, responsive design, calm animations, and solid interfaces." }, modules: 6, lessons: 27, href: "/learn/css/css-foundations/css-01-selectors" },
-  { id: "javascript", label: "JS", title: { fr: "JavaScript pratique", en: "Practical JavaScript" }, summary: { fr: "Logique, DOM, événements, async, debugging et mini-projets.", en: "Logic, DOM, events, async, debugging, and mini-projects." }, modules: 5, lessons: 23, href: "/learn/javascript/js-foundations/js-01-values" },
-  { id: "react", label: "REACT", title: { fr: "React métier", en: "Business React" }, summary: { fr: "Composants, hooks, formulaires, routing, données et tests.", en: "Components, hooks, forms, routing, data, and tests." }, modules: 4, lessons: 20, href: "/learn/react/react-components/react-01-component" },
-  { id: "typescript", label: "TS", title: { fr: "TypeScript", en: "TypeScript" }, summary: { fr: "Types, unions, fonctions, contrats API et sécurité de refactor.", en: "Types, unions, functions, API contracts, and safer refactors." }, modules: 4, lessons: 20, href: "/learn/typescript/typescript-foundations/ts-01-primitive-types" },
-  { id: "node", label: "API", title: { fr: "Node.js API", en: "Node.js API" }, summary: { fr: "Routes, validation, auth, erreurs, base de données et tests API.", en: "Routes, validation, auth, errors, database, and API tests." }, modules: 4, lessons: 20, href: "/learn/node-api/node-api-foundations/node-01-routing" }
+  { id: "html", label: "HTML", tone: "from-orange-500 to-amber-400", title: { fr: "HTML interactif", en: "Interactive HTML" }, summary: { fr: "Structure propre, sémantique, formulaires, accessibilité et mini-projets concrets.", en: "Clean structure, semantics, forms, accessibility, and concrete mini-projects." }, modules: 4, lessons: 22, href: "/learn/html/html-foundations/html-01-document-skeleton" },
+  { id: "css", label: "CSS", tone: "from-sky-500 to-cyan-400", title: { fr: "CSS responsive", en: "Responsive CSS" }, summary: { fr: "Flexbox, grilles, animations sobres et interfaces qui tiennent sur mobile.", en: "Flexbox, grids, calm animations, and interfaces that hold up on mobile." }, modules: 6, lessons: 27, href: "/learn/css/css-foundations/css-01-selectors" },
+  { id: "javascript", label: "JS", tone: "from-yellow-400 to-orange-400", title: { fr: "JavaScript pratique", en: "Practical JavaScript" }, summary: { fr: "Logique, DOM, événements, async, debugging et projets utilisables.", en: "Logic, DOM, events, async, debugging, and usable projects." }, modules: 5, lessons: 23, href: "/learn/javascript/js-foundations/js-01-values" },
+  { id: "react", label: "React", tone: "from-cyan-400 to-indigo-500", title: { fr: "React métier", en: "Business React" }, summary: { fr: "Composants, hooks, formulaires, routing, données, tests et qualité d’interface.", en: "Components, hooks, forms, routing, data, tests, and interface quality." }, modules: 4, lessons: 20, href: "/learn/react/react-components/react-01-component" },
+  { id: "typescript", label: "TS", tone: "from-blue-600 to-indigo-500", title: { fr: "TypeScript solide", en: "Solid TypeScript" }, summary: { fr: "Types, unions, contrats API et refactors plus sûrs sans magie inutile.", en: "Types, unions, API contracts, and safer refactors without needless magic." }, modules: 4, lessons: 20, href: "/learn/typescript/typescript-foundations/ts-01-primitive-types" },
+  { id: "node", label: "API", tone: "from-emerald-500 to-teal-400", title: { fr: "Node.js API", en: "Node.js API" }, summary: { fr: "Routes, validation, auth, erreurs, base de données et tests API.", en: "Routes, validation, auth, errors, database, and API tests." }, modules: 4, lessons: 20, href: "/learn/node-api/node-api-foundations/node-01-routing" }
+];
+
+const methodSteps = [
+  [BookOpenCheck, "Comprendre", "Des leçons courtes, orientées usage réel, avec vocabulaire relié."],
+  [Code2, "Construire", "Des exercices et mini-projets pour transformer la théorie en réflexes."],
+  [BrainCircuit, "Valider", "Des quiz plus exigeants, feedbacks et révisions pour retenir longtemps."],
+  [FileBadge, "Prouver", "Des projets, certificats et traces de progression partageables."]
 ];
 
 export default function LandingPage({ locale = "fr" }) {
   const fr = locale === "fr";
 
   return (
-    <section className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,#e0e7ff,transparent_34rem),linear-gradient(180deg,#f8fafc,#eef2ff)] px-4 pb-20 pt-28 sm:px-6 lg:px-8">
-      <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
-        <div>
-          <p className="eyebrow">{fr ? "Plateforme gratuite pour apprendre le web" : "Free platform to learn the web"}</p>
-          <h1 className="mt-5 max-w-4xl font-display text-4xl font-black tracking-tight text-ink sm:text-6xl">
-            {fr ? "Apprends le développement web en construisant, pas en recopiant." : "Learn web development by building, not copying."}
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg font-semibold leading-8 text-slate-600">
-            {fr
-              ? "PulsaTeach réunit cours progressifs, quiz exigeants, exercices interactifs, projets, révisions et certificats vérifiables pour passer des bases HTML/CSS/JS à une vraie pratique full-stack."
-              : "PulsaTeach combines progressive courses, demanding quizzes, interactive exercises, projects, reviews, and verifiable certificates to move from HTML/CSS/JS basics to real full-stack practice."}
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a href="/catalog" className="primary-button">
-              {fr ? "Voir les formations gratuites" : "Browse free courses"} <ArrowRight className="size-5" />
-            </a>
-            <a href="/learn/html/html-foundations/html-01-document-skeleton" className="secondary-button">
-              {fr ? "Essayer une leçon HTML" : "Try an HTML lesson"}
-            </a>
-          </div>
-          <dl className="mt-8 grid max-w-2xl grid-cols-3 gap-3">
-            {[
-              [landingStats.tracks, fr ? "formations" : "courses"],
-              [landingStats.lessons, fr ? "leçons" : "lessons"],
-              ["0€", fr ? "accès gratuit" : "free access"]
-            ].map(([value, label]) => (
-              <div key={label} className="rounded-2xl border border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur">
-                <dt className="text-xs font-bold uppercase tracking-[.14em] text-slate-500">{label}</dt>
-                <dd className="mt-2 font-display text-2xl font-black text-indigoPop">{value}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
+    <main className="overflow-hidden bg-slate-950 text-white">
+      <section className="relative px-4 pb-16 pt-28 sm:px-6 lg:px-8 lg:pb-24">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(85,70,246,.45),transparent_30rem),radial-gradient(circle_at_82%_12%,rgba(57,214,163,.22),transparent_28rem),linear-gradient(135deg,#1e1b4b,#0f172a_56%,#082f49)]" />
+        <div className="absolute left-1/2 top-28 h-72 w-72 -translate-x-1/2 rounded-full bg-indigo-500/20 blur-3xl" />
 
-        <div className="rounded-[2rem] border border-white/80 bg-white/90 p-5 shadow-2xl shadow-indigo-950/10 backdrop-blur">
-          <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[.16em] text-indigoPop">{fr ? "Ce que tu vas faire" : "What you will do"}</p>
-              <h2 className="mt-1 font-display text-2xl font-black text-ink">{fr ? "Un parcours clair, du code réel." : "A clear path, real code."}</h2>
-            </div>
-            <Sparkles className="size-8 text-indigoPop" />
-          </div>
-          <div className="mt-5 grid gap-3">
-            {[
-              [Code2, fr ? "Coder dans le navigateur avec feedback immédiat." : "Code in the browser with immediate feedback."],
-              [CheckCircle2, fr ? "Valider par quiz multi-types et preuves de réussite." : "Validate with multi-type quizzes and proof of completion."],
-              [FileBadge, fr ? "Construire des projets et débloquer des certificats." : "Build projects and unlock certificates."],
-              [ShieldCheck, fr ? "Apprendre aussi accessibilité, sécurité, tests et performance." : "Also learn accessibility, security, testing, and performance."]
-            ].map(([Icon, text]) => (
-              <div key={text} className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4">
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-indigo-100 text-indigoPop"><Icon className="size-5" /></span>
-                <p className="text-sm font-bold leading-6 text-slate-700">{text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="mx-auto mt-14 max-w-7xl">
-        <div className="flex items-end justify-between gap-4">
+        <div className="relative mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.02fr_.98fr] lg:items-center">
           <div>
-            <p className="eyebrow">{fr ? "Formations disponibles" : "Available courses"}</p>
-            <h2 className="mt-2 font-display text-3xl font-black text-ink">{fr ? "Commence par une compétence utile." : "Start with a useful skill."}</h2>
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[.18em] text-indigo-100 shadow-2xl shadow-indigo-950/30 backdrop-blur">
+              <Sparkles className="size-4 text-mint" />
+              {fr ? "Plateforme gratuite · code · quiz · projets" : "Free platform · code · quizzes · projects"}
+            </div>
+            <h1 className="mt-7 max-w-5xl font-display text-5xl font-black tracking-tight text-white sm:text-6xl lg:text-7xl">
+              {fr ? "Apprends le web comme si tu préparais un vrai projet." : "Learn the web like you are preparing a real project."}
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg font-semibold leading-8 text-slate-300 sm:text-xl">
+              {fr
+                ? "PulsaTeach mélange cours guidés, quiz sérieux, exercices, vocabulaire, révisions et certificats pour progresser en HTML, CSS, JavaScript, React, TypeScript, Node.js et plus."
+                : "PulsaTeach blends guided courses, serious quizzes, exercises, vocabulary, reviews, and certificates to progress through HTML, CSS, JavaScript, React, TypeScript, Node.js, and more."}
+            </p>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <a href="/catalog" className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-white px-6 text-base font-black text-indigoPop shadow-2xl shadow-indigo-950/30 transition hover:-translate-y-0.5 hover:bg-indigo-50">
+                {fr ? "Choisir une formation" : "Choose a course"} <ArrowRight className="size-5" />
+              </a>
+              <a href="/learn/html/html-foundations/html-01-document-skeleton" className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 text-base font-black text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/15">
+                <PlayCircle className="size-5" /> {fr ? "Démarrer en HTML" : "Start with HTML"}
+              </a>
+            </div>
+
+            <dl className="mt-9 grid max-w-2xl grid-cols-3 gap-3">
+              {[
+                [landingStats.tracks, fr ? "parcours" : "paths"],
+                [landingStats.lessons, fr ? "leçons" : "lessons"],
+                [landingStats.projects, fr ? "projets" : "projects"]
+              ].map(([value, label]) => (
+                <div key={label} className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+                  <dt className="text-[11px] font-black uppercase tracking-[.16em] text-slate-300">{label}</dt>
+                  <dd className="mt-2 font-display text-3xl font-black text-white">{value}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
-          <a href="/catalog" className="hidden text-sm font-extrabold text-indigoPop sm:inline-flex">{fr ? "Tout le catalogue" : "Full catalog"} →</a>
+
+          <div className="relative">
+            <div className="absolute -inset-6 rounded-[3rem] bg-gradient-to-br from-indigo-500/35 via-mint/10 to-white/10 blur-2xl" />
+            <div className="relative overflow-hidden rounded-[2.2rem] border border-white/15 bg-white/95 p-5 text-ink shadow-2xl shadow-slate-950/40">
+              <div className="flex items-center justify-between gap-4 rounded-3xl bg-slate-950 p-4 text-white">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[.18em] text-mint">Pulsa Session</p>
+                  <h2 className="mt-1 font-display text-2xl font-black">{fr ? "Quiz + projet + streak" : "Quiz + project + streak"}</h2>
+                </div>
+                <div className="grid size-14 place-items-center rounded-2xl bg-indigoPop text-white">
+                  <Flame className="size-7" />
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-4">
+                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-black text-slate-500">{fr ? "Objectif du jour" : "Daily goal"}</p>
+                    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">+120 XP</span>
+                  </div>
+                  <p className="mt-3 font-display text-2xl font-black text-ink">{fr ? "Construire une carte responsive" : "Build a responsive card"}</p>
+                  <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-200">
+                    <div className="h-full w-3/4 rounded-full bg-gradient-to-r from-indigoPop to-mint" />
+                  </div>
+                </div>
+
+                {[
+                  [CheckCircle2, fr ? "Question contextualisée avec explication demandée" : "Contextual question with required explanation"],
+                  [Layers3, fr ? "Exercice guidé avec rendu immédiat" : "Guided exercise with instant preview"],
+                  [Trophy, fr ? "Certificat vérifiable après projet final" : "Verifiable certificate after final project"]
+                ].map(([Icon, text]) => (
+                  <div key={text} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-indigo-50 text-indigoPop"><Icon className="size-5" /></span>
+                    <p className="text-sm font-black leading-6 text-slate-700">{text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {featuredTracks.map((track) => (
-            <a href={track.href} key={track.id} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm hover:-translate-y-1 hover:border-indigo-200 hover:shadow-xl">
-              <p className="text-xs font-black uppercase tracking-[.16em] text-indigoPop">{track.label}</p>
-              <h3 className="mt-3 font-display text-xl font-black text-ink">{track.title[locale]}</h3>
-              <p className="mt-3 line-clamp-3 text-sm font-semibold leading-6 text-slate-600">{track.summary[locale]}</p>
-              <p className="mt-4 text-xs font-bold text-slate-500">{track.modules} modules · {track.lessons} {fr ? "leçons" : "lessons"}</p>
-            </a>
-          ))}
+      </section>
+
+      <section className="bg-slate-50 px-4 py-16 text-ink sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-8 lg:grid-cols-[.9fr_1.1fr] lg:items-end">
+            <div>
+              <p className="eyebrow">{fr ? "Formations disponibles" : "Available courses"}</p>
+              <h2 className="mt-3 font-display text-4xl font-black tracking-tight text-ink sm:text-5xl">
+                {fr ? "Un catalogue sérieux, sans blabla décoratif." : "A serious catalog, without decorative fluff."}
+              </h2>
+              <p className="mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-600">
+                {fr
+                  ? "Chaque parcours vise une compétence observable : comprendre, coder, corriger, expliquer et publier."
+                  : "Each path targets an observable skill: understand, code, fix, explain, and publish."}
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
+                [ShieldCheck, fr ? "Accessibilité & sécurité" : "Accessibility & security"],
+                [GraduationCap, fr ? "Progression par compétences" : "Skill-based progress"],
+                [BadgeCheck, fr ? "Certificats partageables" : "Shareable certificates"]
+              ].map(([Icon, text]) => (
+                <div key={text} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <Icon className="size-6 text-indigoPop" />
+                  <p className="mt-3 text-sm font-black leading-5 text-slate-700">{text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {featuredTracks.map((track) => (
+              <a href={track.href} key={track.id} className="group overflow-hidden rounded-[1.7rem] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-indigo-200 hover:shadow-2xl hover:shadow-indigo-950/10">
+                <div className={`inline-flex rounded-2xl bg-gradient-to-br ${track.tone} p-[1px]`}>
+                  <span className="rounded-2xl bg-white px-3 py-2 text-xs font-black uppercase tracking-[.16em] text-ink">{track.label}</span>
+                </div>
+                <h3 className="mt-5 font-display text-2xl font-black text-ink">{track.title[locale]}</h3>
+                <p className="mt-3 line-clamp-3 text-sm font-semibold leading-6 text-slate-600">{track.summary[locale]}</p>
+                <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
+                  <p className="text-xs font-black uppercase tracking-[.13em] text-slate-500">{track.modules} modules · {track.lessons} {fr ? "leçons" : "lessons"}</p>
+                  <ArrowRight className="size-5 text-indigoPop transition group-hover:translate-x-1" />
+                </div>
+              </a>
+            ))}
+          </div>
+
+          <div className="mt-10 grid gap-4 rounded-[2rem] border border-indigo-100 bg-white p-5 shadow-xl shadow-indigo-950/5 lg:grid-cols-4">
+            {methodSteps.map(([Icon, title, text]) => (
+              <div key={title} className="rounded-3xl bg-slate-50 p-5">
+                <Icon className="size-7 text-indigoPop" />
+                <h3 className="mt-4 font-display text-xl font-black text-ink">{title}</h3>
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">{text}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </main>
   );
 }
