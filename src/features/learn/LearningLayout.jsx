@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { BookmarkCheck, CheckCircle2, Code2, Menu, Search, X } from "lucide-react";
+import { BookmarkCheck, CheckCircle2, Code2, Flame, Menu, Search, X } from "lucide-react";
 import { filterLabel, isVisibleLesson } from "./learningState.js";
 import LessonWorkspace from "./LessonWorkspace.jsx";
 
 export function FocusedLearningLayout(props) {
-  const { QuizComponent, locale, activeTrack, activeModule, activeLesson, activeTrackCompleted, activeTrackTotal, progress, bookmarks, syncState, trackLoadError, onOpenLesson, onToggleBookmark, onComplete, onQuizResult, onNext, hasNext } = props;
+  const { QuizComponent, locale, activeTrack, activeModule, activeLesson, activeTrackCompleted, activeTrackTotal, progress, bookmarks, syncState, trackLoadError, onOpenLesson, onToggleBookmark, onComplete, onQuizResult, onCloseQuiz, onNext, hasNext } = props;
   const [curriculumOpen, setCurriculumOpen] = useState(false);
   const openLesson = (moduleId, lessonId) => {
     onOpenLesson(moduleId, lessonId);
@@ -22,13 +22,14 @@ export function FocusedLearningLayout(props) {
             <button type="button" onClick={() => setCurriculumOpen(true)} className="secondary-button min-h-10 px-3 py-2 xl:hidden"><Menu className="size-4" />{locale === "fr" ? "Programme" : "Curriculum"}</button>
             <span className="rounded-lg bg-slate-100 px-3 py-2 font-bold text-slate-600">{activeTrackCompleted}/{activeTrackTotal} {locale === "fr" ? "activités" : "activities"}</span>
             <span className="rounded-lg bg-indigo-50 px-3 py-2 font-bold text-indigoPop">{progress.xp} XP</span>
+            <span className="inline-flex items-center gap-1 rounded-lg bg-orange-50 px-3 py-2 font-bold text-orange-700"><Flame className="size-4" />{progress.streak?.count || 0}</span>
             <span className={`rounded-lg px-3 py-2 font-bold ${syncState === "synced" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{syncState}</span>
           </div>
         </header>
         {trackLoadError && <p className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-800" role="alert">{trackLoadError}</p>}
         <div className="grid gap-3 xl:grid-cols-[300px_minmax(0,1fr)]">
           <aside className="hidden min-w-0 max-h-[calc(100vh-7.5rem)] overflow-x-hidden overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-sm xl:sticky xl:top-24 xl:block"><CurriculumPanel {...props} onOpenLesson={openLesson} /></aside>
-          <LessonWorkspace QuizComponent={QuizComponent} activeTrack={activeTrack} activeModule={activeModule} lesson={activeLesson} locale={locale} isCompleted={Boolean(progress.completed[activeLesson.id])} isBookmarked={bookmarks.includes(activeLesson.id)} onToggleBookmark={onToggleBookmark} onComplete={onComplete} onQuizResult={onQuizResult} onNext={onNext} hasNext={hasNext} />
+          <LessonWorkspace QuizComponent={QuizComponent} activeTrack={activeTrack} activeModule={activeModule} lesson={activeLesson} locale={locale} isCompleted={Boolean(progress.completed[activeLesson.id])} isBookmarked={bookmarks.includes(activeLesson.id)} onToggleBookmark={onToggleBookmark} onComplete={onComplete} onQuizResult={onQuizResult} onCloseQuiz={onCloseQuiz} onNext={onNext} hasNext={hasNext} />
         </div>
       </div>
       {curriculumOpen && <MobileCurriculum {...props} onOpenLesson={openLesson} onClose={() => setCurriculumOpen(false)} />}

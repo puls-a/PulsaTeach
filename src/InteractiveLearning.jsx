@@ -9,9 +9,11 @@ import {
 import { learningTracks } from "./content/trackRegistry.js";
 import { getQuizSession, loadRemoteProgress, recordAttempt, recordLearningEvent, saveQuizSession, saveRemoteProgress } from "./apiClient.js";
 import { createQuizDraft, evaluateQuestion, normalizeQuizLesson, scoreQuiz } from "./features/quizzes/quizEngine.js";
+import QuizModal from "./features/quizzes/QuizModal.jsx";
 import { scheduleQuizReview } from "./features/review/spacedRepetition.js";
 import {
   getNextLesson,
+  getPreviousLesson,
   hasResponse,
   localize,
   markLessonCompleted,
@@ -24,6 +26,7 @@ import {
 import { CompletionBanner, difficultyLabel, NotesPanel, SkillChips } from "./features/learn/LearningShared.jsx";
 import { CourseChapter } from "./features/learn/LearningPedagogy.jsx";
 import { FocusedLearningLayout } from "./features/learn/LearningLayout.jsx";
+import { updatePageMetadata } from "./appMetadata.js";
 
 const progressKey = "pulsateach-learning-progress";
 const bookmarksKey = "pulsateach-learning-bookmarks";
@@ -83,12 +86,13 @@ export default function InteractiveLearning({ locale, tracks = learningTracks, o
   useEffect(() => {
     if (trackLoading) return;
     window.history.replaceState(null, "", `/learn/${activeTrackId}/${activeModuleId}/${activeLessonId}`);
+    updatePageMetadata("learn", locale, "PulsaTeach");
     recordLearningEvent({
       eventType: "lesson_opened",
       lessonId: activeLessonId,
       trackId: activeTrackId
     }).catch(() => {});
-  }, [activeTrackId, activeModuleId, activeLessonId, trackLoading]);
+  }, [activeTrackId, activeModuleId, activeLessonId, locale, trackLoading]);
 
   useEffect(() => {
     let cancelled = false;
@@ -220,6 +224,15 @@ export default function InteractiveLearning({ locale, tracks = learningTracks, o
       onToggleBookmark={() => toggleBookmark(activeLesson.id)}
       onComplete={completeLesson}
       onQuizResult={handleQuizResult}
+      onCloseQuiz={() => {
+        const previous = getPreviousLesson(activeTrack, activeModule.id, activeLesson.id);
+        if (previous) {
+          setActiveModuleId(previous.moduleId);
+          setActiveLessonId(previous.lessonId);
+        } else {
+          window.location.assign("/catalog");
+        }
+      }}
       onNext={() => {
         const next = getNextLesson(activeTrack, activeModule.id, activeLesson.id);
         if (next) {
@@ -233,7 +246,7 @@ export default function InteractiveLearning({ locale, tracks = learningTracks, o
 
 }
 
-function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted, isBookmarked, onToggleBookmark, onQuizResult, onNext, hasNext }) {
+function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted, isBookmarked, onToggleBookmark, onQuizResult, onCloseQuiz, onNext, hasNext }) {
   const quiz = useMemo(() => normalizeQuizLesson(lesson), [lesson]);
   const storageKey = `pulsateach-quiz-draft-${lesson.id}`;
   const [draft, setDraft] = useState(() => createQuizDraft(quiz, readStoredJson(storageKey)));
@@ -339,7 +352,7 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
   };
 
   return (
-    <section className="surface min-w-0 overflow-hidden p-4 text-ink sm:p-6">
+    <QuizModal titleId={`quiz-title-${lesson.id}`} locale={locale} onClose={onCloseQuiz}>
       <div className="flex flex-wrap items-center gap-3">
         <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold uppercase text-indigoPop">quiz</span>
         <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">{lesson.xp} XP</span>
@@ -354,7 +367,7 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
           {isBookmarked ? (locale === "fr" ? "Sauvé" : "Saved") : (locale === "fr" ? "Favori" : "Save")}
         </button>
       </div>
-      <h3 className="mt-4 font-display text-3xl font-bold leading-tight sm:text-4xl">{lesson.title[locale]}</h3>
+      <h3 id={`quiz-title-${lesson.id}`} className="mt-4 pr-12 font-display text-3xl font-bold leading-tight sm:text-4xl">{lesson.title[locale]}</h3>
       <p className="mt-3 max-w-3xl text-base font-semibold leading-7 text-ink/70 sm:text-lg">{lesson.brief[locale]}</p>
       <SkillChips skills={lesson.skills} />
       <details className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
@@ -400,7 +413,7 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
       {finalScore && <QuizResults quiz={quiz} score={finalScore} locale={locale} onRestart={restartQuiz} />}
       {finalScore?.passed && <CompletionBanner locale={locale} onNext={onNext} hasNext={hasNext} />}
       <div className="mt-5"><NotesPanel lessonId={lesson.id} locale={locale} note={note} setNote={setNote} /></div>
-    </section>
+    </QuizModal>
   );
 }
 

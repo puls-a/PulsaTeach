@@ -184,11 +184,20 @@ function mergeProgress(remoteProgress, localProgress) {
     .filter((item, index, items) => items.findIndex((candidate) => `${candidate.id}-${candidate.at}` === `${item.id}-${item.at}`) === index)
     .sort((a, b) => String(b.at || "").localeCompare(String(a.at || "")))
     .slice(0, 100);
+  const localStreak = isObject(local.streak) ? local.streak : {};
+  const remoteStreak = isObject(remote.streak) ? remote.streak : {};
   return {
     ...local,
     ...remote,
     xp: Math.max(Number(local.xp) || 0, Number(remote.xp) || 0),
-    streak: Math.max(Number(local.streak) || 0, Number(remote.streak) || 0),
+    streak: {
+      ...localStreak,
+      ...remoteStreak,
+      count: Math.max(Number(localStreak.count) || 0, Number(remoteStreak.count) || 0),
+      longest: Math.max(Number(localStreak.longest) || 0, Number(remoteStreak.longest) || 0),
+      totalActiveDays: Math.max(Number(localStreak.totalActiveDays) || 0, Number(remoteStreak.totalActiveDays) || 0),
+      recentDates: [...new Set([...(localStreak.recentDates || []), ...(remoteStreak.recentDates || [])])].sort().slice(-30)
+    },
     completed: { ...(local.completed || {}), ...(remote.completed || {}) },
     activity
   };

@@ -6,7 +6,7 @@ import { copyLessonLink } from "./learningState.js";
 import { ActionButton, CompletionBanner, difficultyLabel, NotesPanel, SkillChips } from "./LearningShared.jsx";
 import { CourseChapter, ExplainedCorrection, LessonGuide, PedagogyWorkshop, ProgressiveHints, ProjectRubric } from "./LearningPedagogy.jsx";
 
-export default function LessonWorkspace({ QuizComponent, activeTrack, activeModule, lesson, locale, isCompleted, isBookmarked, onToggleBookmark, onComplete, onQuizResult, onNext, hasNext }) {
+export default function LessonWorkspace({ QuizComponent, activeTrack, activeModule, lesson, locale, isCompleted, isBookmarked, onToggleBookmark, onComplete, onQuizResult, onCloseQuiz, onNext, hasNext }) {
   const [code, setCode] = useState(lesson.starterCode);
   const [result, setResult] = useState(null);
   const [hintLevel, setHintLevel] = useState(0);
@@ -45,7 +45,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
   };
   const passed = result?.filter((check) => check.pass).length ?? 0;
 
-  if (lesson.type === "quiz") return <QuizComponent activeTrack={activeTrack} activeModule={activeModule} lesson={lesson} locale={locale} isCompleted={isCompleted} isBookmarked={isBookmarked} onToggleBookmark={onToggleBookmark} onQuizResult={onQuizResult} onNext={onNext} hasNext={hasNext} />;
+  if (lesson.type === "quiz") return <QuizComponent activeTrack={activeTrack} activeModule={activeModule} lesson={lesson} locale={locale} isCompleted={isCompleted} isBookmarked={isBookmarked} onToggleBookmark={onToggleBookmark} onQuizResult={onQuizResult} onCloseQuiz={onCloseQuiz} onNext={onNext} hasNext={hasNext} />;
 
   return (
     <section className="focused-workspace min-w-0 rounded-2xl border border-slate-200 bg-white p-4 text-ink shadow-sm">

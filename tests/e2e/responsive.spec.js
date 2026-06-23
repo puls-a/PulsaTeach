@@ -41,13 +41,15 @@ test("mobile menu traps focus and restores it when closed", async ({ page }, tes
   await expect(trigger).toBeFocused();
 });
 
-test("iPhone Pro Max shows the active quiz before the curriculum", async ({ page }) => {
+test("iPhone Pro Max displays the quiz as a centered, closable dialog", async ({ page }) => {
   await page.setViewportSize({ width: 430, height: 932 });
   await page.goto("/learn/html/html-a11y-final/html-10-accessibility-quiz");
-  await expect(page.getByRole("heading", { name: /Quiz accessibilité|Accessibility quiz/ }).first()).toBeVisible();
+  const quizDialog = page.getByRole("dialog", { name: /Quiz accessibilité|Accessibility quiz/ });
+  await expect(quizDialog).toBeVisible();
   await expect(page.getByText(/Quel élément rend un input|Which element makes an input/)).toBeVisible();
-  await expect(page.getByRole("button", { name: /Programme|Curriculum/ })).toBeVisible();
-  await page.getByRole("button", { name: /Programme|Curriculum/ }).click();
-  await expect(page.getByRole("heading", { name: /Programme|Curriculum/ }).last()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Fermer", exact: true })).toBeVisible();
+  const bounds = await quizDialog.boundingBox();
+  expect(bounds.x).toBeGreaterThanOrEqual(0);
+  expect(bounds.width).toBeLessThanOrEqual(430);
+  await page.keyboard.press("Escape");
+  await expect(quizDialog).toBeHidden();
 });

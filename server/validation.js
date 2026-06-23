@@ -94,7 +94,10 @@ export const progressSchema = z.object({
   activity: z.array(z.unknown()).max(5000).optional(),
   streak: z.object({
     count: z.coerce.number().int().min(0).max(100_000).optional(),
-    lastDate: z.string().max(40).nullable().optional()
+    longest: z.coerce.number().int().min(0).max(100_000).optional(),
+    lastDate: z.string().max(40).nullable().optional(),
+    totalActiveDays: z.coerce.number().int().min(0).max(100_000).optional(),
+    recentDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).max(365).optional()
   }).strict().optional(),
   review: z.object({
     items: z.record(z.string(), reviewItemSchema).refine((items) => Object.keys(items).length <= 5000, "Too many review items"),
