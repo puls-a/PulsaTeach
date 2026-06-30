@@ -358,6 +358,70 @@
   <url><loc>https://pulsateach.vercel.app/learn/typescript/typescript-production/ts-04-migration-project</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/typescript/typescript-production/ts-04-review</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/typescript/typescript-production/ts-final-exam</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-jsx-components/react-v9-jsx-components-element-jsx</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-jsx-components/react-v9-jsx-components-fragment</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-jsx-components/react-v9-jsx-components-class-name</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-jsx-components/react-v9-jsx-components-self-closing</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-jsx-components/react-v9-jsx-components-comments</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-jsx-components/react-v9-jsx-components-semantic-contract</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-jsx-components/react-v9-component-library</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-jsx-components/react-v9-components-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-props-composition/react-v9-props-composition-props-minimal</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-props-composition/react-v9-props-composition-default-props</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-props-composition/react-v9-props-composition-array-props</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-props-composition/react-v9-props-composition-children-slot</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-props-composition/react-v9-props-composition-compound</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-props-composition/react-v9-props-composition-callback-prop</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-props-composition/react-v9-composition-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-props-composition/react-v9-props-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-events/react-v9-state-events-minimal-state</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-events/react-v9-state-events-functional-update</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-events/react-v9-state-events-toggle</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-events/react-v9-state-events-counter</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-events/react-v9-state-events-conditional</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-events/react-v9-state-events-list-keys</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-events/react-v9-state-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-events/react-v9-state-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-forms-a11y/react-v9-forms-a11y-controlled-input</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-forms-a11y/react-v9-forms-a11y-field-error</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-forms-a11y/react-v9-forms-a11y-submit</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-forms-a11y/react-v9-forms-a11y-fieldset</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-forms-a11y/react-v9-forms-a11y-focus-error</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-forms-a11y/react-v9-forms-a11y-status</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-forms-a11y/react-v9-form-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-forms-a11y/react-v9-forms-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-effects-hooks/react-v9-effects-hooks-document-title</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-effects-hooks/react-v9-effects-hooks-timer-cleanup</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-effects-hooks/react-v9-effects-hooks-outside-click</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-effects-hooks/react-v9-effects-hooks-use-previous</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-effects-hooks/react-v9-effects-hooks-local-storage</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-effects-hooks/react-v9-effects-hooks-effect-deps</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-effects-hooks/react-v9-hooks-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-effects-hooks/react-v9-effects-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-async-routing/react-v9-async-routing-loading-error</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-async-routing/react-v9-async-routing-abort-fetch</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-async-routing/react-v9-async-routing-empty-state</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-async-routing/react-v9-async-routing-retry</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-async-routing/react-v9-async-routing-route-param</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-async-routing/react-v9-async-routing-route-focus</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-async-routing/react-v9-routing-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-async-routing/react-v9-routing-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-management/react-v9-state-management-local-first</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-management/react-v9-state-management-reducer-actions</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-management/react-v9-state-management-no-mutation</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-management/react-v9-state-management-context-provider</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-management/react-v9-state-management-selector</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-management/react-v9-state-management-external-store</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-management/react-v9-store-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-state-management/react-v9-store-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-quality-performance/react-v9-quality-performance-user-test</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-quality-performance/react-v9-quality-performance-form-test</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-quality-performance/react-v9-quality-performance-mock-api</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-quality-performance/react-v9-quality-performance-memo-measure</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-quality-performance/react-v9-quality-performance-lazy-route</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-quality-performance/react-v9-quality-performance-release-check</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-quality-performance/react-v9-final-capstone</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/react/react-v9-quality-performance/react-v9-quality-quiz</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/react/react-components/react-01-component</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/react/react-components/react-01-props</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/react/react-components/react-01-composition</loc></url>
