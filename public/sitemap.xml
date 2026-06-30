@@ -733,4 +733,19 @@
   <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-rollback/ops-04-capstone</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-rollback/ops-04-review</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-rollback/ops-final-exam</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-v9-scripts-supply-chain/ops-v9-script-safe</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-v9-scripts-supply-chain/ops-v9-npm-audit</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-v9-scripts-supply-chain/ops-v9-sbom</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-v9-scripts-supply-chain/ops-v9-supply-chain-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-v9-scripts-supply-chain/ops-v9-supply-chain-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-v9-secrets-infra/ops-v9-env-schema</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-v9-secrets-infra/ops-v9-preview</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-v9-secrets-infra/ops-v9-iac</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-v9-secrets-infra/ops-v9-infra-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-v9-secrets-infra/ops-v9-infra-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-v9-incident-continuity/ops-v9-incident-triage</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-v9-incident-continuity/ops-v9-smoke-pack</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-v9-incident-continuity/ops-v9-postmortem</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-v9-incident-continuity/ops-v9-continuity-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-v9-incident-continuity/ops-v9-incident-quiz</loc></url>
 </urlset>

@@ -1,4 +1,5 @@
 import { createProfessionalTrack } from "../builders/createProfessionalTrack.js";
+import { devopsDeploymentV9Modules } from "./devopsDeploymentV9Modules.js";
 
 const v = {
   environment: ["environnement", "environment", "Configuration et ressources isolées pour un stade de livraison.", "Isolated configuration and resources for a delivery stage."],
@@ -97,7 +98,8 @@ export const devopsDeploymentTrack = createProfessionalTrack({
           q("x5", ["Quand le déploiement est-il terminé ?", "When is deployment complete?"], [["Smoke vert, métriques stables et rollback disponible", "Green smoke tests, stable metrics, and available rollback"], ["Quand le CLI affiche success", "When the CLI displays success"], ["Quand le build est créé", "When the build is created"]], "Smoke vert, métriques stables et rollback disponible", ["Le résultat utilisateur et l’exploitabilité doivent être prouvés.", "User outcome and operability must be proven."], ["production-deployment"])
         ], "exam", 80)
       ]
-    }
+    },
+    ...devopsDeploymentV9Modules
   ]
 });
 
