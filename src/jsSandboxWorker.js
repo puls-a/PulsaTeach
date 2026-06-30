@@ -42,13 +42,19 @@ async function runConsole(code) {
     warn: (...items) => push("[attention] ", items),
     error: (...items) => push("[erreur] ", items)
   };
-  const fakeFetch = async (url) => ({
-    ok: true,
-    status: 200,
-    async json() {
-      return { url, courses: [{ id: "html" }, { id: "css" }, { id: "javascript" }] };
+  const fakeFetch = async (url) => {
+    const normalizedUrl = String(url || "");
+    if (!["/api/catalog", "/api/courses", "mock:catalog"].includes(normalizedUrl)) {
+      throw new Error("Network access is disabled inside PulsaTeach exercises.");
     }
-  });
+    return {
+      ok: true,
+      status: 200,
+      async json() {
+        return { url: normalizedUrl, courses: [{ id: "html" }, { id: "css" }, { id: "javascript" }] };
+      }
+    };
+  };
 
   const execute = new Function("console", "localStorage", "fetch", `"use strict";\nreturn (async () => {\n${code}\n})();`);
   await execute(fakeConsole, storage, fakeFetch);

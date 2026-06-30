@@ -1,10 +1,11 @@
 import { runJavaScriptConsoleSandbox, runJavaScriptExpressionSandbox } from "./jsSandboxClient.js";
+import { createPreviewCspMeta } from "./security/sandboxPolicy.js";
 
 export function createPreview(lesson, code) {
   const kind = getPreviewKind(lesson);
 
   if (kind === "css") {
-    return `<!doctype html><html><head><style>
+    return `<!doctype html><html><head>${createPreviewCspMeta()}<style>
       body { margin: 0; font-family: system-ui, sans-serif; background: #f8fafc; color: #172033; }
       .demo-surface { padding: 24px; }
       .panel { margin-bottom: 20px; }
@@ -17,7 +18,7 @@ export function createPreview(lesson, code) {
   }
 
   if (kind === "dom") {
-    return `<!doctype html><html><head><style>
+    return `<!doctype html><html><head>${createPreviewCspMeta()}<style>
       body { font-family: system-ui, sans-serif; padding: 24px; background: #f8fafc; color: #172033; }
       button { border: 0; border-radius: 8px; background: #4f46e5; color: white; padding: 12px 18px; font-weight: 700; }
       span { display: inline-grid; place-items: center; min-width: 56px; margin-left: 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; padding: 12px; font-weight: 700; }
@@ -30,15 +31,16 @@ export function createPreview(lesson, code) {
 }
 
 export function getPreviewKind(lesson) {
+  const lessonId = String(lesson.id || "");
   if (lesson.type === "terminal" || lesson.runtime === "terminal") return "terminal";
   if (lesson.type === "text" || lesson.runtime === "text") return "text";
   if (lesson.type === "typescript" || lesson.runtime === "typescript") return "typescript";
   if (lesson.type === "react" || lesson.runtime === "react") return "react";
   if (lesson.type === "node" || lesson.runtime === "node") return "node";
   if (lesson.type === "sql" || lesson.runtime === "sql") return "sql";
-  if (lesson.type === "css" || lesson.id.startsWith("css-")) return "css";
+  if (lesson.type === "css" || lessonId.startsWith("css-")) return "css";
   if (lesson.type === "dom") return "dom";
-  if (lesson.type === "js" || lesson.id.startsWith("js-")) return "javascript";
+  if (lesson.type === "js" || lessonId.startsWith("js-")) return "javascript";
   return "html";
 }
 
@@ -46,7 +48,7 @@ function createHtmlPreview(code) {
   const hasBody = /<body[\s>]/i.test(code);
   const bodyMatch = code.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
   const bodyIsEmpty = hasBody && !bodyMatch?.[1]?.trim();
-  const helper = `<style>
+  const helper = `${createPreviewCspMeta()}<style>
     html { font-family: system-ui, sans-serif; color: #172033; }
     body { margin: 0; min-height: 100vh; }
     .pulsateach-empty-preview { min-height: 100vh; display: grid; place-items: center; padding: 24px; box-sizing: border-box; background: #f8fafc; color: #64748b; text-align: center; }
@@ -74,7 +76,7 @@ function defaultCssPreview() {
 }
 
 function createJavaScriptPreview() {
-  return "<!doctype html><html><body></body></html>";
+  return `<!doctype html><html><head>${createPreviewCspMeta()}</head><body></body></html>`;
 }
 
 export async function validateLesson(lesson, code) {

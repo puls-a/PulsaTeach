@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, Code2, Eye, FileCode2, Info, Paintbrush, RotateCcw, TestTube2, TriangleAlert } from "lucide-react";
 import { awardGameMission } from "../gameContent.js";
 import MissionModal from "./MissionModal.jsx";
+import { PREVIEW_IFRAME_SANDBOX, createPreviewCspMeta, createPreviewErrorBridge, isAllowedPreviewMessage, normalizePreviewErrorMessage } from "../security/sandboxPolicy.js";
 
 const starter = {
   html: `<main class="hero-card">
@@ -79,12 +80,15 @@ export default function LivePlayground({ locale = "en" }) {
   const [result, setResult] = useState(null);
   const [activeFile, setActiveFile] = useState("html");
   const [missionOpen, setMissionOpen] = useState(false);
+  const previewFrameRef = useRef(null);
 
   const srcDoc = useMemo(() => {
     const escapedJs = js.replace(/<\/script/gi, "<\\/script");
+    const parentOrigin = typeof window === "undefined" ? "*" : window.location.origin;
     return `<!doctype html>
 <html>
   <head>
+    ${createPreviewCspMeta()}
     <style>
       body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #eef2ff; }
       ${css}
@@ -92,15 +96,12 @@ export default function LivePlayground({ locale = "en" }) {
   </head>
   <body>
     ${html}
+    ${createPreviewErrorBridge(parentOrigin)}
     <script>
-      window.onerror = function(message) {
-        parent.postMessage({ type: "pulsateach-preview-error", message: String(message) }, "*");
-      };
-      parent.postMessage({ type: "pulsateach-preview-ready" }, "*");
       try {
         ${escapedJs}
       } catch (error) {
-        parent.postMessage({ type: "pulsateach-preview-error", message: error.message }, "*");
+        parent.postMessage({ type: "pulsateach-preview-error", message: String(error && error.message ? error.message : error) }, ${JSON.stringify(parentOrigin)});
       }
     </script>
   </body>
@@ -109,8 +110,9 @@ export default function LivePlayground({ locale = "en" }) {
 
   useEffect(() => {
     const onMessage = (event) => {
+      if (!isAllowedPreviewMessage(event, previewFrameRef.current?.contentWindow)) return;
       if (event.data?.type === "pulsateach-preview-error") {
-        setRuntimeError(event.data.message);
+        setRuntimeError(normalizePreviewErrorMessage(event.data.message));
       }
       if (event.data?.type === "pulsateach-preview-ready") {
         setPreviewReady(true);
@@ -231,7 +233,7 @@ export default function LivePlayground({ locale = "en" }) {
             {previewReady && !runtimeError ? copy.ready : "iframe"}
           </span>
         </div>
-        <iframe title="PulsaTeach live preview" srcDoc={srcDoc} sandbox="allow-scripts allow-forms allow-modals" className="h-full min-h-[430px] w-full bg-white" />
+        <iframe ref={previewFrameRef} title="PulsaTeach live preview" srcDoc={srcDoc} sandbox={PREVIEW_IFRAME_SANDBOX} referrerPolicy="no-referrer" className="h-full min-h-[430px] w-full bg-white" />
         <div className={`border-t border-slate-200 p-4 text-sm font-semibold ${runtimeError ? "bg-red-50 text-red-800" : "bg-green-50 text-green-900"}`}>
           <p className="font-display text-xl font-bold text-ink">{copy.errors}</p>
           <p className="mt-1">{runtimeError || copy.noErrors}</p>

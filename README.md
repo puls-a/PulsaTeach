@@ -72,6 +72,7 @@ src/
   features/learn/                 Expérience d’apprentissage
   features/quizzes/               Moteur de quiz
   features/glossary/              Glossaire global
+  security/sandboxPolicy.js       Politique iframe/CSP des previews
   content/allTrackRegistry.js     Registre complet des formations
 server/
   index.js                        API Express
@@ -104,6 +105,7 @@ Ne jamais exposer de clé service ou admin dans le frontend. Les rôles de produ
 - Roadmap complète : [`docs/ROADMAP_COMPLETE.md`](./docs/ROADMAP_COMPLETE.md)
 - Preuves roadmap : [`docs/ROADMAP_EVIDENCE.md`](./docs/ROADMAP_EVIDENCE.md)
 - Exploitation : [`docs/OPERATIONS.md`](./docs/OPERATIONS.md)
+- Risques produit/CTO : [`docs/PRODUCT_RISK_ACTION_PLAN.md`](./docs/PRODUCT_RISK_ACTION_PLAN.md)
 - Référentiel éditorial : [`docs/EDITORIAL_QUALITY_SOURCES.md`](./docs/EDITORIAL_QUALITY_SOURCES.md)
 
 ## Priorités actuelles
