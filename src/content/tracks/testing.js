@@ -1,4 +1,5 @@
 import { createProfessionalTrack } from "../builders/createProfessionalTrack.js";
+import { testingV9Modules } from "./testingV9Modules.js";
 
 const v = {
   test: ["test", "test", "Vérification automatisée d’un comportement attendu.", "An automated check of expected behavior."],
@@ -96,7 +97,8 @@ export const testingTrack = createProfessionalTrack({
           q("x5", ["Que doit relier une stratégie de tests ?", "What should a test strategy connect?"], [["Risques, niveaux de test et preuves", "Risks, test levels, and evidence"], ["Couleurs et noms de fichiers", "Colors and file names"], ["Uniquement un pourcentage de couverture", "Only a coverage percentage"]], "Risques, niveaux de test et preuves", ["La stratégie justifie où investir et comment décider qu’un risque est couvert.", "Strategy explains where to invest and how to decide a risk is covered."], ["test-strategy"])
         ], "exam", 80)
       ]
-    }
+    },
+    ...testingV9Modules
   ]
 });
 
