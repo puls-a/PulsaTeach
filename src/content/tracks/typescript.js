@@ -1,4 +1,5 @@
 import { createProfessionalTrack } from "../builders/createProfessionalTrack.js";
+import { typescriptV9Modules } from "./typescriptV9Modules.js";
 
 const v = {
   type: ["type", "type", "Description statique des valeurs et opérations autorisées.", "A static description of allowed values and operations."],
@@ -24,6 +25,7 @@ export const typescriptTrack = createProfessionalTrack({
   capstone: ["Migrer une application de suivi de tâches vers TypeScript strict avec modèle métier, API validée, états exhaustifs et preuves de compilation.", "Migrate a task-tracking application to strict TypeScript with a domain model, validated API, exhaustive states, and compilation evidence."],
   certification: [["Valider les quatre quiz", "Pass all four quizzes"], ["Livrer trois projets typés", "Ship three typed projects"], ["Réussir l’examen final à 80 %", "Pass the final exam at 80%"], ["Documenter zéro contournement any", "Document zero any workarounds"]],
   modules: [
+    ...typescriptV9Modules,
     {
       id: "typescript-foundations",
       title: ["Fondations et modèles", "Foundations and models"],

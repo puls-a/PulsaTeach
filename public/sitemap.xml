@@ -338,6 +338,54 @@
   <url><loc>https://pulsateach.vercel.app/learn/testing/testing-ci/testing-04-capstone</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/testing/testing-ci/testing-04-review</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/testing/testing-ci/testing-final-exam</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-foundations/ts-v9-foundations-infer-const</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-foundations/ts-v9-foundations-public-function</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-foundations/ts-v9-foundations-object-model</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-foundations/ts-v9-foundations-readonly-list</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-foundations/ts-v9-foundations-literal-union</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-foundations/ts-v9-foundations-utility-pick</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-foundations/ts-v9-profile-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-foundations/ts-v9-foundations-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-unions-states/ts-v9-unions-states-load-state</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-unions-states/ts-v9-unions-states-exhaustive</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-unions-states/ts-v9-unions-states-form-state</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-unions-states/ts-v9-unions-states-error-code</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-unions-states/ts-v9-unions-states-narrow-if</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-unions-states/ts-v9-unions-states-state-render</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-unions-states/ts-v9-workflow-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-unions-states/ts-v9-unions-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-functions-generics/ts-v9-functions-generics-mapper</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-functions-generics/ts-v9-functions-generics-constraint</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-functions-generics/ts-v9-functions-generics-tuple</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-functions-generics/ts-v9-functions-generics-predicate</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-functions-generics/ts-v9-functions-generics-record</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-functions-generics/ts-v9-functions-generics-partial</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-functions-generics/ts-v9-toolkit-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-functions-generics/ts-v9-generics-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-boundaries/ts-v9-boundaries-dom-check</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-boundaries/ts-v9-boundaries-json-unknown</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-boundaries/ts-v9-boundaries-type-guard</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-boundaries/ts-v9-boundaries-api-result</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-boundaries/ts-v9-boundaries-safe-fetch</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-boundaries/ts-v9-boundaries-error-narrow</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-boundaries/ts-v9-api-client-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-boundaries/ts-v9-boundaries-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-config-tooling/ts-v9-config-tooling-strict</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-config-tooling/ts-v9-config-tooling-no-unchecked</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-config-tooling/ts-v9-config-tooling-module</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-config-tooling/ts-v9-config-tooling-paths</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-config-tooling/ts-v9-config-tooling-declarations</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-config-tooling/ts-v9-config-tooling-lint-type</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-config-tooling/ts-v9-config-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-config-tooling/ts-v9-config-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-migration-capstone/ts-v9-migration-capstone-inventory</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-migration-capstone/ts-v9-migration-capstone-js-check</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-migration-capstone/ts-v9-migration-capstone-convert-one</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-migration-capstone/ts-v9-migration-capstone-replace-any</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-migration-capstone/ts-v9-migration-capstone-contract-tests</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-migration-capstone/ts-v9-migration-capstone-migration-note</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-migration-capstone/ts-v9-final-capstone</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/typescript/ts-v9-migration-capstone/ts-v9-migration-quiz</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/typescript/typescript-foundations/ts-01-inference</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/typescript/typescript-foundations/ts-01-objects</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/typescript/typescript-foundations/ts-01-unions</loc></url>
