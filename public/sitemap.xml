@@ -558,6 +558,46 @@
   <url><loc>https://pulsateach.vercel.app/learn/node-api/node-production/node-04-capstone</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/node-api/node-production/node-04-review</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/node-api/node-production/node-final-exam</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-cli-psql/sql-cli-psql-psql-connect</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-cli-psql/sql-cli-psql-psql-meta</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-cli-psql/sql-cli-psql-psql-vars</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-cli-psql/sql-cli-psql-bash-automation</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-cli-psql/sql-cli-psql-csv-import</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-cli-psql/sql-cli-psql-db-dump</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-cli-psql/sql-psql-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-cli-psql/sql-psql-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-crud-fundamentals/sql-crud-fundamentals-insert-returning</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-crud-fundamentals/sql-crud-fundamentals-upsert</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-crud-fundamentals/sql-crud-fundamentals-type-jsonb</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-crud-fundamentals/sql-crud-fundamentals-type-timestamptz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-crud-fundamentals/sql-crud-fundamentals-type-enum</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-crud-fundamentals/sql-crud-fundamentals-delete-cascade</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-crud-fundamentals/sql-crud-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-crud-fundamentals/sql-crud-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-advanced-queries/sql-advanced-queries-cte-basic</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-advanced-queries/sql-advanced-queries-window-rank</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-advanced-queries/sql-advanced-queries-window-lag</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-advanced-queries/sql-advanced-queries-group-rollup</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-advanced-queries/sql-advanced-queries-join-lateral</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-advanced-queries/sql-advanced-queries-explain-analyze</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-advanced-queries/sql-analytics-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-advanced-queries/sql-analytics-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-modeling-normalization/sql-modeling-normalization-first-nf</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-modeling-normalization/sql-modeling-normalization-second-nf</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-modeling-normalization/sql-modeling-normalization-third-nf</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-modeling-normalization/sql-modeling-normalization-composite-fk</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-modeling-normalization/sql-modeling-normalization-schema-migration</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-modeling-normalization/sql-modeling-normalization-erd-design</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-modeling-normalization/sql-modeling-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-modeling-normalization/sql-modeling-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-roles-security/sql-roles-security-create-role</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-roles-security/sql-roles-security-grant-revoke</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-roles-security/sql-roles-security-rls-policies</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-roles-security/sql-roles-security-audit-trigger</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-roles-security/sql-roles-security-search-path</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-roles-security/sql-roles-security-connection-limit</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-roles-security/sql-security-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-roles-security/sql-security-quiz</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-foundations/sql-01-tables</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-foundations/sql-01-crud</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-foundations/sql-01-query</loc></url>

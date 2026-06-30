@@ -1,4 +1,5 @@
 import { createProfessionalTrack } from "../builders/createProfessionalTrack.js";
+import { sqlModules } from "./sqlModules.js";
 
 const v = {
   table: ["table", "table", "Relation nommée composée de colonnes et de lignes.", "A named relation made of columns and rows."],
@@ -25,6 +26,7 @@ export const sqlPostgresqlTrack = createProfessionalTrack({
   capstone: ["Concevoir la base d’une plateforme pédagogique avec utilisateurs, parcours, progression, quiz, projets, certificats, analytics et politiques RLS.", "Design the database for a learning platform with users, tracks, progress, quizzes, projects, certificates, analytics, and RLS policies."],
   certification: [["Valider les quiz SQL", "Pass SQL quizzes"], ["Livrer quatre modèles progressifs", "Ship four progressive models"], ["Réussir l’examen final", "Pass the final exam"], ["Faire approuver contraintes et politiques RLS", "Get constraints and RLS policies approved"]],
   modules: [
+    ...sqlModules,
     {
       id: "sql-foundations",
       title: ["Tables et requêtes fondamentales", "Tables and fundamental queries"],
