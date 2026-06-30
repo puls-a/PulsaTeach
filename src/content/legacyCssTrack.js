@@ -1,4 +1,5 @@
 import { module, quizLesson, projectLesson, cssLesson, test } from "./legacyTrackBuilders.js";
+import { cssV9Modules } from "./legacyCssV9Modules.js";
 
 export const cssTrack = {
     id: "css",
@@ -25,6 +26,7 @@ export const cssTrack = {
       en: ["Pass every CSS lesson and quiz", "Ship a responsive Flexbox navbar", "Justify layout, motion, and fluidity choices", "Ship the final landing without overflow", "Pass the advanced responsive audit with container queries and robust media"]
     },
     modules: [
+      ...cssV9Modules,
       module("css-selectors", "Sélecteurs", "Selectors", [
         cssLesson("css-01-selectors", ["Selector Quest", "Selector Quest"], "Cible uniquement les cartes de cours avec la classe .course-card.", ".course-card {\n  /* écris ici */\n}", ".course-card", ["background", "border"], 25),
         cssLesson("css-01-combinators", ["Sélecteur direct", "Direct selector"], "Cible seulement les boutons directement dans .toolbar avec le combinateur >.", ".toolbar > button {\n  /* style direct */\n}", ".toolbar > button", ["background", "border-radius"], 25),
