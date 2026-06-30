@@ -35,6 +35,7 @@ import { CookiesPage, LegalNoticePage, PrivacyPage, TermsPage } from "./LegalPag
 import { openPrivacySettings } from "./privacyConsent.js";
 import { currentPathSegments, migrateLegacyHashRoute } from "./navigation.js";
 import { updatePageMetadata } from "./appMetadata.js";
+import { deploymentInfo } from "./deploymentInfo.js";
 
 const GlossaryPage = lazy(() => import("./features/glossary/GlossaryPage.jsx"));
 const ReviewPage = lazy(() => import("./features/review/ReviewPage.jsx"));
@@ -386,7 +387,7 @@ function Footer({ locale }) {
           </div>
         </div>
         <div className="flex flex-col justify-between gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center">
-          <p>© 2026 PulsaTeach</p>
+          <p>© 2026 PulsaTeach · {locale === "fr" ? "Dernière mise en ligne" : "Last deployment"} : <time dateTime={deploymentInfo.isoDate}>{deploymentInfo.label[locale]}</time></p>
           <a href="https://pulsaflow.fr" target="_blank" rel="noreferrer" className="pulsaflow-badge inline-flex w-fit items-center gap-1 self-start rounded-full border border-indigo-100 bg-indigo-50/70 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-[0.06em] text-indigoPop transition hover:-translate-y-0.5 hover:bg-indigo-100 sm:self-auto" aria-label="Powered by PulsaFlow">
             <span className="pulsaflow-badge-dot size-1.5 rounded-full bg-indigoPop" aria-hidden="true" />
             Powered by PulsaFlow
