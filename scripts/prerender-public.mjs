@@ -13,6 +13,13 @@ await renderPage("", {
   schema: homeSchema()
 });
 
+await renderPage("about", {
+  title: "À propos de PulsaTeach | Projet gratuit pour apprendre le web",
+  description: "Découvre la méthode PulsaTeach : cours gratuits, pratique guidée, sécurité, accessibilité, transparence et progression vérifiable.",
+  body: `<main><h1>PulsaTeach aide à passer du “j’ai lu” au “je sais construire”</h1><p>PulsaTeach est un projet personnel, gratuit et non commercial pour apprendre le développement web avec des cours guidés, un éditeur intégré, des quiz exigeants et des projets portfolio.</p><section><h2>Méthode pédagogique</h2><p>Une notion claire, un exemple court, un exercice testable, un quiz avec justification et une trace de progression.</p></section><section><h2>Confiance</h2><p>Le projet privilégie la transparence : pages légales claires, absence de publicité, sandbox de code, audits automatisés et amélioration continue des contenus.</p></section></main>`,
+  schema: aboutSchema()
+});
+
 await renderPage("catalog", {
   title: "Formations développement web gratuites | PulsaTeach",
   description: "Apprends HTML, CSS, JavaScript, React, TypeScript, Node.js, SQL, Git, les tests, la sécurité et la performance avec des parcours gratuits, quiz, projets et certificats.",
@@ -44,7 +51,7 @@ for (const track of learningTracks) {
   }
 }
 
-console.log(`Prerendered ${learningTracks.reduce((sum, track) => sum + track.modules.reduce((inner, module) => inner + module.lessons.length, 0), 0) + 3} public pages.`);
+console.log(`Prerendered ${learningTracks.reduce((sum, track) => sum + track.modules.reduce((inner, module) => inner + module.lessons.length, 0), 0) + 4} public pages.`);
 
 async function renderPage(route, page) {
   const canonical = route ? `${siteUrl}/${route}` : `${siteUrl}/`;
@@ -161,6 +168,26 @@ function homeSchema() {
           name: track.title.fr,
           url: `${siteUrl}/learn/${track.id}/${track.modules[0].id}/${track.modules[0].lessons[0].id}`
         }))
+      }
+    ]
+  };
+}
+
+function aboutSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "AboutPage",
+        name: "À propos de PulsaTeach",
+        url: `${siteUrl}/about`,
+        description: "Projet gratuit et non commercial pour apprendre le développement web par la pratique."
+      },
+      {
+        "@type": "Organization",
+        name: "PulsaTeach",
+        url: siteUrl,
+        logo: `${siteUrl}/assets/logo_horizontale.webp`
       }
     ]
   };

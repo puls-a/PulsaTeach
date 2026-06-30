@@ -29,6 +29,7 @@ import { languages } from "./content.js";
 import AuthPage from "./AuthPage.jsx";
 import { OnboardingPage, PasswordRecoveryPage, PublicCertificatePage } from "./AccountPages.jsx";
 import LandingPage from "./LandingPage.jsx";
+import AboutPage from "./AboutPage.jsx";
 import CookieConsent from "./components/CookieConsent.jsx";
 import { CookiesPage, LegalNoticePage, PrivacyPage, TermsPage } from "./LegalPages.jsx";
 import { openPrivacySettings } from "./privacyConsent.js";
@@ -63,6 +64,7 @@ const navGroups = [
     icon: BookOpen,
     items: [
       { href: "/catalog", routes: ["home", "catalog"], icon: Compass, title: { fr: "Toutes les formations", en: "All courses" }, text: { fr: "Explorer le curriculum complet", en: "Explore the full curriculum" } },
+      { href: "/about", routes: ["about"], icon: Sparkles, title: { fr: "À propos", en: "About" }, text: { fr: "Comprendre la méthode PulsaTeach", en: "Understand the PulsaTeach method" } },
       { href: "/glossary", routes: ["glossary"], icon: Languages, title: { fr: "Vocabulaire", en: "Glossary" }, text: { fr: "Retrouver les notions de tous les parcours", en: "Find concepts from every track" } },
       { href: "/learn", routes: ["learn"], icon: Code2, title: { fr: "Continuer une leçon", en: "Continue a lesson" }, text: { fr: "Ouvrir le lab interactif", en: "Open the interactive lab" } },
       { href: "/path", routes: ["path"], icon: Route, title: { fr: "Mon parcours", en: "My path" }, text: { fr: "Voir la prochaine étape conseillée", en: "See the recommended next step" } },
@@ -376,6 +378,7 @@ function Footer({ locale }) {
           </a>
           <div className="flex flex-wrap gap-x-5 gap-y-3 font-semibold">
           <a href="/privacy">{locale === "fr" ? "Confidentialité" : "Privacy"}</a>
+          <a href="/about">{locale === "fr" ? "À propos" : "About"}</a>
           <a href="/cookies">Cookies</a>
           <a href="/terms">{locale === "fr" ? "Conditions" : "Terms"}</a>
           <a href="/legal">{locale === "fr" ? "Mentions légales" : "Legal notice"}</a>
@@ -405,6 +408,7 @@ function menuDescription(id, locale) {
 
 function renderRoute(route, locale) {
   if (route === "home") return <LandingPage locale={locale} />;
+  if (route === "about") return <AboutPage locale={locale} />;
   if (route === "auth") return <AuthPage locale={locale} />;
   if (route === "signup") return <AuthPage locale={locale} defaultMode="signup" />;
   if (route === "onboarding") return <OnboardingPage locale={locale} />;
@@ -441,7 +445,7 @@ function getPageRoute() {
     return new URLSearchParams(window.location.search).has("recovery") ? "recovery" : "onboarding";
   }
   const route = currentPathSegments()[0] || "home";
-  const known = ["home", "auth", "signup", "onboarding", "recovery", "verify", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "catalog", "glossary", "review", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap", "privacy", "cookies", "terms", "legal"];
+  const known = ["home", "about", "auth", "signup", "onboarding", "recovery", "verify", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "catalog", "glossary", "review", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap", "privacy", "cookies", "terms", "legal"];
   return known.includes(route) ? route : "not-found";
 }
 

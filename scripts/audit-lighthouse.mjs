@@ -4,7 +4,7 @@ import { chromium } from "@playwright/test";
 import { preview as startPreview } from "vite";
 
 const port = 4173;
-const url = `http://127.0.0.1:${port}/catalog`;
+const routesToAudit = ["/", "/catalog", "/about"];
 Object.assign(process.env, {
   NODE_ENV: "test",
   PULSATEACH_STORAGE: "json",
@@ -20,36 +20,39 @@ const preview = await startPreview({
 let chrome;
 
 try {
-  await waitFor(url);
+  await waitFor(`http://127.0.0.1:${port}/`);
   chrome = await launch({
     chromePath: chromium.executablePath(),
     chromeFlags: ["--headless", "--no-sandbox", "--disable-gpu"]
   });
-  const result = await lighthouse(url, {
-    port: chrome.port,
-    output: "json",
-    logLevel: "error",
-    onlyCategories: ["performance", "accessibility", "best-practices", "seo"]
-  });
-  const report = result.lhr;
-  const scores = Object.fromEntries(
-    Object.entries(report.categories).map(([key, category]) => [key, Math.round(category.score * 100)])
-  );
-  const metrics = {
-    lcp: Math.round(report.audits["largest-contentful-paint"].numericValue),
-    cls: Number(report.audits["cumulative-layout-shift"].numericValue.toFixed(3)),
-    tbt: Math.round(report.audits["total-blocking-time"].numericValue)
-  };
+  const summaries = [];
+  for (const route of routesToAudit) {
+    const target = `http://127.0.0.1:${port}${route}`;
+    const result = await lighthouse(target, {
+      port: chrome.port,
+      output: "json",
+      logLevel: "error",
+      onlyCategories: ["performance", "accessibility", "best-practices", "seo"]
+    });
+    const report = result.lhr;
+    const scores = Object.fromEntries(
+      Object.entries(report.categories).map(([key, category]) => [key, Math.round(category.score * 100)])
+    );
+    const metrics = {
+      lcp: Math.round(report.audits["largest-contentful-paint"].numericValue),
+      cls: Number(report.audits["cumulative-layout-shift"].numericValue.toFixed(3)),
+      tbt: Math.round(report.audits["total-blocking-time"].numericValue)
+    };
 
-  assert(scores.performance >= 70, `performance score ${scores.performance} is below 70`);
-  assert(scores.accessibility >= 90, `accessibility score ${scores.accessibility} is below 90`);
-  assert(scores["best-practices"] >= 85, `best-practices score ${scores["best-practices"]} is below 85`);
-  assert(scores.seo >= 90, `SEO score ${scores.seo} is below 90`);
-  assert(metrics.cls <= 0.1, `CLS ${metrics.cls} exceeds 0.1`);
+    assert(scores.performance >= 70, `${route} performance score ${scores.performance} is below 70`);
+    assert(scores.accessibility >= 90, `${route} accessibility score ${scores.accessibility} is below 90`);
+    assert(scores["best-practices"] >= 85, `${route} best-practices score ${scores["best-practices"]} is below 85`);
+    assert(scores.seo >= 90, `${route} SEO score ${scores.seo} is below 90`);
+    assert(metrics.cls <= 0.1, `${route} CLS ${metrics.cls} exceeds 0.1`);
+    summaries.push(`${route}: perf ${scores.performance}, a11y ${scores.accessibility}, best ${scores["best-practices"]}, SEO ${scores.seo}, LCP ${metrics.lcp}ms, CLS ${metrics.cls}, TBT ${metrics.tbt}ms`);
+  }
 
-  console.log(
-    `Lighthouse audit passed: performance ${scores.performance}, accessibility ${scores.accessibility}, best practices ${scores["best-practices"]}, SEO ${scores.seo}; LCP ${metrics.lcp}ms, CLS ${metrics.cls}, TBT ${metrics.tbt}ms.`
-  );
+  console.log(`Lighthouse audit passed:\n${summaries.join("\n")}`);
 } finally {
   await Promise.race([
     Promise.allSettled([

@@ -49,13 +49,27 @@ export default function LandingPage({ locale = "fr" }) {
               {fr ? "Plateforme gratuite · code · quiz · projets" : "Free platform · code · quizzes · projects"}
             </div>
             <h1 className="mt-7 max-w-5xl font-display text-5xl font-black tracking-tight text-white sm:text-6xl lg:text-7xl">
-              {fr ? "Apprends le web comme si tu préparais un vrai projet." : "Learn the web like you are preparing a real project."}
+              {fr ? "Apprends à construire des sites que tu peux vraiment montrer." : "Learn to build websites you can actually show."}
             </h1>
             <p className="mt-6 max-w-2xl text-lg font-semibold leading-8 text-slate-300 sm:text-xl">
               {fr
-                ? "PulsaTeach mélange cours guidés, quiz sérieux, exercices, vocabulaire, révisions et certificats pour progresser en HTML, CSS, JavaScript, React, TypeScript, Node.js et plus."
-                : "PulsaTeach blends guided courses, serious quizzes, exercises, vocabulary, reviews, and certificates to progress through HTML, CSS, JavaScript, React, TypeScript, Node.js, and more."}
+                ? "PulsaTeach te fait passer de petites étapes testables à des projets portfolio : tu codes, tu vérifies, tu expliques tes choix et tu repars avec une preuve de compétence."
+                : "PulsaTeach moves you from small testable steps to portfolio projects: you code, verify, explain your choices, and leave with proof of skill."}
             </p>
+
+            <div className="mt-7 grid max-w-3xl gap-3 sm:grid-cols-2">
+              {[
+                [fr ? "Coder sans page blanche" : "Code without a blank page", fr ? "Objectifs courts, tests immédiats, consignes concrètes." : "Short goals, instant tests, concrete prompts."],
+                [fr ? "Comprendre au lieu de recopier" : "Understand instead of copying", fr ? "Quiz avec justification et feedback utile." : "Quizzes with reasoning and useful feedback."],
+                [fr ? "Construire un portfolio" : "Build a portfolio", fr ? "Mini-projets puis projets finaux réutilisables." : "Mini-projects then reusable final projects."],
+                [fr ? "Progresser sur mobile aussi" : "Progress on mobile too", fr ? "Interface responsive, reprise et streak quotidien." : "Responsive UI, saved progress, and daily streak."]
+              ].map(([title, text]) => (
+                <div key={title} className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+                  <p className="font-display text-lg font-black text-white">{title}</p>
+                  <p className="mt-1 text-sm font-semibold leading-6 text-slate-300">{text}</p>
+                </div>
+              ))}
+            </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a href="/catalog" className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-white px-6 text-base font-black text-indigoPop shadow-2xl shadow-indigo-950/30 transition hover:-translate-y-0.5 hover:bg-indigo-50">
@@ -127,12 +141,12 @@ export default function LandingPage({ locale = "fr" }) {
             <div>
               <p className="eyebrow">{fr ? "Formations disponibles" : "Available courses"}</p>
               <h2 className="mt-3 font-display text-4xl font-black tracking-tight text-ink sm:text-5xl">
-                {fr ? "Un catalogue sérieux, sans blabla décoratif." : "A serious catalog, without decorative fluff."}
+                {fr ? "Choisis une compétence, construis une preuve." : "Choose a skill, build proof."}
               </h2>
               <p className="mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-600">
                 {fr
-                  ? "Chaque parcours vise une compétence observable : comprendre, coder, corriger, expliquer et publier."
-                  : "Each path targets an observable skill: understand, code, fix, explain, and publish."}
+                  ? "Les parcours ne sont pas là pour gonfler un compteur : chaque module doit t’aider à comprendre, coder, corriger, expliquer puis publier quelque chose de vérifiable."
+                  : "The paths are not here to inflate a counter: every module should help you understand, code, fix, explain, then publish something verifiable."}
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">

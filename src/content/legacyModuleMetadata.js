@@ -28,6 +28,13 @@ function moduleLearningMeta(id) {
       vocabulary: ["région live", "SEO", "landmark", "lien d'évitement", "audit", "remédiation"],
       mastery: { fr: ["PulsaConf passe tous les tests", "La page est navigable au clavier", "Chaque correction d'audit est justifiée"], en: ["PulsaConf passes every test", "The page is keyboard navigable", "Every audit fix is justified"] }
     },
+    "html-pulsaconf-workshop": {
+      importance: { fr: "Cet atelier transforme les notions HTML en construction progressive d’une page complète, testée étape par étape.", en: "This workshop turns HTML concepts into the progressive build of a complete page, tested step by step." },
+      prerequisites: { fr: ["Fondations HTML", "Contenu et navigation", "Formulaires accessibles"], en: ["HTML foundations", "Content and navigation", "Accessible forms"] },
+      outcomes: { fr: ["Construire un projet fil rouge par micro-étapes", "Relier navigation, sections, médias, formulaires et statut", "Valider une page complète avec des assertions précises"], en: ["Build a project thread through micro-steps", "Connect navigation, sections, media, forms, and status", "Validate a complete page with precise assertions"] },
+      vocabulary: ["fil rouge", "micro-étape", "assertion", "landmark", "aria-labelledby", "aria-describedby", "status"],
+      mastery: { fr: ["Chaque étape ajoute une seule capacité testable", "La page PulsaConf reste sémantique et accessible", "Le projet final passe les tests sans copier mécaniquement la correction"], en: ["Each step adds one testable capability", "The PulsaConf page remains semantic and accessible", "The final project passes tests without mechanically copying the correction"] }
+    },
     "css-selectors": {
       importance: { fr: "Des sélecteurs prévisibles permettent de faire évoluer une interface sans modifier accidentellement d'autres composants.", en: "Predictable selectors let an interface evolve without accidentally changing other components." },
       prerequisites: { fr: ["Lire une structure HTML simple", "Reconnaître balises, classes et identifiants"], en: ["Read simple HTML structure", "Recognize tags, classes, and identifiers"] },
@@ -115,6 +122,7 @@ function moduleMeta(id) {
     "html-content-navigation": ["Organiser un site navigable avec liens, listes, médias et métadonnées.", "Organize a navigable site with links, lists, media, and metadata.", "Une page profil complète", "A complete profile page"],
     "html-forms-seo": ["Présenter des données et collecter des informations avec des formulaires robustes.", "Present data and collect information with robust forms.", "Un formulaire structuré et validé", "A structured validated form"],
     "html-a11y-final": ["Auditer, corriger et livrer une page accessible et bien référencée.", "Audit, fix, and ship an accessible well-indexed page.", "Le site événementiel PulsaConf", "The PulsaConf event website"],
+    "html-pulsaconf-workshop": ["Construire PulsaConf par micro-étapes testées, comme un atelier professionnel.", "Build PulsaConf through tested micro-steps, like a professional workshop.", "Une page événementielle assemblée progressivement", "An event page assembled progressively"],
     "css-selectors": ["Cibler précisément les éléments et gérer les états interactifs.", "Target elements precisely and handle interactive states.", "Des composants ciblés sans effets de bord", "Targeted components without side effects"],
     "css-box-model": ["Construire une base visuelle stable, lisible et fluide.", "Build a stable, readable, fluid visual foundation.", "Un système de cartes robuste", "A robust card system"],
     "css-flexbox": ["Aligner et distribuer des composants sur un axe.", "Align and distribute components on one axis.", "Une navbar responsive", "A responsive navbar"],

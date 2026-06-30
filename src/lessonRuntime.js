@@ -93,6 +93,12 @@ export async function validateLesson(lesson, code) {
     if (item.type === "selector" || item.type === "minSelector") {
       pass = checkSelector(code, item.value, item.amount || 1);
     }
+    if (item.type === "exactSelector") {
+      pass = checkSelectorCount(code, item.value, item.amount || 1);
+    }
+    if (item.type === "attributeEquals") {
+      pass = checkAttributeEquals(code, item.value.selector, item.value.attribute, item.value.expected);
+    }
     if (item.type === "jsExpression") {
       pass = await runJavaScriptExpression(code, item.value);
     }
@@ -139,6 +145,8 @@ export function testFailureHelp(check, locale) {
 export function displayTestLabel(check, locale) {
   if (locale !== "fr") return check.label;
   if (check.type === "cssDeclaration") return `La propriété « ${check.value.property} » est déclarée sur « ${check.value.selector} »`;
+  if (check.type === "attributeEquals") return `L’attribut « ${check.value.attribute} » de « ${check.value.selector} » vaut « ${check.value.expected} »`;
+  if (check.type === "exactSelector") return `Exactement ${check.amount || 1} élément(s) correspondent à « ${check.value} »`;
   if (check.type === "minSelector") return `Au moins ${check.amount || 1} éléments correspondent à « ${check.value} »`;
   if (check.type === "selector") return `La structure attendue « ${check.label} » est présente`;
   if (check.label === "target selector") return `Le sélecteur demandé « ${check.value} » est présent`;
@@ -157,6 +165,26 @@ function checkSelector(code, selector, minimum) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(code, "text/html");
     return doc.querySelectorAll(selector).length >= minimum;
+  } catch {
+    return false;
+  }
+}
+
+function checkSelectorCount(code, selector, expected) {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(code, "text/html");
+    return doc.querySelectorAll(selector).length === expected;
+  } catch {
+    return false;
+  }
+}
+
+function checkAttributeEquals(code, selector, attribute, expected) {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(code, "text/html");
+    return doc.querySelector(selector)?.getAttribute(attribute) === expected;
   } catch {
     return false;
   }

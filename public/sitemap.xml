@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://pulsateach.vercel.app/</loc></url>
+  <url><loc>https://pulsateach.vercel.app/about</loc></url>
   <url><loc>https://pulsateach.vercel.app/catalog</loc></url>
   <url><loc>https://pulsateach.vercel.app/glossary</loc></url>
   <url><loc>https://pulsateach.vercel.app/playground</loc></url>
@@ -33,6 +34,22 @@
   <url><loc>https://pulsateach.vercel.app/learn/html/html-a11y-final/html-11-landmarks-skip-link</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/html/html-a11y-final/html-11-accessibility-audit</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/html/html-a11y-final/html-12-final-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-shell</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-header</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-nav</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-nav-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-hero</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-schedule</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-speakers</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-venue</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-content-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-register-form</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-form-help</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-consent</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-status</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-footer</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-a11y-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-capstone</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors/css-01-selectors</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors/css-01-combinators</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors/css-01-states</loc></url>

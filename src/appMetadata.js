@@ -4,8 +4,12 @@ const BRAND_ICON = `${SITE_URL}/assets/logo_horizontale.webp`;
 
 const routeMetadata = {
   home: {
-    fr: ["Apprendre le développement web gratuitement | PulsaTeach", "Cours gratuits et interactifs de HTML, CSS, JavaScript, React, TypeScript, Node.js, SQL, Git, tests, sécurité et performance web."],
-    en: ["Learn web development for free | PulsaTeach", "Free interactive courses in HTML, CSS, JavaScript, React, TypeScript, Node.js, SQL, Git, testing, web security, and performance."]
+    fr: ["Apprendre le développement web gratuitement | PulsaTeach", "Cours gratuits, quiz, ateliers guidés, éditeur en ligne, projets portfolio et certificats pour progresser concrètement en développement web."],
+    en: ["Learn web development for free | PulsaTeach", "Free courses, quizzes, guided workshops, an online editor, portfolio projects, and certificates to make concrete progress in web development."]
+  },
+  about: {
+    fr: ["À propos de PulsaTeach | Projet gratuit pour apprendre le web", "Découvre la méthode PulsaTeach : cours gratuits, pratique guidée, sécurité, accessibilité, transparence et progression vérifiable."],
+    en: ["About PulsaTeach | Free project to learn web development", "Discover the PulsaTeach method: free courses, guided practice, security, accessibility, transparency, and verifiable progress."]
   },
   catalog: {
     fr: ["Formations développement web gratuites | PulsaTeach", "Explore des parcours complets avec leçons, quiz approfondis, exercices, projets et certificats de progression."],
@@ -31,6 +35,26 @@ const routeMetadata = {
     fr: ["Exercices JavaScript interactifs | PulsaTeach", "Entraîne-toi en JavaScript avec des défis progressifs, du feedback et des solutions expliquées."],
     en: ["Interactive JavaScript exercises | PulsaTeach", "Practice JavaScript with progressive challenges, feedback, and explained solutions."]
   },
+  projects: {
+    fr: ["Projets web et portfolio | PulsaTeach", "Construis, soumets et améliore des projets web vérifiables pour prouver tes compétences."],
+    en: ["Web projects and portfolio | PulsaTeach", "Build, submit, and improve verifiable web projects to prove your skills."]
+  },
+  certification: {
+    fr: ["Certificats de progression web | PulsaTeach", "Valide tes parcours avec des projets, examens et certificats partageables."],
+    en: ["Web learning certificates | PulsaTeach", "Validate your paths with projects, exams, and shareable certificates."]
+  },
+  path: {
+    fr: ["Mon parcours conseillé | PulsaTeach", "Retrouve la prochaine étape utile selon ta progression et les compétences déjà validées."],
+    en: ["My recommended path | PulsaTeach", "Find the next useful step based on your progress and validated skills."]
+  },
+  review: {
+    fr: ["Révisions espacées développement web | PulsaTeach", "Réactive les notions importantes au bon moment avec des rappels, quiz et exercices ciblés."],
+    en: ["Spaced review for web development | PulsaTeach", "Recall important concepts at the right time with targeted reminders, quizzes, and exercises."]
+  },
+  dashboard: {
+    fr: ["Ma progression | PulsaTeach", "Tableau de bord privé pour suivre leçons, projets, XP, streak et prochaines étapes."],
+    en: ["My progress | PulsaTeach", "Private dashboard for lessons, projects, XP, streak, and next steps."]
+  },
   privacy: {
     fr: ["Politique de confidentialité | PulsaTeach", "Comprends quelles données PulsaTeach traite, pourquoi et comment exercer tes droits RGPD."],
     en: ["Privacy policy | PulsaTeach", "Understand what data PulsaTeach processes, why, and how to exercise your privacy rights."]
@@ -46,10 +70,14 @@ const routeMetadata = {
   terms: {
     fr: ["Conditions d’utilisation | PulsaTeach", "Consulte les règles d’utilisation de la plateforme pédagogique gratuite PulsaTeach."],
     en: ["Terms of use | PulsaTeach", "Review the rules governing use of the free PulsaTeach learning platform."]
+  },
+  "not-found": {
+    fr: ["Page introuvable | PulsaTeach", "Cette page PulsaTeach n’existe pas ou a été déplacée."],
+    en: ["Page not found | PulsaTeach", "This PulsaTeach page does not exist or has moved."]
   }
 };
 
-const noIndexRoutes = new Set(["admin", "author", "analytics", "settings", "profile", "dashboard", "review", "signup", "login"]);
+const noIndexRoutes = new Set(["admin", "author", "analytics", "settings", "profile", "dashboard", "review", "signup", "login", "not-found"]);
 
 export function updatePageMetadata(route, locale, fallbackTitle) {
   const language = locale === "fr" ? "fr" : "en";
@@ -83,20 +111,65 @@ export function updatePageMetadata(route, locale, fallbackTitle) {
   setMeta("twitter:image", SOCIAL_IMAGE);
   setCanonical(canonical);
   updateStructuredData(route, language, title, description, course);
+  if (route === "learn") void updateLearnMetadataFromRegistry(language, canonical);
 }
 
 function readCourseMetadata(language) {
   const match = window.location.pathname.match(/^\/learn\/([^/]+)(?:\/([^/]+)\/([^/]+))?/);
   if (!match) return null;
-  const trackName = humanize(match[1]);
-  const lessonName = match[3] ? humanize(match[3]) : null;
+  const [, trackId, moduleId, lessonId] = match;
+  const trackName = humanize(trackId);
+  const moduleName = moduleId ? humanize(moduleId) : null;
+  const lessonName = lessonId ? humanize(lessonId) : null;
+  const subject = lessonName || moduleName || trackName;
   const title = language === "fr"
-    ? `${lessonName ? `${lessonName} — ` : ""}Cours ${trackName} gratuit | PulsaTeach`
-    : `${lessonName ? `${lessonName} — ` : ""}Free ${trackName} course | PulsaTeach`;
-  const description = language === "fr"
-    ? `Apprends ${trackName} avec une leçon pratique, des exemples, un quiz approfondi et une progression sauvegardée gratuitement.`
-    : `Learn ${trackName} with a practical lesson, examples, an in-depth quiz, and free saved progress.`;
-  return [title, description, { trackId: match[1], trackName, lessonName }];
+    ? `${subject} — ${trackName} gratuit | PulsaTeach`
+    : `${subject} — Free ${trackName} course | PulsaTeach`;
+  const description = sentence(
+    language === "fr"
+      ? `Apprends ${trackName} avec une leçon pratique, des exemples, un quiz et une progression sauvegardée gratuitement.`
+      : `Learn ${trackName} with a practical lesson, examples, a quiz, and free saved progress.`
+  );
+  return [title, description, { trackId, trackName, moduleName, lessonName, lessonId }];
+}
+
+async function updateLearnMetadataFromRegistry(language, expectedCanonical) {
+  const match = window.location.pathname.match(/^\/learn\/([^/]+)(?:\/([^/]+)\/([^/]+))?/);
+  if (!match) return;
+  const [, trackId, moduleId, lessonId] = match;
+  try {
+    const { findTrack } = await import("./content/allTrackRegistry.js");
+    if (expectedCanonical !== canonicalUrl()) return;
+    const track = findTrack(trackId);
+    const module = track?.modules?.find((item) => item.id === moduleId) || null;
+    const lesson = module?.lessons?.find((item) => item.id === lessonId) || null;
+    if (!track) return;
+    const trackName = localized(track.title, language) || humanize(trackId);
+    const moduleName = localized(module?.title, language) || (moduleId ? humanize(moduleId) : null);
+    const lessonName = localized(lesson?.title, language) || (lessonId ? humanize(lessonId) : null);
+    const subject = lessonName || moduleName || trackName;
+    const title = language === "fr"
+      ? `${subject} — ${trackName} gratuit | PulsaTeach`
+      : `${subject} — Free ${trackName} course | PulsaTeach`;
+    const description = sentence(
+      localized(lesson?.brief, language)
+        || localized(module?.summary, language)
+        || localized(track?.summary, language)
+        || (language === "fr"
+          ? `Apprends ${trackName} avec une leçon pratique, des exemples, un quiz et une progression sauvegardée gratuitement.`
+          : `Learn ${trackName} with a practical lesson, examples, a quiz, and free saved progress.`)
+    );
+    const course = [title, description, { trackId, trackName, moduleName, lessonName, lessonId }];
+    document.title = title;
+    setMeta("description", description);
+    setPropertyMeta("og:title", title);
+    setPropertyMeta("og:description", description);
+    setMeta("twitter:title", title);
+    setMeta("twitter:description", description);
+    updateStructuredData("learn", language, title, description, course);
+  } catch {
+    // Keep the lightweight slug-based metadata if the course registry cannot be loaded.
+  }
 }
 
 function canonicalUrl() {
@@ -183,9 +256,26 @@ function breadcrumbs(language) {
     items.push({ name: humanize(segments[1] || labels.learn), url: `${SITE_URL}/learn/${segments[1] || ""}` });
     if (segments[3]) items.push({ name: humanize(segments[3]), url: canonicalUrl() });
   } else if (segments[0]) {
-    items.push({ name: humanize(segments[0]), url: canonicalUrl() });
+    items.push({ name: routeLabel(segments[0], language), url: canonicalUrl() });
   }
   return items;
+}
+
+function routeLabel(route, language) {
+  return (routeMetadata[route]?.[language]?.[0] || humanize(route)).split("|")[0].trim();
+}
+
+function localized(value, language) {
+  if (!value) return "";
+  if (Array.isArray(value)) return value[language === "fr" ? 0 : 1] || value[0] || "";
+  if (typeof value === "object") return value[language] || value.fr || value.en || "";
+  return String(value);
+}
+
+function sentence(value) {
+  const text = String(value || "").trim();
+  if (!text) return text;
+  return /[.!?]$/.test(text) ? text : `${text}.`;
 }
 
 function humanize(value) {

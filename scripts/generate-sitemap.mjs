@@ -4,6 +4,7 @@ import { learningTracks } from "../src/content/allTrackRegistry.js";
 const siteUrl = "https://pulsateach.vercel.app";
 const staticRoutes = [
   "/",
+  "/about",
   "/catalog",
   "/glossary",
   "/playground",

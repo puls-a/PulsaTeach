@@ -3,8 +3,9 @@ import { getCssPedagogy } from "../cssPedagogy.js";
 import { getJsPedagogy } from "../jsPedagogy.js";
 
 export function getPedagogy(id, context = {}) {
-  const source = getHtmlPedagogy(id) || getCssPedagogy(id) || getJsPedagogy(id);
-  if (!source?.fr || source.en) return source;
+  const source = getHtmlPedagogy(id) || getCssPedagogy(id) || getJsPedagogy(id) || createFallbackSource(context);
+  if (!source?.fr) return source;
+  if (source.en) return source;
 
   const course = context.course?.en || {};
   const guide = context.guide?.en || {};
@@ -50,6 +51,65 @@ export function getPedagogy(id, context = {}) {
       ],
       summary: course.introduction || `This lesson applies ${context.title?.en || id} through a verifiable implementation.`,
       next: "Continue with the next lesson and reuse the same reasoning on a slightly broader problem."
+    }
+  };
+}
+
+function createFallbackSource(context) {
+  const title = context.title?.fr || context.title?.en || "Exercice guidé";
+  const brief = context.brief?.fr || context.brief?.en || "Complète l’étape demandée puis valide les tests.";
+  const course = context.course?.fr || {};
+  const guide = context.guide?.fr || {};
+  const objectives = nonEmpty(guide.objectives, course.check, [
+    `Comprendre le rôle de « ${title} ».`,
+    "Appliquer une modification courte et vérifiable.",
+    "Expliquer pourquoi les tests prouvent la réussite."
+  ]);
+  const vocabulary = Array.isArray(course.vocabulary) && course.vocabulary.length >= 3
+    ? course.vocabulary
+    : [["Étape", "Un changement court qui fait progresser le même projet."], ["Assertion", "Vérification automatique d’une exigence précise."], ["Fil rouge", "Projet continu construit morceau par morceau."]];
+  const steps = nonEmpty(guide.steps, [
+    "Observe le code de départ et repère la zone à modifier.",
+    "Ajoute uniquement les éléments ou attributs demandés.",
+    "Lance les tests, lis le premier échec, puis corrige sans repartir de zéro."
+  ]);
+
+  return {
+    fr: {
+      why: course.introduction || brief,
+      objectives,
+      prerequisites: nonEmpty(guide.prerequisites, [
+        "Avoir terminé l’étape précédente du même atelier.",
+        "Savoir lire une balise ouvrante, une balise fermante et un attribut.",
+        "Comprendre que les tests valident une exigence observable."
+      ]),
+      vocabulary,
+      comparison: {
+        good: {
+          title: "Approche progressive et testable",
+          code: context.solution || "",
+          explanation: "Cette version ajoute une seule capacité claire au projet, conserve l’intention visible dans le HTML et reste facile à valider."
+        },
+        bad: {
+          title: "Approche fragile",
+          code: "<div>Contenu</div>",
+          explanation: "Cette version cache le rôle du contenu, complique l’accessibilité et rend les tests moins significatifs."
+        }
+      },
+      guided: steps,
+      autonomous: `Refais l’étape « ${title} » sans regarder la solution, puis explique chaque test réussi.`,
+      hints: [
+        `Commence par l’objectif : ${objectives[0]}`,
+        "Si un test échoue, cherche d’abord l’élément ou l’attribut nommé dans son libellé.",
+        "Garde la modification petite : une étape réussie vaut mieux qu’un grand bloc difficile à corriger."
+      ],
+      correction: [
+        "La solution ajoute la structure minimale demandée avant toute décoration.",
+        "Chaque attribut important est relié à un besoin : navigation, nom accessible, validation ou information machine.",
+        "Les tests confirment la présence, le nombre ou la relation attendue ; ils ne valident pas seulement du texte décoratif."
+      ],
+      summary: `Cette étape transforme « ${title} » en preuve concrète dans le projet fil rouge.`,
+      next: "Continue avec l’étape suivante : elle réutilise cette base et ajoute une contrainte plus réaliste."
     }
   };
 }
