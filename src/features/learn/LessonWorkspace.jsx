@@ -15,6 +15,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
   const [consoleOutput, setConsoleOutput] = useState("");
   const [note, setNote] = useState("");
   const [copied, setCopied] = useState(false);
+  const [focusPanel, setFocusPanel] = useState("learn");
 
   useEffect(() => {
     setCode(localStorage.getItem(`pulsateach-code-${lesson.id}`) || lesson.starterCode);
@@ -23,6 +24,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
     setShowCorrection(false);
     setConsoleOutput("");
     setNote(localStorage.getItem(`pulsateach-note-${lesson.id}`) || "");
+    setFocusPanel("learn");
   }, [lesson]);
 
   useEffect(() => {
@@ -61,12 +63,15 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
           <ActionButton onClick={() => setCode(lesson.starterCode)} icon={RotateCcw}>Reset</ActionButton>
         </div>
       </div>
+      <FocusTabs locale={locale} active={focusPanel} onChange={setFocusPanel} />
+      {focusPanel === "learn" && <>
       <CourseChapter course={lesson.course} theory={lesson.theory} locale={locale} />
       <PedagogyWorkshop pedagogy={lesson.pedagogy} locale={locale} />
       <LessonGuide guide={lesson.guide} locale={locale} />
       <ProgressiveHints pedagogy={lesson.pedagogy} fallback={lesson.hint} level={hintLevel} locale={locale} />
       <div className="mt-4"><NotesPanel lessonId={lesson.id} locale={locale} note={note} setNote={setNote} /></div>
       {lesson.type === "project" && <ProjectRubric lesson={lesson} locale={locale} />}
+      </>}
       {result?.every((check) => check.pass) && <CompletionBanner locale={locale} onNext={onNext} hasNext={hasNext} />}
       <div className="mt-8 border-t border-slate-200 pt-6"><p className="text-xs font-bold uppercase tracking-[.14em] text-indigoPop">{locale === "fr" ? "Exercice autonome" : "Independent exercise"}</p><h4 className="mt-2 font-display text-2xl font-bold">{lesson.brief[locale]}</h4><p className="mt-2 text-sm leading-6 text-slate-500">{locale === "fr" ? "Travaille dans l'éditeur, observe l'aperçu puis lance les tests. Utilise les indices progressivement si tu bloques." : "Work in the editor, inspect the preview, then run the tests. Use hints progressively if needed."}</p></div>
       <div className="mt-4 grid gap-3 xl:grid-cols-2">
@@ -90,6 +95,23 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
 
 function Preview({ lesson, locale, code, preview, previewKind, consoleOutput }) {
   return <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50"><div className="flex items-center gap-2 border-b border-slate-200 bg-white px-4 py-3 text-sm font-bold"><Eye className="size-5 text-indigoPop" />{locale === "fr" ? "Aperçu live" : "Live preview"}</div>{previewKind === "javascript" ? <div><div className="min-h-[170px] p-5 text-sm text-slate-500">{locale === "fr" ? "Exécute le code pour afficher ses sorties dans la console." : "Run the code to display its output in the console."}</div><pre className="min-h-24 bg-ink p-4 font-mono text-sm text-indigo-100">{consoleOutput || "Console"}</pre></div> : previewKind === "terminal" ? <CodePreview icon={Terminal} title={locale === "fr" ? "Terminal simulé" : "Simulated terminal"} code={`$ ${code || "…"}`} /> : ["typescript", "react", "node", "sql"].includes(previewKind) ? <CodePreview icon={Code2} title={codePreviewTitle(previewKind, locale)} code={code} /> : previewKind === "text" ? <CodePreview icon={BookOpen} title={locale === "fr" ? "Réponse structurée" : "Structured response"} code={code} light /> : <iframe key={`${lesson.id}-${preview}`} title="PulsaTeach preview" srcDoc={preview} sandbox={PREVIEW_IFRAME_SANDBOX} referrerPolicy="no-referrer" className="h-[300px] w-full bg-white" />}</div>;
+}
+
+function FocusTabs({ locale, active, onChange }) {
+  const tabs = [
+    ["learn", locale === "fr" ? "Comprendre" : "Learn", BookOpen],
+    ["code", locale === "fr" ? "Coder" : "Code", Code2],
+    ["results", locale === "fr" ? "Résultats" : "Results", CheckCircle2]
+  ];
+  return (
+    <div className="sticky top-24 z-20 mt-6 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-sm backdrop-blur" role="tablist" aria-label={locale === "fr" ? "Mode focus de la leçon" : "Lesson focus mode"}>
+      {tabs.map(([id, label, Icon]) => (
+        <button key={id} type="button" role="tab" aria-selected={active === id} onClick={() => onChange(id)} className={`inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-3 text-sm font-black transition sm:flex-none ${active === id ? "bg-indigoPop text-white shadow-lg shadow-indigo-950/15" : "bg-slate-50 text-slate-600 hover:bg-indigo-50 hover:text-indigoPop"}`}>
+          <Icon className="size-4" />{label}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 function CodePreview({ icon: Icon, title, code, light = false }) {
