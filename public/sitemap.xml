@@ -618,6 +618,46 @@
   <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-production/sql-04-capstone</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-production/sql-04-review</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/sql-postgresql/sql-production/sql-final-exam</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-risk-modeling/sec-v9-risk-modeling-assets</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-risk-modeling/sec-v9-risk-modeling-boundaries</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-risk-modeling/sec-v9-risk-modeling-abuse-case</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-risk-modeling/sec-v9-risk-modeling-risk-score</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-risk-modeling/sec-v9-risk-modeling-negative-test</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-risk-modeling/sec-v9-risk-modeling-control-map</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-risk-modeling/sec-v9-threat-model-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-risk-modeling/sec-v9-threat-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-browser-defenses/sec-v9-browser-defenses-escape</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-browser-defenses/sec-v9-browser-defenses-sanitize</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-browser-defenses/sec-v9-browser-defenses-csp</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-browser-defenses/sec-v9-browser-defenses-cookies</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-browser-defenses/sec-v9-browser-defenses-csrf-token</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-browser-defenses/sec-v9-browser-defenses-clickjacking</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-browser-defenses/sec-v9-browser-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-browser-defenses/sec-v9-browser-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-api-abuse/sec-v9-api-abuse-schema</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-api-abuse/sec-v9-api-abuse-mass-assignment</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-api-abuse/sec-v9-api-abuse-idor</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-api-abuse/sec-v9-api-abuse-rbac</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-api-abuse/sec-v9-api-abuse-rate</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-api-abuse/sec-v9-api-abuse-safe-error</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-api-abuse/sec-v9-api-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-api-abuse/sec-v9-api-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-files-secrets/sec-v9-files-secrets-upload-size</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-files-secrets/sec-v9-files-secrets-mime-signature</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-files-secrets/sec-v9-files-secrets-storage-name</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-files-secrets/sec-v9-files-secrets-server-secret</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-files-secrets/sec-v9-files-secrets-rotation</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-files-secrets/sec-v9-files-secrets-dependency-audit</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-files-secrets/sec-v9-supply-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-files-secrets/sec-v9-files-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-monitoring-incident/sec-v9-monitoring-incident-log-redact</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-monitoring-incident/sec-v9-monitoring-incident-security-event</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-monitoring-incident/sec-v9-monitoring-incident-alert</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-monitoring-incident/sec-v9-monitoring-incident-contain</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-monitoring-incident/sec-v9-monitoring-incident-postmortem</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-monitoring-incident/sec-v9-monitoring-incident-final-check</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-monitoring-incident/sec-v9-final-capstone</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-security/sec-v9-monitoring-incident/sec-v9-incident-quiz</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/web-security/security-threats-input/sec-01-threat-model</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/web-security/security-threats-input/sec-01-validation</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/web-security/security-threats-input/sec-01-xss-csrf</loc></url>
