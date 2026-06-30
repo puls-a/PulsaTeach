@@ -255,6 +255,21 @@
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-capstone/js-v9-capstone-quiz</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-capstone/js-v9-capstone-lab</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-capstone/js-v9-capstone-checkpoint</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-validation-hardening/js-v9-hardening-validate-profile</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-validation-hardening/js-v9-hardening-normalize-course</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-validation-hardening/js-v9-hardening-score-boundaries</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-validation-hardening/js-v9-hardening-validation-lab</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-validation-hardening/js-v9-hardening-validation-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-async-resilience/js-v9-hardening-fetch-timeout</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-async-resilience/js-v9-hardening-load-catalog-state</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-async-resilience/js-v9-hardening-parallel-dashboard</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-async-resilience/js-v9-hardening-api-lab</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-async-resilience/js-v9-hardening-async-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-dom-production/js-v9-hardening-accessible-modal</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-dom-production/js-v9-hardening-task-renderer</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-dom-production/js-v9-hardening-debug-trace</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-dom-production/js-v9-hardening-final-lab</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-v9-dom-production/js-v9-hardening-production-quiz</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-basics/js-01-variables</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-basics/js-01-conditionals</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-basics/js-01-strings-template</loc></url>
