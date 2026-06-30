@@ -285,13 +285,15 @@ function humanize(value) {
 }
 
 function setCanonical(href) {
-  let element = document.head.querySelector('link[rel="canonical"]');
+  const elements = [...document.head.querySelectorAll('link[rel="canonical"]')];
+  let element = elements[0];
   if (!element) {
     element = document.createElement("link");
     element.rel = "canonical";
     document.head.appendChild(element);
   }
-  element.href = href;
+  for (const duplicate of elements.slice(1)) duplicate.remove();
+  element.setAttribute("href", href);
 }
 
 function setMeta(name, content) {

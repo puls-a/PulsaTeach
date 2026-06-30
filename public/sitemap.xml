@@ -490,6 +490,54 @@
   <url><loc>https://pulsateach.vercel.app/learn/react/react-production/react-04-capstone</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/react/react-production/react-04-review</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/react/react-production/react-final-exam</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-runtime-npm/node-v9-runtime-npm-process-env</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-runtime-npm/node-v9-runtime-npm-package-scripts</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-runtime-npm/node-v9-runtime-npm-esm-module</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-runtime-npm/node-v9-runtime-npm-core-fs</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-runtime-npm/node-v9-runtime-npm-crypto-id</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-runtime-npm/node-v9-runtime-npm-async-flow</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-runtime-npm/node-v9-importer-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-runtime-npm/node-v9-runtime-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-http-express/node-v9-http-express-create-app</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-http-express/node-v9-http-express-health</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-http-express/node-v9-http-express-json-limit</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-http-express/node-v9-http-express-route-params</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-http-express/node-v9-http-express-status-codes</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-http-express/node-v9-http-express-async-handler</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-http-express/node-v9-express-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-http-express/node-v9-http-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-validation-errors/node-v9-validation-errors-body-schema</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-validation-errors/node-v9-validation-errors-query-schema</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-validation-errors/node-v9-validation-errors-domain-error</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-validation-errors/node-v9-validation-errors-error-handler</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-validation-errors/node-v9-validation-errors-not-found</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-validation-errors/node-v9-validation-errors-problem-details</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-validation-errors/node-v9-validation-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-validation-errors/node-v9-validation-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-architecture-auth/node-v9-architecture-auth-layers</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-architecture-auth/node-v9-architecture-auth-dependency</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-architecture-auth/node-v9-architecture-auth-bearer</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-architecture-auth/node-v9-architecture-auth-roles</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-architecture-auth/node-v9-architecture-auth-owner</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-architecture-auth/node-v9-architecture-auth-cross-user</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-architecture-auth/node-v9-auth-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-architecture-auth/node-v9-auth-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-data-testing/node-v9-data-testing-repo-memory</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-data-testing/node-v9-data-testing-supertest</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-data-testing/node-v9-data-testing-validation-test</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-data-testing/node-v9-data-testing-auth-test</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-data-testing/node-v9-data-testing-contract-test</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-data-testing/node-v9-data-testing-seed-cleanup</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-data-testing/node-v9-api-tests-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-data-testing/node-v9-tests-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-production-ops/node-v9-production-ops-helmet</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-production-ops/node-v9-production-ops-cors</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-production-ops/node-v9-production-ops-rate-limit</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-production-ops/node-v9-production-ops-request-id</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-production-ops/node-v9-production-ops-safe-logs</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-production-ops/node-v9-production-ops-runbook</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-production-ops/node-v9-final-capstone</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-v9-production-ops/node-v9-production-quiz</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/node-api/node-runtime/node-01-runtime</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/node-api/node-runtime/node-01-modules</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/node-api/node-runtime/node-01-async</loc></url>

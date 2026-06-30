@@ -1,4 +1,5 @@
 import { createProfessionalTrack } from "../builders/createProfessionalTrack.js";
+import { nodeApiV9Modules } from "./nodeApiV9Modules.js";
 
 const v = {
   runtime: ["runtime", "runtime", "Environnement qui exécute JavaScript hors du navigateur.", "An environment executing JavaScript outside the browser."],
@@ -24,6 +25,7 @@ export const nodeApiTrack = createProfessionalTrack({
   capstone: ["Livrer une API de gestion de projets avec validation, architecture en couches, contrôle d’accès, logs structurés, tests et documentation d’exploitation.", "Ship a project-management API with validation, layered architecture, access control, structured logs, tests, and operations documentation."],
   certification: [["Valider chaque module", "Pass every module"], ["Livrer quatre projets backend", "Ship four backend projects"], ["Réussir l’examen final", "Pass the final exam"], ["Faire approuver les tests de sécurité inter-utilisateurs", "Get cross-user security tests approved"]],
   modules: [
+    ...nodeApiV9Modules,
     {
       id: "node-runtime",
       title: ["Runtime, modules et asynchronisme", "Runtime, modules, and async"],

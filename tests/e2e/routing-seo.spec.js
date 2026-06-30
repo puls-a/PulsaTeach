@@ -1,17 +1,22 @@
 import { expect, test } from "@playwright/test";
 
-test("clean routes expose canonical metadata and structured data", async ({ page }) => {
-  await page.goto("/");
+test("home route exposes canonical metadata", async ({ page }) => {
+  test.setTimeout(60_000);
+  await gotoRoute(page, "/");
+  await expect(page.getByRole("heading", { name: /sites que tu peux vraiment montrer/i })).toBeVisible({ timeout: 45_000 });
   await expect(page).toHaveTitle(/Apprendre le développement web gratuitement \| PulsaTeach/);
-  await expect(page.getByRole("heading", { name: /sites que tu peux vraiment montrer/i })).toBeVisible();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://pulsateach.vercel.app/");
+});
 
-  await page.goto("/about");
+test("about route exposes canonical metadata", async ({ page }) => {
+  await gotoRoute(page, "/about");
   await expect(page).toHaveTitle(/À propos de PulsaTeach/);
   await expect(page.getByRole("heading", { name: /passer du/i })).toBeVisible();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://pulsateach.vercel.app/about");
+});
 
-  await page.goto("/glossary");
+test("glossary route exposes indexable collection metadata", async ({ page }) => {
+  await gotoRoute(page, "/glossary");
   const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await consent.isVisible()) await consent.click();
 
@@ -23,13 +28,15 @@ test("clean routes expose canonical metadata and structured data", async ({ page
     expect.objectContaining({ "@type": "CollectionPage", url: "https://pulsateach.vercel.app/glossary" }),
     expect.objectContaining({ "@type": "BreadcrumbList" })
   ]));
+});
 
-  await page.goto("/dashboard");
+test("private dashboard route stays noindex", async ({ page }) => {
+  await gotoRoute(page, "/dashboard");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex,nofollow");
 });
 
 test("lesson routes expose unique course metadata", async ({ page }) => {
-  await page.goto("/learn/html/html-a11y-final/html-10-accessibility-quiz");
+  await gotoRoute(page, "/learn/html/html-a11y-final/html-10-accessibility-quiz");
   await expect(page).toHaveTitle(/Quiz accessibilité — HTML interactif gratuit \| PulsaTeach/i);
   await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /formulaire accessible|accessible form/i);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://pulsateach.vercel.app/learn/html/html-a11y-final/html-10-accessibility-quiz");
@@ -42,7 +49,7 @@ test("lesson routes expose unique course metadata", async ({ page }) => {
 
 test("legal pages are reachable and indexable", async ({ page }) => {
   for (const route of ["/privacy", "/cookies", "/terms", "/legal"]) {
-    await page.goto(route);
+    await gotoRoute(page, route);
     await expect(page.locator("h1")).toBeVisible();
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `https://pulsateach.vercel.app${route}`);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /index,follow/);
@@ -50,7 +57,11 @@ test("legal pages are reachable and indexable", async ({ page }) => {
 });
 
 test("legacy hash route keeps its destination while becoming canonical", async ({ page }) => {
-  await page.goto("/#/privacy");
+  await gotoRoute(page, "/#/privacy");
   await expect(page).toHaveURL(/\/privacy$/);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://pulsateach.vercel.app/privacy");
 });
+
+async function gotoRoute(page, route) {
+  await page.goto(route, { waitUntil: "commit" });
+}

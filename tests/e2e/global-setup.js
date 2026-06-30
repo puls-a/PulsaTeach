@@ -23,6 +23,7 @@ export default async function globalSetup() {
     }
   });
   await viteServer.listen();
+  await warmupRoutes(["/", "/about", "/glossary", "/learn/html/html-a11y-final/html-10-accessibility-quiz"]);
 
   return async () => {
     await viteServer.close();
@@ -36,4 +37,12 @@ function listen(app, port) {
     const server = app.listen(port, "127.0.0.1", () => resolve(server));
     server.once("error", reject);
   });
+}
+
+async function warmupRoutes(routes) {
+  await Promise.all(routes.map(async (route) => {
+    const response = await fetch(`http://127.0.0.1:5188${route}`);
+    if (!response.ok) throw new Error(`Unable to warm up ${route}: ${response.status}`);
+    await response.text();
+  }));
 }

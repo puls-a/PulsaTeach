@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   BarChart3,
   BookOpen,
@@ -110,7 +110,7 @@ function App() {
   });
   const copy = languages[locale];
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.lang = locale;
     updatePageMetadata(route, locale, copy.metaTitle);
     localStorage.setItem("pulsateach-locale", locale);
