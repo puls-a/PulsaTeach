@@ -1,6 +1,7 @@
 import { htmlFoundationModules } from "./legacyHtmlModulesFoundation.js";
 import { htmlAdvancedModules } from "./legacyHtmlModulesAdvanced.js";
 import { htmlWorkshopModules } from "./legacyHtmlModulesWorkshop.js";
+import { htmlProductionHardeningModules } from "./legacyHtmlModulesHardening.js";
 
 export const htmlTrack = {
     id: "html",
@@ -26,5 +27,5 @@ export const htmlTrack = {
       fr: ["Valider toutes les leçons et quiz HTML", "Réussir les deux mini-projets", "Corriger l'audit d'accessibilité", "Livrer PulsaConf avec tous les tests réussis"],
       en: ["Pass every HTML lesson and quiz", "Complete both mini projects", "Fix the accessibility audit", "Ship PulsaConf with every test passing"]
     },
-    modules: [...htmlFoundationModules, ...htmlAdvancedModules, ...htmlWorkshopModules]
+    modules: [...htmlFoundationModules, ...htmlAdvancedModules, ...htmlWorkshopModules, ...htmlProductionHardeningModules]
   };
