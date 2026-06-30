@@ -698,6 +698,21 @@
   <url><loc>https://pulsateach.vercel.app/learn/web-performance/performance-production/perf-04-capstone</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/web-performance/performance-production/perf-04-review</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/web-performance/performance-production/performance-final-exam</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-performance/perf-v9-diagnostics/perf-v9-diagnostics-map</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-performance/perf-v9-diagnostics/perf-v9-diagnostics-mark</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-performance/perf-v9-diagnostics/perf-v9-diagnostics-coverage</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-performance/perf-v9-diagnostics/perf-v9-diagnostics-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-performance/perf-v9-diagnostics/perf-v9-diagnostics-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-performance/perf-v9-assets-fonts/perf-v9-assets-picture</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-performance/perf-v9-assets-fonts/perf-v9-assets-fonts</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-performance/perf-v9-assets-fonts/perf-v9-assets-hints</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-performance/perf-v9-assets-fonts/perf-v9-assets-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-performance/perf-v9-assets-fonts/perf-v9-assets-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-performance/perf-v9-pwa-observability/perf-v9-pwa-cache</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-performance/perf-v9-pwa-observability/perf-v9-rum-web-vitals</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-performance/perf-v9-pwa-observability/perf-v9-alerts</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-performance/perf-v9-pwa-observability/perf-v9-pwa-observability-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/web-performance/perf-v9-pwa-observability/perf-v9-production-quiz</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-foundations/ops-01-environments</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-foundations/ops-01-build</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/devops-deployment/ops-foundations/ops-01-docker</loc></url>
