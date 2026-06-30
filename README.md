@@ -56,6 +56,7 @@ npm run test:api         # Tests API/sécurité
 npm run test:e2e         # Playwright
 npm run test:a11y        # Accessibilité
 npm run audit:learning   # Audit pédagogique
+npm run audit:curriculum-depth # Profondeur des parcours / benchmark freeCodeCamp
 npm run audit:glossary   # Audit vocabulaire
 npm run audit:seo        # Sitemap + pré-rendu public
 npm run validate         # Suite qualité principale
@@ -106,6 +107,7 @@ Ne jamais exposer de clé service ou admin dans le frontend. Les rôles de produ
 - Preuves roadmap : [`docs/ROADMAP_EVIDENCE.md`](./docs/ROADMAP_EVIDENCE.md)
 - Exploitation : [`docs/OPERATIONS.md`](./docs/OPERATIONS.md)
 - Risques produit/CTO : [`docs/PRODUCT_RISK_ACTION_PLAN.md`](./docs/PRODUCT_RISK_ACTION_PLAN.md)
+- Refonte cours / benchmark freeCodeCamp : [`docs/FREECODECAMP_BENCHMARK_COURSE_REWRITE.md`](./docs/FREECODECAMP_BENCHMARK_COURSE_REWRITE.md)
 - Référentiel éditorial : [`docs/EDITORIAL_QUALITY_SOURCES.md`](./docs/EDITORIAL_QUALITY_SOURCES.md)
 
 ## Priorités actuelles
