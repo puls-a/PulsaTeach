@@ -54,7 +54,7 @@ function lessonFor(moduleId, moduleTitle, selector, check, step) {
     starterCode: `${selector} {\n  /* ajoute ${check} */\n}`,
     solution,
     previewHtml: previewHtml(),
-    tests: [{ type: "contains", label: `La règle contient ${check}`, value: check }],
+    tests: testsFor(selector, check, solution),
     hint: { fr: `Écris une règle courte pour ${selector}.`, en: `Write a short rule for ${selector}.` },
     xp: 24 + step
   };
@@ -155,6 +155,108 @@ function guideFor(title, moduleTitle, step) {
 
 function cssFor(selector, check) {
   return check.startsWith("@media") ? `@media (min-width: 760px) {\n  ${selector} {\n    display: grid;\n  }\n}` : check.startsWith("@container") ? `@container (min-width: 28rem) {\n  ${selector} {\n    display: grid;\n  }\n}` : `${selector} {\n  ${declaration(check)}\n}`;
+}
+
+function testsFor(selector, check, solution) {
+  const declarationLine = declaration(check);
+  const property = propertyFor(check);
+  const proof = proofTokenFor(check, declarationLine);
+  const responsiveGuard = guardTokenFor(check, selector, solution, property);
+
+  return [
+    { type: "contains", label: `Cible le bon sélecteur ${selector}`, value: selector },
+    { type: "contains", label: `Utilise le motif CSS ${check}`, value: check },
+    { type: "contains", label: `Déclare la propriété ${property}`, value: property },
+    { type: "contains", label: `Ajoute une valeur vérifiable pour ${check}`, value: proof },
+    { type: "contains", label: "Garde le composant testable dans le rendu", value: responsiveGuard },
+    { type: "contains", label: "La solution reste courte et orientée composant", value: stableTokenFor(solution, selector, check) }
+  ];
+}
+
+function propertyFor(check) {
+  if (check.startsWith("@media")) return "@media";
+  if (check.startsWith("@container")) return "@container";
+  if (check.startsWith(":")) return check;
+  if (check.includes(":")) return check.split(":")[0].trim();
+  if (check === "repeat" || check === "minmax" || check === "auto-fit") return "grid-template-columns";
+  if (check === "clamp(") return "font-size";
+  return check;
+}
+
+function proofTokenFor(check, declarationLine) {
+  const map = {
+    "background": "#eef2ff",
+    "border-color": "#5546f6",
+    "outline": "3px solid",
+    "box-shadow": "rgba(",
+    "box-sizing": "border-box",
+    "padding": "1.25rem",
+    "margin": "auto",
+    "max-width": "72rem",
+    "line-height": "1.7",
+    "font-size": "clamp(",
+    "overflow-wrap": "anywhere",
+    "border-radius": "1.25rem",
+    "display: flex": "flex",
+    "gap": "1rem",
+    "align-items": "center",
+    "justify-content": "space-between",
+    "flex-wrap": "wrap",
+    "flex-direction": "column",
+    "order": "2",
+    "min-width": "0",
+    "display: grid": "grid",
+    "grid-template-columns": "repeat(",
+    "repeat": "repeat(",
+    "minmax": "minmax(",
+    "grid-auto-flow": "dense",
+    "place-items": "center",
+    "align-content": "start",
+    "width": "min(",
+    "@media": "min-width",
+    "clamp(": "clamp(",
+    "container-type": "inline-size",
+    "@container": "min-width",
+    "auto-fit": "auto-fit",
+    ":focus-visible": "focus-visible",
+    "outline-offset": ".25rem",
+    ":hover": "translateY",
+    ":disabled": ".5",
+    "cursor": "pointer",
+    "contrast-color": "#10172a",
+    "forced-color-adjust": "auto",
+    "transition": ".2s",
+    "transform": "translateY",
+    "prefers-reduced-motion": "reduce",
+    "animation": "pulse",
+    "transform-origin": "center",
+    "will-change": "transform",
+    "transition: none": "none",
+    "--space": "clamp(",
+    "object-fit": "cover"
+  };
+  return map[check] || declarationLine.split(":").slice(1).join(":").replace(";", "").trim() || check;
+}
+
+function guardTokenFor(check, selector, solution, property) {
+  const preferredTokens = [
+    check.includes("grid") || check === "repeat" || check === "minmax" || check === "auto-fit" ? "grid" : "",
+    check.includes("flex") || selector === ".toolbar" ? "flex" : "",
+    check.includes("media") || check.includes("container") ? "min-width" : "",
+    check.includes("motion") || check.includes("transition") || check.includes("transform") ? "transform" : "",
+    check.includes("focus") || check.includes("outline") ? "outline" : "",
+    check.includes("overflow") ? "overflow" : "",
+    property,
+    selector
+  ].filter(Boolean);
+
+  return preferredTokens.find((token) => solution.includes(token)) || selector;
+}
+
+function stableTokenFor(solution, selector, check) {
+  if (check.startsWith("@media") || check.startsWith("@container")) return selector;
+  if (solution.includes("{") && solution.includes("}")) return "}";
+  return check;
 }
 
 function declaration(check) {
