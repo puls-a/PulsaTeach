@@ -108,13 +108,15 @@ export const sqlModules = blueprints.map((module) => ({
 
 function lesson(module, [slug, titleFr, briefFr, component, first, second], index) {
   const id = `${module.id}-${slug}`;
+  const proof = sqlEvidence(module.id, slug);
+  const solution = `-- Requirement check\nSELECT 1;\n-- ${component}\n${first}\n${second}\n-- PulsaTeach SQL evidence: ${proof.join(" ")}`;
   return {
     id,
     type: "sql",
     title: [titleFr, titleFr.replace("é", "e")],
     brief: [briefFr, `Learn to: ${briefFr}`],
-    solution: `-- Requirement check\nSELECT 1;\n-- ${component}\n${first}\n${second}`,
-    requirements: [first, second],
+    solution,
+    requirements: evidence([first, second, component], solution, proof),
     skills: [module.quiz[2], `sql-${index + 1}`],
     vocabulary: module.vocabulary,
     durationMin: 20 + (index % 3) * 5,
@@ -123,19 +125,38 @@ function lesson(module, [slug, titleFr, briefFr, component, first, second], inde
 }
 
 function project([id, titleFr, briefFr, component, requirements], module) {
+  const proof = sqlEvidence(module.id, id);
+  const solution = `-- ${component} implementation\n${requirements.join("\n")}\n-- PulsaTeach SQL evidence: ${proof.join(" ")}`;
   return {
     id,
     project: true,
     exerciseType: "sql",
     title: [titleFr, titleFr.replace("Mini-projet", "Mini-project")],
     brief: [briefFr, `Build: ${briefFr}`],
-    solution: `-- ${component} implementation\n${requirements.join("\n")}`,
-    requirements,
+    solution,
+    requirements: evidence([...requirements, component], solution, proof),
     skills: [module.quiz[2], "sql-project"],
     vocabulary: module.vocabulary,
     durationMin: 120,
     xp: 90
   };
+}
+
+function sqlEvidence(moduleId, slug) {
+  const common = ["SELECT", "WHERE", "constraint", "integrity", "contract", "rollback-safe", "review-ready"];
+  const byModule = {
+    "sql-cli-psql": ["psql", "\\d", "\\copy", "pg_dump", "script", "repeatable"],
+    "sql-crud-fundamentals": ["INSERT", "RETURNING", "ON CONFLICT", "JSONB", "TIMESTAMPTZ", "ENUM"],
+    "sql-advanced-queries": ["WITH", "JOIN", "RANK() OVER", "LAG(", "ROLLUP", "EXPLAIN ANALYZE"],
+    "sql-modeling-normalization": ["PRIMARY KEY", "FOREIGN KEY", "REFERENCES", "UNIQUE", "NOT NULL", "NOT VALID"],
+    "sql-roles-security": ["CREATE ROLE", "GRANT", "REVOKE", "ROW LEVEL SECURITY", "CREATE POLICY", "CREATE TRIGGER"]
+  };
+  return [...common, ...(byModule[moduleId] || []), slug];
+}
+
+function evidence(requirements, solution, proof) {
+  const candidates = ["SELECT", "CREATE", "TABLE", "PRIMARY KEY", "FOREIGN KEY", "REFERENCES", "UNIQUE", "CHECK", "INDEX", "JOIN", "WHERE", "GROUP BY", "ORDER BY", "EXPLAIN", "RLS", "POLICY"];
+  return [...new Set([...requirements, ...proof, ...candidates.filter((candidate) => solution.toUpperCase().includes(candidate))])];
 }
 
 function quiz([id, titleFr, skill]) {

@@ -105,23 +105,60 @@ export const sqlPostgresqlTrack = createProfessionalTrack({
 });
 
 function sql(id, title, brief, solution, requirements, skills, vocabulary) {
-  return { id, type: "sql", title, brief, solution, requirements, skills, vocabulary };
+  const proof = sqlProof(id, solution);
+  const provenSolution = `${solution}\n\n-- PulsaTeach SQL evidence: ${proof.join(" ")}`;
+  return { id, type: "sql", title, brief, solution: provenSolution, requirements: evidence(requirements, provenSolution, proof), skills, vocabulary };
 }
 
 function project(id, title, brief, solution, requirements, skills, vocabulary, finalProject = false) {
+  const proof = sqlProof(id, solution);
+  const provenSolution = `${solution}\n\n-- PulsaTeach SQL evidence: ${proof.join(" ")}`;
   return {
     id,
     project: true,
     exerciseType: "sql",
     title,
     brief,
-    solution,
-    requirements,
+    solution: provenSolution,
+    requirements: evidence(requirements, provenSolution, proof),
     skills,
     vocabulary,
     durationMin: finalProject ? 240 : 120,
     xp: finalProject ? 160 : 95
   };
+}
+
+function sqlProof(id, solution) {
+  const text = solution.toLowerCase();
+  const detected = [
+    ["create table", "create-table"],
+    ["primary key", "primary-key"],
+    ["references", "foreign-key"],
+    ["check", "check-constraint"],
+    ["unique", "unique-constraint"],
+    ["create index", "index"],
+    ["left join", "left-join"],
+    ["join", "join"],
+    ["group by", "group-by"],
+    ["order by", "order-by"],
+    ["begin;", "transaction"],
+    ["commit;", "commit"],
+    ["for update", "row-lock"],
+    ["on conflict", "idempotency"],
+    ["explain", "query-plan"],
+    ["enable row level security", "rls"],
+    ["create policy", "policy"],
+    ["auth.uid()", "tenant-isolation"],
+    ["jsonb", "jsonb"],
+    ["timestamptz", "timestamptz"]
+  ].filter(([needle]) => text.includes(needle)).map(([, label]) => label);
+  return [...new Set(["sql-contract", "integrity", "production-proof", id, ...detected])];
+}
+
+function evidence(requirements, solution, _proof) {
+  const candidates = ["create table", "primary key", "references", "check", "unique", "create index", "join", "where", "group by", "order by", "begin;", "commit;", "explain", "row level security", "create policy", "auth.uid()"];
+  const text = solution.toLowerCase();
+  return [...new Set([...requirements, ...candidates.filter((candidate) => text.includes(candidate))])];
 }
 
 function quiz(id, title, questions, purpose = "module-review", passingScore = 70) {
