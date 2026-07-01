@@ -2,9 +2,7 @@
 
 Source consultée localement : `.external/freeCodeCamp/curriculum/structure/superblocks/front-end-development-libraries-v9.json`.
 
-Objectif : reprendre la granularité pédagogique et la progression type freeCodeCamp
-sans copier les textes, exercices ou solutions. Le contenu PulsaTeach reste original,
-bilingue, orienté revue de code, accessibilité, preuves et production.
+Objectif : reprendre la granularité pédagogique et la progression type freeCodeCamp sans copier les textes, exercices ou solutions. Le contenu PulsaTeach reste original, bilingue, orienté revue de code, accessibilité, preuves et production.
 
 ## Correspondance
 
@@ -21,18 +19,21 @@ bilingue, orienté revue de code, accessibilité, preuves et production.
 
 ## Résultat attendu
 
-- 8 nouveaux modules React progressifs.
+- 8 modules React progressifs.
 - 48 micro-leçons pratiques.
 - 8 mini-projets ou projets, dont un capstone React.
 - 8 quiz de 5 questions chacun avec scoring renforcé.
-- Cours enrichis automatiquement par `createProfessionalTrack` : objectifs,
-  sections, vocabulaire, erreurs fréquentes, guide, rubriques et preuves.
+- Cours enrichis automatiquement par `createProfessionalTrack` : objectifs, sections, vocabulaire, erreurs fréquentes, guide, rubriques et preuves.
+
+## Renforcement 2026-07-01
+
+- Les micro-leçons React v9 demandent désormais des preuves plus strictes : composant nommé, contrat propre au sujet, sémantique, titre, liste stable, `aria-label` et rendu de collection.
+- Les projets React v9 ajoutent des marqueurs structurels communs (`main`, `h1`, `section`, `aria-label`) pour rapprocher la validation d'une revue de code.
+- L'audit de profondeur passe React de 328 à 606 preuves, soit environ 7,2 tests par leçon.
 
 ## Garde-fous éditoriaux
 
 - Aucun texte freeCodeCamp n'est repris tel quel.
-- Les exemples utilisent des scénarios PulsaTeach : formations, progression,
-  préférences, dashboard, suivi d'apprentissage.
-- Chaque activité demande une preuve observable : rôle accessible, état,
-  test, cleanup, focus, URL ou budget.
+- Les exemples utilisent des scénarios PulsaTeach : formations, progression, préférences, dashboard, suivi d'apprentissage.
+- Chaque activité demande une preuve observable : rôle accessible, état, test, cleanup, focus, URL ou budget.
 - Les projets gardent une durée suffisante pour éviter les exercices creux.

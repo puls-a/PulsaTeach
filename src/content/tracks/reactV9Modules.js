@@ -164,7 +164,7 @@ function lesson(module, [slug, title, brief, component, first, second], index) {
     title: [title, title.replace("É", "E")],
     brief: [brief, `Practice: ${brief}`],
     solution: `export function ${component}() {\n  const items = [{ id: "${slug}", label: "${title}" }];\n  return (\n    <section aria-label="${title}">\n      <h2>${title}</h2>\n      <ul>{items.map((item) => <li key={item.id}>{item.label}</li>)}</ul>\n    </section>\n  );\n}`,
-    requirements: [component, first, second, "key={item.id}"],
+    requirements: [component, first, second, "key={item.id}", "<section", "aria-label", "<h2>", "<ul>", "items.map"],
     skills: [module.quiz[2], `react-v9-${index + 1}`],
     vocabulary: module.vocabulary,
     durationMin: 28 + (index % 3) * 4,
@@ -173,6 +173,7 @@ function lesson(module, [slug, title, brief, component, first, second], index) {
 }
 
 function project([id, title, brief, component, requirements, finalProject = false], module) {
+  const proofRequirements = [...new Set([...requirements, component, "<main>", "<h1>", "<section", "aria-label"])];
   return {
     id,
     project: true,
@@ -180,7 +181,7 @@ function project([id, title, brief, component, requirements, finalProject = fals
     title: [title, title.replace("Mini-projet", "Mini-project").replace("Projet final", "Final project")],
     brief: [brief, `Build and review: ${brief}`],
     solution: `export function ${component}() {\n  return (\n    <main>\n      <h1>${title}</h1>\n      <section aria-label="Preuves"><p>Parcours clavier, états, données et tests documentés.</p></section>\n    </main>\n  );\n}`,
-    requirements,
+    requirements: proofRequirements,
     skills: [module.quiz[2], "react-project", finalProject ? "capstone" : "module-project"],
     vocabulary: module.vocabulary,
     durationMin: finalProject ? 240 : 130,

@@ -43,6 +43,58 @@
           linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
       }
 
+      #root[data-prerendered] {
+        min-height: 100vh;
+      }
+
+      #root[data-prerendered]::before {
+        content: "PulsaTeach";
+        position: fixed;
+        inset-block-start: 24px;
+        inset-inline-start: 50%;
+        z-index: 2147483647;
+        transform: translateX(-50%);
+        border: 1px solid rgba(148, 163, 184, .35);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .88);
+        box-shadow: 0 18px 60px rgba(15, 23, 42, .12);
+        color: #5546f6;
+        font-size: .92rem;
+        font-weight: 900;
+        letter-spacing: -.03em;
+        padding: .72rem 1rem;
+        backdrop-filter: blur(16px);
+      }
+
+      #root[data-prerendered]::after {
+        content: "";
+        position: fixed;
+        inset-block-start: 72px;
+        inset-inline-start: 50%;
+        z-index: 2147483647;
+        width: 7.5rem;
+        height: .28rem;
+        transform: translateX(-50%);
+        border-radius: 999px;
+        background:
+          linear-gradient(90deg, transparent, #5546f6, transparent),
+          rgba(85, 70, 246, .12);
+        background-size: 50% 100%, 100% 100%;
+        background-repeat: no-repeat;
+        animation: pulsateach-shell 1s ease-in-out infinite alternate;
+      }
+
+      #root[data-prerendered] > main {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
       #root[data-prerendered] > main {
         box-sizing: border-box;
         width: min(1120px, calc(100% - 32px));
@@ -122,6 +174,22 @@
           width: min(100% - 20px, 520px);
           padding-top: 48px;
         }
+      }
+
+      #root[data-prerendered] > main {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0 0 0 0) !important;
+        clip-path: inset(50%) !important;
+        white-space: nowrap !important;
+      }
+
+      @keyframes pulsateach-shell {
+        from { background-position: -60% 0, 0 0; }
+        to { background-position: 160% 0, 0 0; }
       }
     </style>
     <script type="application/ld+json">
