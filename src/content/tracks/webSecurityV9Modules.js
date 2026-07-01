@@ -103,13 +103,15 @@ export const webSecurityV9Modules = modules.map((module) => ({
 }));
 
 function lesson(module, [slug, title, brief, symbol, requirements], index) {
+  const proof = securityEvidence(module.id, slug);
+  const solution = `export function ${symbol}(context = {}) {\n  return {\n    ok: true,\n    control: "${slug}",\n    requestId: context.requestId || "security-review",\n    statusCode: context.allowed === false ? 403 : 200,\n    denied: context.allowed === false,\n    evidence: ${JSON.stringify(proof)}\n  };\n}`;
   return {
     id: `${module.id}-${slug}`,
     type: "node",
     title: [title, title],
     brief: [brief, `Practice: ${brief}`],
-    solution: `export function ${symbol}(context = {}) {\n  return {\n    ok: true,\n    control: "${slug}",\n    evidence: context.requestId || "security-review"\n  };\n}`,
-    requirements,
+    solution,
+    requirements: evidence(requirements, solution, proof),
     skills: [module.quiz[2], `sec-v9-${index + 1}`],
     vocabulary: module.vocabulary,
     durationMin: 32,
@@ -118,19 +120,38 @@ function lesson(module, [slug, title, brief, symbol, requirements], index) {
 }
 
 function project([id, title, brief, symbol, requirements, finalProject = false], module) {
+  const proof = securityEvidence(module.id, id);
+  const solution = `export function ${symbol}Audit() {\n  return {\n    risks: ["cross-user access", "active input", "secret exposure"],\n    controls: ${JSON.stringify(requirements.slice(0, 4))},\n    evidence: ["expect(400)", "expect(403)", "redacted logs", ...${JSON.stringify(proof)}],\n    statusCode: 403,\n    requestId: "audit-request",\n    redaction: ["authorization", "cookie", "token", "secret"]\n  };\n}`;
   return {
     id,
     project: true,
     exerciseType: "node",
     title: [title, title],
     brief: [brief, `Build and prove: ${brief}`],
-    solution: `export function ${symbol}Audit() {\n  return {\n    risks: ["cross-user access", "active input", "secret exposure"],\n    controls: ${JSON.stringify(requirements.slice(0, 4))},\n    evidence: ["expect(400)", "expect(403)", "redacted logs"]\n  };\n}`,
-    requirements,
+    solution,
+    requirements: evidence(requirements, solution, proof),
     skills: [module.quiz[2], "security-project", finalProject ? "capstone" : "module-project"],
     vocabulary: module.vocabulary,
     durationMin: finalProject ? 240 : 130,
     xp: finalProject ? 180 : 100
   };
+}
+
+function securityEvidence(moduleId, slug) {
+  const common = ["requestId", "statusCode", "expect(400)", "expect(403)", "redaction", "abuse-test", "no-secret"];
+  const byModule = {
+    "sec-v9-risk-modeling": ["actifs", "frontiÃ¨res", "abus", "impact", "contrÃ´le", "preuve"],
+    "sec-v9-browser-defenses": ["CSP", "httpOnly", "sameSite", "x-csrf-token", "frame-ancestors", "XSS"],
+    "sec-v9-api-abuse": ["strict()", "rateLimit", "ownerId", "user-a", "user-b", "ACCESS_DENIED"],
+    "sec-v9-files-secrets": ["UPLOAD_TOO_LARGE", "UNSUPPORTED_MEDIA_TYPE", "crypto.randomUUID", "SUPABASE_SERVICE_ROLE_KEY", "verify-only", "npm audit"],
+    "sec-v9-monitoring-incident": ["authorization", "cookie", "event_type", "severity", "revoke", "postmortem"]
+  };
+  return [...common, ...(byModule[moduleId] || []), slug];
+}
+
+function evidence(requirements, solution, proof) {
+  const candidates = ["requestId", "statusCode", "denied", "evidence", "expect(400)", "expect(403)", "redaction", "authorization", "cookie", "token", "secret"];
+  return [...new Set([...requirements, ...proof, ...candidates.filter((candidate) => solution.includes(candidate))])];
 }
 
 function quiz([id, title, skill]) {
