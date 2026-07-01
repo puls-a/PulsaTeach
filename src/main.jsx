@@ -6,8 +6,14 @@ import { startObservability } from "./observability.js";
 
 startObservability();
 
-createRoot(document.getElementById("root")).render(
+const rootElement = document.getElementById("root");
+
+createRoot(rootElement).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
 );
+
+requestAnimationFrame(() => {
+  rootElement?.removeAttribute("data-prerendered");
+});

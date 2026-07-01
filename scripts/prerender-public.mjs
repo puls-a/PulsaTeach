@@ -65,7 +65,7 @@ async function renderPage(route, page) {
     .replace(/<meta name="twitter:title" content="[^"]*"\s*\/>/, `<meta name="twitter:title" content="${escapeAttribute(page.title)}" />`)
     .replace(/<meta name="twitter:description" content="[^"]*"\s*\/>/, `<meta name="twitter:description" content="${escapeAttribute(page.description)}" />`)
     .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/, `<script type="application/ld+json">${safeJson(page.schema)}</script>`)
-    .replace('<div id="root"></div>', `<div id="root">${page.body}</div>`);
+    .replace('<div id="root"></div>', `<div id="root" data-prerendered="true">${page.body}</div>`);
   const directory = route ? new URL(`${route}/`, distUrl) : distUrl;
   await mkdir(directory, { recursive: true });
   await writeFile(new URL("index.html", directory), html, "utf8");
