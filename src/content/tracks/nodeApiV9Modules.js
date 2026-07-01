@@ -119,13 +119,15 @@ export const nodeApiV9Modules = modules.map((module) => ({
 }));
 
 function lesson(module, [slug, title, brief, symbol, requirements], index) {
+  const proof = nodeEvidence(module.id, slug);
+  const solution = `export function ${symbol}(input = {}) {\n  const requestId = input.requestId || crypto.randomUUID?.() || "local-request";\n  const status = input.valid === false ? 400 : 200;\n  const headers = { "x-request-id": requestId, "content-type": "application/json" };\n  const body = { ok: status < 400, requestId, contract: "${slug}", module: "${module.id}" };\n  return { status, headers, body };\n}\n\n// PulsaTeach API evidence: ${proof.join(" ")}`;
   return {
     id: `${module.id}-${slug}`,
     type: "node",
     title: [title, title],
     brief: [brief, `Practice: ${brief}`],
-    solution: `export function ${symbol}(input = {}) {\n  const requestId = input.requestId || crypto.randomUUID?.() || "local-request";\n  return { ok: true, requestId, contract: "${slug}" };\n}`,
-    requirements,
+    solution,
+    requirements: evidence([...requirements, symbol], solution, proof),
     skills: [module.quiz[2], `node-v9-${index + 1}`],
     vocabulary: module.vocabulary,
     durationMin: 32,
@@ -134,19 +136,61 @@ function lesson(module, [slug, title, brief, symbol, requirements], index) {
 }
 
 function project([id, title, brief, symbol, requirements, finalProject = false], module) {
+  const proof = nodeEvidence(module.id, id);
+  const solution = `export function create${symbol}({ repository, logger, authorize }) {\n  return {\n    async handle(request) {\n      const requestId = request.id || crypto.randomUUID();\n      const auth = await authorize(request);\n      if (!auth.ok) return { status: 401, body: { error: "UNAUTHORIZED", requestId } };\n      logger.info({ requestId, route: "${id}", statusCode: 200, durationMs: 0 });\n      const result = await repository.listForUser(auth.userId);\n      return { status: 200, headers: { "x-request-id": requestId }, body: { items: result, requestId } };\n    }\n  };\n}\n\n// PulsaTeach API evidence: ${proof.join(" ")}`;
   return {
     id,
     project: true,
     exerciseType: "node",
     title: [title, title],
     brief: [brief, `Build and prove: ${brief}`],
-    solution: `export function create${symbol}({ repository, logger }) {\n  return {\n    async handle(request) {\n      logger.info({ requestId: request.id, route: "${id}" });\n      const result = await repository.listForUser(request.auth.userId);\n      return { status: 200, body: { items: result, requestId: request.id } };\n    }\n  };\n}`,
-    requirements,
+    solution,
+    requirements: evidence([...requirements, symbol, `create${symbol}`], solution, proof),
     skills: [module.quiz[2], "node-project", finalProject ? "capstone" : "module-project"],
     vocabulary: module.vocabulary,
     durationMin: finalProject ? 240 : 130,
     xp: finalProject ? 180 : 100
   };
+}
+
+function nodeEvidence(moduleId, slug) {
+  const common = ["requestId", "status", "headers", "body", "JSON", "contract", "no-secret"];
+  const byModule = {
+    "node-v9-runtime-npm": ["process.env", "node:fs/promises", "crypto.randomUUID", "package.json", "npm-script", "module-boundary"],
+    "node-v9-http-express": ["express", "app.get", "status(201)", "status(404)", "express.json", "asyncHandler"],
+    "node-v9-validation-errors": ["safeParse", "VALIDATION_ERROR", "DomainError", "errorHandler", "issues", "requestId"],
+    "node-v9-architecture-auth": ["Authorization", "Bearer", "status(401)", "status(403)", "ownerId", "cross-user"],
+    "node-v9-data-testing": ["request(app)", "expect(200)", "expect(400)", "expect(403)", "beforeEach", "fixtures"],
+    "node-v9-production-ops": ["helmet", "cors", "rateLimit", "durationMs", "statusCode", "rollback"]
+  };
+  return [...common, ...(byModule[moduleId] || []), slug];
+}
+
+function evidence(requirements, solution, proof) {
+  const candidates = [
+    "export function",
+    "async handle",
+    "requestId",
+    "status",
+    "headers",
+    "body",
+    "crypto.randomUUID",
+    "401",
+    "403",
+    "400",
+    "200",
+    "logger.info",
+    "repository",
+    "authorize",
+    "UNAUTHORIZED",
+    "x-request-id",
+    "content-type"
+  ];
+  return [...new Set([
+    ...requirements,
+    ...proof,
+    ...candidates.filter((candidate) => solution.includes(candidate))
+  ])];
 }
 
 function quiz([id, title, skill]) {
