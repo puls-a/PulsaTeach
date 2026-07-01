@@ -1,3 +1,5 @@
+import { gitV9Modules } from "./gitV9Modules.js";
+
 const sharedVocabulary = {
   repository: ["dépôt", "repository", "Dossier suivi par Git avec son historique.", "A folder tracked by Git with its history."],
   commit: ["commit", "commit", "Instantané nommé d’un ensemble cohérent de modifications.", "A named snapshot of a coherent set of changes."],
@@ -21,6 +23,7 @@ export const gitTrack = {
   capstone: { fr: "Publier un dépôt portfolio avec historique, branches, pull request et CI.", en: "Publish a portfolio repository with history, branches, pull request, and CI." },
   certification: { fr: ["Livrer les deux mini-projets", "Réussir l’examen final", "Livrer le dépôt final"], en: ["Ship both mini-projects", "Pass the final exam", "Ship the final repository"] },
   modules: [
+    ...gitV9Modules,
     gitModule("git-foundations", ["Fondations et historique", "Foundations and history"], [
       terminalLesson("git-01-terminal", ["Se repérer dans le terminal", "Navigate the terminal"], ["Crée un dossier de travail et place-toi dedans.", "Create a working folder and enter it."], "pwd\nls\nmkdir pulsa-git\ncd pulsa-git", ["pwd", "mkdir", "cd"], [sharedVocabulary.repository, ["chemin", "path", "Adresse d’un fichier ou dossier.", "The address of a file or folder."]], ["terminal", "filesystem"]),
       terminalLesson("git-01-init", ["Initialiser un dépôt", "Initialize a repository"], ["Initialise Git puis vérifie son état.", "Initialize Git and check its state."], "git init\ngit status", ["git init", "git status"], [sharedVocabulary.repository, ["répertoire de travail", "working tree", "Fichiers actuellement présents dans le projet.", "Files currently present in the project."]], ["git-init", "repository"]),
