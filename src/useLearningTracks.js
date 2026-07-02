@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCatalog, getTrack } from "./apiClient.js";
-import { learningTracks } from "./content/trackRegistry.js";
+import { learningTracks } from "./content/allTrackRegistry.js";
 
 export function useLearningTracks() {
   const [tracks, setTracks] = useState(learningTracks);

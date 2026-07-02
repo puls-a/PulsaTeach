@@ -6,7 +6,7 @@ import {
   Play,
   XCircle
 } from "lucide-react";
-import { learningTracks } from "./content/trackRegistry.js";
+import { learningTracks } from "./content/allTrackRegistry.js";
 import { getQuizSession, loadRemoteProgress, recordAttempt, recordLearningEvent, saveQuizSession, saveRemoteProgress } from "./apiClient.js";
 import { createQuizDraft, evaluateQuestion, normalizeQuizLesson, scoreQuiz } from "./features/quizzes/quizEngine.js";
 import QuizModal from "./features/quizzes/QuizModal.jsx";

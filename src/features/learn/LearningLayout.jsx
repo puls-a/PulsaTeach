@@ -43,8 +43,30 @@ function MobileCurriculum(props) {
 }
 
 function CurriculumPanel({ locale, tracks, activeTrack, activeTrackId, activeLesson, progress, bookmarks, lessonQuery, statusFilter, onTrackChange, onQueryChange, onFilterChange, onOpenLesson }) {
+  const selectedTrack = tracks.find((track) => track.id === activeTrackId) || activeTrack;
+  const handleTrackSelect = (event) => {
+    const nextTrack = tracks.find((track) => track.id === event.target.value);
+    if (nextTrack) onTrackChange(nextTrack);
+  };
+
   return <>
-    <div className="grid grid-cols-3 gap-1">{tracks.map((track) => <button key={track.id} type="button" onClick={() => onTrackChange(track)} title={track.label} className={`min-w-0 truncate rounded-lg px-2 py-2 text-xs font-bold ${activeTrackId === track.id ? "bg-indigoPop text-white" : "bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigoPop"}`}>{track.label}</button>)}</div>
+    <label className="block">
+      <span className="mb-1 block text-xs font-black uppercase tracking-[.14em] text-slate-500">{locale === "fr" ? "Formation" : "Course"}</span>
+      <select value={selectedTrack.id} onChange={handleTrackSelect} className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-black text-ink outline-none transition focus:border-indigoPop focus:ring-2 focus:ring-indigo-100">
+        {tracks.map((track) => (
+          <option key={track.id} value={track.id}>
+            {track.title?.[locale] || track.label || track.id}
+          </option>
+        ))}
+      </select>
+    </label>
+    <div className="mt-2 flex gap-1 overflow-x-auto pb-1" aria-label={locale === "fr" ? "Raccourcis formations" : "Course shortcuts"}>
+      {tracks.map((track) => (
+        <button key={track.id} type="button" onClick={() => onTrackChange(track)} title={track.title?.[locale] || track.label || track.id} className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-black ${activeTrackId === track.id ? "bg-indigoPop text-white" : "bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigoPop"}`}>
+          {track.label || track.id}
+        </button>
+      ))}
+    </div>
     <label className="relative mt-3 block"><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" /><input type="search" value={lessonQuery} onChange={(event) => onQueryChange(event.target.value)} placeholder={locale === "fr" ? "Chercher une leçon" : "Search lessons"} className="min-h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm font-semibold outline-none focus:border-indigoPop" /></label>
     <div className="mt-2 grid grid-cols-4 gap-1">{["all", "todo", "done", "saved"].map((filter) => <button type="button" key={filter} onClick={() => onFilterChange(filter)} className={`rounded-lg px-1 py-2 text-[11px] font-bold ${statusFilter === filter ? "bg-ink text-white" : "text-slate-500 hover:bg-slate-100"}`}>{filterLabel(filter, locale)}</button>)}</div>
     <div className="mt-4 grid gap-4">{activeTrack.modules.map((module) => <ModuleLessons key={module.id} {...{ module, locale, activeLesson, progress, bookmarks, lessonQuery, statusFilter, onOpenLesson }} />)}</div>
