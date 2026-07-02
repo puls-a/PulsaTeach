@@ -140,7 +140,7 @@ function project([id, title, brief, symbol, requirements, finalProject = false],
 function securityEvidence(moduleId, slug) {
   const common = ["requestId", "statusCode", "expect(400)", "expect(403)", "redaction", "abuse-test", "no-secret"];
   const byModule = {
-    "sec-v9-risk-modeling": ["actifs", "frontiÃ¨res", "abus", "impact", "contrÃ´le", "preuve"],
+    "sec-v9-risk-modeling": ["actifs", "frontières", "abus", "impact", "contrôle", "preuve"],
     "sec-v9-browser-defenses": ["CSP", "httpOnly", "sameSite", "x-csrf-token", "frame-ancestors", "XSS"],
     "sec-v9-api-abuse": ["strict()", "rateLimit", "ownerId", "user-a", "user-b", "ACCESS_DENIED"],
     "sec-v9-files-secrets": ["UPLOAD_TOO_LARGE", "UNSUPPORTED_MEDIA_TYPE", "crypto.randomUUID", "SUPABASE_SERVICE_ROLE_KEY", "verify-only", "npm audit"],

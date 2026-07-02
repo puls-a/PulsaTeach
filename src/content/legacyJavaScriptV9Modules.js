@@ -204,7 +204,7 @@ function completeLab(note) {
 completeLab('preuve ${moduleIndex + 1}');`;
   const course = courseFor(id, title, brief, solution, ["labState", "completeLab", "attempts"], moduleTitle, moduleIndex + 1);
   const guide = guideFor(title, moduleTitle, moduleIndex + 1);
-  return { id, type: "project", title, brief, course, pedagogy: getPedagogy(id, { course, guide, title, brief, solution, type: "project" }), theory: { fr: brief.fr, en: brief.en }, guide, skills: [moduleId, "lab"], difficulty: "project", durationMin: 95, starterCode: "const labState = { attempts: [] };\n\nfunction completeLab(note) {\n}\n", solution, tests: ["labState", "completeLab", "attempts", "done = true", "return labState"].map((value) => ({ type: "contains", label: `Le lab contient ${value}`, value })), rubric: { fr: ["État central clair", "Fonction testable", "Nomination explicite", "Preuve de complétion"], en: ["Clear central state", "Testable function", "Explicit naming", "Completion proof"] }, hint: { fr: "Assemble d’abord l’état, puis une action testable.", en: "Assemble state first, then a testable action." }, xp: 90 };
+  return { id, type: "project", title, brief, course, pedagogy: getPedagogy(id, { course, guide, title, brief, solution, type: "project" }), theory: { fr: brief.fr, en: brief.en }, guide, skills: [moduleId, "lab"], difficulty: "project", durationMin: 95, starterCode: "const labState = { attempts: [] };\n\nfunction completeLab(note) {\n}\n", solution, tests: ["labState", "completeLab", "attempts", "done = true", "return labState"].map((value) => ({ type: "contains", label: `Le lab contient ${value}`, value })), rubric: { fr: ["État central lisible avec une responsabilité unique et des noms métier.", "Fonction actionnable testable sans dépendre du hasard ou du rendu seul.", "Gestion explicite du cas nominal et d'au moins un cas limite documenté.", "Preuve finale compréhensible par une autre personne qui relit le code."], en: ["Readable central state with one responsibility and domain names.", "Actionable function testable without relying on chance or visuals only.", "Explicit handling of the happy path and at least one documented edge case.", "Final proof understandable by another person reviewing the code."] }, hint: { fr: "Assemble d’abord l’état, puis une action testable.", en: "Assemble state first, then a testable action." }, xp: 90 };
 }
 
 function courseFor(id, title, brief, code, checks, moduleTitle, stepNumber) {
@@ -220,11 +220,48 @@ function sections(title, brief, code, checks) {
 }
 
 function guideFor(title, moduleTitle, stepNumber) {
-  return { fr: { objectives: [`Implémenter ${title.fr}.`, `Relier l’étape ${stepNumber} au module ${moduleTitle[0]}.`, "Valider avec une preuve automatisée."], prerequisites: ["Lire le starter", "Comprendre le module courant", "Savoir lancer les tests"], steps: ["Identifier la cible", "Coder la plus petite preuve", "Relancer les tests"], mistakes: [`Traiter ${title.fr} comme du texte à copier.`, "Changer plusieurs choses à la fois.", "Ignorer le premier test rouge."] }, en: { objectives: [`Implement ${title.en}.`, `Connect step ${stepNumber} to ${moduleTitle[1]}.`, "Validate with automated proof."], prerequisites: ["Read the starter", "Understand the current module", "Know how to run tests"], steps: ["Identify the target", "Code the smallest proof", "Rerun tests"], mistakes: [`Treating ${title.en} as text to copy.`, "Changing several things at once.", "Ignoring the first red test."] } };
+  return {
+    fr: {
+      objectives: [
+        `Résoudre ${title.fr} comme un petit besoin produit, pas comme une ligne à recopier.`,
+        `Relier l’étape ${stepNumber} au module ${moduleTitle[0]} avec un exemple que tu peux expliquer à voix haute.`,
+        "Nommer la donnée, le calcul ou l’action de façon à rendre le comportement évident à la relecture."
+      ],
+      prerequisites: ["Lire le starter", "Comprendre le module courant", "Savoir interpréter une erreur de test"],
+      steps: [
+        "Repérer le comportement utilisateur ou métier attendu.",
+        "Écrire le contrat minimal : entrée, transformation, sortie observable.",
+        "Comparer ton résultat au test puis expliquer l'écart éventuel."
+      ],
+      mistakes: [
+        `Traiter ${title.fr} comme du texte à copier.`,
+        "Changer plusieurs responsabilités en même temps.",
+        "Faire passer le test sans pouvoir expliquer pourquoi le code fonctionne."
+      ]
+    },
+    en: {
+      objectives: [
+        `Solve ${title.en} as a small product need, not as a line to copy.`,
+        `Connect step ${stepNumber} to ${moduleTitle[1]} with an example you can explain out loud.`,
+        "Name the data, calculation, or action so the behavior is obvious during review."
+      ],
+      prerequisites: ["Read the starter", "Understand the current module", "Know how to interpret a failing test"],
+      steps: [
+        "Spot the expected user or business behavior.",
+        "Write the minimal contract: input, transformation, observable output.",
+        "Compare your result with the test and explain any gap."
+      ],
+      mistakes: [
+        `Treating ${title.en} as text to copy.`,
+        "Changing several responsibilities at once.",
+        "Making the test pass without being able to explain why the code works."
+      ]
+    }
+  };
 }
 
 function vocab(checks) {
-  return checks.slice(0, 4).map((check) => [check, `Motif utilisé comme preuve dans cette étape.`]);
+  return checks.slice(0, 4).map((check) => [check, `Repère de code à comprendre, modifier et justifier dans cette étape.`]);
 }
 
 function starterFrom(code) {
