@@ -1,7 +1,7 @@
 export const deploymentInfo = {
-  isoDate: "2026-06-30",
+  isoDate: "2026-07-02",
   label: {
-    fr: "30 juin 2026",
-    en: "June 30, 2026"
+    fr: "2 juillet 2026",
+    en: "July 2, 2026"
   }
 };

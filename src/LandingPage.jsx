@@ -14,17 +14,42 @@ import {
   Sparkles,
   Trophy
 } from "lucide-react";
+import { learningTracks } from "./content/allTrackRegistry.js";
 
-const landingStats = { tracks: 13, lessons: 272, projects: 34 };
+const featuredTrackIds = ["html", "css", "javascript", "react", "typescript", "node-api"];
+const trackVisuals = {
+  html: { label: "HTML", tone: "from-orange-500 to-amber-400" },
+  css: { label: "CSS", tone: "from-sky-500 to-cyan-400" },
+  javascript: { label: "JS", tone: "from-yellow-400 to-orange-400" },
+  react: { label: "React", tone: "from-cyan-400 to-indigo-500" },
+  typescript: { label: "TS", tone: "from-blue-600 to-indigo-500" },
+  "node-api": { label: "API", tone: "from-emerald-500 to-teal-400" }
+};
 
-const featuredTracks = [
-  { id: "html", label: "HTML", tone: "from-orange-500 to-amber-400", title: { fr: "HTML interactif", en: "Interactive HTML" }, summary: { fr: "Structure propre, sémantique, formulaires, accessibilité et mini-projets concrets.", en: "Clean structure, semantics, forms, accessibility, and concrete mini-projects." }, modules: 4, lessons: 22, href: "/learn/html/html-foundations/html-01-document-skeleton" },
-  { id: "css", label: "CSS", tone: "from-sky-500 to-cyan-400", title: { fr: "CSS responsive", en: "Responsive CSS" }, summary: { fr: "Flexbox, grilles, animations sobres et interfaces qui tiennent sur mobile.", en: "Flexbox, grids, calm animations, and interfaces that hold up on mobile." }, modules: 6, lessons: 27, href: "/learn/css/css-foundations/css-01-selectors" },
-  { id: "javascript", label: "JS", tone: "from-yellow-400 to-orange-400", title: { fr: "JavaScript pratique", en: "Practical JavaScript" }, summary: { fr: "Logique, DOM, événements, async, debugging et projets utilisables.", en: "Logic, DOM, events, async, debugging, and usable projects." }, modules: 5, lessons: 23, href: "/learn/javascript/js-foundations/js-01-values" },
-  { id: "react", label: "React", tone: "from-cyan-400 to-indigo-500", title: { fr: "React métier", en: "Business React" }, summary: { fr: "Composants, hooks, formulaires, routing, données, tests et qualité d’interface.", en: "Components, hooks, forms, routing, data, tests, and interface quality." }, modules: 4, lessons: 20, href: "/learn/react/react-components/react-01-component" },
-  { id: "typescript", label: "TS", tone: "from-blue-600 to-indigo-500", title: { fr: "TypeScript solide", en: "Solid TypeScript" }, summary: { fr: "Types, unions, contrats API et refactors plus sûrs sans magie inutile.", en: "Types, unions, API contracts, and safer refactors without needless magic." }, modules: 4, lessons: 20, href: "/learn/typescript/typescript-foundations/ts-01-primitive-types" },
-  { id: "node", label: "API", tone: "from-emerald-500 to-teal-400", title: { fr: "Node.js API", en: "Node.js API" }, summary: { fr: "Routes, validation, auth, erreurs, base de données et tests API.", en: "Routes, validation, auth, errors, database, and API tests." }, modules: 4, lessons: 20, href: "/learn/node-api/node-api-foundations/node-01-routing" }
-];
+const allLessons = learningTracks.flatMap((track) => track.modules.flatMap((module) => module.lessons || []));
+const landingStats = {
+  tracks: learningTracks.length,
+  lessons: allLessons.length,
+  projects: allLessons.filter((lesson) => lesson.type === "project" || lesson.project || /project|projet|lab|capstone/i.test(lesson.id || "")).length
+};
+
+const featuredTracks = featuredTrackIds
+  .map((id) => learningTracks.find((track) => track.id === id))
+  .filter(Boolean)
+  .map((track) => {
+    const firstModule = track.modules[0];
+    const firstLesson = firstModule?.lessons?.[0];
+    return {
+      id: track.id,
+      label: trackVisuals[track.id]?.label || track.id,
+      tone: trackVisuals[track.id]?.tone || "from-indigo-500 to-violet-500",
+      title: track.title,
+      summary: track.summary,
+      modules: track.modules.length,
+      lessons: track.modules.reduce((sum, module) => sum + (module.lessons?.length || 0), 0),
+      href: firstModule && firstLesson ? `/learn/${track.id}/${firstModule.id}/${firstLesson.id}` : "/catalog"
+    };
+  });
 
 const methodSteps = [
   [BookOpenCheck, "Comprendre", "Des leçons courtes, orientées usage réel, avec vocabulaire relié."],
@@ -84,7 +109,7 @@ export default function LandingPage({ locale = "fr" }) {
               {[
                 [landingStats.tracks, fr ? "parcours" : "paths"],
                 [landingStats.lessons, fr ? "leçons" : "lessons"],
-                [landingStats.projects, fr ? "projets" : "projects"]
+                [landingStats.projects, fr ? "labs/projets" : "labs/projects"]
               ].map(([value, label]) => (
                 <div key={label} className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur">
                   <dt className="text-[11px] font-black uppercase tracking-[.16em] text-slate-300">{label}</dt>
