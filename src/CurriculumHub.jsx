@@ -1,10 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BookOpen, Check, ChevronDown, Clock3, Code2, Flag, GraduationCap, Plus, Trophy } from "lucide-react";
+import { Accessibility, ArrowRight, BookOpen, Check, ChevronDown, Clock3, Code2, Database, Flag, Gauge, GitBranch, GraduationCap, Plus, Server, ShieldCheck, Trophy } from "lucide-react";
 import { useSupabaseSession } from "./authState.js";
 import { canManageContent } from "./authRoles.js";
 import { useLearningTracks } from "./useLearningTracks.js";
 
-const trackIcons = { html: BookOpen, css: Code2, javascript: Code2, react: Code2, typescript: Code2 };
+const trackPresentation = {
+  html: { icon: BookOpen, badge: "bg-orange-50 text-orange-700 border-orange-100" },
+  css: { icon: Code2, badge: "bg-sky-50 text-sky-700 border-sky-100" },
+  javascript: { icon: Code2, badge: "bg-amber-50 text-amber-700 border-amber-100" },
+  git: { icon: GitBranch, badge: "bg-rose-50 text-rose-700 border-rose-100" },
+  accessibility: { icon: Accessibility, badge: "bg-emerald-50 text-emerald-700 border-emerald-100" },
+  testing: { icon: Check, badge: "bg-lime-50 text-lime-700 border-lime-100" },
+  typescript: { icon: Code2, badge: "bg-blue-50 text-blue-700 border-blue-100" },
+  react: { icon: Code2, badge: "bg-cyan-50 text-cyan-700 border-cyan-100" },
+  "node-api": { icon: Server, badge: "bg-green-50 text-green-700 border-green-100" },
+  "sql-postgresql": { icon: Database, badge: "bg-indigo-50 text-indigo-700 border-indigo-100" },
+  "web-security": { icon: ShieldCheck, badge: "bg-red-50 text-red-700 border-red-100" },
+  "web-performance": { icon: Gauge, badge: "bg-violet-50 text-violet-700 border-violet-100" },
+  "devops-deployment": { icon: Server, badge: "bg-slate-100 text-slate-700 border-slate-200" }
+};
 
 export default function CurriculumHub({ locale = "fr" }) {
   const { user } = useSupabaseSession();
@@ -113,7 +127,8 @@ export default function CurriculumHub({ locale = "fr" }) {
 }
 
 function TrackCard({ track, locale, progress, open, onToggle }) {
-  const Icon = trackIcons[track.id] || BookOpen;
+  const presentation = trackPresentation[track.id] || { icon: BookOpen, badge: "bg-slate-100 text-ink border-slate-300" };
+  const Icon = presentation.icon;
   const lessons = countLessons(track);
   const completed = track.modules.flatMap((module) => module.lessons).filter((lesson) => progress.completed?.[lesson.id]).length;
   const percent = lessons ? Math.round((completed / lessons) * 100) : 0;
@@ -125,7 +140,7 @@ function TrackCard({ track, locale, progress, open, onToggle }) {
   return (
     <article className="overflow-hidden border border-slate-300 bg-white">
       <button type="button" onClick={onToggle} className="flex w-full cursor-pointer items-center gap-4 p-4 text-left hover:bg-slate-50 sm:p-5">
-        <span className="grid size-12 shrink-0 place-items-center border border-slate-300 bg-slate-100 text-ink"><Icon className="size-6" /></span>
+        <span className={`grid size-12 shrink-0 place-items-center border ${presentation.badge}`}><Icon className="size-6" /></span>
         <span className="min-w-0 flex-1">
           <span className="block font-display text-lg font-bold sm:text-xl">{track.title[locale]}</span>
           <span className="mt-1 block text-sm text-slate-500">{track.level?.[locale]} · {track.modules.length} modules · {lessons} {locale === "fr" ? "leçons" : "lessons"} · {completed} {locale === "fr" ? "terminées" : "completed"}</span>

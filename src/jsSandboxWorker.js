@@ -1,4 +1,19 @@
 const storage = createStorage();
+const mockCatalogCourses = [
+  { id: "html", title: "HTML interactif" },
+  { id: "css", title: "CSS interactif" },
+  { id: "javascript", title: "JavaScript interactif" },
+  { id: "git", title: "Git et GitHub" },
+  { id: "accessibility", title: "Accessibilité web" },
+  { id: "testing", title: "Testing frontend" },
+  { id: "typescript", title: "TypeScript professionnel" },
+  { id: "react", title: "React pour applications métier" },
+  { id: "node-api", title: "Node.js et API sécurisées" },
+  { id: "sql-postgresql", title: "SQL et PostgreSQL" },
+  { id: "web-security", title: "Sécurité web appliquée" },
+  { id: "web-performance", title: "Performance web mesurable" },
+  { id: "devops-deployment", title: "Déploiement et DevOps web" }
+];
 
 self.onmessage = async (event) => {
   const payload = event.data || {};
@@ -51,7 +66,7 @@ async function runConsole(code) {
       ok: true,
       status: 200,
       async json() {
-        return { url: normalizedUrl, courses: [{ id: "html" }, { id: "css" }, { id: "javascript" }] };
+        return { url: normalizedUrl, courses: mockCatalogCourses, tracks: mockCatalogCourses };
       }
     };
   };

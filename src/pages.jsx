@@ -19,6 +19,7 @@ import {
 import AuthNotice from "./components/AuthNotice.jsx";
 import DashCard from "./components/DashCard.jsx";
 import { Field, SelectField, TextAreaField } from "./components/FormFields.jsx";
+import { learningTracks } from "./content/allTrackRegistry.js";
 import {
   createLessonDraft,
   deleteLessonDraft,
@@ -33,6 +34,8 @@ import {
   updateUserRoles,
   updateLessonDraft
 } from "./apiClient.js";
+
+const authorTrackOptions = learningTracks.map((track) => track.id);
 
 export function ProfilePage({ locale }) {
   const [profile, setProfile] = useState(null);
@@ -283,7 +286,7 @@ export function AuthorPage({ locale }) {
               <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Nouveau draft" : "New draft"}</h2>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              <SelectField label="Track" value={form.trackId} onChange={(trackId) => setForm({ ...form, trackId })} options={["html", "css", "javascript"]} />
+              <SelectField label="Track" value={form.trackId} onChange={(trackId) => setForm({ ...form, trackId })} options={authorTrackOptions} />
               <SelectField label="Type" value={form.type} onChange={(type) => setForm({ ...form, type })} options={["html", "css", "js", "quiz", "project"]} />
               <SelectField label="Difficulty" value={form.difficulty} onChange={(difficulty) => setForm({ ...form, difficulty })} options={["starter", "core", "challenge"]} />
               <Field label="XP" value={form.xp} onChange={(xp) => setForm({ ...form, xp })} />

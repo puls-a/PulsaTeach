@@ -1,4 +1,4 @@
-import { learningTracks } from "../../content/trackRegistry.js";
+import { learningTracks } from "../../content/allTrackRegistry.js";
 
 const progressKey = "pulsateach-learning-progress";
 const bookmarksKey = "pulsateach-learning-bookmarks";

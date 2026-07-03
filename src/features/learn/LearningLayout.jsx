@@ -1,7 +1,20 @@
 import { useState } from "react";
 import { BookmarkCheck, CheckCircle2, Code2, Flame, Menu, Search, X } from "lucide-react";
+import { learningTracks } from "../../content/allTrackRegistry.js";
 import { filterLabel, isVisibleLesson } from "./learningState.js";
 import LessonWorkspace from "./LessonWorkspace.jsx";
+
+const projectMissions = learningTracks.map((track) => {
+  const candidates = track.modules.flatMap((module) => module.lessons.map((lesson) => ({ module, lesson })));
+  const project = candidates.find(({ lesson }) => lesson.type === "project" || lesson.project || /capstone|project|projet|lab/i.test(lesson.id || "")) || candidates[0];
+  return {
+    trackId: track.id,
+    moduleId: project.module.id,
+    lessonId: project.lesson.id,
+    title: project.lesson.title || track.title,
+    text: project.lesson.brief || track.summary
+  };
+});
 
 export function FocusedLearningLayout(props) {
   const { QuizComponent, locale, activeTrack, activeModule, activeLesson, activeTrackCompleted, activeTrackTotal, progress, bookmarks, syncState, trackLoadError, onOpenLesson, onToggleBookmark, onComplete, onQuizResult, onCloseQuiz, onNext, hasNext } = props;
@@ -83,10 +96,6 @@ function ModuleLessons({ module, locale, activeLesson, progress, bookmarks, less
 }
 
 export function MissionBoard({ locale, progress, onOpenLesson }) {
-  const missions = [
-    { trackId: "html", moduleId: "html-a11y-final", lessonId: "html-12-final-project", title: { fr: "Publier PulsaConf", en: "Ship PulsaConf" }, text: { fr: "Assemble une page HTML complète avec navigation, programme, formulaire et footer.", en: "Assemble a complete HTML page with navigation, schedule, form, and footer." } },
-    { trackId: "css", moduleId: "css-responsive-motion", lessonId: "css-06-final-project", title: { fr: "Styliser une landing", en: "Style a landing" }, text: { fr: "Crée les règles CSS qui donnent une vraie structure responsive à une landing.", en: "Create CSS rules that give a landing page a real responsive structure." } },
-    { trackId: "javascript", moduleId: "js-storage-async", lessonId: "js-07-final-project", title: { fr: "Coder un dashboard", en: "Code a dashboard" }, text: { fr: "Pose le squelette logique avec state, render, addTask et sauvegarde locale.", en: "Build the logic skeleton with state, render, addTask, and local save." } }
-  ];
+  const missions = projectMissions;
   return <section className="mt-8 rounded-[30px] bg-white p-5 text-ink clay"><div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end"><div><p className="font-display text-lg font-bold text-orangePop">{locale === "fr" ? "Missions de projet" : "Project missions"}</p><h3 className="font-display text-3xl font-bold">{locale === "fr" ? "Saute directement vers un livrable." : "Jump straight into a deliverable."}</h3></div><p className="max-w-xl font-bold leading-7 text-ink/62">{locale === "fr" ? "Ces missions valident plusieurs compétences à la fois." : "These missions validate several skills at once."}</p></div><div className="grid gap-4 lg:grid-cols-3">{missions.map((mission) => <button type="button" key={mission.lessonId} onClick={() => onOpenLesson(mission)} className="cursor-pointer rounded-[24px] bg-cloud p-5 text-left transition-transform hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orangePop clay-soft"><div className="mb-4 flex items-center justify-between gap-3"><span className="rounded-2xl bg-indigoPop px-3 py-2 text-sm font-extrabold text-white">{mission.trackId.toUpperCase()}</span>{progress.completed[mission.lessonId] ? <CheckCircle2 className="size-6 text-mintPop" /> : <Code2 className="size-6 text-indigoPop" />}</div><h4 className="font-display text-2xl font-bold">{mission.title[locale]}</h4><p className="mt-2 font-bold leading-7 text-ink/68">{mission.text[locale]}</p></button>)}</div></section>;
 }

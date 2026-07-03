@@ -1,10 +1,11 @@
-const updatedAt = "30 juin 2026";
+const updatedAt = "2 juillet 2026";
+const updatedAtEn = "July 2, 2026";
 const repositoryUrl = "https://github.com/pulsaflow/PulsaTeach";
 
 export function PrivacyPage({ locale = "fr" }) {
   const fr = locale === "fr";
   return (
-    <LegalLayout eyebrow="RGPD" title={fr ? "Politique de confidentialité" : "Privacy policy"} intro={fr ? `Dernière mise à jour : ${updatedAt}` : "Last updated: June 30, 2026"}>
+    <LegalLayout eyebrow="RGPD" title={fr ? "Politique de confidentialité" : "Privacy policy"} intro={fr ? `Dernière mise à jour : ${updatedAt}` : `Last updated: ${updatedAtEn}`}>
       <Notice>{fr ? "PulsaTeach est un projet pédagogique personnel, gratuit et sans activité commerciale. Le RGPD reste applicable car la plateforme permet de créer un compte et d’enregistrer une progression." : "PulsaTeach is a personal, free, non-commercial learning project. GDPR still applies because the platform supports accounts and saved learning progress."}</Notice>
       <LegalSection title={fr ? "Responsable du traitement" : "Data controller"}>
         <p>{fr ? "Le responsable du traitement est l’éditeur non professionnel de PulsaTeach. Il a choisi de préserver son identité publique conformément au régime applicable aux éditeurs non professionnels et a communiqué ses éléments d’identification à l’hébergeur." : "The controller is PulsaTeach’s non-professional publisher. The publisher preserves their public identity under the rules applicable to non-professional publishers and has supplied identification details to the hosting provider."}</p>
@@ -44,7 +45,7 @@ export function PrivacyPage({ locale = "fr" }) {
 export function CookiesPage({ locale = "fr" }) {
   const fr = locale === "fr";
   return (
-    <LegalLayout eyebrow={fr ? "Cookies et stockages" : "Cookies and storage"} title={fr ? "Politique relative aux stockages locaux" : "Local storage policy"} intro={fr ? `Dernière mise à jour : ${updatedAt}` : "Last updated: June 30, 2026"}>
+    <LegalLayout eyebrow={fr ? "Cookies et stockages" : "Cookies and storage"} title={fr ? "Politique relative aux stockages locaux" : "Local storage policy"} intro={fr ? `Dernière mise à jour : ${updatedAt}` : `Last updated: ${updatedAtEn}`}>
       <Notice>{fr ? "PulsaTeach n’utilise actuellement ni publicité, ni profilage, ni outil tiers de mesure d’audience. Aucun bouton « tout accepter » n’est donc nécessaire." : "PulsaTeach currently uses no advertising, profiling, or third-party audience measurement. An “accept all” button is therefore unnecessary."}</Notice>
       <LegalSection title={fr ? "Stockages strictement nécessaires" : "Strictly necessary storage"}>
         <ul>
@@ -68,7 +69,7 @@ export function CookiesPage({ locale = "fr" }) {
 export function TermsPage({ locale = "fr" }) {
   const fr = locale === "fr";
   return (
-    <LegalLayout eyebrow={fr ? "Utilisation gratuite" : "Free use"} title={fr ? "Conditions d’utilisation" : "Terms of use"} intro={fr ? `Dernière mise à jour : ${updatedAt}` : "Last updated: June 30, 2026"}>
+    <LegalLayout eyebrow={fr ? "Utilisation gratuite" : "Free use"} title={fr ? "Conditions d’utilisation" : "Terms of use"} intro={fr ? `Dernière mise à jour : ${updatedAt}` : `Last updated: ${updatedAtEn}`}>
       <Notice>{fr ? "Il ne s’agit pas de conditions générales de vente : PulsaTeach ne vend aucun produit ou service, ne facture rien et n’exerce pas d’activité commerciale." : "These are not terms of sale: PulsaTeach sells no product or service, charges no fee, and carries out no commercial activity."}</Notice>
       <LegalSection title={fr ? "Objet et absence de garantie professionnelle" : "Purpose and no professional guarantee"}><p>{fr ? "PulsaTeach propose gratuitement des cours et exercices de développement web. Les certificats sont des attestations internes au projet : ils ne constituent ni un diplôme reconnu par l’État, ni une certification professionnelle, ni une garantie d’emploi." : "PulsaTeach provides free web-development courses and exercises. Certificates are internal project records, not state-recognized qualifications, professional certifications, or employment guarantees."}</p></LegalSection>
       <LegalSection title={fr ? "Compte et âge" : "Account and age"}><p>{fr ? "Tu dois protéger tes accès et utiliser une adresse valide. Le service n’est pas spécifiquement destiné aux enfants. Un mineur doit obtenir l’accord de son représentant légal lorsque cet accord est requis." : "You must protect your credentials and use a valid address. The service is not specifically directed at children. Minors must obtain guardian permission where required."}</p></LegalSection>
@@ -82,7 +83,7 @@ export function TermsPage({ locale = "fr" }) {
 export function LegalNoticePage({ locale = "fr" }) {
   const fr = locale === "fr";
   return (
-    <LegalLayout eyebrow={fr ? "Informations légales" : "Legal information"} title={fr ? "Mentions légales" : "Legal notice"} intro={fr ? `Dernière mise à jour : ${updatedAt}` : "Last updated: June 30, 2026"}>
+    <LegalLayout eyebrow={fr ? "Informations légales" : "Legal information"} title={fr ? "Mentions légales" : "Legal notice"} intro={fr ? `Dernière mise à jour : ${updatedAt}` : `Last updated: ${updatedAtEn}`}>
       <LegalSection title={fr ? "Nature du site" : "Website status"}>
         <p>{fr ? "PulsaTeach est édité à titre personnel et non professionnel. Le service est gratuit, sans publicité, sans vente, sans abonnement payant et sans rémunération de l’éditeur. Il n’existe donc ni société, ni SIREN/SIRET, ni capital social, ni numéro de TVA à afficher." : "PulsaTeach is published personally and on a non-professional basis. It is free, with no advertising, sales, paid subscription, or publisher remuneration. There is therefore no company, SIREN/SIRET registration, share capital, or VAT number to display."}</p>
       </LegalSection>
