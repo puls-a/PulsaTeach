@@ -1,5 +1,5 @@
 import { createProfessionalTrack } from "../builders/createProfessionalTrack.js";
-import { webPerformanceV9Modules } from "./webPerformanceV9Modules.js";
+import { webPerformanceModules } from "./webPerformanceModules.js";
 
 const v = {
   lcp: ["LCP", "LCP", "Temps d’affichage du plus grand contenu visible.", "Time until the largest visible content is rendered."],
@@ -102,7 +102,7 @@ export const webPerformanceTrack = createProfessionalTrack({
         ], "exam", 80)
       ]
     },
-    ...webPerformanceV9Modules
+    ...webPerformanceModules
   ]
 });
 

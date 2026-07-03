@@ -1,6 +1,7 @@
 const updatedAt = "2 juillet 2026";
 const updatedAtEn = "July 2, 2026";
-const repositoryUrl = "https://github.com/pulsaflow/PulsaTeach";
+const contactEmail = "pulsateach@gmail.com";
+const contactHref = `mailto:${contactEmail}`;
 
 export function PrivacyPage({ locale = "fr" }) {
   const fr = locale === "fr";
@@ -9,7 +10,7 @@ export function PrivacyPage({ locale = "fr" }) {
       <Notice>{fr ? "PulsaTeach est un projet pédagogique personnel, gratuit et sans activité commerciale. Le RGPD reste applicable car la plateforme permet de créer un compte et d’enregistrer une progression." : "PulsaTeach is a personal, free, non-commercial learning project. GDPR still applies because the platform supports accounts and saved learning progress."}</Notice>
       <LegalSection title={fr ? "Responsable du traitement" : "Data controller"}>
         <p>{fr ? "Le responsable du traitement est l’éditeur non professionnel de PulsaTeach. Il a choisi de préserver son identité publique conformément au régime applicable aux éditeurs non professionnels et a communiqué ses éléments d’identification à l’hébergeur." : "The controller is PulsaTeach’s non-professional publisher. The publisher preserves their public identity under the rules applicable to non-professional publishers and has supplied identification details to the hosting provider."}</p>
-        <p>{fr ? "L’export et la suppression sont disponibles directement dans les paramètres du compte. Pour une autre demande, ouvre un ticket sans y publier de donnée personnelle ; un canal confidentiel te sera indiqué :" : "Export and deletion are available directly in account settings. For another request, open a ticket without posting personal data; a confidential channel will then be provided:"} <ExternalLink href={repositoryUrl}>{repositoryUrl}</ExternalLink>.</p>
+        <p>{fr ? "L’export et la suppression sont disponibles directement dans les paramètres du compte. Pour une autre demande, ouvre un ticket sans y publier de donnée personnelle ; un canal confidentiel te sera indiqué :" : "Export and deletion are available directly in account settings. For another request, open a ticket without posting personal data; a confidential channel will then be provided:"} <ExternalLink href={contactHref}>{contactEmail}</ExternalLink>.</p>
       </LegalSection>
       <LegalSection title={fr ? "Données, finalités et bases légales" : "Data, purposes, and legal bases"}>
         <DataTable fr={fr} />
@@ -89,7 +90,7 @@ export function LegalNoticePage({ locale = "fr" }) {
       </LegalSection>
       <LegalSection title={fr ? "Éditeur non professionnel" : "Non-professional publisher"}>
         <p>{fr ? "Éditeur et directeur de la publication : personne physique non professionnelle éditant PulsaTeach. Afin de préserver son anonymat public, son identité et ses coordonnées ont été communiquées à l’hébergeur, conformément à l’article 1-1 II de la loi n° 2004-575 du 21 juin 2004." : "Publisher and publication director: the non-professional individual publishing PulsaTeach. To preserve public anonymity, identity and contact details have been supplied to the hosting provider under the applicable French rules."}</p>
-        <p>{fr ? "Contact public du projet :" : "Public project contact:"} <ExternalLink href={repositoryUrl}>{repositoryUrl}</ExternalLink>.</p>
+        <p>{fr ? "Contact public du projet :" : "Public project contact:"} <ExternalLink href={contactHref}>{contactEmail}</ExternalLink>.</p>
       </LegalSection>
       <LegalSection title={fr ? "Hébergeur" : "Hosting provider"}>
         <p>Vercel Inc.<br />440 N Barranca Ave #4133<br />Covina, CA 91723, United States<br /><ExternalLink href="https://vercel.com/contact">https://vercel.com/contact</ExternalLink></p>
@@ -99,6 +100,7 @@ export function LegalNoticePage({ locale = "fr" }) {
       </LegalSection>
       <LegalSection title={fr ? "Signalement" : "Reporting"}>
         <p>{fr ? "Pour signaler une vulnérabilité, un contenu illicite ou une atteinte à un droit, utilise le dépôt public sans publier de donnée personnelle ni de secret. Pour un abus lié à l’hébergement, le formulaire Vercel est également disponible." : "To report a vulnerability, unlawful content, or rights issue, use the public repository without posting personal data or secrets. Vercel’s abuse form is also available for hosting-related abuse."}</p>
+        <p><ExternalLink href={contactHref}>{contactEmail}</ExternalLink></p>
         <p><ExternalLink href="https://vercel.com/abuse">https://vercel.com/abuse</ExternalLink></p>
       </LegalSection>
       <LegalSection title={fr ? "Textes et ressources de référence" : "Reference texts and resources"}>

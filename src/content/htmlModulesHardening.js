@@ -1,5 +1,5 @@
-import { lesson, module, projectLesson, test } from "./legacyTrackBuilders.js";
-import { htmlShell } from "./legacyHtmlWorkshopBuilders.js";
+import { lesson, module, projectLesson, test } from "./trackBuilders.js";
+import { htmlShell } from "./htmlWorkshopBuilders.js";
 
 const page = (head, body) => `<!doctype html>
 <html lang="fr">

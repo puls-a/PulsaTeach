@@ -23,7 +23,7 @@ const requiredModules = [
   "server/routes/learning.js",
   "src/features/learn/LearningLayout.jsx",
   "src/features/learn/LessonWorkspace.jsx",
-  "src/content/legacyTrackBuilders.js"
+  "src/content/trackBuilders.js"
 ];
 for (const modulePath of requiredModules) {
   try {

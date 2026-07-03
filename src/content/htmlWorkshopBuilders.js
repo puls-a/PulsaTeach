@@ -1,5 +1,5 @@
-import { quizLesson } from "./legacyTrackBuilders.js";
-import { getPedagogy } from "./legacyPedagogy.js";
+import { quizLesson } from "./trackBuilders.js";
+import { getPedagogy } from "./pedagogy.js";
 
 const threadId = "html-pulsaconf-workshop";
 

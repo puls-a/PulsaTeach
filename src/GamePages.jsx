@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Award, BookOpenCheck, Compass, Info, Map, PlayCircle, Trophy } from "lucide-react";
 import ArrowTargetGame from "./components/ArrowTargetGame.jsx";
 import AuthNotice from "./components/AuthNotice.jsx";
@@ -29,7 +29,7 @@ export function WorldPage({ locale }) {
       locale={locale}
       kicker="Pulsa Academy"
       title={locale === "fr" ? "Carte du monde" : "World map"}
-      description={locale === "fr" ? "Choisis une zone, termine des missions et débloque les premiers badges." : "Choose a zone, clear missions, and unlock the first badges."}
+      description={locale === "fr" ? "Choisis une zone, termine des missions et dÃ©bloque les premiers badges." : "Choose a zone, clear missions, and unlock the first badges."}
       stat={`${progress.xp || 0} XP`}
     >
       <AuthNotice locale={locale} />
@@ -109,8 +109,8 @@ export function FlexboxArenaPage({ locale }) {
       locale={locale}
       kicker="CSS Mission"
       title="Flexbox Arena"
-      description={locale === "fr" ? "Une mission, trois déclarations CSS, validation immédiate." : "One mission, three CSS declarations, immediate validation."}
-      stat="+40 XP"
+      description={locale === "fr" ? "Quatre niveaux d'alignement où la cible correspond vraiment aux règles flex." : "Four alignment levels where the target truly matches the flex rules."}
+      stat="+20-40 XP"
     >
       <AuthNotice locale={locale} />
       <FlexboxArena locale={locale} />
@@ -123,9 +123,9 @@ export function JavaScriptArenaPage({ locale }) {
     <LearningShell
       locale={locale}
       kicker="JavaScript Mission"
-      title={locale === "fr" ? "Flèche et cible" : "Arrow and target"}
-      description={locale === "fr" ? "Écris une fonction, tire puis passe à la cible suivante." : "Write a function, fire, then move to the next target."}
-      stat="+20-40 XP"
+      title="JavaScript Arena"
+      description={locale === "fr" ? "Écris une fonction testée sur plusieurs coordonnées, pas sur une seule cible truquée." : "Write a function tested against several coordinates, not a single hardcoded target."}
+      stat="+20-50 XP"
     >
       <AuthNotice locale={locale} />
       <ArrowTargetGame locale={locale} />

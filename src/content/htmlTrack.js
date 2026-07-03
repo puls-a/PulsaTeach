@@ -1,7 +1,7 @@
-import { htmlFoundationModules } from "./legacyHtmlModulesFoundation.js";
-import { htmlAdvancedModules } from "./legacyHtmlModulesAdvanced.js";
-import { htmlWorkshopModules } from "./legacyHtmlModulesWorkshop.js";
-import { htmlProductionHardeningModules } from "./legacyHtmlModulesHardening.js";
+import { htmlFoundationModules } from "./htmlModulesFoundation.js";
+import { htmlAdvancedModules } from "./htmlModulesAdvanced.js";
+import { htmlWorkshopModules } from "./htmlModulesWorkshop.js";
+import { htmlProductionHardeningModules } from "./htmlModulesHardening.js";
 
 export const htmlTrack = {
     id: "html",

@@ -1,5 +1,5 @@
-import { module, lesson, projectLesson, test } from "./legacyTrackBuilders.js";
-import { htmlShell, step, workshopQuiz } from "./legacyHtmlWorkshopBuilders.js";
+import { module, lesson, projectLesson, test } from "./trackBuilders.js";
+import { htmlShell, step, workshopQuiz } from "./htmlWorkshopBuilders.js";
 
 export const htmlWorkshopModules = [
   module("html-pulsaconf-workshop", "Atelier PulsaConf", "PulsaConf workshop", [

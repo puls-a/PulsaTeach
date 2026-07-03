@@ -1,5 +1,5 @@
 import { createProfessionalTrack } from "../builders/createProfessionalTrack.js";
-import { webSecurityV9Modules } from "./webSecurityV9Modules.js";
+import { webSecurityModules } from "./webSecurityModules.js";
 
 const v = {
   threat: ["modèle de menace", "threat model", "Analyse des actifs, acteurs, frontières, abus et protections.", "Analysis of assets, actors, boundaries, abuse cases, and controls."],
@@ -29,7 +29,7 @@ export const webSecurityTrack = createProfessionalTrack({
   capstone: ["Auditer une application complète, prioriser les risques, corriger les frontières et livrer preuves, tests et procédure d’incident.", "Audit a complete application, prioritize risks, fix boundaries, and ship evidence, tests, and an incident procedure."],
   certification: [["Valider chaque module", "Pass every module"], ["Livrer quatre audits/corrections", "Ship four audits/remediations"], ["Réussir l’examen final", "Pass the final exam"], ["Faire approuver les tests d’abus", "Get abuse-case tests approved"]],
   modules: [
-    ...webSecurityV9Modules,
+    ...webSecurityModules,
     {
       id: "security-threats-input",
       title: ["Menaces, validation et navigateur", "Threats, validation, and browser"],

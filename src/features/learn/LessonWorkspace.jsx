@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Bookmark, BookmarkCheck, BookOpen, CheckCircle2, Code2, Copy, Eye, Lightbulb, Play, RotateCcw, Save, Terminal, XCircle } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Bookmark, BookmarkCheck, BookOpen, CheckCircle2, Code2, Copy, Eye, FileCode2, Keyboard, Lightbulb, Play, RotateCcw, Save, Terminal, XCircle } from "lucide-react";
 import { recordAttempt, recordLearningEvent } from "../../apiClient.js";
 import { createPreview, displayTestLabel, getPreviewKind, runJavaScriptWithConsole, testFailureHelp, validateLesson } from "../../lessonRuntime.js";
 import { PREVIEW_IFRAME_SANDBOX } from "../../security/sandboxPolicy.js";
@@ -16,6 +16,9 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
   const [note, setNote] = useState("");
   const [copied, setCopied] = useState(false);
   const [focusPanel, setFocusPanel] = useState("learn");
+  const [workspacePanel, setWorkspacePanel] = useState("code");
+  const [saveState, setSaveState] = useState("saved");
+  const editorRef = useRef(null);
 
   useEffect(() => {
     setCode(localStorage.getItem(`pulsateach-code-${lesson.id}`) || lesson.starterCode);
@@ -25,76 +28,257 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
     setConsoleOutput("");
     setNote(localStorage.getItem(`pulsateach-note-${lesson.id}`) || "");
     setFocusPanel("learn");
+    setWorkspacePanel("code");
+    setSaveState("saved");
   }, [lesson]);
 
   useEffect(() => {
     if (lesson.type === "quiz") return undefined;
-    const timeout = window.setTimeout(() => localStorage.setItem(`pulsateach-code-${lesson.id}`, code), 500);
+    setSaveState("saving");
+    const timeout = window.setTimeout(() => {
+      localStorage.setItem(`pulsateach-code-${lesson.id}`, code);
+      setSaveState("saved");
+    }, 450);
     return () => window.clearTimeout(timeout);
   }, [code, lesson.id, lesson.type]);
 
   const preview = useMemo(() => createPreview(lesson, code), [code, lesson]);
   const previewKind = getPreviewKind(lesson);
+  const passed = result?.filter((check) => check.pass).length ?? 0;
+  const total = result?.length || lesson.tests.length;
+  const allPassed = Boolean(result?.length) && result.every((check) => check.pass);
+
+  const saveCode = () => {
+    localStorage.setItem(`pulsateach-code-${lesson.id}`, code);
+    setSaveState("saved");
+  };
+
   const runTests = async () => {
     const checks = await validateLesson(lesson, code);
     setResult(checks);
+    setWorkspacePanel("tests");
     recordAttempt({ lessonId: lesson.id, trackId: activeTrack.id, moduleId: activeModule.id, passed: checks.filter((check) => check.pass).length, total: checks.length }).catch(() => {});
     recordLearningEvent({ eventType: checks.every((check) => check.pass) ? "lesson_completed" : "tests_failed", lessonId: lesson.id, trackId: activeTrack.id, payload: { passed: checks.filter((check) => check.pass).length, total: checks.length, failedTests: checks.filter((check) => !check.pass).map((check) => check.label || check.id) } }).catch(() => {});
     if (checks.every((check) => check.pass)) onComplete(lesson, checks.length);
   };
+
   const runCode = async () => {
+    setWorkspacePanel("preview");
     setConsoleOutput(locale === "fr" ? "Exécution en cours…" : "Running…");
     setConsoleOutput(await runJavaScriptWithConsole(code, locale));
   };
-  const passed = result?.filter((check) => check.pass).length ?? 0;
+
+  const resetCode = () => {
+    setCode(lesson.starterCode);
+    setResult(null);
+    setConsoleOutput("");
+    editorRef.current?.focus();
+  };
+
+  const handleEditorKeyDown = (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+      event.preventDefault();
+      if (previewKind === "javascript") runCode();
+      else runTests();
+    }
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+      event.preventDefault();
+      saveCode();
+    }
+    if (event.key === "Tab") {
+      event.preventDefault();
+      const target = event.currentTarget;
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
+      const nextCode = `${code.slice(0, start)}  ${code.slice(end)}`;
+      setCode(nextCode);
+      window.requestAnimationFrame(() => {
+        target.selectionStart = start + 2;
+        target.selectionEnd = start + 2;
+      });
+    }
+  };
 
   if (lesson.type === "quiz") return <QuizComponent activeTrack={activeTrack} activeModule={activeModule} lesson={lesson} locale={locale} isCompleted={isCompleted} isBookmarked={isBookmarked} onToggleBookmark={onToggleBookmark} onQuizResult={onQuizResult} onCloseQuiz={onCloseQuiz} onNext={onNext} hasNext={hasNext} />;
 
   return (
-    <section className="focused-workspace min-w-0 rounded-2xl border border-slate-200 bg-white p-4 text-ink shadow-sm">
+    <section className="focused-workspace min-w-0 rounded-3xl border border-slate-200 bg-white p-4 text-ink shadow-sm sm:p-5">
       <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
-        <div><div className="flex flex-wrap items-center gap-3"><span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold uppercase text-indigoPop">{lesson.type}</span>{lesson.stepNumber && <span className="rounded-full bg-violet-100 px-3 py-1.5 text-xs font-black uppercase tracking-[.12em] text-violet-700">{locale === "fr" ? `Atelier étape ${lesson.stepNumber}` : `Workshop step ${lesson.stepNumber}`}</span>}<span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">{lesson.xp} XP</span><span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600">{difficultyLabel(lesson.difficulty, locale)} · {lesson.durationMin} min</span>{isCompleted && <span className="rounded-full bg-green-100 px-3 py-1.5 text-xs font-bold text-green-700">{locale === "fr" ? "Validé" : "Passed"}</span>}</div>{lesson.projectThreadId && <p className="mt-3 rounded-2xl border border-violet-100 bg-violet-50 px-4 py-3 text-sm font-bold leading-6 text-violet-800">{locale === "fr" ? "Fil rouge : chaque étape ajoute une pièce à la page PulsaConf. Garde le même projet en tête et valide petit à petit." : "Project thread: each step adds one piece to the PulsaConf page. Keep the same project in mind and validate gradually."}</p>}<h3 className="mt-3 font-display text-3xl font-bold">{lesson.title[locale]}</h3><p className="mt-2 max-w-3xl leading-7 text-slate-600">{lesson.brief[locale]}</p><SkillChips skills={lesson.skills} /></div>
+        <div>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold uppercase text-indigoPop">{lesson.type}</span>
+            {lesson.stepNumber && <span className="rounded-full bg-violet-100 px-3 py-1.5 text-xs font-black uppercase tracking-[.12em] text-violet-700">{locale === "fr" ? `Atelier étape ${lesson.stepNumber}` : `Workshop step ${lesson.stepNumber}`}</span>}
+            <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">{lesson.xp} XP</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600">{difficultyLabel(lesson.difficulty, locale)} · {lesson.durationMin} min</span>
+            {isCompleted && <span className="rounded-full bg-green-100 px-3 py-1.5 text-xs font-bold text-green-700">{locale === "fr" ? "Validé" : "Passed"}</span>}
+          </div>
+          {lesson.projectThreadId && <p className="mt-3 rounded-2xl border border-violet-100 bg-violet-50 px-4 py-3 text-sm font-bold leading-6 text-violet-800">{locale === "fr" ? "Fil rouge : chaque étape ajoute une pièce à la page PulsaConf. Garde le même projet en tête et valide petit à petit." : "Project thread: each step adds one piece to the PulsaConf page. Keep the same project in mind and validate gradually."}</p>}
+          <h3 className="mt-3 font-display text-3xl font-bold">{lesson.title[locale]}</h3>
+          <p className="mt-2 max-w-3xl leading-7 text-slate-600">{lesson.brief[locale]}</p>
+          <SkillChips skills={lesson.skills} />
+        </div>
         <div className="flex flex-wrap gap-3">
           <ActionButton onClick={() => setHintLevel((value) => Math.min(value + 1, lesson.pedagogy?.hints?.length || 1))} icon={Lightbulb}>{locale === "fr" ? `Indice ${Math.min(hintLevel + 1, lesson.pedagogy?.hints?.length || 1)}` : "Next hint"}</ActionButton>
           <ActionButton onClick={() => { copyLessonLink(); setCopied(true); window.setTimeout(() => setCopied(false), 1600); }} icon={Copy}>{copied ? (locale === "fr" ? "Copié" : "Copied") : (locale === "fr" ? "Lien" : "Link")}</ActionButton>
           <ActionButton onClick={onToggleBookmark} icon={isBookmarked ? BookmarkCheck : Bookmark}>{isBookmarked ? (locale === "fr" ? "Sauvé" : "Saved") : (locale === "fr" ? "Favori" : "Save")}</ActionButton>
           <ActionButton onClick={() => setShowCorrection((value) => !value)} icon={Eye}>{locale === "fr" ? "Correction expliquée" : "Explained correction"}</ActionButton>
-          {previewKind === "javascript" && <ActionButton onClick={runCode} icon={Terminal}>{locale === "fr" ? "Exécuter" : "Run code"}</ActionButton>}
-          <ActionButton onClick={() => setCode(lesson.starterCode)} icon={RotateCcw}>Reset</ActionButton>
         </div>
       </div>
+
       <FocusTabs locale={locale} active={focusPanel} onChange={setFocusPanel} />
-      {focusPanel === "learn" && <>
-      <CourseChapter course={lesson.course} theory={lesson.theory} locale={locale} />
-      <PedagogyWorkshop pedagogy={lesson.pedagogy} locale={locale} />
-      <LessonGuide guide={lesson.guide} locale={locale} />
-      <ProgressiveHints pedagogy={lesson.pedagogy} fallback={lesson.hint} level={hintLevel} locale={locale} />
-      <div className="mt-4"><NotesPanel lessonId={lesson.id} locale={locale} note={note} setNote={setNote} /></div>
-      {lesson.type === "project" && <ProjectRubric lesson={lesson} locale={locale} />}
-      </>}
-      {result?.every((check) => check.pass) && <CompletionBanner locale={locale} onNext={onNext} hasNext={hasNext} />}
-      <div className="mt-8 border-t border-slate-200 pt-6"><p className="text-xs font-bold uppercase tracking-[.14em] text-indigoPop">{locale === "fr" ? "Exercice autonome" : "Independent exercise"}</p><h4 className="mt-2 font-display text-2xl font-bold">{lesson.brief[locale]}</h4><p className="mt-2 text-sm leading-6 text-slate-500">{locale === "fr" ? "Travaille dans l'éditeur, observe l'aperçu puis lance les tests. Utilise les indices progressivement si tu bloques." : "Work in the editor, inspect the preview, then run the tests. Use hints progressively if needed."}</p></div>
-      <div className="mt-4 grid gap-3 xl:grid-cols-2">
-        <div className="overflow-hidden rounded-xl border border-slate-800 bg-ink">
-          <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-white"><span className="font-mono text-sm font-bold text-slate-300">{lesson.id}.{fileExtension(lesson)}</span><button type="button" onClick={() => localStorage.setItem(`pulsateach-code-${lesson.id}`, code)} className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-xs font-bold text-white hover:bg-white/20"><Save className="size-4" />{locale === "fr" ? "Sauver" : "Save"}</button></div>
-          <textarea value={code} onChange={(event) => setCode(event.target.value)} spellCheck="false" className="min-h-[480px] w-full resize-y bg-ink p-5 font-mono text-sm leading-7 text-indigo-100 outline-none" aria-label={locale === "fr" ? "Éditeur de code" : "Code editor"} />
-        </div>
-        <div className="grid gap-3">
-          <Preview lesson={lesson} locale={locale} code={code} preview={preview} previewKind={previewKind} consoleOutput={consoleOutput} />
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3"><h4 className="font-display text-xl font-bold">{locale === "fr" ? "Tests automatiques" : "Automated tests"}</h4><button type="button" onClick={runTests} className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-sm font-bold text-white hover:bg-green-800"><Play className="size-5" />{locale === "fr" ? "Lancer" : "Run"}</button></div>
-            <p className="mt-2 font-bold text-ink/62">{result ? `${passed}/${result.length}` : locale === "fr" ? "Lance les tests pour vérifier ton code." : "Run tests to check your code."}</p>
-            <div className="mt-4 space-y-3">{(result || lesson.tests.map((item) => ({ ...item, pass: false, waiting: true }))).map((check, index) => <div className={`flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm font-semibold ${check.pass ? "text-ink" : "text-slate-500"}`} key={`${check.id || check.type || "check"}-${check.label || check.value || index}-${index}`}>{check.waiting ? <Code2 className="mt-0.5 size-5 shrink-0 text-indigoPop" /> : check.pass ? <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-mintPop" /> : <XCircle className="mt-0.5 size-5 shrink-0 text-rosePop" />}<span><span className="block">{displayTestLabel(check, locale)}</span>{!check.waiting && !check.pass && <span className="mt-1 block text-xs font-medium leading-5 text-slate-500">{testFailureHelp(check, locale)}</span>}</span></div>)}</div>
-          </div>
-        </div>
+      {focusPanel === "learn" && (
+        <>
+          <CourseChapter course={lesson.course} theory={lesson.theory} locale={locale} />
+          <PedagogyWorkshop pedagogy={lesson.pedagogy} locale={locale} />
+          <LessonGuide guide={lesson.guide} locale={locale} />
+          <ProgressiveHints pedagogy={lesson.pedagogy} fallback={lesson.hint} level={hintLevel} locale={locale} />
+          <div className="mt-4"><NotesPanel lessonId={lesson.id} locale={locale} note={note} setNote={setNote} /></div>
+          {lesson.type === "project" && <ProjectRubric lesson={lesson} locale={locale} />}
+        </>
+      )}
+
+      {allPassed && <CompletionBanner locale={locale} onNext={onNext} hasNext={hasNext} />}
+
+      <div className="mt-8 border-t border-slate-200 pt-6">
+        <p className="text-xs font-bold uppercase tracking-[.14em] text-indigoPop">{locale === "fr" ? "Atelier interactif" : "Interactive workshop"}</p>
+        <h4 className="mt-2 font-display text-2xl font-bold">{lesson.brief[locale]}</h4>
+        <p className="mt-2 text-sm leading-6 text-slate-500">{locale === "fr" ? "Écris, prévisualise, exécute et valide depuis un espace plus calme. Sur mobile, utilise les onglets pour garder l’écran respirable." : "Write, preview, run, and validate from a calmer workspace. On mobile, use tabs to keep the screen readable."}</p>
       </div>
-      {(showCorrection || result?.every((check) => check.pass)) && <ExplainedCorrection lesson={lesson} locale={locale} onLoadSolution={() => setCode(lesson.solution)} />}
+
+      <EditorWorkbench
+        code={code}
+        consoleOutput={consoleOutput}
+        editorRef={editorRef}
+        fileName={`${lesson.id}.${fileExtension(lesson)}`}
+        locale={locale}
+        onChange={setCode}
+        onKeyDown={handleEditorKeyDown}
+        onReset={resetCode}
+        onRunCode={previewKind === "javascript" ? runCode : null}
+        onRunTests={runTests}
+        onSave={saveCode}
+        preview={preview}
+        previewKind={previewKind}
+        result={result}
+        saveState={saveState}
+        selectedPanel={workspacePanel}
+        setSelectedPanel={setWorkspacePanel}
+        tests={lesson.tests}
+        total={total}
+        passed={passed}
+        lesson={lesson}
+      />
+
+      {(showCorrection || allPassed) && <ExplainedCorrection lesson={lesson} locale={locale} onLoadSolution={() => setCode(lesson.solution)} />}
     </section>
   );
 }
 
+function EditorWorkbench({ code, consoleOutput, editorRef, fileName, locale, onChange, onKeyDown, onReset, onRunCode, onRunTests, onSave, preview, previewKind, result, saveState, selectedPanel, setSelectedPanel, tests, total, passed, lesson }) {
+  const panels = [
+    ["code", locale === "fr" ? "Code" : "Code", FileCode2],
+    ["preview", locale === "fr" ? "Aperçu" : "Preview", Eye],
+    ["tests", locale === "fr" ? "Tests" : "Tests", CheckCircle2]
+  ];
+
+  return (
+    <div className="mt-4 overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 shadow-2xl shadow-slate-900/10">
+      <div className="flex flex-col gap-3 border-b border-white/10 bg-slate-900 px-3 py-3 text-white xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 font-mono text-xs font-bold text-slate-200"><FileCode2 className="size-4 text-indigo-300" />{fileName}</span>
+          <span className={`rounded-full px-3 py-1 text-xs font-black uppercase tracking-[.12em] ${saveState === "saved" ? "bg-green-400/15 text-green-200" : "bg-amber-400/15 text-amber-200"}`}>
+            {saveState === "saved" ? (locale === "fr" ? "Sauvegardé" : "Saved") : (locale === "fr" ? "Sauvegarde…" : "Saving…")}
+          </span>
+          <span className="hidden items-center gap-1 rounded-full bg-white/5 px-3 py-1 text-xs font-bold text-slate-300 sm:inline-flex"><Keyboard className="size-3.5" />Ctrl/⌘+Enter · Ctrl/⌘+S</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {onRunCode && <WorkbenchButton onClick={onRunCode} icon={Terminal}>{locale === "fr" ? "Exécuter" : "Run"}</WorkbenchButton>}
+          <WorkbenchButton onClick={onRunTests} icon={Play} primary>{locale === "fr" ? "Tester" : "Test"}</WorkbenchButton>
+          <WorkbenchButton onClick={onSave} icon={Save}>{locale === "fr" ? "Sauver" : "Save"}</WorkbenchButton>
+          <WorkbenchButton onClick={onReset} icon={RotateCcw}>Reset</WorkbenchButton>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 border-b border-white/10 bg-slate-900 p-2 xl:hidden" role="tablist" aria-label={locale === "fr" ? "Panneaux de l’éditeur" : "Editor panels"}>
+        {panels.map(([id, label, Icon]) => (
+          <button key={id} type="button" role="tab" aria-selected={selectedPanel === id} onClick={() => setSelectedPanel(id)} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-2 text-sm font-black ${selectedPanel === id ? "bg-indigoPop text-white" : "text-slate-300 hover:bg-white/10"}`}>
+            <Icon className="size-4" />{label}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid gap-0 xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,.9fr)]">
+        <div className={`${selectedPanel === "code" ? "block" : "hidden"} xl:block`}>
+          <CodeEditor code={code} editorRef={editorRef} locale={locale} onChange={onChange} onKeyDown={onKeyDown} />
+        </div>
+        <div className="grid border-t border-white/10 bg-white xl:border-l xl:border-t-0">
+          <div className={`${selectedPanel === "preview" ? "block" : "hidden"} xl:block`}>
+            <Preview lesson={lesson} locale={locale} code={code} preview={preview} previewKind={previewKind} consoleOutput={consoleOutput} />
+          </div>
+          <div className={`${selectedPanel === "tests" ? "block" : "hidden"} border-t border-slate-200 xl:block`}>
+            <TestPanel locale={locale} result={result} tests={tests} total={total} passed={passed} onRunTests={onRunTests} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CodeEditor({ code, editorRef, locale, onChange, onKeyDown }) {
+  const lineCount = Math.max(1, code.split("\n").length);
+  return (
+    <div className="relative min-h-[520px] bg-slate-950">
+      <div className="pointer-events-none absolute left-0 top-0 hidden w-14 select-none border-r border-white/10 py-5 text-right font-mono text-xs leading-7 text-slate-500 sm:block" aria-hidden="true">
+        {Array.from({ length: lineCount }, (_, index) => <div className="pr-3" key={index + 1}>{index + 1}</div>)}
+      </div>
+      <textarea
+        ref={editorRef}
+        value={code}
+        onChange={(event) => onChange(event.target.value)}
+        onKeyDown={onKeyDown}
+        spellCheck="false"
+        className="min-h-[520px] w-full resize-y bg-transparent p-4 font-mono text-[13px] leading-7 text-indigo-100 caret-mintPop outline-none selection:bg-indigo-500/40 sm:pl-20 sm:text-sm"
+        aria-label={locale === "fr" ? "Éditeur de code PulsaTeach" : "PulsaTeach code editor"}
+      />
+    </div>
+  );
+}
+
 function Preview({ lesson, locale, code, preview, previewKind, consoleOutput }) {
-  return <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50"><div className="flex items-center gap-2 border-b border-slate-200 bg-white px-4 py-3 text-sm font-bold"><Eye className="size-5 text-indigoPop" />{locale === "fr" ? "Aperçu live" : "Live preview"}</div>{previewKind === "javascript" ? <div><div className="min-h-[170px] p-5 text-sm text-slate-500">{locale === "fr" ? "Exécute le code pour afficher ses sorties dans la console." : "Run the code to display its output in the console."}</div><pre className="min-h-24 bg-ink p-4 font-mono text-sm text-indigo-100">{consoleOutput || "Console"}</pre></div> : previewKind === "terminal" ? <CodePreview icon={Terminal} title={locale === "fr" ? "Terminal simulé" : "Simulated terminal"} code={`$ ${code || "…"}`} /> : ["typescript", "react", "node", "sql"].includes(previewKind) ? <CodePreview icon={Code2} title={codePreviewTitle(previewKind, locale)} code={code} /> : previewKind === "text" ? <CodePreview icon={BookOpen} title={locale === "fr" ? "Réponse structurée" : "Structured response"} code={code} light /> : <iframe key={`${lesson.id}-${preview}`} title="PulsaTeach preview" srcDoc={preview} sandbox={PREVIEW_IFRAME_SANDBOX} referrerPolicy="no-referrer" className="h-[300px] w-full bg-white" />}</div>;
+  return <div className="overflow-hidden bg-slate-50"><div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-white px-4 py-3 text-sm font-bold"><span className="inline-flex items-center gap-2"><Eye className="size-5 text-indigoPop" />{locale === "fr" ? "Aperçu live" : "Live preview"}</span><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black uppercase text-slate-500">{previewKind}</span></div>{previewKind === "javascript" ? <div><div className="min-h-[170px] p-5 text-sm text-slate-500">{locale === "fr" ? "Exécute le code pour afficher ses sorties dans la console." : "Run the code to display its output in the console."}</div><pre className="min-h-32 overflow-auto bg-ink p-4 font-mono text-sm text-indigo-100">{consoleOutput || "Console"}</pre></div> : previewKind === "terminal" ? <CodePreview icon={Terminal} title={locale === "fr" ? "Terminal simulé" : "Simulated terminal"} code={`$ ${code || "…"}`} /> : ["typescript", "react", "node", "sql"].includes(previewKind) ? <CodePreview icon={Code2} title={codePreviewTitle(previewKind, locale)} code={code} /> : previewKind === "text" ? <CodePreview icon={BookOpen} title={locale === "fr" ? "Réponse structurée" : "Structured response"} code={code} light /> : <iframe key={`${lesson.id}-${preview}`} title="PulsaTeach preview" srcDoc={preview} sandbox={PREVIEW_IFRAME_SANDBOX} referrerPolicy="no-referrer" className="h-[360px] w-full bg-white" />}</div>;
+}
+
+function TestPanel({ locale, result, tests, total, passed, onRunTests }) {
+  const checks = result || tests.map((item) => ({ ...item, pass: false, waiting: true }));
+  return (
+    <div className="bg-white p-4" aria-live="polite">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h4 className="font-display text-xl font-bold">{locale === "fr" ? "Tests automatiques" : "Automated tests"}</h4>
+          <p className="mt-1 text-sm font-bold text-ink/62">{result ? `${passed}/${total}` : locale === "fr" ? "Lance les tests pour vérifier ton code." : "Run tests to check your code."}</p>
+        </div>
+        <button type="button" onClick={onRunTests} className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-green-700 px-4 py-2 text-sm font-black text-white hover:bg-green-800"><Play className="size-5" />{locale === "fr" ? "Lancer" : "Run"}</button>
+      </div>
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-mintPop transition-all" style={{ width: `${total ? (passed / total) * 100 : 0}%` }} /></div>
+      <div className="mt-4 space-y-3">{checks.map((check, index) => <TestRow check={check} index={index} key={`${check.id || check.type || "check"}-${check.label || check.value || index}-${index}`} locale={locale} />)}</div>
+    </div>
+  );
+}
+
+function TestRow({ check, index, locale }) {
+  return (
+    <div className={`flex items-start gap-3 rounded-xl border p-3 text-sm font-semibold ${check.waiting ? "border-slate-200 bg-slate-50 text-slate-500" : check.pass ? "border-green-200 bg-green-50 text-green-900" : "border-rose-200 bg-rose-50 text-rose-900"}`}>
+      {check.waiting ? <Code2 className="mt-0.5 size-5 shrink-0 text-indigoPop" /> : check.pass ? <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-mintPop" /> : <XCircle className="mt-0.5 size-5 shrink-0 text-rosePop" />}
+      <span>
+        <span className="block">{index + 1}. {displayTestLabel(check, locale)}</span>
+        {!check.waiting && !check.pass && <span className="mt-1 block text-xs font-medium leading-5 text-rose-700">{testFailureHelp(check, locale)}</span>}
+      </span>
+    </div>
+  );
+}
+
+function WorkbenchButton({ children, icon: Icon, onClick, primary = false }) {
+  return <button type="button" onClick={onClick} className={`inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl px-3 text-sm font-black ${primary ? "bg-indigoPop text-white hover:bg-indigo-700" : "bg-white/10 text-white hover:bg-white/20"}`}><Icon className="size-4" />{children}</button>;
 }
 
 function FocusTabs({ locale, active, onChange }) {
@@ -115,7 +299,7 @@ function FocusTabs({ locale, active, onChange }) {
 }
 
 function CodePreview({ icon: Icon, title, code, light = false }) {
-  return <div className={`min-h-[300px] p-5 ${light ? "bg-slate-50 text-slate-700" : "bg-slate-950 text-slate-100"}`}><div className="flex items-center gap-2 font-display text-lg font-bold"><Icon className="size-5 text-sky-400" />{title}</div><pre className="mt-5 max-h-[420px] overflow-auto whitespace-pre-wrap rounded-lg bg-black/20 p-4 font-mono text-sm">{code || "…"}</pre></div>;
+  return <div className={`min-h-[360px] p-5 ${light ? "bg-slate-50 text-slate-700" : "bg-slate-950 text-slate-100"}`}><div className="flex items-center gap-2 font-display text-lg font-bold"><Icon className="size-5 text-sky-400" />{title}</div><pre className="mt-5 max-h-[420px] overflow-auto whitespace-pre-wrap rounded-lg bg-black/20 p-4 font-mono text-sm">{code || "…"}</pre></div>;
 }
 
 function codePreviewTitle(kind, locale) {

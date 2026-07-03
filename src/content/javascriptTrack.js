@@ -1,6 +1,6 @@
-import { module, quizLesson, projectLesson, jsLesson, domLesson, test } from "./legacyTrackBuilders.js";
-import { javascriptV9HardeningModules } from "./legacyJavaScriptV9HardeningModules.js";
-import { javascriptV9Modules } from "./legacyJavaScriptV9Modules.js";
+import { module, quizLesson, projectLesson, jsLesson, domLesson, test } from "./trackBuilders.js";
+import { javascriptHardeningModules } from "./javascriptHardeningModules.js";
+import { javascriptModules } from "./javascriptModules.js";
 
 export const javascriptTrack = {
     id: "javascript",
@@ -27,8 +27,8 @@ export const javascriptTrack = {
       en: ["Pass every JavaScript lesson and quiz", "Explain the data, actions, and rendering flow", "Ship the interactive counter", "Ship a persistent dashboard with error handling"]
     },
     modules: [
-      ...javascriptV9Modules,
-      ...javascriptV9HardeningModules,
+      ...javascriptModules,
+      ...javascriptHardeningModules,
       module("js-basics", "Bases du langage", "Language basics", [
         jsLesson("js-01-variables", ["Variables et calcul", "Variables and calculation"], "Crée une constante price, une constante quantity et une constante total.", "const price = 12;\n// ajoute quantity et total", ["const quantity", "const total", "price * quantity"], 25),
         jsLesson("js-01-conditionals", ["Conditions", "Conditionals"], "Crée une fonction canStart(age) qui retourne true si age est au moins 13.", "function canStart(age) {\n  // retourne true ou false\n}", ["function canStart", "return", "age >= 13"], 30),

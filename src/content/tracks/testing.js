@@ -1,5 +1,5 @@
 import { createProfessionalTrack } from "../builders/createProfessionalTrack.js";
-import { testingV9Modules } from "./testingV9Modules.js";
+import { testingModules } from "./testingModules.js";
 
 const v = {
   test: ["test", "test", "Vérification automatisée d’un comportement attendu.", "An automated check of expected behavior."],
@@ -98,7 +98,7 @@ export const testingTrack = createProfessionalTrack({
         ], "exam", 80)
       ]
     },
-    ...testingV9Modules
+    ...testingModules
   ]
 });
 

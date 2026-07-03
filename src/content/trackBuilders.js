@@ -1,14 +1,14 @@
-import { getPedagogy } from "./legacyPedagogy.js";
+import { getPedagogy } from "./pedagogy.js";
 
 function module(id, fr, en, lessons) {
   const totalMinutes = lessons.reduce((sum, item) => sum + item.durationMin, 0);
   return { id, title: { fr, en }, lessons, totalMinutes, ...moduleMeta(id), ...moduleLearningMeta(id) };
 }
 
-import { moduleLearningMeta, moduleMeta } from "./legacyModuleMetadata.js";
-import { courseFor, difficultyFor, durationFor, guideFor, projectDurationFor, projectRubricFor, skillsFor, theoryFor } from "./legacyLessonMetadata.js";
-import { cssSolution, isCssConceptCheck } from "./legacyCssBuilders.js";
-import { jsCheckLabel, jsRuntimeTests, jsSolution } from "./legacyJsBuilders.js";
+import { moduleLearningMeta, moduleMeta } from "./moduleMetadata.js";
+import { courseFor, difficultyFor, durationFor, guideFor, projectDurationFor, projectRubricFor, skillsFor, theoryFor } from "./lessonMetadata.js";
+import { cssSolution, isCssConceptCheck } from "./cssBuilders.js";
+import { jsCheckLabel, jsRuntimeTests, jsSolution } from "./jsBuilders.js";
 
 function lesson({ id, title, brief, course, starterCode, solution, tests, hint, xp }) {
   const resources = lessonResources(id, "html", title, brief, course);

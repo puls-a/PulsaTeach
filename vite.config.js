@@ -20,10 +20,10 @@ export default defineConfig({
           if (id.includes("node_modules/@supabase/supabase-js")) return "supabase";
           if (id.includes("node_modules/react") || id.includes("node_modules/react-dom")) return "react";
           if (id.includes("htmlPedagogy.js") || id.includes("cssPedagogy.js") || id.includes("jsPedagogy.js")) return "pedagogy";
-          if (id.includes("legacyHtml")) return "content-html";
-          if (id.includes("legacyCss")) return "content-css";
-          if (id.includes("legacyJs")) return "content-js";
-          if (id.includes("legacy")) return "content-legacy-meta";
+          if (id.includes("/src/content/html") || id.includes("\\src\\content\\html")) return "content-html";
+          if (id.includes("/src/content/css") || id.includes("\\src\\content\\css")) return "content-css";
+          if (id.includes("/src/content/javascript") || id.includes("\\src\\content\\javascript") || id.includes("/src/content/jsBuilders") || id.includes("\\src\\content\\jsBuilders")) return "content-js";
+          if (id.includes("trackBuilders") || id.includes("lessonMetadata") || id.includes("moduleMetadata")) return "content-meta";
           if (id.includes("/src/content/tracks/accessibility") || id.includes("\\src\\content\\tracks\\accessibility")) return "content-a11y-track";
           if (id.includes("/src/content/tracks/git") || id.includes("\\src\\content\\tracks\\git")) return "content-git-track";
           if (id.includes("/src/content/tracks/testing") || id.includes("\\src\\content\\tracks\\testing")) return "content-testing-track";

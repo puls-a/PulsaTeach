@@ -1,4 +1,4 @@
-import { getPedagogy } from "./legacyPedagogy.js";
+import { getPedagogy } from "./pedagogy.js";
 
 function skillsFor(id) {
   const groups = {

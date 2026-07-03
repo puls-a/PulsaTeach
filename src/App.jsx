@@ -102,6 +102,13 @@ const navGroups = [
   }
 ];
 
+const socialLinks = [
+  { id: "discord", label: "Discord", href: "https://discord.gg/pnAdQQggUg" },
+  { id: "tiktok", label: "TikTok", href: "https://www.tiktok.com/@pulsateach" },
+  { id: "instagram", label: "Instagram", href: "https://www.instagram.com/pulsateach_/" },
+  { id: "x", label: "X", href: "https://x.com/pulsateach" }
+];
+
 function App() {
   const [locale, setLocale] = useState(() => localStorage.getItem("pulsateach-locale") || "fr");
   const [route, setRoute] = useState(() => {
@@ -373,11 +380,13 @@ function Footer({ locale }) {
   return (
     <footer className="border-t border-slate-200 bg-white px-5 py-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-5 text-sm text-slate-500">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
           <a href="/catalog" className="brand-logo-link brand-logo-link--footer inline-flex items-center rounded-xl hover:bg-slate-50" aria-label="PulsaTeach">
             <img src="/assets/logo_horizontale.webp" alt="PulsaTeach" className="brand-logo-image" width="380" height="96" loading="lazy" />
           </a>
+          <SocialLinks />
           <div className="flex flex-wrap gap-x-5 gap-y-3 font-semibold">
+          <a href="mailto:pulsateach@gmail.com">pulsateach@gmail.com</a>
           <a href="/privacy">{locale === "fr" ? "Confidentialité" : "Privacy"}</a>
           <a href="/about">{locale === "fr" ? "À propos" : "About"}</a>
           <a href="/cookies">Cookies</a>
@@ -395,6 +404,51 @@ function Footer({ locale }) {
         </div>
       </div>
     </footer>
+  );
+}
+
+function SocialLinks() {
+  return (
+    <nav className="flex flex-wrap items-center gap-2" aria-label="Réseaux sociaux PulsaTeach">
+      {socialLinks.map((link) => (
+        <a key={link.id} href={link.href} target="_blank" rel="me noreferrer" className="group inline-flex min-h-11 items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-black uppercase tracking-[.08em] text-slate-600 shadow-sm hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigoPop" aria-label={`${link.label} PulsaTeach`}>
+          <SocialIcon id={link.id} />
+          <span>{link.label}</span>
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+function SocialIcon({ id }) {
+  const common = "size-4 shrink-0 transition group-hover:scale-110";
+  if (id === "discord") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className={common} fill="currentColor">
+        <path d="M19.54 5.34a16.7 16.7 0 0 0-4.13-1.28.08.08 0 0 0-.09.04c-.18.32-.39.73-.53 1.06a15.6 15.6 0 0 0-4.68 0 10.6 10.6 0 0 0-.54-1.06.08.08 0 0 0-.09-.04 16.5 16.5 0 0 0-4.13 1.28.08.08 0 0 0-.04.03C2.69 9.28 1.98 13.1 2.34 16.86c0 .02.02.05.04.06a16.8 16.8 0 0 0 5.07 2.56.09.09 0 0 0 .1-.03c.39-.53.73-1.09 1.03-1.68a.08.08 0 0 0-.05-.12 11 11 0 0 1-1.58-.75.08.08 0 0 1 0-.14l.31-.24a.08.08 0 0 1 .08 0c3.03 1.38 6.31 1.38 9.3 0a.08.08 0 0 1 .09 0l.31.24a.08.08 0 0 1 0 .14c-.5.3-1.03.55-1.58.75a.08.08 0 0 0-.04.12c.3.59.64 1.15 1.02 1.68.03.03.07.04.1.03a16.7 16.7 0 0 0 5.08-2.56.08.08 0 0 0 .03-.06c.43-4.35-.72-8.14-3.08-11.49a.07.07 0 0 0-.04-.03ZM8.68 14.57c-.91 0-1.66-.84-1.66-1.87 0-1.04.73-1.88 1.66-1.88.93 0 1.67.85 1.66 1.88 0 1.03-.73 1.87-1.66 1.87Zm6.65 0c-.92 0-1.66-.84-1.66-1.87 0-1.04.73-1.88 1.66-1.88.93 0 1.67.85 1.66 1.88 0 1.03-.73 1.87-1.66 1.87Z" />
+      </svg>
+    );
+  }
+  if (id === "tiktok") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className={common} fill="currentColor">
+        <path d="M16.6 5.82a5.66 5.66 0 0 0 3.31 1.06v3.02a8.55 8.55 0 0 1-3.37-.7v5.74a5.65 5.65 0 1 1-5.65-5.65c.32 0 .63.03.93.08v3.12a2.64 2.64 0 1 0 1.7 2.46V2.75h3.08c.08.73.38 2.04 1.99 3.07Z" />
+      </svg>
+    );
+  }
+  if (id === "x") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className={common} fill="currentColor">
+        <path d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.22-6.82-5.96 6.82H1.67l7.73-8.84L1.25 2.25h6.83l4.72 6.24 5.44-6.24Zm-1.16 17.52h1.83L7.08 4.13H5.11l11.97 15.64Z" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={common} fill="none" stroke="currentColor" strokeWidth="2">
+      <rect width="16" height="16" x="4" y="4" rx="4" />
+      <circle cx="12" cy="12" r="3.5" />
+      <path d="M17.5 6.8h.01" strokeLinecap="round" />
+    </svg>
   );
 }
 

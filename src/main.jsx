@@ -10,10 +10,14 @@ const rootElement = document.getElementById("root");
 
 createRoot(rootElement).render(
   <React.StrictMode>
-    <App />
+    <Boot />
   </React.StrictMode>
 );
 
-requestAnimationFrame(() => {
-  rootElement?.removeAttribute("data-prerendered");
-});
+function Boot() {
+  React.useLayoutEffect(() => {
+    rootElement?.removeAttribute("data-prerendered");
+  }, []);
+
+  return <App />;
+}

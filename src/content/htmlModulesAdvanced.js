@@ -1,4 +1,4 @@
-import { module, lesson, quizLesson, projectLesson, test } from "./legacyTrackBuilders.js";
+import { module, lesson, quizLesson, projectLesson, test } from "./trackBuilders.js";
 
 const htmlShell = (body) => `<!doctype html>
 <html lang="fr">

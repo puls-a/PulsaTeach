@@ -13,7 +13,7 @@ const t = {
 
 const modules = [
   {
-    id: "sec-v9-risk-modeling",
+    id: "sec-risk-modeling",
     title: ["Penser comme un défenseur", "Think like a defender"],
     description: ["Partir des actifs et des abus réels avant d'ajouter des contrôles.", "Start from real assets and abuse cases before adding controls."],
     vocabulary: [t.threat, t.proof, t.incident],
@@ -25,11 +25,11 @@ const modules = [
       ["negative-test", "Créer une preuve négative", "Ajoute un test qui doit échouer pour l'attaquant.", "NegativeTest", ["expect(403)", "user-a", "user-b"]],
       ["control-map", "Relier risque et contrôle", "Associe validation, authz, logs ou RLS à chaque abus prioritaire.", "ControlMap", ["validation", "authz", "logs"]]
     ],
-    project: ["sec-v9-threat-model-project", "Mini-projet : threat model PulsaTeach", "Produis une matrice actifs/frontières/abus/contrôles/preuves pour une plateforme de cours.", "ThreatModel", ["actifs", "frontières", "abus", "preuves"]],
-    quiz: ["sec-v9-threat-quiz", "Quiz : risques et preuves", "security-threat-modeling"]
+    project: ["sec-threat-model-project", "Mini-projet : threat model PulsaTeach", "Produis une matrice actifs/frontières/abus/contrôles/preuves pour une plateforme de cours.", "ThreatModel", ["actifs", "frontières", "abus", "preuves"]],
+    quiz: ["sec-threat-quiz", "Quiz : risques et preuves", "security-threat-modeling"]
   },
   {
-    id: "sec-v9-browser-defenses",
+    id: "sec-browser-defenses",
     title: ["Défenses navigateur : XSS, CSP, cookies", "Browser defenses: XSS, CSP, cookies"],
     description: ["Réduire l'exécution active et durcir les cookies/session côté navigateur.", "Reduce active execution and harden browser-side cookies/session."],
     vocabulary: [t.xss, t.header, t.csrf],
@@ -41,11 +41,11 @@ const modules = [
       ["csrf-token", "Valider un token CSRF", "Vérifie origin et token pour les mutations cookie-based.", "CsrfGuard", ["Origin", "x-csrf-token", "403"]],
       ["clickjacking", "Empêcher l'encapsulation", "Bloque l'affichage du site dans une frame hostile.", "FrameGuard", ["frame-ancestors", "X-Frame-Options"]]
     ],
-    project: ["sec-v9-browser-project", "Mini-projet : page commentaires durcie", "Protège commentaires, cookies, CSRF, CSP et framing avec tests de refus.", "HardenedComments", ["CSP", "httpOnly", "x-csrf-token", "expect(403)"]],
-    quiz: ["sec-v9-browser-quiz", "Quiz : navigateur sécurisé", "browser-security"]
+    project: ["sec-browser-project", "Mini-projet : page commentaires durcie", "Protège commentaires, cookies, CSRF, CSP et framing avec tests de refus.", "HardenedComments", ["CSP", "httpOnly", "x-csrf-token", "expect(403)"]],
+    quiz: ["sec-browser-quiz", "Quiz : navigateur sécurisé", "browser-security"]
   },
   {
-    id: "sec-v9-api-abuse",
+    id: "sec-api-abuse",
     title: ["API : validation, authz et abus", "APIs: validation, authz, and abuse"],
     description: ["Refuser les entrées non fiables et prouver l'isolation utilisateur.", "Reject untrusted input and prove user isolation."],
     vocabulary: [t.authz, t.proof, ["rate limit", "rate limit", "Quota qui réduit les abus répétitifs.", "Quota reducing repetitive abuse."]],
@@ -57,11 +57,11 @@ const modules = [
       ["rate", "Limiter une mutation sensible", "Ajoute quota à login, contact et publication.", "MutationRateLimit", ["windowMs", "limit", "429"]],
       ["safe-error", "Répondre sans fuite interne", "Retourne code stable et requestId, pas stack ni SQL.", "SafeError", ["requestId", "code", "pas stack"]]
     ],
-    project: ["sec-v9-api-project", "Mini-projet : API anti-abus", "Ajoute validation, rate limit, tests IDOR, erreurs sûres et matrice d'accès.", "AbuseResistantApi", ["expect(400)", "expect(403)", "rateLimit", "requestId"]],
-    quiz: ["sec-v9-api-quiz", "Quiz : API anti-abus", "api-security"]
+    project: ["sec-api-project", "Mini-projet : API anti-abus", "Ajoute validation, rate limit, tests IDOR, erreurs sûres et matrice d'accès.", "AbuseResistantApi", ["expect(400)", "expect(403)", "rateLimit", "requestId"]],
+    quiz: ["sec-api-quiz", "Quiz : API anti-abus", "api-security"]
   },
   {
-    id: "sec-v9-files-secrets",
+    id: "sec-files-secrets",
     title: ["Uploads, secrets et supply-chain", "Uploads, secrets, and supply chain"],
     description: ["Contrôler les fichiers, garder les clés côté serveur et réduire le risque tiers.", "Control files, keep keys server-side, and reduce third-party risk."],
     vocabulary: [t.upload, t.secret, t.dependency],
@@ -73,11 +73,11 @@ const modules = [
       ["rotation", "Préparer la rotation", "Garde clé active et ancienne en verify-only temporaire.", "KeyRotation", ["active", "verify-only", "expiresAt"]],
       ["dependency-audit", "Auditer la supply-chain", "Verrouille lockfile, npm ci, audit et provenance.", "DependencyAudit", ["npm ci", "lockfile", "audit"]]
     ],
-    project: ["sec-v9-supply-project", "Mini-projet : pipeline fichiers et secrets", "Implémente upload sûr, scanner de secrets, audit dépendances et runbook rotation.", "FileSecretPipeline", ["UPLOAD_TOO_LARGE", "UNSUPPORTED_MEDIA_TYPE", "npm audit", "rotation"]],
-    quiz: ["sec-v9-files-quiz", "Quiz : fichiers et secrets", "files-secrets-security"]
+    project: ["sec-supply-project", "Mini-projet : pipeline fichiers et secrets", "Implémente upload sûr, scanner de secrets, audit dépendances et runbook rotation.", "FileSecretPipeline", ["UPLOAD_TOO_LARGE", "UNSUPPORTED_MEDIA_TYPE", "npm audit", "rotation"]],
+    quiz: ["sec-files-quiz", "Quiz : fichiers et secrets", "files-secrets-security"]
   },
   {
-    id: "sec-v9-monitoring-incident",
+    id: "sec-monitoring-incident",
     title: ["Monitoring sécurité et incident", "Security monitoring and incident"],
     description: ["Détecter sans fuite, contenir vite et documenter les corrections.", "Detect without leakage, contain quickly, and document fixes."],
     vocabulary: [t.incident, t.proof, ["redaction", "redaction", "Suppression automatique des champs sensibles dans les logs.", "Automatic removal of sensitive fields from logs."]],
@@ -89,12 +89,12 @@ const modules = [
       ["postmortem", "Écrire un post-mortem", "Documente cause, impact, actions et prévention sans blâme.", "Postmortem", ["cause", "impact", "prevention"]],
       ["final-check", "Créer une checklist audit", "Relie chaque risque à correction, test et propriétaire.", "AuditChecklist", ["risk", "evidence", "owner"]]
     ],
-    project: ["sec-v9-final-capstone", "Projet final : audit sécurité complet", "Livre threat model, correctifs, tests d'abus, logs sûrs, alertes et runbook incident.", "SecurityAuditCapstone", ["threat model", "expect(403)", "redaction", "runbook"], true],
-    quiz: ["sec-v9-incident-quiz", "Quiz : incident et monitoring", "security-incident"]
+    project: ["sec-final-capstone", "Projet final : audit sécurité complet", "Livre threat model, correctifs, tests d'abus, logs sûrs, alertes et runbook incident.", "SecurityAuditCapstone", ["threat model", "expect(403)", "redaction", "runbook"], true],
+    quiz: ["sec-incident-quiz", "Quiz : incident et monitoring", "security-incident"]
   }
 ];
 
-export const webSecurityV9Modules = modules.map((module) => ({
+export const webSecurityModules = modules.map((module) => ({
   id: module.id,
   title: module.title,
   description: module.description,
@@ -112,7 +112,7 @@ function lesson(module, [slug, title, brief, symbol, requirements], index) {
     brief: [brief, `Practice: ${brief}`],
     solution,
     requirements: evidence(requirements, solution, proof),
-    skills: [module.quiz[2], `sec-v9-${index + 1}`],
+    skills: [module.quiz[2], `sec-${index + 1}`],
     vocabulary: module.vocabulary,
     durationMin: 32,
     xp: 38
@@ -140,11 +140,11 @@ function project([id, title, brief, symbol, requirements, finalProject = false],
 function securityEvidence(moduleId, slug) {
   const common = ["requestId", "statusCode", "expect(400)", "expect(403)", "redaction", "abuse-test", "no-secret"];
   const byModule = {
-    "sec-v9-risk-modeling": ["actifs", "frontières", "abus", "impact", "contrôle", "preuve"],
-    "sec-v9-browser-defenses": ["CSP", "httpOnly", "sameSite", "x-csrf-token", "frame-ancestors", "XSS"],
-    "sec-v9-api-abuse": ["strict()", "rateLimit", "ownerId", "user-a", "user-b", "ACCESS_DENIED"],
-    "sec-v9-files-secrets": ["UPLOAD_TOO_LARGE", "UNSUPPORTED_MEDIA_TYPE", "crypto.randomUUID", "SUPABASE_SERVICE_ROLE_KEY", "verify-only", "npm audit"],
-    "sec-v9-monitoring-incident": ["authorization", "cookie", "event_type", "severity", "revoke", "postmortem"]
+    "sec-risk-modeling": ["actifs", "frontières", "abus", "impact", "contrôle", "preuve"],
+    "sec-browser-defenses": ["CSP", "httpOnly", "sameSite", "x-csrf-token", "frame-ancestors", "XSS"],
+    "sec-api-abuse": ["strict()", "rateLimit", "ownerId", "user-a", "user-b", "ACCESS_DENIED"],
+    "sec-files-secrets": ["UPLOAD_TOO_LARGE", "UNSUPPORTED_MEDIA_TYPE", "crypto.randomUUID", "SUPABASE_SERVICE_ROLE_KEY", "verify-only", "npm audit"],
+    "sec-monitoring-incident": ["authorization", "cookie", "event_type", "severity", "revoke", "postmortem"]
   };
   return [...common, ...(byModule[moduleId] || []), slug];
 }

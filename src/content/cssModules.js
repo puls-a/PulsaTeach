@@ -1,19 +1,19 @@
-import { getPedagogy } from "./legacyPedagogy.js";
+import { getPedagogy } from "./pedagogy.js";
 
 const modules = [
-  ["css-v9-selectors-colors", ["Sélecteurs, cascade et couleurs", "Selectors, cascade, and colors"], ".course-card", ["color", "background", "border-color", "font-weight", "text-decoration", "outline", "box-shadow", "opacity"]],
-  ["css-v9-box-type", ["Box model et typographie", "Box model and typography"], ".card", ["box-sizing", "padding", "margin", "max-width", "line-height", "font-size", "overflow-wrap", "border-radius"]],
-  ["css-v9-flex-layout", ["Flexbox professionnel", "Professional Flexbox"], ".toolbar", ["display: flex", "gap", "align-items", "justify-content", "flex-wrap", "flex-direction", "order", "min-width"]],
-  ["css-v9-grid-layout", ["Grid et compositions", "Grid and compositions"], ".gallery", ["display: grid", "grid-template-columns", "repeat", "minmax", "gap", "grid-auto-flow", "place-items", "align-content"]],
-  ["css-v9-responsive", ["Responsive mobile-first", "Mobile-first responsive"], ".panel", ["width", "max-width", "@media", "min-width", "clamp(", "container-type", "@container", "auto-fit"]],
-  ["css-v9-a11y-states", ["États accessibles", "Accessible states"], ".action", [":focus-visible", "outline", "outline-offset", ":hover", ":disabled", "cursor", "contrast-color", "forced-color-adjust"]],
-  ["css-v9-motion", ["Motion responsable", "Responsible motion"], ".card", ["transition", "transform", ":hover", "prefers-reduced-motion", "animation", "transform-origin", "will-change", "transition: none"]],
-  ["css-v9-capstone", ["Capstone responsive", "Responsive capstone"], ".landing", ["--space", "clamp(", "display: grid", "auto-fit", "object-fit", "@container", "@media", "overflow-wrap"]]
+  ["css-selectors-colors", ["Sélecteurs, cascade et couleurs", "Selectors, cascade, and colors"], ".course-card", ["color", "background", "border-color", "font-weight", "text-decoration", "outline", "box-shadow", "opacity"]],
+  ["css-box-type", ["Box model et typographie", "Box model and typography"], ".card", ["box-sizing", "padding", "margin", "max-width", "line-height", "font-size", "overflow-wrap", "border-radius"]],
+  ["css-flex-layout", ["Flexbox professionnel", "Professional Flexbox"], ".toolbar", ["display: flex", "gap", "align-items", "justify-content", "flex-wrap", "flex-direction", "order", "min-width"]],
+  ["css-grid-layout", ["Grid et compositions", "Grid and compositions"], ".gallery", ["display: grid", "grid-template-columns", "repeat", "minmax", "gap", "grid-auto-flow", "place-items", "align-content"]],
+  ["css-responsive", ["Responsive mobile-first", "Mobile-first responsive"], ".panel", ["width", "max-width", "@media", "min-width", "clamp(", "container-type", "@container", "auto-fit"]],
+  ["css-a11y-states", ["États accessibles", "Accessible states"], ".action", [":focus-visible", "outline", "outline-offset", ":hover", ":disabled", "cursor", "contrast-color", "forced-color-adjust"]],
+  ["css-motion", ["Motion responsable", "Responsible motion"], ".card", ["transition", "transform", ":hover", "prefers-reduced-motion", "animation", "transform-origin", "will-change", "transition: none"]],
+  ["css-capstone", ["Capstone responsive", "Responsive capstone"], ".landing", ["--space", "clamp(", "display: grid", "auto-fit", "object-fit", "@container", "@media", "overflow-wrap"]]
 ];
 
-const projectModules = new Set(["css-v9-flex-layout", "css-v9-grid-layout", "css-v9-responsive", "css-v9-motion", "css-v9-capstone", "css-v9-a11y-states"]);
+const projectModules = new Set(["css-flex-layout", "css-grid-layout", "css-responsive", "css-motion", "css-capstone", "css-a11y-states"]);
 
-export const cssV9Modules = modules.map(([id, title, selector, checks], moduleIndex) => {
+export const cssModules = modules.map(([id, title, selector, checks], moduleIndex) => {
   const lessons = checks.map((check, index) => lessonFor(id, title, selector, check, index + 1));
   lessons.push(quizFor(id, title, moduleIndex));
   if (projectModules.has(id)) lessons.push(projectFor(id, title, selector, checks, moduleIndex));

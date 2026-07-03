@@ -1,5 +1,5 @@
 import { createProfessionalTrack } from "../builders/createProfessionalTrack.js";
-import { reactV9Modules } from "./reactV9Modules.js";
+import { reactModules } from "./reactModules.js";
 
 const v = {
   component: ["composant", "component", "Unité d’interface avec responsabilités et contrat explicites.", "A UI unit with explicit responsibilities and contract."],
@@ -25,7 +25,7 @@ export const reactTrack = createProfessionalTrack({
   capstone: ["Livrer un tableau de gestion de projets avec routing, authentification simulée, formulaires accessibles, API, tests et budget de performance.", "Ship a project-management dashboard with routing, simulated authentication, accessible forms, API, tests, and a performance budget."],
   certification: [["Valider les quiz de module", "Pass module quizzes"], ["Livrer quatre projets progressifs", "Ship four progressive projects"], ["Réussir l’examen final", "Pass the final exam"], ["Faire approuver le tableau métier final", "Get the final business dashboard approved"]],
   modules: [
-    ...reactV9Modules,
+    ...reactModules,
     {
       id: "react-components",
       title: ["Composants et composition", "Components and composition"],

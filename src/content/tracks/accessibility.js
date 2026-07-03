@@ -1,5 +1,5 @@
 import { createProfessionalTrack } from "../builders/createProfessionalTrack.js";
-import { accessibilityV9Modules } from "./accessibilityV9Modules.js";
+import { accessibilityModules } from "./accessibilityModules.js";
 
 const vocab = {
   accessibility: ["accessibilité", "accessibility", "Qualité d’un produit utilisable par des personnes aux capacités et contextes variés.", "The quality of a product usable by people with varied abilities and contexts."],
@@ -24,7 +24,7 @@ export const accessibilityTrack = createProfessionalTrack({
   capstone: ["Auditer puis corriger une application complète avec preuves manuelles et automatisées.", "Audit and fix a complete application with manual and automated evidence."],
   certification: [["Valider les quiz de chaque module", "Pass every module quiz"], ["Livrer deux mini-projets", "Ship two mini-projects"], ["Réussir l’examen final", "Pass the final exam"], ["Faire approuver l’audit final", "Get the final audit approved"]],
   modules: [
-    ...accessibilityV9Modules,
+    ...accessibilityModules,
     {
       id: "a11y-foundations",
       title: ["Comprendre et structurer", "Understand and structure"],

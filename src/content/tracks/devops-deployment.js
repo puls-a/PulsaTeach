@@ -1,5 +1,5 @@
 import { createProfessionalTrack } from "../builders/createProfessionalTrack.js";
-import { devopsDeploymentV9Modules } from "./devopsDeploymentV9Modules.js";
+import { devopsDeploymentModules } from "./devopsDeploymentModules.js";
 
 const v = {
   environment: ["environnement", "environment", "Configuration et ressources isolées pour un stade de livraison.", "Isolated configuration and resources for a delivery stage."],
@@ -99,7 +99,7 @@ export const devopsDeploymentTrack = createProfessionalTrack({
         ], "exam", 80)
       ]
     },
-    ...devopsDeploymentV9Modules
+    ...devopsDeploymentModules
   ]
 });
 

@@ -32,10 +32,10 @@ export function readLessonRoute() {
   const fallbackModule = fallbackTrack.modules[0];
   const fallback = { trackId: fallbackTrack.id, moduleId: fallbackModule.id, lessonId: fallbackModule.lessons[0].id };
   const cleanMatch = window.location.pathname.match(/^\/learn\/([^/]+)\/([^/]+)\/([^/]+)\/?$/);
-  const legacyMatch = window.location.hash.match(/^#\/?learn\/([^/]+)\/([^/]+)\/([^/]+)$/);
-  const match = cleanMatch || legacyMatch;
-  if (!match) return fallback;
-  const [, trackId, moduleId, lessonId] = match;
+  const hashMatch = window.location.hash.match(/^#\/?learn\/([^/]+)\/([^/]+)\/([^/]+)$/);
+  const finalMatch = cleanMatch || hashMatch;
+  if (!finalMatch) return fallback;
+  const [, trackId, moduleId, lessonId] = finalMatch;
   return { trackId, moduleId, lessonId };
 }
 

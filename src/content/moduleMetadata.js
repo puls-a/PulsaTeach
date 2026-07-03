@@ -119,21 +119,21 @@ function moduleLearningMeta(id) {
       vocabulary: ["localStorage", "JSON", "sérialisation", "Promise", "async", "await", "fetch", "try/catch"],
       mastery: { fr: ["Les données survivent au rechargement", "Les états chargement, succès et erreur sont distingués", "Le dashboard garde une source de vérité unique"], en: ["Data survives reloads", "Loading, success, and error states are distinct", "The dashboard keeps a single source of truth"] }
     },
-    "js-v9-validation-hardening": {
+    "js-validation-hardening": {
       importance: { fr: "La validation transforme un exercice JavaScript en code fiable : chaque entree douteuse devient un cas explicite.", en: "Validation turns a JavaScript exercise into reliable code: every doubtful input becomes an explicit case." },
       prerequisites: { fr: ["Fonctions", "conditions", "tableaux", "objets"], en: ["Functions", "conditionals", "arrays", "objects"] },
       outcomes: { fr: ["Valider une forme de donnees", "Normaliser sans mutation inutile", "Tester les seuils et cas limites"], en: ["Validate data shape", "Normalize without unnecessary mutation", "Test thresholds and edge cases"] },
       vocabulary: ["validation", "normalisation", "cas limite", "erreur", "seuil", "clone"],
       mastery: { fr: ["Les entrees invalides ne continuent pas silencieusement", "Les seuils 69/70/100 sont prouves", "La sortie est stable et explicable"], en: ["Invalid inputs do not continue silently", "69/70/100 thresholds are proven", "Output is stable and explainable"] }
     },
-    "js-v9-async-resilience": {
+    "js-async-resilience": {
       importance: { fr: "Les vraies applications echouent parfois : timeout, offline, 404 et 500 doivent rester comprehensibles.", en: "Real applications sometimes fail: timeout, offline, 404, and 500 must remain understandable." },
       prerequisites: { fr: ["Promises", "async/await", "try/catch", "fetch"], en: ["Promises", "async/await", "try/catch", "fetch"] },
       outcomes: { fr: ["Encadrer fetch avec timeout", "Separer loading, data et error", "Charger plusieurs ressources sans bloquer l'interface"], en: ["Wrap fetch with timeout", "Separate loading, data, and error", "Load several resources without blocking the UI"] },
       vocabulary: ["Promise", "fetch", "AbortController", "timeout", "etat reseau", "retry"],
       mastery: { fr: ["Chaque requete a un etat observable", "Les erreurs HTTP sont distinguees", "Le cleanup s'execute toujours"], en: ["Every request has observable state", "HTTP errors are distinguished", "Cleanup always runs"] }
     },
-    "js-v9-dom-production": {
+    "js-dom-production": {
       importance: { fr: "Le DOM de production doit rester utilisable au clavier, annonce aux technologies d'assistance et debogable.", en: "Production DOM must remain keyboard usable, announced to assistive technologies, and debuggable." },
       prerequisites: { fr: ["DOM", "events", "formulaires", "localStorage"], en: ["DOM", "events", "forms", "localStorage"] },
       outcomes: { fr: ["Creer une modale accessible", "Rendre une liste depuis l'etat", "Tracer et diagnostiquer une interaction"], en: ["Create an accessible modal", "Render a list from state", "Trace and diagnose an interaction"] },

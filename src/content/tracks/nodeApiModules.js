@@ -13,7 +13,7 @@ const t = {
 
 const modules = [
   {
-    id: "node-v9-runtime-npm",
+    id: "node-runtime-npm",
     title: ["Node, npm et modules maintenables", "Node, npm, and maintainable modules"],
     description: ["Comprendre le runtime, isoler la configuration et créer des modules testables.", "Understand the runtime, isolate configuration, and create testable modules."],
     vocabulary: [t.runtime, t.package, t.module],
@@ -25,11 +25,11 @@ const modules = [
       ["crypto-id", "Générer un id serveur", "Utilise crypto.randomUUID au lieu de faire confiance au client.", "createServerId", ["crypto.randomUUID", "id"]],
       ["async-flow", "Paralléliser deux lectures", "Utilise Promise.all seulement pour des opérations indépendantes.", "buildSummary", ["Promise.all", "await", "catch"]]
     ],
-    project: ["node-v9-importer-project", "Mini-projet : importeur de données", "Crée un importeur CLI qui lit, valide, classe accepté/rejeté et retourne un résumé.", "ProjectImporter", ["readFile", "JSON.parse", "accepted", "rejected"]],
-    quiz: ["node-v9-runtime-quiz", "Quiz : runtime Node", "node-runtime"]
+    project: ["node-importer-project", "Mini-projet : importeur de données", "Crée un importeur CLI qui lit, valide, classe accepté/rejeté et retourne un résumé.", "ProjectImporter", ["readFile", "JSON.parse", "accepted", "rejected"]],
+    quiz: ["node-runtime-quiz", "Quiz : runtime Node", "node-runtime"]
   },
   {
-    id: "node-v9-http-express",
+    id: "node-http-express",
     title: ["Serveur HTTP et Express", "HTTP server and Express"],
     description: ["Construire des routes lisibles, des réponses cohérentes et un flux middleware simple.", "Build readable routes, coherent responses, and a simple middleware flow."],
     vocabulary: [t.request, t.middleware, t.schema],
@@ -41,11 +41,11 @@ const modules = [
       ["status-codes", "Choisir les codes HTTP", "Utilise 200, 201, 204, 400, 404 selon le contrat.", "projectRoutes", ["status(201)", "status(204)", "status(404)"]],
       ["async-handler", "Éviter les try/catch copiés", "Centralise la propagation des erreurs async.", "asyncHandler", ["Promise.resolve", "catch(next)"]]
     ],
-    project: ["node-v9-express-project", "Mini-projet : API météo pédagogique", "Crée une API Express avec health, recherche, détail, erreurs et limites JSON.", "WeatherLearningApi", ["createApp", "app.get", "express.json", "asyncHandler"]],
-    quiz: ["node-v9-http-quiz", "Quiz : Express et HTTP", "express-http"]
+    project: ["node-express-project", "Mini-projet : API météo pédagogique", "Crée une API Express avec health, recherche, détail, erreurs et limites JSON.", "WeatherLearningApi", ["createApp", "app.get", "express.json", "asyncHandler"]],
+    quiz: ["node-http-quiz", "Quiz : Express et HTTP", "express-http"]
   },
   {
-    id: "node-v9-validation-errors",
+    id: "node-validation-errors",
     title: ["Validation, erreurs et contrats", "Validation, errors, and contracts"],
     description: ["Transformer les entrées non fiables en valeurs validées et erreurs stables.", "Transform untrusted input into validated values and stable errors."],
     vocabulary: [t.schema, t.request, ["erreur stable", "stable error", "Code d'erreur documenté qui ne révèle pas l'interne.", "Documented error code that does not reveal internals."]],
@@ -57,11 +57,11 @@ const modules = [
       ["not-found", "Ajouter notFound", "Réponds 404 avec contrat JSON commun.", "notFoundHandler", ["status(404)", "NOT_FOUND"]],
       ["problem-details", "Documenter le format erreur", "Rends code, message, issues et requestId prévisibles.", "errorContract", ["error", "issues", "requestId"]]
     ],
-    project: ["node-v9-validation-project", "Mini-projet : validation complète", "Ajoute validation body/query/params et erreurs sûres à un CRUD projets.", "ValidationLayer", ["validateBody", "validateQuery", "DomainError", "errorHandler"]],
-    quiz: ["node-v9-validation-quiz", "Quiz : validation serveur", "server-validation"]
+    project: ["node-validation-project", "Mini-projet : validation complète", "Ajoute validation body/query/params et erreurs sûres à un CRUD projets.", "ValidationLayer", ["validateBody", "validateQuery", "DomainError", "errorHandler"]],
+    quiz: ["node-validation-quiz", "Quiz : validation serveur", "server-validation"]
   },
   {
-    id: "node-v9-architecture-auth",
+    id: "node-architecture-auth",
     title: ["Architecture, auth et isolation", "Architecture, auth, and isolation"],
     description: ["Séparer transport, métier et stockage puis prouver l'isolation utilisateur.", "Separate transport, business, and storage, then prove user isolation."],
     vocabulary: [t.service, t.auth, ["repository", "repository", "Contrat d'accès aux données indépendant du transport.", "Data access contract independent from transport."]],
@@ -73,11 +73,11 @@ const modules = [
       ["owner", "Vérifier le propriétaire", "Charge la ressource serveur avant de décider.", "requireOwner", ["ownerId", "request.auth.userId", "status(403)"]],
       ["cross-user", "Tester l'accès croisé", "Prouve qu'un utilisateur B ne lit pas les données A.", "crossUserTest", ["expect(403)", "user-a", "user-b"]]
     ],
-    project: ["node-v9-auth-project", "Mini-projet : API multi-tenant", "Protège lecture, modification et suppression avec 401/403/404 et tests inter-utilisateurs.", "TenantSafeApi", ["authenticate", "requireOwner", "expect(401)", "expect(403)"]],
-    quiz: ["node-v9-auth-quiz", "Quiz : auth et isolation", "api-auth"]
+    project: ["node-auth-project", "Mini-projet : API multi-tenant", "Protège lecture, modification et suppression avec 401/403/404 et tests inter-utilisateurs.", "TenantSafeApi", ["authenticate", "requireOwner", "expect(401)", "expect(403)"]],
+    quiz: ["node-auth-quiz", "Quiz : auth et isolation", "api-auth"]
   },
   {
-    id: "node-v9-data-testing",
+    id: "node-data-testing",
     title: ["Données, tests API et contrats", "Data, API tests, and contracts"],
     description: ["Tester les routes comme un client réel et garder la persistance remplaçable.", "Test routes like a real client and keep persistence replaceable."],
     vocabulary: [t.test, t.service, ["fixture", "fixture", "Donnée de test contrôlée et reproductible.", "Controlled, reproducible test data."]],
@@ -89,11 +89,11 @@ const modules = [
       ["contract-test", "Vérifier le shape JSON", "Teste les champs publics sans dépendre de l'ordre interne.", "contractTest", ["toMatchObject", "projects"]],
       ["seed-cleanup", "Isoler les données de test", "Réinitialise fixtures et repository entre tests.", "testIsolation", ["beforeEach", "clear", "fixtures"]]
     ],
-    project: ["node-v9-api-tests-project", "Mini-projet : suite de tests API", "Couvre health, CRUD, validation, auth, accès croisé et erreurs sûres.", "ApiTestSuite", ["request(app)", "expect(201)", "expect(400)", "expect(403)"]],
-    quiz: ["node-v9-tests-quiz", "Quiz : tests API", "api-testing"]
+    project: ["node-api-tests-project", "Mini-projet : suite de tests API", "Couvre health, CRUD, validation, auth, accès croisé et erreurs sûres.", "ApiTestSuite", ["request(app)", "expect(201)", "expect(400)", "expect(403)"]],
+    quiz: ["node-tests-quiz", "Quiz : tests API", "api-testing"]
   },
   {
-    id: "node-v9-production-ops",
+    id: "node-production-ops",
     title: ["Sécurité HTTP, observabilité et livraison", "HTTP security, observability, and delivery"],
     description: ["Préparer une API exploitable : headers, CORS, rate limit, logs et runbook.", "Prepare an operable API: headers, CORS, rate limit, logs, and runbook."],
     vocabulary: [t.obs, t.middleware, ["rate limit", "rate limit", "Limite de requêtes pour réduire les abus simples.", "Request limit reducing basic abuse."]],
@@ -105,12 +105,12 @@ const modules = [
       ["safe-logs", "Logger sans secret", "Évite tokens, cookies et corps complet dans les logs.", "safeLogger", ["requestId", "durationMs", "statusCode"]],
       ["runbook", "Écrire un runbook incident", "Documente symptômes, requêtes de diagnostic, rollback et contact.", "incidentRunbook", ["symptom", "rollback", "owner"]]
     ],
-    project: ["node-v9-final-capstone", "Projet final : API PulsaBoard sécurisée", "Livre une API projets avec validation, auth, tests, headers, logs, rate limit et runbook.", "PulsaBoardApi", ["helmet", "cors", "rateLimit", "requestId", "expect(403)"], true],
-    quiz: ["node-v9-production-quiz", "Quiz : production API", "api-production"]
+    project: ["node-final-capstone", "Projet final : API PulsaBoard sécurisée", "Livre une API projets avec validation, auth, tests, headers, logs, rate limit et runbook.", "PulsaBoardApi", ["helmet", "cors", "rateLimit", "requestId", "expect(403)"], true],
+    quiz: ["node-production-quiz", "Quiz : production API", "api-production"]
   }
 ];
 
-export const nodeApiV9Modules = modules.map((module) => ({
+export const nodeApiModules = modules.map((module) => ({
   id: module.id,
   title: module.title,
   description: module.description,
@@ -128,7 +128,7 @@ function lesson(module, [slug, title, brief, symbol, requirements], index) {
     brief: [brief, `Practice: ${brief}`],
     solution,
     requirements: evidence([...requirements, symbol], solution, proof),
-    skills: [module.quiz[2], `node-v9-${index + 1}`],
+    skills: [module.quiz[2], `node-${index + 1}`],
     vocabulary: module.vocabulary,
     durationMin: 32,
     xp: 38
@@ -156,12 +156,12 @@ function project([id, title, brief, symbol, requirements, finalProject = false],
 function nodeEvidence(moduleId, slug) {
   const common = ["requestId", "status", "headers", "body", "JSON", "contract", "no-secret"];
   const byModule = {
-    "node-v9-runtime-npm": ["process.env", "node:fs/promises", "crypto.randomUUID", "package.json", "npm-script", "module-boundary"],
-    "node-v9-http-express": ["express", "app.get", "status(201)", "status(404)", "express.json", "asyncHandler"],
-    "node-v9-validation-errors": ["safeParse", "VALIDATION_ERROR", "DomainError", "errorHandler", "issues", "requestId"],
-    "node-v9-architecture-auth": ["Authorization", "Bearer", "status(401)", "status(403)", "ownerId", "cross-user"],
-    "node-v9-data-testing": ["request(app)", "expect(200)", "expect(400)", "expect(403)", "beforeEach", "fixtures"],
-    "node-v9-production-ops": ["helmet", "cors", "rateLimit", "durationMs", "statusCode", "rollback"]
+    "node-runtime-npm": ["process.env", "node:fs/promises", "crypto.randomUUID", "package.json", "npm-script", "module-boundary"],
+    "node-http-express": ["express", "app.get", "status(201)", "status(404)", "express.json", "asyncHandler"],
+    "node-validation-errors": ["safeParse", "VALIDATION_ERROR", "DomainError", "errorHandler", "issues", "requestId"],
+    "node-architecture-auth": ["Authorization", "Bearer", "status(401)", "status(403)", "ownerId", "cross-user"],
+    "node-data-testing": ["request(app)", "expect(200)", "expect(400)", "expect(403)", "beforeEach", "fixtures"],
+    "node-production-ops": ["helmet", "cors", "rateLimit", "durationMs", "statusCode", "rollback"]
   };
   return [...common, ...(byModule[moduleId] || []), slug];
 }

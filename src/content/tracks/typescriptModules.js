@@ -11,7 +11,7 @@ const terms = {
 
 const modules = [
   {
-    id: "ts-v9-foundations",
+    id: "ts-foundations",
     title: ["Premiers contrats TypeScript", "First TypeScript contracts"],
     description: ["Utiliser l'inférence, annoter les frontières et refuser le bruit inutile.", "Use inference, annotate boundaries, and avoid unnecessary noise."],
     vocabulary: [terms.type, terms.inference, terms.utility],
@@ -23,11 +23,11 @@ const modules = [
       ["literal-union", "Limiter les variantes", "Remplace string libre par une union métier.", "type Level = 'débutant' | 'intermédiaire' | 'avancé';", ["type Level", "'avancé'"]],
       ["utility-pick", "Dériver un résumé", "Crée un type de carte depuis le modèle canonique.", "type TrackCard = Pick<Track, 'id' | 'title' | 'lessons'>;", ["Pick<Track", "'lessons'"]]
     ],
-    project: ["ts-v9-profile-project", "Mini-projet : profil apprenant typé", "Modélise profil, objectifs, préférences et carte publique sans duplication.", "LearnerProfile", ["type LearnerProfile", "readonly", "Pick<", "Level"]],
-    quiz: ["ts-v9-foundations-quiz", "Quiz : contrats TS", "typescript-foundations"]
+    project: ["ts-profile-project", "Mini-projet : profil apprenant typé", "Modélise profil, objectifs, préférences et carte publique sans duplication.", "LearnerProfile", ["type LearnerProfile", "readonly", "Pick<", "Level"]],
+    quiz: ["ts-foundations-quiz", "Quiz : contrats TS", "typescript-foundations"]
   },
   {
-    id: "ts-v9-unions-states",
+    id: "ts-unions-states",
     title: ["Unions et états impossibles", "Unions and impossible states"],
     description: ["Représenter les écrans, erreurs et workflows comme des états fermés.", "Represent screens, errors, and workflows as closed states."],
     vocabulary: [terms.union, terms.guard, terms.type],
@@ -39,11 +39,11 @@ const modules = [
       ["narrow-if", "Raffiner avec if", "Accède aux données seulement après contrôle du discriminant.", "if (state.status === 'success') console.log(state.data.length);", ["state.status ===", "state.data"]],
       ["state-render", "Rendre depuis l'état", "Associe chaque branche à une interface claire.", "const label = state.status === 'error' ? state.message : state.status;", ["state.message", "state.status"]]
     ],
-    project: ["ts-v9-workflow-project", "Mini-projet : workflow de publication", "Modélise brouillon, review, publié, rejeté et archivé sans combinaison impossible.", "PublicationWorkflow", ["status: 'draft'", "status: 'published'", "assertNever", "message"]],
-    quiz: ["ts-v9-unions-quiz", "Quiz : unions", "typescript-unions"]
+    project: ["ts-workflow-project", "Mini-projet : workflow de publication", "Modélise brouillon, review, publié, rejeté et archivé sans combinaison impossible.", "PublicationWorkflow", ["status: 'draft'", "status: 'published'", "assertNever", "message"]],
+    quiz: ["ts-unions-quiz", "Quiz : unions", "typescript-unions"]
   },
   {
-    id: "ts-v9-functions-generics",
+    id: "ts-functions-generics",
     title: ["Fonctions, génériques et collections", "Functions, generics, and collections"],
     description: ["Créer des helpers typés qui conservent la relation entre entrée et sortie.", "Create typed helpers preserving input/output relationships."],
     vocabulary: [terms.generic, terms.utility, terms.type],
@@ -55,11 +55,11 @@ const modules = [
       ["record", "Utiliser Record", "Décris un dictionnaire dont les clés sont connues.", "type Scores = Record<'html' | 'css' | 'js', number>;", ["Record<", "'js'"]],
       ["partial", "Limiter les patchs", "Autorise uniquement les champs modifiables.", "type TrackPatch = Partial<Pick<Track, 'title' | 'lessons'>>;", ["Partial<Pick", "'title'"]]
     ],
-    project: ["ts-v9-toolkit-project", "Mini-projet : toolkit de collections", "Crée groupBy, indexBy, uniqueBy et isDefined avec preuves de types.", "CollectionToolkit", ["groupBy", "indexBy", "extends", "value is"]],
-    quiz: ["ts-v9-generics-quiz", "Quiz : génériques", "typescript-generics"]
+    project: ["ts-toolkit-project", "Mini-projet : toolkit de collections", "Crée groupBy, indexBy, uniqueBy et isDefined avec preuves de types.", "CollectionToolkit", ["groupBy", "indexBy", "extends", "value is"]],
+    quiz: ["ts-generics-quiz", "Quiz : génériques", "typescript-generics"]
   },
   {
-    id: "ts-v9-boundaries",
+    id: "ts-boundaries",
     title: ["Frontières : DOM, JSON et API", "Boundaries: DOM, JSON, and APIs"],
     description: ["Traiter ce qui vient de l'extérieur comme unknown jusqu'à preuve runtime.", "Treat external input as unknown until runtime evidence."],
     vocabulary: [terms.guard, terms.type, ["unknown", "unknown", "Type sûr pour une valeur non vérifiée.", "Safe type for an unchecked value."]],
@@ -71,11 +71,11 @@ const modules = [
       ["safe-fetch", "Typer un client fetch", "Combine status HTTP, unknown et garde de type.", "async function request<T>(url: string, guard: (value: unknown) => value is T): Promise<Result<T>> { return { ok: false, error: url }; }", ["Promise<Result<T>>", "guard"]],
       ["error-narrow", "Raffiner catch", "N'utilise le message qu'après contrôle Error.", "catch (error) { if (error instanceof Error) console.error(error.message); }", ["instanceof Error", "error.message"]]
     ],
-    project: ["ts-v9-api-client-project", "Mini-projet : client API validé", "Charge des formations avec pagination, Result, guards et erreurs typées.", "SafeCatalogClient", ["unknown", "value is", "Promise<Result", "instanceof Error"]],
-    quiz: ["ts-v9-boundaries-quiz", "Quiz : frontières externes validées", "typescript-boundaries"]
+    project: ["ts-api-client-project", "Mini-projet : client API validé", "Charge des formations avec pagination, Result, guards et erreurs typées.", "SafeCatalogClient", ["unknown", "value is", "Promise<Result", "instanceof Error"]],
+    quiz: ["ts-boundaries-quiz", "Quiz : frontières externes validées", "typescript-boundaries"]
   },
   {
-    id: "ts-v9-config-tooling",
+    id: "ts-config-tooling",
     title: ["Configuration, modules et qualité", "Configuration, modules, and quality"],
     description: ["Rendre strict, lisible et testable le contrat de compilation.", "Make the compilation contract strict, readable, and testable."],
     vocabulary: [terms.config, terms.migration, terms.type],
@@ -87,11 +87,11 @@ const modules = [
       ["declarations", "Comprendre les .d.ts", "Décris une API externe seulement si tu la maintiens.", "declare module 'legacy-widget' { export function mount(node: HTMLElement): void; }", ["declare module", "HTMLElement"]],
       ["lint-type", "Bloquer any en revue", "Remplace any par unknown ou un type prouvé.", "type Unsafe = unknown;", ["unknown", "Unsafe"]]
     ],
-    project: ["ts-v9-config-project", "Mini-projet : tsconfig de production", "Prépare une configuration stricte avec aliases, noUncheckedIndexedAccess et règles anti-any.", "ProductionTsconfig", ["strict", "noUncheckedIndexedAccess", "moduleResolution", "unknown"]],
-    quiz: ["ts-v9-config-quiz", "Quiz : configuration", "typescript-config"]
+    project: ["ts-config-project", "Mini-projet : tsconfig de production", "Prépare une configuration stricte avec aliases, noUncheckedIndexedAccess et règles anti-any.", "ProductionTsconfig", ["strict", "noUncheckedIndexedAccess", "moduleResolution", "unknown"]],
+    quiz: ["ts-config-quiz", "Quiz : configuration", "typescript-config"]
   },
   {
-    id: "ts-v9-migration-capstone",
+    id: "ts-migration-capstone",
     title: ["Migration progressive et projet final", "Progressive migration and final project"],
     description: ["Migrer une base JavaScript sans mentir au compilateur ni bloquer la livraison.", "Migrate a JavaScript codebase without lying to the compiler or blocking delivery."],
     vocabulary: [terms.migration, terms.guard, terms.config],
@@ -103,12 +103,12 @@ const modules = [
       ["contract-tests", "Ajouter une preuve", "Associe migration et test de comportement.", "expect(formatXp(42)).toBe('42 XP');", ["expect", "toBe"]],
       ["migration-note", "Documenter les limites", "Laisse une trace claire des zones non migrées.", "type MigrationDebt = { file: string; reason: string; owner: string };", ["MigrationDebt", "reason"]]
     ],
-    project: ["ts-v9-final-capstone", "Projet final : migration d'un tracker d'apprentissage", "Migre modèles, API, formulaires, état, tests et tsconfig vers un mode strict prouvé.", "LearningTrackerMigration", ["strict", "unknown", "value is", "expect", "MigrationDebt"], true],
-    quiz: ["ts-v9-migration-quiz", "Quiz : migration stricte", "typescript-migration"]
+    project: ["ts-final-capstone", "Projet final : migration d'un tracker d'apprentissage", "Migre modèles, API, formulaires, état, tests et tsconfig vers un mode strict prouvé.", "LearningTrackerMigration", ["strict", "unknown", "value is", "expect", "MigrationDebt"], true],
+    quiz: ["ts-migration-quiz", "Quiz : migration stricte", "typescript-migration"]
   }
 ];
 
-export const typescriptV9Modules = modules.map((module) => ({
+export const typescriptModules = modules.map((module) => ({
   id: module.id,
   title: module.title,
   description: module.description,
@@ -125,7 +125,7 @@ function lesson(module, [slug, title, brief, solution, requirements], index) {
     brief: [brief, `Practice: ${brief}`],
     solution: provenSolution,
     requirements: evidence([...requirements, "PulsaTeach evidence", module.quiz[2], "compiler-proof", "no-any", "review-ready"], provenSolution),
-    skills: [module.quiz[2], `ts-v9-${index + 1}`],
+    skills: [module.quiz[2], `ts-${index + 1}`],
     vocabulary: module.vocabulary,
     durationMin: 30,
     xp: 36

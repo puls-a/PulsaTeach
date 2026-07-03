@@ -15,7 +15,7 @@ const t = {
 
 const blueprints = [
   {
-    id: "react-v9-jsx-components",
+    id: "react-jsx-components",
     title: ["JSX moderne et composants lisibles", "Modern JSX and readable components"],
     description: ["Construire des composants courts, nommés, sémantiques et faciles à relire.", "Build short, named, semantic components that are easy to review."],
     vocabulary: [t.component, t.jsx, t.prop],
@@ -27,11 +27,11 @@ const blueprints = [
       ["comments", "Documenter une décision JSX", "Ajoute un commentaire court pour une branche métier non évidente.", "PricingHint", "/*", "condition"],
       ["semantic-contract", "Rendre la sémantique vérifiable", "Expose des landmarks et titres que les tests pourront retrouver.", "PageShell", "header", "h1"]
     ],
-    project: ["react-v9-component-library", "Mini-projet : bibliothèque UI propre", "Crée Header, CourseCard, Badge et EmptyState avec contrats de props et sémantique stable.", "DesignSystemPreview", ["Header", "CourseCard", "EmptyState", "aria-label"]],
-    quiz: ["react-v9-components-quiz", "Quiz : JSX et composants", "component-contracts"]
+    project: ["react-component-library", "Mini-projet : bibliothèque UI propre", "Crée Header, CourseCard, Badge et EmptyState avec contrats de props et sémantique stable.", "DesignSystemPreview", ["Header", "CourseCard", "EmptyState", "aria-label"]],
+    quiz: ["react-components-quiz", "Quiz : JSX et composants", "component-contracts"]
   },
   {
-    id: "react-v9-props-composition",
+    id: "react-props-composition",
     title: ["Props, children et composition", "Props, children, and composition"],
     description: ["Remplacer les composants géants par des contrats explicites et des slots lisibles.", "Replace giant components with explicit contracts and readable slots."],
     vocabulary: [t.prop, t.component, ["children", "children", "Contenu passé entre deux balises de composant.", "Content passed between a component's tags."]],
@@ -43,11 +43,11 @@ const blueprints = [
       ["compound", "Créer des sous-composants cohérents", "Découpe une carte riche en Header, Body et Actions.", "RichCard", "RichCardHeader", "RichCardActions"],
       ["callback-prop", "Remonter une intention utilisateur", "Passe un callback nommé par intention plutôt qu'un détail technique.", "FavoriteButton", "onFavorite", "button"]
     ],
-    project: ["react-v9-composition-project", "Mini-projet : dashboard de cartes", "Assemble un dashboard avec filtres visuels, cartes composées et actions clavier.", "LearningDashboard", ["children", "onFavorite", "key", "aria-label"]],
-    quiz: ["react-v9-props-quiz", "Quiz : props et composition", "composition"]
+    project: ["react-composition-project", "Mini-projet : dashboard de cartes", "Assemble un dashboard avec filtres visuels, cartes composées et actions clavier.", "LearningDashboard", ["children", "onFavorite", "key", "aria-label"]],
+    quiz: ["react-props-quiz", "Quiz : props et composition", "composition"]
   },
   {
-    id: "react-v9-state-events",
+    id: "react-state-events",
     title: ["État, événements et rendu conditionnel", "State, events, and conditional rendering"],
     description: ["Modéliser un état minimal puis afficher chaque situation sans duplication fragile.", "Model minimal state and render every situation without fragile duplication."],
     vocabulary: [t.state, ["événement", "event", "Signal produit par une interaction ou le navigateur.", "Signal produced by an interaction or the browser."], ["état dérivé", "derived state", "Valeur recalculée depuis une source de vérité.", "Value recalculated from a source of truth."]],
@@ -59,11 +59,11 @@ const blueprints = [
       ["conditional", "Choisir la bonne branche d'affichage", "Affiche vide, succès ou action suivante selon les données.", "NextStep", "if", "return"],
       ["list-keys", "Stabiliser les listes", "Utilise une clé métier et non l'index visible.", "LessonList", "lesson.id", "key="]
     ],
-    project: ["react-v9-state-project", "Mini-projet : planificateur d'étude", "Crée une liste de tâches d'apprentissage avec ajout, toggle, filtre et état vide.", "StudyPlanner", ["useState", "setTasks", "aria-expanded", "role=\"status\""]],
-    quiz: ["react-v9-state-quiz", "Quiz : état et événements", "react-state"]
+    project: ["react-state-project", "Mini-projet : planificateur d'étude", "Crée une liste de tâches d'apprentissage avec ajout, toggle, filtre et état vide.", "StudyPlanner", ["useState", "setTasks", "aria-expanded", "role=\"status\""]],
+    quiz: ["react-state-quiz", "Quiz : état et événements", "react-state"]
   },
   {
-    id: "react-v9-forms-a11y",
+    id: "react-forms-a11y",
     title: ["Formulaires accessibles", "Accessible forms"],
     description: ["Construire des formulaires qui guident, valident et restent utilisables au clavier.", "Build forms that guide, validate, and remain keyboard usable."],
     vocabulary: [t.form, ["validation", "validation", "Vérification explicite avant acceptation d'une donnée.", "Explicit check before accepting data."], ["message d'erreur", "error message", "Aide reliée au champ concerné.", "Help connected to the relevant field."]],
@@ -75,11 +75,11 @@ const blueprints = [
       ["focus-error", "Replacer le focus après erreur", "Envoie le focus vers le premier champ invalide.", "CourseRequest", "ref", "focus"],
       ["status", "Annoncer la réussite", "Affiche un message de confirmation non intrusif.", "SubmitStatus", "role=\"status\"", "Merci"]
     ],
-    project: ["react-v9-form-project", "Mini-projet : inscription à une cohorte", "Crée un formulaire complet avec labels, erreurs reliées, focus et confirmation.", "CohortForm", ["form", "aria-describedby", "fieldset", "role=\"status\""]],
-    quiz: ["react-v9-forms-quiz", "Quiz : formulaires React", "accessible-forms"]
+    project: ["react-form-project", "Mini-projet : inscription à une cohorte", "Crée un formulaire complet avec labels, erreurs reliées, focus et confirmation.", "CohortForm", ["form", "aria-describedby", "fieldset", "role=\"status\""]],
+    quiz: ["react-forms-quiz", "Quiz : formulaires React", "accessible-forms"]
   },
   {
-    id: "react-v9-effects-hooks",
+    id: "react-effects-hooks",
     title: ["Effets, références et hooks personnalisés", "Effects, refs, and custom hooks"],
     description: ["Utiliser les effets uniquement pour synchroniser puis extraire des capacités réutilisables.", "Use effects only for synchronization, then extract reusable capabilities."],
     vocabulary: [t.effect, t.hook, ["ref", "ref", "Référence stable vers un nœud ou une valeur mutable.", "Stable reference to a node or mutable value."]],
@@ -91,11 +91,11 @@ const blueprints = [
       ["local-storage", "Créer usePersistentState", "Initialise depuis localStorage puis sérialise à chaque changement.", "usePersistentState", "localStorage", "JSON.stringify"],
       ["effect-deps", "Lire les dépendances", "Explique pourquoi chaque dépendance est présente.", "SearchSync", "[query, page]", "fetchResults"]
     ],
-    project: ["react-v9-hooks-project", "Mini-projet : préférences persistantes", "Crée un panneau de préférences avec thème, langue, stockage local et cleanup.", "PreferencesPanel", ["useEffect", "useRef", "localStorage", "return () =>"]],
-    quiz: ["react-v9-effects-quiz", "Quiz : effets et hooks", "react-effects"]
+    project: ["react-hooks-project", "Mini-projet : préférences persistantes", "Crée un panneau de préférences avec thème, langue, stockage local et cleanup.", "PreferencesPanel", ["useEffect", "useRef", "localStorage", "return () =>"]],
+    quiz: ["react-effects-quiz", "Quiz : effets et hooks", "react-effects"]
   },
   {
-    id: "react-v9-async-routing",
+    id: "react-async-routing",
     title: ["Données asynchrones et routing", "Asynchronous data and routing"],
     description: ["Charger des données sans course, rendre les statuts et connecter les URLs aux écrans.", "Load data without races, render statuses, and connect URLs to screens."],
     vocabulary: [t.async, t.route, ["AbortController", "AbortController", "API d'annulation d'une opération compatible.", "API for canceling a compatible operation."]],
@@ -107,11 +107,11 @@ const blueprints = [
       ["route-param", "Lire un paramètre d'URL", "Charge un détail depuis un identifiant de route.", "ProjectRoute", "useParams", "projectId"],
       ["route-focus", "Rendre la navigation perceptible", "Déplace le focus vers le h1 après changement d'écran.", "RouteHeading", "tabIndex={-1}", "focus"]
     ],
-    project: ["react-v9-routing-project", "Mini-projet : explorateur de formations", "Crée un catalogue avec recherche, détail routé, états réseau et focus de navigation.", "TrackExplorer", ["useParams", "AbortController", "role=\"status\"", "tabIndex={-1}"]],
-    quiz: ["react-v9-routing-quiz", "Quiz : données et routing", "react-routing"]
+    project: ["react-routing-project", "Mini-projet : explorateur de formations", "Crée un catalogue avec recherche, détail routé, états réseau et focus de navigation.", "TrackExplorer", ["useParams", "AbortController", "role=\"status\"", "tabIndex={-1}"]],
+    quiz: ["react-routing-quiz", "Quiz : données et routing", "react-routing"]
   },
   {
-    id: "react-v9-state-management",
+    id: "react-state-management",
     title: ["Gestion d'état partagée", "Shared state management"],
     description: ["Choisir entre état local, contexte, reducer ou store sans sur-ingénierie.", "Choose between local state, context, reducer, or store without over-engineering."],
     vocabulary: [t.store, ["reducer", "reducer", "Fonction pure qui calcule le prochain état depuis une action.", "Pure function computing next state from an action."], ["sélecteur", "selector", "Fonction qui lit une vue stable de l'état.", "Function reading a stable view of state."]],
@@ -123,11 +123,11 @@ const blueprints = [
       ["selector", "Lire avec un sélecteur", "Isole une lecture dérivée pour limiter les dépendances.", "selectOpenTasks", "filter", "return"],
       ["external-store", "Savoir quand sortir de React", "Identifie les signaux qui justifient un store dédié.", "StateDecision", "shared", "server"]
     ],
-    project: ["react-v9-store-project", "Mini-projet : store de progression", "Crée un store reducer pour progression, favoris, objectifs et sélecteurs.", "ProgressStore", ["reducer", "dispatch", "createContext", "selectOpenTasks"]],
-    quiz: ["react-v9-store-quiz", "Quiz : état partagé", "state-management"]
+    project: ["react-store-project", "Mini-projet : store de progression", "Crée un store reducer pour progression, favoris, objectifs et sélecteurs.", "ProgressStore", ["reducer", "dispatch", "createContext", "selectOpenTasks"]],
+    quiz: ["react-store-quiz", "Quiz : état partagé", "state-management"]
   },
   {
-    id: "react-v9-quality-performance",
+    id: "react-quality-performance",
     title: ["Tests, performance et livraison", "Testing, performance, and delivery"],
     description: ["Prouver les parcours importants, mesurer avant d'optimiser et livrer sans régression.", "Prove important journeys, measure before optimizing, and ship without regression."],
     vocabulary: [t.test, t.perf, ["Suspense", "Suspense", "Frontière de chargement pour code ou données.", "Loading boundary for code or data."]],
@@ -139,12 +139,12 @@ const blueprints = [
       ["lazy-route", "Découper par route", "Charge une page lourde avec lazy et fallback accessible.", "LazyRoutes", "lazy(", "Suspense"],
       ["release-check", "Préparer une checklist release", "Vérifie clavier, console, bundle, erreurs et métriques.", "ReleaseChecklist", "axe", "lighthouse"]
     ],
-    project: ["react-v9-final-capstone", "Projet final : app React de suivi d'apprentissage", "Livre une app avec catalogue, progression, formulaire, routing, cache, tests et budget performance.", "LearningTrackerApp", ["lazy(", "getByRole", "role=\"status\"", "memo", "createContext"], true],
-    quiz: ["react-v9-quality-quiz", "Quiz : qualité React", "react-quality"]
+    project: ["react-final-capstone", "Projet final : app React de suivi d'apprentissage", "Livre une app avec catalogue, progression, formulaire, routing, cache, tests et budget performance.", "LearningTrackerApp", ["lazy(", "getByRole", "role=\"status\"", "memo", "createContext"], true],
+    quiz: ["react-quality-quiz", "Quiz : qualité React", "react-quality"]
   }
 ];
 
-export const reactV9Modules = blueprints.map((module) => ({
+export const reactModules = blueprints.map((module) => ({
   id: module.id,
   title: module.title,
   description: module.description,
@@ -165,7 +165,7 @@ function lesson(module, [slug, title, brief, component, first, second], index) {
     brief: [brief, `Practice: ${brief}`],
     solution: `export function ${component}() {\n  const items = [{ id: "${slug}", label: "${title}" }];\n  return (\n    <section aria-label="${title}">\n      <h2>${title}</h2>\n      <ul>{items.map((item) => <li key={item.id}>{item.label}</li>)}</ul>\n    </section>\n  );\n}`,
     requirements: [component, first, second, "key={item.id}", "<section", "aria-label", "<h2>", "<ul>", "items.map"],
-    skills: [module.quiz[2], `react-v9-${index + 1}`],
+    skills: [module.quiz[2], `react-${index + 1}`],
     vocabulary: module.vocabulary,
     durationMin: 28 + (index % 3) * 4,
     xp: 36

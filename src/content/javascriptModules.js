@@ -1,7 +1,7 @@
-import { getPedagogy } from "./legacyPedagogy.js";
+import { getPedagogy } from "./pedagogy.js";
 
 const moduleSpecs = [
-  ["js-v9-variables-strings", ["Variables, types et chaînes", "Variables, types, and strings"], "Nommer les données, produire des messages et observer l’exécution.", "Name data, produce messages, and observe execution.", [
+  ["js-variables-strings", ["Variables, types et chaînes", "Variables, types, and strings"], "Nommer les données, produire des messages et observer l’exécution.", "Name data, produce messages, and observe execution.", [
     ["runtime-map", "Carte runtime", "Runtime map", "Déclare language, runtime et purpose pour décrire JavaScript.", "Declare language, runtime, and purpose to describe JavaScript.", "const language = 'JavaScript';\nconst runtime = 'browser';\nconst purpose = `${language} runs in the ${runtime}`;", ["const language", "const runtime", "purpose"]],
     ["type-tags", "Étiquettes de types", "Type tags", "Crée trois valeurs et vérifie leurs types avec typeof.", "Create three values and inspect their types with typeof.", "const title = 'Pulsa';\nconst lessons = 8;\nconst published = true;\nconst titleType = typeof title;\nconst lessonsType = typeof lessons;", ["typeof", "titleType", "lessonsType"]],
     ["safe-names", "Noms lisibles", "Readable names", "Renomme des valeurs métier pour qu’elles racontent leur rôle.", "Rename domain values so they explain their role.", "const learnerName = 'Maya';\nconst completedLessons = 3;\nconst dailyGoalMinutes = 25;", ["learnerName", "completedLessons", "dailyGoalMinutes"]],
@@ -11,7 +11,7 @@ const moduleSpecs = [
     ["console-signals", "Signaux console", "Console signals", "Affiche une info, un avertissement et une erreur contrôlée.", "Log info, warning, and a controlled error.", "console.log('lesson loaded');\nconsole.warn('check the edge case');\nconsole.error('demo error');", ["console.log", "console.warn", "console.error"]],
     ["comment-intent", "Commentaire utile", "Useful comment", "Ajoute un commentaire qui explique l’intention, pas l’évidence.", "Add a comment that explains intent, not the obvious.", "// Keep this value stable so certificates remain comparable.\nconst certificateVersion = '2026.06';", ["certificateVersion", "2026.06", "const"]]
   ]],
-  ["js-v9-booleans-numbers", ["Booléens, nombres et décisions", "Booleans, numbers, and decisions"], "Transformer une règle en calcul, comparaison puis décision.", "Turn a rule into calculation, comparison, then decision.", [
+  ["js-booleans-numbers", ["Booléens, nombres et décisions", "Booleans, numbers, and decisions"], "Transformer une règle en calcul, comparaison puis décision.", "Turn a rule into calculation, comparison, then decision.", [
     ["number-score", "Score numérique", "Numeric score", "Calcule un score depuis bonnes réponses et bonus.", "Compute a score from correct answers and bonus.", "const correctAnswers = 7;\nconst bonus = 3;\nconst score = correctAnswers * 10 + bonus;", ["correctAnswers", "* 10", "score"]],
     ["modulo-review", "Rythme modulo", "Modulo rhythm", "Utilise % pour savoir si une révision tombe aujourd’hui.", "Use % to decide if a review lands today.", "const day = 14;\nconst shouldReview = day % 2 === 0;", ["%", "shouldReview", "=== 0"]],
     ["boolean-gate", "Porte booléenne", "Boolean gate", "Combine deux conditions pour autoriser un examen.", "Combine two conditions to allow an exam.", "const lessonsDone = true;\nconst projectPassed = true;\nconst canTakeExam = lessonsDone && projectPassed;", ["&&", "canTakeExam", "projectPassed"]],
@@ -21,7 +21,7 @@ const moduleSpecs = [
     ["switch-track", "Aiguillage switch", "Switch routing", "Utilise switch pour choisir une couleur de parcours.", "Use switch to choose a track color.", "const track = 'javascript';\nlet color;\nswitch (track) {\n  case 'javascript': color = 'mint'; break;\n  default: color = 'slate';\n}", ["switch", "case", "default"]],
     ["truthy-empty", "Valeur vide", "Empty value", "Normalise un titre vide avant validation.", "Normalize an empty title before validation.", "const rawTitle = '  ';\nconst cleanTitle = rawTitle.trim();\nconst isValid = Boolean(cleanTitle);", ["trim", "Boolean", "isValid"]]
   ]],
-  ["js-v9-functions-scope", ["Fonctions et portée", "Functions and scope"], "Isoler une règle dans une fonction testable.", "Isolate a rule inside a testable function.", [
+  ["js-functions-scope", ["Fonctions et portée", "Functions and scope"], "Isoler une règle dans une fonction testable.", "Isolate a rule inside a testable function.", [
     ["declare-function", "Déclarer une fonction", "Declare a function", "Crée une fonction getWelcome qui retourne un message.", "Create a getWelcome function returning a message.", "function getWelcome() {\n  return 'Bienvenue dans JS';\n}", ["function getWelcome", "return", "Bienvenue"]],
     ["parameter-message", "Paramètre utile", "Useful parameter", "Utilise un paramètre name dans une phrase.", "Use a name parameter in a sentence.", "function greetLearner(name) {\n  return `Salut ${name}`;\n}", ["name", "return", "${name}"]],
     ["default-goal", "Valeur par défaut", "Default value", "Prévois une durée par défaut pour une session.", "Provide a default duration for a session.", "function planSession(minutes = 25) {\n  return minutes;\n}", ["minutes = 25", "function", "return"]],
@@ -31,7 +31,7 @@ const moduleSpecs = [
     ["callback-filter", "Callback simple", "Simple callback", "Passe une fonction à filter pour garder les scores valides.", "Pass a function to filter valid scores.", "const scores = [20, 80, 100];\nconst validScores = scores.filter((score) => score >= 70);", ["filter", "=>", "score >= 70"]],
     ["pure-helper", "Helper pur", "Pure helper", "Crée une fonction qui ne modifie pas l’entrée.", "Create a function that does not mutate its input.", "function addXp(currentXp, earnedXp) {\n  return currentXp + earnedXp;\n}", ["function addXp", "currentXp", "earnedXp"]]
   ]],
-  ["js-v9-collections-loops", ["Collections et boucles", "Collections and loops"], "Lire, transformer et résumer des données d’application.", "Read, transform, and summarize app data.", [
+  ["js-collections-loops", ["Collections et boucles", "Collections and loops"], "Lire, transformer et résumer des données d’application.", "Read, transform, and summarize app data.", [
     ["array-create", "Créer un tableau", "Create an array", "Déclare une liste de parcours.", "Declare a list of tracks.", "const tracks = ['html', 'css', 'javascript'];", ["const tracks", "[", "javascript"]],
     ["array-push", "Ajouter sans mystère", "Add clearly", "Ajoute une tâche puis lis la longueur.", "Add a task then read the length.", "const tasks = [];\ntasks.push('réviser');\nconst count = tasks.length;", ["push", "length", "count"]],
     ["object-card", "Objet carte", "Card object", "Décris une leçon avec un objet.", "Describe a lesson with an object.", "const lesson = { id: 'js-v9', title: 'Collections', xp: 40 };", ["id", "title", "xp"]],
@@ -41,7 +41,7 @@ const moduleSpecs = [
     ["reduce-minutes", "Total minutes", "Total minutes", "Calcule une durée totale avec reduce.", "Compute total duration with reduce.", "const blocks = [{ minutes: 15 }, { minutes: 25 }];\nconst totalMinutes = blocks.reduce((sum, block) => sum + block.minutes, 0);", ["reduce", "sum + block.minutes", "totalMinutes"]],
     ["destructure-user", "Destructurer", "Destructure", "Extrais name et role depuis un profil.", "Extract name and role from a profile.", "const profile = { name: 'Lina', role: 'mentor' };\nconst { name, role } = profile;", ["const { name, role }", "profile", "mentor"]]
   ]],
-  ["js-v9-dom-forms", ["DOM, événements et formulaires", "DOM, events, and forms"], "Relier état, interface et actions utilisateur.", "Connect state, interface, and user actions.", [
+  ["js-dom-forms", ["DOM, événements et formulaires", "DOM, events, and forms"], "Relier état, interface et actions utilisateur.", "Connect state, interface, and user actions.", [
     ["select-title", "Sélection DOM", "DOM selection", "Sélectionne un titre et change son texte.", "Select a heading and change its text.", "const title = document.querySelector('#title');\ntitle.textContent = 'PulsaTeach JS';", ["querySelector", "textContent", "#title"]],
     ["click-count", "Clic compteur", "Click counter", "Augmente un état au clic.", "Increase state on click.", "let count = 0;\ndocument.querySelector('#plus').addEventListener('click', () => {\n  count += 1;\n});", ["addEventListener", "click", "count +="]],
     ["render-list", "Rendu de liste", "List render", "Rends une liste avec innerHTML depuis un tableau.", "Render a list with innerHTML from an array.", "const items = ['HTML', 'CSS'];\nconst list = document.querySelector('#list');\nlist.innerHTML = items.map((item) => `<li>${item}</li>`).join('');", ["innerHTML", "map", "join"]],
@@ -51,7 +51,7 @@ const moduleSpecs = [
     ["toggle-invalid", "Classe d’erreur", "Error class", "Bascule une classe selon la validité.", "Toggle a class based on validity.", "const input = document.querySelector('#email');\ninput.classList.toggle('is-invalid', !input.value.includes('@'));", ["classList.toggle", "is-invalid", "includes"]],
     ["delegation", "Délégation", "Delegation", "Utilise closest pour gérer un bouton dans une liste.", "Use closest to handle a button inside a list.", "document.querySelector('#tasks').addEventListener('click', (event) => {\n  const button = event.target.closest('button');\n});", ["closest", "event.target", "#tasks"]]
   ]],
-  ["js-v9-strings-regex-errors", ["Strings avancées, regex et erreurs", "Advanced strings, regex, and errors"], "Nettoyer, rechercher et protéger les entrées.", "Clean, search, and protect inputs.", [
+  ["js-strings-regex-errors", ["Strings avancées, regex et erreurs", "Advanced strings, regex, and errors"], "Nettoyer, rechercher et protéger les entrées.", "Clean, search, and protect inputs.", [
     ["slice-code", "Extraire segment", "Slice segment", "Extrait un préfixe de certificat.", "Extract a certificate prefix.", "const code = 'JS-2026-ALPHA';\nconst prefix = code.slice(0, 2);", ["slice", "prefix", "0, 2"]],
     ["includes-keyword", "Contient mot-clé", "Includes keyword", "Vérifie si une note mentionne async.", "Check whether a note mentions async.", "const note = 'réviser async et fetch';\nconst hasAsync = note.includes('async');", ["includes", "hasAsync", "async"]],
     ["replace-label", "Remplacer label", "Replace label", "Remplace un libellé interne par un label public.", "Replace an internal label with a public label.", "const raw = 'js-v9 draft';\nconst label = raw.replace('draft', 'publié');", ["replace", "label", "publié"]],
@@ -61,7 +61,7 @@ const moduleSpecs = [
     ["throw-error", "Erreur explicite", "Explicit error", "Lance une erreur si le titre est vide.", "Throw if the title is empty.", "function requireTitle(title) {\n  if (!title.trim()) throw new Error('Title required');\n  return title;\n}", ["throw new Error", "trim", "return title"]],
     ["try-parse", "Parse protégé", "Safe parse", "Protège JSON.parse avec try/catch.", "Protect JSON.parse with try/catch.", "function safeParse(value) {\n  try { return JSON.parse(value); }\n  catch { return null; }\n}", ["try", "catch", "JSON.parse"]]
   ]],
-  ["js-v9-async-fetch", ["Async, fetch et états réseau", "Async, fetch, and network states"], "Charger des données sans bloquer l’interface.", "Load data without blocking the interface.", [
+  ["js-async-fetch", ["Async, fetch et états réseau", "Async, fetch, and network states"], "Charger des données sans bloquer l’interface.", "Load data without blocking the interface.", [
     ["promise-model", "Modèle Promise", "Promise model", "Retourne une Promise résolue pour simuler une API.", "Return a resolved Promise to simulate an API.", "function loadMock() {\n  return Promise.resolve(['lesson']);\n}", ["Promise.resolve", "function loadMock", "return"]],
     ["async-loader", "Fonction async", "Async function", "Crée une fonction async qui retourne des cours.", "Create an async function returning courses.", "async function loadCourses() {\n  return ['HTML', 'JS'];\n}", ["async function", "return", "loadCourses"]],
     ["await-fetch", "Fetch attendu", "Await fetch", "Appelle fetch et attends la réponse.", "Call fetch and await the response.", "async function requestCatalog() {\n  const response = await fetch('/api/catalog');\n  return response;\n}", ["await fetch", "response", "/api/catalog"]],
@@ -71,7 +71,7 @@ const moduleSpecs = [
     ["try-fetch", "Fetch robuste", "Robust fetch", "Entoure fetch avec try/catch.", "Wrap fetch with try/catch.", "async function safeLoad() {\n  try { return await fetch('/api/profile'); }\n  catch (error) { return null; }\n}", ["try", "catch", "await fetch"]],
     ["finally-cleanup", "Finally cleanup", "Finally cleanup", "Utilise finally pour arrêter le chargement.", "Use finally to stop loading.", "let loading = true;\ntry { console.log('load'); }\nfinally { loading = false; }", ["finally", "loading = false", "try"]]
   ]],
-  ["js-v9-storage-state", ["Stockage et état persistant", "Storage and persistent state"], "Conserver une progression locale sans mélanger les responsabilités.", "Persist local progress without mixing responsibilities.", [
+  ["js-storage-state", ["Stockage et état persistant", "Storage and persistent state"], "Conserver une progression locale sans mélanger les responsabilités.", "Persist local progress without mixing responsibilities.", [
     ["save-string", "Sauver une chaîne", "Save a string", "Stocke le thème courant.", "Store the current theme.", "const theme = 'violet';\nlocalStorage.setItem('pulsa-theme', theme);", ["localStorage.setItem", "pulsa-theme", "theme"]],
     ["read-string", "Relire une chaîne", "Read a string", "Relis un thème avec valeur de secours.", "Read a theme with fallback.", "const theme = localStorage.getItem('pulsa-theme') || 'system';", ["localStorage.getItem", "||", "system"]],
     ["save-json", "Sauver JSON", "Save JSON", "Sérialise une progression.", "Serialize progress.", "const progress = { lessons: 4 };\nlocalStorage.setItem('progress', JSON.stringify(progress));", ["JSON.stringify", "localStorage.setItem", "progress"]],
@@ -81,7 +81,7 @@ const moduleSpecs = [
     ["remove-storage", "Effacer stockage", "Remove storage", "Supprime une clé devenue inutile.", "Remove an obsolete key.", "localStorage.removeItem('draft-task');", ["removeItem", "draft-task", "localStorage"]],
     ["storage-event", "Événement storage", "Storage event", "Écoute les changements entre onglets.", "Listen to changes across tabs.", "window.addEventListener('storage', (event) => {\n  console.log(event.key);\n});", ["addEventListener", "storage", "event.key"]]
   ]],
-  ["js-v9-debugging", ["Debugging et modèles mentaux", "Debugging and mental models"], "Rendre une erreur observable puis la réduire.", "Make an error observable then reduce it.", [
+  ["js-debugging", ["Debugging et modèles mentaux", "Debugging and mental models"], "Rendre une erreur observable puis la réduire.", "Make an error observable then reduce it.", [
     ["trace-value", "Tracer valeur", "Trace value", "Log une valeur avec son contexte.", "Log a value with context.", "const xp = 80;\nconsole.log('xp before bonus', xp);", ["console.log", "xp before bonus", "xp"]],
     ["console-table", "Table console", "Console table", "Affiche une collection en table.", "Display a collection as a table.", "const rows = [{ track: 'js' }];\nconsole.table(rows);", ["console.table", "rows", "track"]],
     ["breakpoint-marker", "Marqueur debug", "Debug marker", "Ajoute un debugger contrôlé.", "Add a controlled debugger statement.", "function inspectState(state) {\n  debugger;\n  return state;\n}", ["debugger", "inspectState", "return state"]],
@@ -91,7 +91,7 @@ const moduleSpecs = [
     ["assert-helper", "Mini assertion", "Mini assertion", "Crée une assertion qui lance une erreur.", "Create an assertion that throws.", "function assert(condition, message) {\n  if (!condition) throw new Error(message);\n}", ["function assert", "condition", "throw new Error"]],
     ["fix-loop", "Boucle correction", "Fix loop", "Écris une fonction test puis correction.", "Write a test then correction function.", "function isPassing(score) {\n  return score >= 70;\n}\nconst testResult = isPassing(70) === true;", ["isPassing", "score >= 70", "testResult"]]
   ]],
-  ["js-v9-capstone", ["Capstone JavaScript", "JavaScript capstone"], "Assembler une application fiable avec état, rendu, validation et persistance.", "Assemble a reliable app with state, render, validation, and persistence.", [
+  ["js-capstone", ["Capstone JavaScript", "JavaScript capstone"], "Assembler une application fiable avec état, rendu, validation et persistance.", "Assemble a reliable app with state, render, validation, and persistence.", [
     ["app-state", "État app", "App state", "Crée l’état central d’une app de révision.", "Create central state for a review app.", "const appState = { cards: [], currentIndex: 0, score: 0 };", ["appState", "cards", "currentIndex"]],
     ["card-factory", "Fabrique carte", "Card factory", "Crée une carte de quiz normalisée.", "Create a normalized quiz card.", "function createCard(question, answer) {\n  return { question, answer, done: false };\n}", ["function createCard", "question", "answer"]],
     ["answer-check", "Vérifier réponse", "Check answer", "Compare deux réponses nettoyées.", "Compare two cleaned answers.", "function checkAnswer(expected, received) {\n  return expected.trim().toLowerCase() === received.trim().toLowerCase();\n}", ["toLowerCase", "trim", "==="]],
@@ -105,7 +105,7 @@ const moduleSpecs = [
 
 const projectModuleIndexes = new Set([0, 1, 2, 3, 4, 6, 7, 9]);
 
-export const javascriptV9Modules = moduleSpecs.map((spec, index) => makeModule(spec, index));
+export const javascriptModules = moduleSpecs.map((spec, index) => makeModule(spec, index));
 
 function makeModule([id, title, frSummary, enSummary, topics], moduleIndex) {
   const lessons = topics.map((topic, index) => makeLesson(id, title, topic, index + 1));
