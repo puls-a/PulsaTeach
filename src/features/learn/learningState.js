@@ -1,4 +1,4 @@
-import { learningTracks } from "../../content/allTrackRegistry.js";
+import { publicTrackCatalog } from "../../content/publicTrackCatalog.js";
 
 const progressKey = "pulsateach-learning-progress";
 const bookmarksKey = "pulsateach-learning-bookmarks";
@@ -28,9 +28,8 @@ export function getPreviousLesson(track, moduleId, lessonId) {
 }
 
 export function readLessonRoute() {
-  const fallbackTrack = learningTracks[0];
-  const fallbackModule = fallbackTrack.modules[0];
-  const fallback = { trackId: fallbackTrack.id, moduleId: fallbackModule.id, lessonId: fallbackModule.lessons[0].id };
+  const fallbackSegments = publicTrackCatalog[0]?.firstHref?.split("/").filter(Boolean) || ["learn", "html", "html-foundations", "html-01-document-skeleton"];
+  const fallback = { trackId: fallbackSegments[1], moduleId: fallbackSegments[2], lessonId: fallbackSegments[3] };
   const cleanMatch = window.location.pathname.match(/^\/learn\/([^/]+)\/([^/]+)\/([^/]+)\/?$/);
   const hashMatch = window.location.hash.match(/^#\/?learn\/([^/]+)\/([^/]+)\/([^/]+)$/);
   const finalMatch = cleanMatch || hashMatch;

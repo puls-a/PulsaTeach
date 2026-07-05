@@ -253,6 +253,7 @@ function Preview({ lesson, locale, code, preview, previewKind, consoleOutput }) 
 
 function TestPanel({ locale, result, tests, total, passed, onRunTests }) {
   const checks = result || tests.map((item) => ({ ...item, pass: false, waiting: true }));
+  const failed = Math.max(0, total - passed);
   return (
     <div className="bg-white p-4" aria-live="polite">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -263,6 +264,13 @@ function TestPanel({ locale, result, tests, total, passed, onRunTests }) {
         <button type="button" onClick={onRunTests} className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-green-700 px-4 py-2 text-sm font-black text-white hover:bg-green-800"><Play className="size-5" />{locale === "fr" ? "Lancer" : "Run"}</button>
       </div>
       <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-mintPop transition-all" style={{ width: `${total ? (passed / total) * 100 : 0}%` }} /></div>
+      {result && (
+        <div className={`mt-4 rounded-xl border px-4 py-3 text-sm font-semibold ${failed === 0 ? "border-green-200 bg-green-50 text-green-900" : "border-amber-200 bg-amber-50 text-amber-900"}`} role="status">
+          {failed === 0
+            ? (locale === "fr" ? "Tous les checks passent. Tu peux poursuivre ou relire la correction expliquée pour comprendre pourquoi." : "All checks pass. You can continue or review the explained correction to understand why.")
+            : (locale === "fr" ? `${failed} check${failed > 1 ? "s" : ""} reste${failed > 1 ? "nt" : ""} a corriger. Regarde d'abord le premier echec puis relance.` : `${failed} check${failed > 1 ? "s" : ""} still need fixing. Start with the first failure, then run again.`)}
+        </div>
+      )}
       <div className="mt-4 space-y-3">{checks.map((check, index) => <TestRow check={check} index={index} key={`${check.id || check.type || "check"}-${check.label || check.value || index}-${index}`} locale={locale} />)}</div>
     </div>
   );

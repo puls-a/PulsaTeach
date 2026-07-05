@@ -1,4 +1,5 @@
 import { gitModules } from "./gitModules.js";
+import { gitScenarioFor } from "./gitLessonScenarios.js";
 
 const sharedVocabulary = {
   repository: ["dépôt", "repository", "Dossier suivi par Git avec son historique.", "A folder tracked by Git with its history."],
@@ -186,6 +187,7 @@ function richLesson(spec) {
     if (vocabulary.length >= 3) break;
     if (!vocabulary.some((item) => item[0] === fallback[0])) vocabulary.push(fallback);
   }
+  const scenario = gitScenarioFor(spec.id);
   const localizedVocabulary = {
     fr: vocabulary.map((item) => [item[0], item[2]]),
     en: vocabulary.map((item) => [item[1], item[3]])
@@ -200,9 +202,31 @@ function richLesson(spec) {
       objectives: fr ? [`Expliquer l’objectif de ${command}.`, "Prévoir son effet sur le dépôt.", "Vérifier le résultat avant de continuer."] : [`Explain the purpose of ${command}.`, "Predict its effect on the repository.", "Verify the result before continuing."],
       vocabulary: localizedVocabulary[locale],
       sections: [
-        { title: fr ? "Modèle mental" : "Mental model", paragraphs: [fr ? "Git compare des états et déplace des références. Une commande doit être comprise par son entrée, son effet et sa preuve." : "Git compares states and moves references. Understand a command through its input, effect, and evidence."], example: command },
-        { title: fr ? "Exécuter avec intention" : "Run with intent", paragraphs: [fr ? `La consigne demande : ${brief}` : `The task asks: ${brief}`], example: spec.solution },
-        { title: fr ? "Vérifier avant de poursuivre" : "Verify before continuing", paragraphs: [fr ? "Relis la sortie, l’état et le diff. N’enchaîne pas une commande destructive sans point de retour." : "Review output, status, and diff. Do not run a destructive command without a recovery point."], example: "git status --short\ngit log --oneline -5" }
+        {
+          title: fr ? "Modèle mental" : "Mental model",
+          paragraphs: [
+            fr ? "Git compare des états et déplace des références. Une commande utile doit donc être comprise par son entrée, son effet visible et la preuve qui confirme que le dépôt est resté cohérent." : "Git compares states and moves references. A useful command should therefore be understood through its input, visible effect, and the evidence that confirms the repository stayed coherent.",
+            fr ? scenario.context.fr : scenario.context.en
+          ],
+          example: command
+        },
+        {
+          title: fr ? "Exécuter avec intention" : "Run with intent",
+          paragraphs: [
+            fr ? `La consigne demande : ${brief}` : `The task asks: ${brief}`,
+            fr ? scenario.example.fr : scenario.example.en
+          ],
+          example: spec.solution
+        },
+        {
+          title: fr ? "Vérifier avant de poursuivre" : "Verify before continuing",
+          paragraphs: [
+            fr ? "Relis la sortie, l’état et le diff. N’enchaîne pas une commande risquée sans point de retour ni sans comprendre ce qui va changer dans l’historique." : "Review output, status, and diff. Do not chain a risky command without a recovery point or without understanding what will change in history.",
+            fr ? scenario.validation.fr : scenario.validation.en,
+            fr ? scenario.pitfall.fr : scenario.pitfall.en
+          ],
+          example: "git status --short\ngit log --oneline -5"
+        }
       ],
       rules: fr ? ["Une intention cohérente par commit.", "Toujours relire status et diff.", "Préférer les opérations réversibles."] : ["One coherent intent per commit.", "Always review status and diff.", "Prefer reversible operations."],
       check: fr ? ["Je comprends l’effet de chaque commande.", "Je peux vérifier le résultat.", "Je sais revenir à un état sûr."] : ["I understand every command's effect.", "I can verify the result.", "I know how to return to a safe state."],

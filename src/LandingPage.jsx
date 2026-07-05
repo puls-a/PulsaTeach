@@ -14,7 +14,7 @@ import {
   Sparkles,
   Trophy
 } from "lucide-react";
-import { learningTracks } from "./content/allTrackRegistry.js";
+import { publicLearningStats, publicTrackCatalog } from "./content/publicTrackCatalog.js";
 
 const featuredTrackIds = ["html", "css", "javascript", "react", "typescript", "node-api"];
 const trackVisuals = {
@@ -26,28 +26,21 @@ const trackVisuals = {
   "node-api": { label: "API", tone: "from-emerald-500 to-teal-400" }
 };
 
-const allLessons = learningTracks.flatMap((track) => track.modules.flatMap((module) => module.lessons || []));
-const landingStats = {
-  tracks: learningTracks.length,
-  lessons: allLessons.length,
-  projects: allLessons.filter((lesson) => lesson.type === "project" || lesson.project || /project|projet|lab|capstone/i.test(lesson.id || "")).length
-};
+const landingStats = publicLearningStats;
 
 const featuredTracks = featuredTrackIds
-  .map((id) => learningTracks.find((track) => track.id === id))
+  .map((id) => publicTrackCatalog.find((track) => track.id === id))
   .filter(Boolean)
   .map((track) => {
-    const firstModule = track.modules[0];
-    const firstLesson = firstModule?.lessons?.[0];
     return {
       id: track.id,
       label: trackVisuals[track.id]?.label || track.id,
       tone: trackVisuals[track.id]?.tone || "from-indigo-500 to-violet-500",
       title: track.title,
       summary: track.summary,
-      modules: track.modules.length,
-      lessons: track.modules.reduce((sum, module) => sum + (module.lessons?.length || 0), 0),
-      href: firstModule && firstLesson ? `/learn/${track.id}/${firstModule.id}/${firstLesson.id}` : "/catalog"
+      modules: track.modules,
+      lessons: track.lessons,
+      href: track.firstHref || "/catalog"
     };
   });
 

@@ -20,6 +20,9 @@ export default defineConfig({
           if (id.includes("node_modules/@supabase/supabase-js")) return "supabase";
           if (id.includes("node_modules/react") || id.includes("node_modules/react-dom")) return "react";
           if (id.includes("htmlPedagogy.js") || id.includes("cssPedagogy.js") || id.includes("jsPedagogy.js")) return "pedagogy";
+          if (id.includes("cssModulesFoundation")) return "content-css-foundations";
+          if (id.includes("cssModulesResponsive")) return "content-css-responsive";
+          if (id.includes("cssModuleFactory")) return "content-css-shared";
           if (id.includes("/src/content/html") || id.includes("\\src\\content\\html")) return "content-html";
           if (id.includes("/src/content/css") || id.includes("\\src\\content\\css")) return "content-css";
           if (id.includes("/src/content/javascript") || id.includes("\\src\\content\\javascript") || id.includes("/src/content/jsBuilders") || id.includes("\\src\\content\\jsBuilders")) return "content-js";

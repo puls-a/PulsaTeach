@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Check, Eye, EyeOff, LockKeyhole, LogOut, Mail, RotateCcw, ShieldCheck, UserPlus } from "lucide-react";
 import { createLocalSession, signOutSupabase, syncSessionUserId, useSupabaseSession } from "./authState.js";
-import { isSupabaseBrowserConfigured, supabase } from "./supabaseClient.js";
+import { getSupabaseClient, isSupabaseBrowserConfigured } from "./supabaseClient.js";
 import { navigate } from "./navigation.js";
 
 const useLocalAuth = import.meta.env.VITE_AUTH_MODE === "local";
@@ -44,8 +44,10 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
 
     setStatus({ type: "idle", message: "" });
     setBusy(true);
-    if (supabase && !useLocalAuth) {
+    if (isSupabaseBrowserConfigured && !useLocalAuth) {
       try {
+        const supabase = await getSupabaseClient();
+        if (!supabase) throw new Error(fr ? "Authentification indisponible." : "Authentication unavailable.");
         const result = mode === "signup"
           ? await supabase.auth.signUp({
               email,
@@ -99,8 +101,14 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
 
   const sendMagicLink = async (event) => {
     event.preventDefault();
-    if (!supabase || useLocalAuth || !email) return;
+    if (!isSupabaseBrowserConfigured || useLocalAuth || !email) return;
     setBusy(true);
+    const supabase = await getSupabaseClient();
+    if (!supabase) {
+      setBusy(false);
+      setStatus({ type: "error", message: fr ? "La connexion est temporairement indisponible." : "Sign-in is temporarily unavailable." });
+      return;
+    }
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${window.location.origin}/auth/callback`, shouldCreateUser: false }
@@ -113,8 +121,14 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
   };
 
   const resendConfirmation = async () => {
-    if (!supabase || !email) return;
+    if (!isSupabaseBrowserConfigured || !email) return;
     setBusy(true);
+    const supabase = await getSupabaseClient();
+    if (!supabase) {
+      setBusy(false);
+      setStatus({ type: "error", message: fr ? "La connexion est temporairement indisponible." : "Sign-in is temporarily unavailable." });
+      return;
+    }
     const { error } = await supabase.auth.resend({
       type: "signup",
       email,
@@ -128,11 +142,17 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
   };
 
   const sendPasswordReset = async () => {
-    if (!supabase || !email) {
+    if (!isSupabaseBrowserConfigured || !email) {
       setStatus({ type: "error", message: fr ? "Saisis d'abord ton adresse email." : "Enter your email address first." });
       return;
     }
     setBusy(true);
+    const supabase = await getSupabaseClient();
+    if (!supabase) {
+      setBusy(false);
+      setStatus({ type: "error", message: fr ? "La connexion est temporairement indisponible." : "Sign-in is temporarily unavailable." });
+      return;
+    }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/callback?recovery=1`
     });

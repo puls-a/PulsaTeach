@@ -1,4 +1,4 @@
-import { supabase } from "./supabaseClient.js";
+import { getSupabaseAccessToken, isSupabaseBrowserConfigured } from "./supabaseClient.js";
 
 const apiBase = String(import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 const adminAccessKey = import.meta.env.VITE_ADMIN_ACCESS_KEY;
@@ -272,9 +272,8 @@ async function request(path, options = {}) {
   const headers = new Headers(options.headers || {});
   headers.set("X-PulsaTeach-User-Id", getUserId());
   let token = "";
-  if (supabase) {
-    const { data } = await supabase.auth.getSession();
-    token = data.session?.access_token || "";
+  if (isSupabaseBrowserConfigured) {
+    token = await getSupabaseAccessToken();
     if (token) headers.set("Authorization", `Bearer ${token}`);
   }
   if (adminAccessKey) headers.set("X-PulsaTeach-Admin-Key", adminAccessKey);

@@ -4,7 +4,7 @@ import { currentPathSegments } from "../../navigation.js";
 import { useLearningTracks } from "../../useLearningTracks.js";
 
 export default function LearnPage({ locale }) {
-  const { tracks, loadTrack } = useLearningTracks();
+  const { tracks, loadTrack } = useLearningTracks({ mode: "summary" });
 
   useEffect(() => {
     const [route, trackId] = currentPathSegments();

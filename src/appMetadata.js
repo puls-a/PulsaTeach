@@ -1,3 +1,5 @@
+import { findPublicTrack } from "./content/publicTrackCatalog.js";
+
 const SITE_URL = "https://pulsateach.vercel.app";
 const SOCIAL_IMAGE = `${SITE_URL}/assets/og-pulsateach.png`;
 const BRAND_ICON = `${SITE_URL}/assets/logo_horizontale_optimized.webp`;
@@ -111,7 +113,7 @@ export function updatePageMetadata(route, locale, fallbackTitle) {
   setMeta("twitter:image", SOCIAL_IMAGE);
   setCanonical(canonical);
   updateStructuredData(route, language, title, description, course);
-  if (route === "learn") void updateLearnMetadataFromRegistry(language, canonical);
+  if (route === "learn") updateLearnMetadataFromCatalog(language, canonical);
 }
 
 function readCourseMetadata(language) {
@@ -133,43 +135,34 @@ function readCourseMetadata(language) {
   return [title, description, { trackId, trackName, moduleName, lessonName, lessonId }];
 }
 
-async function updateLearnMetadataFromRegistry(language, expectedCanonical) {
+function updateLearnMetadataFromCatalog(language, expectedCanonical) {
   const match = window.location.pathname.match(/^\/learn\/([^/]+)(?:\/([^/]+)\/([^/]+))?/);
   if (!match) return;
   const [, trackId, moduleId, lessonId] = match;
-  try {
-    const { findTrack } = await import("./content/allTrackRegistry.js");
-    if (expectedCanonical !== canonicalUrl()) return;
-    const track = findTrack(trackId);
-    const module = track?.modules?.find((item) => item.id === moduleId) || null;
-    const lesson = module?.lessons?.find((item) => item.id === lessonId) || null;
-    if (!track) return;
-    const trackName = localized(track.title, language) || humanize(trackId);
-    const moduleName = localized(module?.title, language) || (moduleId ? humanize(moduleId) : null);
-    const lessonName = localized(lesson?.title, language) || (lessonId ? humanize(lessonId) : null);
-    const subject = lessonName || moduleName || trackName;
-    const title = language === "fr"
-      ? `${subject} — ${trackName} gratuit | PulsaTeach`
-      : `${subject} — Free ${trackName} course | PulsaTeach`;
-    const description = sentence(
-      localized(lesson?.brief, language)
-        || localized(module?.summary, language)
-        || localized(track?.summary, language)
-        || (language === "fr"
-          ? `Apprends ${trackName} avec une leçon pratique, des exemples, un quiz et une progression sauvegardée gratuitement.`
-          : `Learn ${trackName} with a practical lesson, examples, a quiz, and free saved progress.`)
-    );
-    const course = [title, description, { trackId, trackName, moduleName, lessonName, lessonId }];
-    document.title = title;
-    setMeta("description", description);
-    setPropertyMeta("og:title", title);
-    setPropertyMeta("og:description", description);
-    setMeta("twitter:title", title);
-    setMeta("twitter:description", description);
-    updateStructuredData("learn", language, title, description, course);
-  } catch {
-    // Keep the lightweight slug-based metadata if the course registry cannot be loaded.
-  }
+  if (expectedCanonical !== canonicalUrl()) return;
+  const track = findPublicTrack(trackId);
+  if (!track) return;
+  const trackName = localized(track.title, language) || humanize(trackId);
+  const moduleName = moduleId ? humanize(moduleId) : null;
+  const lessonName = lessonId ? humanize(lessonId) : null;
+  const subject = lessonName || moduleName || trackName;
+  const title = language === "fr"
+    ? `${subject} — ${trackName} gratuit | PulsaTeach`
+    : `${subject} — Free ${trackName} course | PulsaTeach`;
+  const description = sentence(
+    localized(track.summary, language)
+      || (language === "fr"
+        ? `Apprends ${trackName} avec une leçon pratique, des exemples, un quiz et une progression sauvegardée gratuitement.`
+        : `Learn ${trackName} with a practical lesson, examples, a quiz, and free saved progress.`)
+  );
+  const course = [title, description, { trackId, trackName, moduleName, lessonName, lessonId }];
+  document.title = title;
+  setMeta("description", description);
+  setPropertyMeta("og:title", title);
+  setPropertyMeta("og:description", description);
+  setMeta("twitter:title", title);
+  setMeta("twitter:description", description);
+  updateStructuredData("learn", language, title, description, course);
 }
 
 function canonicalUrl() {

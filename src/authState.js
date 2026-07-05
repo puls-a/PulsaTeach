@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { migrateLocalProgress, recordLearningEvent, saveUserSettings } from "./apiClient.js";
-import { supabase } from "./supabaseClient.js";
+import { getSupabaseClient, isSupabaseBrowserConfigured } from "./supabaseClient.js";
 
 const authUserIdKey = "pulsateach-user-id";
 const localSessionKey = "pulsateach-local-session";
@@ -22,10 +22,10 @@ export function syncSessionUserId(session) {
 
 export function useSupabaseSession() {
   const [session, setSession] = useState(readLocalSession);
-  const [loading, setLoading] = useState(Boolean(supabase) && !useLocalAuth);
+  const [loading, setLoading] = useState(isSupabaseBrowserConfigured && !useLocalAuth);
 
   useEffect(() => {
-    if (!supabase || useLocalAuth) {
+    if (!isSupabaseBrowserConfigured || useLocalAuth) {
       setLoading(false);
       const handleLocalAuth = () => setSession(readLocalSession());
       window.addEventListener(localAuthEvent, handleLocalAuth);
@@ -33,20 +33,30 @@ export function useSupabaseSession() {
     }
 
     let mounted = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      if (data.session) localStorage.removeItem(localSessionKey);
-      setSession(data.session || null);
-      setLoading(false);
-      syncProfile(data.session);
-      migrateProgressForSession(data.session);
-    });
+    let unsubscribe = () => {};
 
-    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      if (nextSession) localStorage.removeItem(localSessionKey);
-      setSession(nextSession || null);
-      syncProfile(nextSession);
-      migrateProgressForSession(nextSession);
+    getSupabaseClient().then((supabase) => {
+      if (!mounted || !supabase) {
+        if (mounted) setLoading(false);
+        return;
+      }
+
+      supabase.auth.getSession().then(({ data }) => {
+        if (!mounted) return;
+        if (data.session) localStorage.removeItem(localSessionKey);
+        setSession(data.session || null);
+        setLoading(false);
+        syncProfile(data.session);
+        migrateProgressForSession(data.session);
+      });
+
+      const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+        if (nextSession) localStorage.removeItem(localSessionKey);
+        setSession(nextSession || null);
+        syncProfile(nextSession);
+        migrateProgressForSession(nextSession);
+      });
+      unsubscribe = () => data.subscription.unsubscribe();
     });
 
     const handleLocalAuth = () => {
@@ -58,7 +68,7 @@ export function useSupabaseSession() {
 
     return () => {
       mounted = false;
-      data.subscription.unsubscribe();
+      unsubscribe();
       window.removeEventListener(localAuthEvent, handleLocalAuth);
     };
   }, []);
@@ -69,7 +79,9 @@ export function useSupabaseSession() {
 export async function signOutSupabase() {
   localStorage.removeItem(localSessionKey);
   window.dispatchEvent(new Event(localAuthEvent));
-  if (supabase && !useLocalAuth) await supabase.auth.signOut();
+  if (!isSupabaseBrowserConfigured || useLocalAuth) return;
+  const supabase = await getSupabaseClient();
+  if (supabase) await supabase.auth.signOut();
 }
 
 export function createLocalSession(email) {

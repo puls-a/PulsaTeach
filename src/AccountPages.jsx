@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Award, CheckCircle2, KeyRound, Target, UserRound } from "lucide-react";
 import { getPublicCertificate, getUserSettings, saveUserSettings } from "./apiClient.js";
 import { useSupabaseSession } from "./authState.js";
-import { supabase } from "./supabaseClient.js";
+import { getSupabaseClient } from "./supabaseClient.js";
 import { navigate } from "./navigation.js";
 
 export function OnboardingPage({ locale = "fr" }) {
@@ -112,6 +112,7 @@ export function PasswordRecoveryPage({ locale = "fr" }) {
 
   const submit = async (event) => {
     event.preventDefault();
+    const supabase = await getSupabaseClient();
     if (!supabase) return;
     const { error } = await supabase.auth.updateUser({ password });
     setStatus(error ? error.message : (fr ? "Mot de passe modifié. Tu peux reprendre ton parcours." : "Password updated. You can resume learning."));

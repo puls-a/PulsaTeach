@@ -3,19 +3,21 @@ import { Activity, Award, BookOpenCheck, ClipboardCheck, Database, Flame, Folder
 import AuthNotice from "../../components/AuthNotice.jsx";
 import DashCard from "../../components/DashCard.jsx";
 import { getApiHealth, getStats, getSupabaseStatus, loadRemoteProgress } from "../../apiClient.js";
+import { loadAllLocalTracks } from "../../content/localTrackLoader.js";
 import { computeSkillProgress } from "../skills/skillIndex.js";
 import { streakStatus } from "../learn/learningState.js";
 import { useLearningTracks } from "../../useLearningTracks.js";
 
 export default function DashboardPage({ locale }) {
-  const { tracks } = useLearningTracks();
+  const { tracks } = useLearningTracks({ mode: "summary" });
   const [health, setHealth] = useState(null);
   const [stats, setStats] = useState(null);
   const [supabaseStatus, setSupabaseStatus] = useState(null);
   const [progress, setProgress] = useState(readLocalProgress);
+  const [skills, setSkills] = useState([]);
+  const [skillsLoading, setSkillsLoading] = useState(true);
   const completed = Object.keys(progress.completed || {}).length;
-  const total = tracks.reduce((sum, track) => sum + track.modules.reduce((inner, module) => inner + module.lessons.length, 0), 0);
-  const skills = computeSkillProgress(tracks, progress).slice(0, 8);
+  const total = tracks.reduce((sum, track) => sum + Number(track.lessons || 0), 0);
   const streak = streakStatus(progress.streak);
 
   useEffect(() => {
@@ -34,6 +36,25 @@ export default function DashboardPage({ locale }) {
     window.addEventListener("pulsateach-progress-synced", onSynced);
     return () => window.removeEventListener("pulsateach-progress-synced", onSynced);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setSkillsLoading(true);
+    loadAllLocalTracks()
+      .then((fullTracks) => {
+        if (cancelled) return;
+        setSkills(computeSkillProgress(fullTracks, progress).slice(0, 8));
+      })
+      .catch(() => {
+        if (!cancelled) setSkills([]);
+      })
+      .finally(() => {
+        if (!cancelled) setSkillsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [progress]);
 
   return (
     <section className="app-page">
@@ -59,6 +80,7 @@ export default function DashboardPage({ locale }) {
           <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Compétences" : "Skills"}</h2>
           <p className="mt-2 text-sm text-slate-600">{locale === "fr" ? "Chaque niveau combine leçons validées, quiz et révisions récentes." : "Every level combines completed lessons, quizzes, and recent reviews."}</p>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
+            {skillsLoading && <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold text-slate-600">{locale === "fr" ? "Calcul des compétences en cours..." : "Computing skills..."}</p>}
             {skills.map((skill) => (
               <article className="rounded-xl border border-slate-200 bg-slate-50 p-4" key={skill.id}>
                 <div className="flex items-center justify-between gap-3"><h3 className="font-bold">{skill.label}</h3><span className="text-sm font-bold text-indigoPop">{skill.percent}%</span></div>

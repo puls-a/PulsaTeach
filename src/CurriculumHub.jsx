@@ -22,8 +22,9 @@ const trackPresentation = {
 
 export default function CurriculumHub({ locale = "fr" }) {
   const { user } = useSupabaseSession();
-  const { tracks, loading, error } = useLearningTracks({ remoteCatalog: Boolean(user) });
+  const { tracks, loading, error, loadTrack } = useLearningTracks({ remoteCatalog: Boolean(user), mode: "summary" });
   const [openTrack, setOpenTrack] = useState(null);
+  const [loadingTrackId, setLoadingTrackId] = useState("");
   const progress = useMemo(readProgress, []);
   const courseDrafts = useMemo(readCourseDrafts, []);
   const completedCount = Object.keys(progress.completed || {}).length;
@@ -33,6 +34,21 @@ export default function CurriculumHub({ locale = "fr" }) {
   useEffect(() => {
     if (!openTrack && tracks[0]) setOpenTrack(tracks[0].id);
   }, [openTrack, tracks]);
+
+  useEffect(() => {
+    const track = tracks.find((item) => item.id === openTrack);
+    if (!track?.isSummary) return;
+    let cancelled = false;
+    setLoadingTrackId(track.id);
+    loadTrack(track.id)
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoadingTrackId("");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadTrack, openTrack, tracks]);
 
   return (
     <section className="min-h-screen bg-[#f5f6fa] px-4 pb-20 pt-24 sm:px-6">
@@ -98,6 +114,7 @@ export default function CurriculumHub({ locale = "fr" }) {
               track={track}
               locale={locale}
               progress={progress}
+              loading={loadingTrackId === track.id}
               open={openTrack === track.id}
               onToggle={() => setOpenTrack(openTrack === track.id ? null : track.id)}
             />
@@ -126,16 +143,18 @@ export default function CurriculumHub({ locale = "fr" }) {
   );
 }
 
-function TrackCard({ track, locale, progress, open, onToggle }) {
+function TrackCard({ track, locale, progress, loading, open, onToggle }) {
   const presentation = trackPresentation[track.id] || { icon: BookOpen, badge: "bg-slate-100 text-ink border-slate-300" };
   const Icon = presentation.icon;
   const lessons = countLessons(track);
-  const completed = track.modules.flatMap((module) => module.lessons).filter((lesson) => progress.completed?.[lesson.id]).length;
-  const percent = lessons ? Math.round((completed / lessons) * 100) : 0;
-  const firstModule = track.modules[0];
-  const firstLesson = firstModule?.lessons[0];
-  const totalMinutes = track.modules.reduce((sum, module) => sum + module.totalMinutes, 0);
-  const projects = track.modules.flatMap((module) => module.lessons).filter((lesson) => lesson.type === "project").length;
+  const completed = track.isSummary ? null : track.modules.flatMap((module) => module.lessons).filter((lesson) => progress.completed?.[lesson.id]).length;
+  const percent = completed !== null && lessons ? Math.round((completed / lessons) * 100) : null;
+  const firstModule = track.isSummary ? null : track.modules[0];
+  const firstLesson = firstModule?.lessons?.[0] || null;
+  const totalMinutes = track.isSummary ? null : track.modules.reduce((sum, module) => sum + module.totalMinutes, 0);
+  const projects = track.isSummary ? null : track.modules.flatMap((module) => module.lessons).filter((lesson) => lesson.type === "project").length;
+  const moduleCount = Array.isArray(track.modules) ? track.modules.length : Number(track.modules || 0);
+  const startHref = firstModule && firstLesson ? `/learn/${track.id}/${firstModule.id}/${firstLesson.id}` : track.firstHref || "/catalog";
 
   return (
     <article className="overflow-hidden border border-slate-300 bg-white">
@@ -143,63 +162,74 @@ function TrackCard({ track, locale, progress, open, onToggle }) {
         <span className={`grid size-12 shrink-0 place-items-center border ${presentation.badge}`}><Icon className="size-6" /></span>
         <span className="min-w-0 flex-1">
           <span className="block font-display text-lg font-bold sm:text-xl">{track.title[locale]}</span>
-          <span className="mt-1 block text-sm text-slate-500">{track.level?.[locale]} · {track.modules.length} modules · {lessons} {locale === "fr" ? "leçons" : "lessons"} · {completed} {locale === "fr" ? "terminées" : "completed"}</span>
-          <span className="mt-3 block h-1.5 rounded-full bg-slate-200"><span className="block h-full rounded-full bg-indigoPop" style={{ width: `${percent}%` }} /></span>
+          <span className="mt-1 block text-sm text-slate-500">{track.level?.[locale]} · {moduleCount} modules · {lessons} {locale === "fr" ? "leçons" : "lessons"}{completed !== null ? ` · ${completed} ${locale === "fr" ? "terminées" : "completed"}` : ""}</span>
+          {percent !== null && <span className="mt-3 block h-1.5 rounded-full bg-slate-200"><span className="block h-full rounded-full bg-indigoPop" style={{ width: `${percent}%` }} /></span>}
         </span>
-        <span className="text-sm font-bold text-slate-500">{percent}%</span>
+        <span className="text-sm font-bold text-slate-500">{percent !== null ? `${percent}%` : loading ? "..." : ""}</span>
         <ChevronDown className={`size-5 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
         <div className="border-t border-slate-200 bg-slate-50 p-4 sm:p-5">
+          {track.isSummary && (
+            <div className="mb-5 rounded-xl border border-indigo-100 bg-white p-4 text-sm font-semibold text-slate-600" role="status">
+              {loading
+                ? (locale === "fr" ? "Chargement du detail de la formation..." : "Loading course details...")
+                : (locale === "fr" ? "Le detail complet sera charge a l'ouverture de cette formation." : "Full course details will load when this course is opened.")}
+            </div>
+          )}
           <p className="mb-5 max-w-2xl leading-7 text-slate-600">{track.summary[locale]}</p>
-          {track.profession?.[locale] && <p className="mb-5 rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-sm leading-6 text-indigo-950">{track.profession[locale]}</p>}
-          <div className="mb-5 grid gap-3 sm:grid-cols-3">
-            <CourseFact icon={Clock3} value={`${Math.ceil(totalMinutes / 60)} h`} label={locale === "fr" ? "de pratique guidée" : "guided practice"} />
-            <CourseFact icon={Code2} value={lessons} label={locale === "fr" ? "leçons interactives" : "interactive lessons"} />
-            <CourseFact icon={Flag} value={projects} label={locale === "fr" ? "projets évalués" : "assessed projects"} />
-          </div>
-          <div className="mb-5 grid gap-4 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-2">
-            <div>
-              <h3 className="flex items-center gap-2 text-sm font-bold text-ink"><GraduationCap className="size-4 text-indigoPop" />{locale === "fr" ? "À la fin, tu sauras" : "By the end, you will"}</h3>
-              <ul className="mt-3 grid gap-2 text-sm text-slate-600">
-                {(track.outcomes?.[locale] || []).map((item) => <li className="flex gap-2" key={item}><Check className="mt-0.5 size-4 shrink-0 text-green-600" />{item}</li>)}
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-ink">{locale === "fr" ? "Projet final" : "Capstone project"}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{track.capstone?.[locale]}</p>
-              <h3 className="mt-4 text-sm font-bold text-ink">{locale === "fr" ? "Prérequis" : "Prerequisites"}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{(track.prerequisites?.[locale] || []).join(" · ")}</p>
-              {track.certification?.[locale] && (
-                <>
-                  <h3 className="mt-4 text-sm font-bold text-ink">{locale === "fr" ? "Critères de certification" : "Certification criteria"}</h3>
-                  <ul className="mt-2 grid gap-1 text-sm leading-6 text-slate-600">{track.certification[locale].map((item) => <li key={item}>• {item}</li>)}</ul>
-                </>
-              )}
-            </div>
-          </div>
-          <div className="grid gap-2">
-            {track.modules.map((module, index) => {
-              const moduleCompleted = module.lessons.filter((lesson) => progress.completed?.[lesson.id]).length;
-              const first = module.lessons[0];
-              return (
-                <a key={module.id} href={`/learn/${track.id}/${module.id}/${first.id}`} className="flex items-center gap-3 border border-slate-200 bg-white p-3 hover:border-indigoPop">
-                  <span className={`grid size-8 shrink-0 place-items-center rounded-full text-sm font-bold ${moduleCompleted === module.lessons.length ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"}`}>
-                    {moduleCompleted === module.lessons.length ? <Check className="size-4" /> : index + 1}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-bold">{module.title[locale]}</span>
-                    <span className="mt-1 block text-xs leading-5 text-slate-500">{module.description?.[locale]}</span>
-                    <span className="mt-1 block text-xs font-semibold text-indigoPop">{locale === "fr" ? "Livrable :" : "Deliverable:"} {module.deliverable?.[locale]}</span>
-                    {module.mastery?.[locale] && <span className="mt-1 block text-xs text-slate-500">{locale === "fr" ? "Maîtrise :" : "Mastery:"} {module.mastery[locale].join(" · ")}</span>}
-                  </span>
-                  <span className="text-xs font-semibold text-slate-500">{module.totalMinutes} min · {moduleCompleted}/{module.lessons.length}</span>
-                </a>
-              );
-            })}
-          </div>
-          <a href={`/learn/${track.id}/${firstModule.id}/${firstLesson.id}`} className="primary-button mt-5">
+          {!track.isSummary && track.profession?.[locale] && <p className="mb-5 rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-sm leading-6 text-indigo-950">{track.profession[locale]}</p>}
+          {!track.isSummary && (
+            <>
+              <div className="mb-5 grid gap-3 sm:grid-cols-3">
+                <CourseFact icon={Clock3} value={`${Math.ceil(totalMinutes / 60)} h`} label={locale === "fr" ? "de pratique guidée" : "guided practice"} />
+                <CourseFact icon={Code2} value={lessons} label={locale === "fr" ? "leçons interactives" : "interactive lessons"} />
+                <CourseFact icon={Flag} value={projects} label={locale === "fr" ? "projets évalués" : "assessed projects"} />
+              </div>
+              <div className="mb-5 grid gap-4 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-2">
+                <div>
+                  <h3 className="flex items-center gap-2 text-sm font-bold text-ink"><GraduationCap className="size-4 text-indigoPop" />{locale === "fr" ? "À la fin, tu sauras" : "By the end, you will"}</h3>
+                  <ul className="mt-3 grid gap-2 text-sm text-slate-600">
+                    {(track.outcomes?.[locale] || []).map((item) => <li className="flex gap-2" key={item}><Check className="mt-0.5 size-4 shrink-0 text-green-600" />{item}</li>)}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-ink">{locale === "fr" ? "Projet final" : "Capstone project"}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{track.capstone?.[locale]}</p>
+                  <h3 className="mt-4 text-sm font-bold text-ink">{locale === "fr" ? "Prérequis" : "Prerequisites"}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{(track.prerequisites?.[locale] || []).join(" · ")}</p>
+                  {track.certification?.[locale] && (
+                    <>
+                      <h3 className="mt-4 text-sm font-bold text-ink">{locale === "fr" ? "Critères de certification" : "Certification criteria"}</h3>
+                      <ul className="mt-2 grid gap-1 text-sm leading-6 text-slate-600">{track.certification[locale].map((item) => <li key={item}>• {item}</li>)}</ul>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="grid gap-2">
+                {track.modules.map((module, index) => {
+                  const moduleCompleted = module.lessons.filter((lesson) => progress.completed?.[lesson.id]).length;
+                  const first = module.lessons[0];
+                  return (
+                    <a key={module.id} href={`/learn/${track.id}/${module.id}/${first.id}`} className="flex items-center gap-3 border border-slate-200 bg-white p-3 hover:border-indigoPop">
+                      <span className={`grid size-8 shrink-0 place-items-center rounded-full text-sm font-bold ${moduleCompleted === module.lessons.length ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"}`}>
+                        {moduleCompleted === module.lessons.length ? <Check className="size-4" /> : index + 1}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-bold">{module.title[locale]}</span>
+                        <span className="mt-1 block text-xs leading-5 text-slate-500">{module.description?.[locale]}</span>
+                        <span className="mt-1 block text-xs font-semibold text-indigoPop">{locale === "fr" ? "Livrable :" : "Deliverable:"} {module.deliverable?.[locale]}</span>
+                        {module.mastery?.[locale] && <span className="mt-1 block text-xs text-slate-500">{locale === "fr" ? "Maîtrise :" : "Mastery:"} {module.mastery[locale].join(" · ")}</span>}
+                      </span>
+                      <span className="text-xs font-semibold text-slate-500">{module.totalMinutes} min · {moduleCompleted}/{module.lessons.length}</span>
+                    </a>
+                  );
+                })}
+              </div>
+            </>
+          )}
+          <a href={startHref} className="primary-button mt-5">
             {completed ? (locale === "fr" ? "Continuer la formation" : "Continue course") : (locale === "fr" ? "Commencer la formation" : "Start course")}
             <ArrowRight className="size-4" />
           </a>
@@ -220,6 +250,7 @@ function CourseFact({ icon: Icon, value, label }) {
 }
 
 function countLessons(track) {
+  if (track.isSummary) return Number(track.lessons || 0);
   return track.modules.reduce((total, module) => total + module.lessons.length, 0);
 }
 

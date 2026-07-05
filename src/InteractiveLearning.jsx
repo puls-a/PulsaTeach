@@ -6,7 +6,6 @@ import {
   Play,
   XCircle
 } from "lucide-react";
-import { learningTracks } from "./content/allTrackRegistry.js";
 import { getQuizSession, loadRemoteProgress, recordAttempt, recordLearningEvent, saveQuizSession, saveRemoteProgress } from "./apiClient.js";
 import { createQuizDraft, evaluateQuestion, normalizeQuizLesson, scoreQuiz } from "./features/quizzes/quizEngine.js";
 import QuizModal from "./features/quizzes/QuizModal.jsx";
@@ -30,7 +29,7 @@ import { updatePageMetadata } from "./appMetadata.js";
 
 const progressKey = "pulsateach-learning-progress";
 const bookmarksKey = "pulsateach-learning-bookmarks";
-export default function InteractiveLearning({ locale, tracks = learningTracks, onRequireTrack }) {
+export default function InteractiveLearning({ locale, tracks = [], onRequireTrack }) {
   const initialRoute = readLessonRoute();
   const requestedRoute = useRef(initialRoute);
   const [activeTrackId, setActiveTrackId] = useState(initialRoute.trackId);
@@ -45,11 +44,12 @@ export default function InteractiveLearning({ locale, tracks = learningTracks, o
 
   const selectedTrack = tracks.find((track) => track.id === activeTrackId);
   const trackLoading = Boolean(selectedTrack?.isSummary);
-  const activeTrack = (!selectedTrack?.isSummary ? selectedTrack : null) ?? tracks.find((track) => !track.isSummary) ?? learningTracks[0];
-  const activeModule = activeTrack.modules.find((module) => module.id === activeModuleId) ?? activeTrack.modules[0];
-  const activeLesson = activeModule.lessons.find((lesson) => lesson.id === activeLessonId) ?? activeModule.lessons[0];
+  const activeTrack = (!selectedTrack?.isSummary ? selectedTrack : null) ?? tracks.find((track) => !track.isSummary) ?? null;
+  const activeModule = activeTrack?.modules.find((module) => module.id === activeModuleId) ?? activeTrack?.modules[0] ?? null;
+  const activeLesson = activeModule?.lessons.find((lesson) => lesson.id === activeLessonId) ?? activeModule?.lessons[0] ?? null;
 
   useEffect(() => {
+    if (!activeTrack) return;
     const requestedTrack = tracks.find((track) => track.id === requestedRoute.current.trackId);
     if (requestedTrack?.isSummary) return;
     const requestedModule = requestedTrack?.modules.find((module) => module.id === requestedRoute.current.moduleId);
@@ -59,10 +59,10 @@ export default function InteractiveLearning({ locale, tracks = learningTracks, o
       setActiveModuleId(requestedModule.id);
       setActiveLessonId(requestedLesson.id);
     }
-  }, [tracks]);
+  }, [activeTrack, tracks]);
 
   useEffect(() => {
-    if (trackLoading) return;
+    if (!activeTrack || trackLoading) return;
     const requested = requestedRoute.current;
     const requestedModule = activeTrack.id === requested.trackId
       ? activeTrack.modules.find((module) => module.id === requested.moduleId)
@@ -80,11 +80,11 @@ export default function InteractiveLearning({ locale, tracks = learningTracks, o
     }
   }, [activeModuleId, activeTrack, trackLoading]);
 
-  const activeTrackCompleted = activeTrack.modules.reduce((sum, module) => sum + module.lessons.filter((lesson) => progress.completed[lesson.id]).length, 0);
-  const activeTrackTotal = activeTrack.modules.reduce((sum, module) => sum + module.lessons.length, 0);
+  const activeTrackCompleted = activeTrack?.modules.reduce((sum, module) => sum + module.lessons.filter((lesson) => progress.completed[lesson.id]).length, 0) ?? 0;
+  const activeTrackTotal = activeTrack?.modules.reduce((sum, module) => sum + module.lessons.length, 0) ?? 0;
 
   useEffect(() => {
-    if (trackLoading) return;
+    if (!activeTrack || !activeModule || !activeLesson || trackLoading) return;
     window.history.replaceState(null, "", `/learn/${activeTrackId}/${activeModuleId}/${activeLessonId}`);
     updatePageMetadata("learn", locale, "PulsaTeach");
     recordLearningEvent({
@@ -92,7 +92,7 @@ export default function InteractiveLearning({ locale, tracks = learningTracks, o
       lessonId: activeLessonId,
       trackId: activeTrackId
     }).catch(() => {});
-  }, [activeTrackId, activeModuleId, activeLessonId, locale, trackLoading]);
+  }, [activeLesson, activeLessonId, activeModule, activeModuleId, activeTrack, activeTrackId, locale, trackLoading]);
 
   useEffect(() => {
     let cancelled = false;
@@ -185,6 +185,16 @@ export default function InteractiveLearning({ locale, tracks = learningTracks, o
     setBookmarks(next);
     localStorage.setItem(bookmarksKey, JSON.stringify(next));
   };
+
+  if (!activeTrack || !activeModule || !activeLesson) {
+    return (
+      <section className="grid min-h-screen place-items-center bg-slate-100 px-4 pt-24">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm" role="status">
+          <p className="font-display text-xl font-bold">{locale === "fr" ? "Préparation de la formation…" : "Preparing course…"}</p>
+        </div>
+      </section>
+    );
+  }
 
   if (trackLoading) {
     return (
