@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getCatalog, getTrack } from "./apiClient.js";
 import { learningTracks } from "./content/allTrackRegistry.js";
 
-export function useLearningTracks() {
+export function useLearningTracks({ remoteCatalog = false } = {}) {
   const [tracks, setTracks] = useState(learningTracks);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(remoteCatalog);
   const [error, setError] = useState(null);
   const pendingLoads = useRef(new Map());
 
@@ -30,7 +30,15 @@ export function useLearningTracks() {
   }, [tracks]);
 
   useEffect(() => {
+    if (!remoteCatalog) {
+      setTracks(learningTracks);
+      setLoading(false);
+      setError(null);
+      return undefined;
+    }
+
     let active = true;
+    setLoading(true);
     getCatalog()
       .then((catalog) => {
         if (!active) return;
@@ -44,7 +52,7 @@ export function useLearningTracks() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [remoteCatalog]);
 
   return { tracks, loading, error, loadTrack };
 }

@@ -61,7 +61,7 @@ const modules = [
     quiz: ["node-validation-quiz", "Quiz : validation serveur", "server-validation"]
   },
   {
-    id: "node-architecture-auth",
+    id: "node-auth-isolation-foundations",
     title: ["Architecture, auth et isolation", "Architecture, auth, and isolation"],
     description: ["Séparer transport, métier et stockage puis prouver l'isolation utilisateur.", "Separate transport, business, and storage, then prove user isolation."],
     vocabulary: [t.service, t.auth, ["repository", "repository", "Contrat d'accès aux données indépendant du transport.", "Data access contract independent from transport."]],
@@ -159,7 +159,7 @@ function nodeEvidence(moduleId, slug) {
     "node-runtime-npm": ["process.env", "node:fs/promises", "crypto.randomUUID", "package.json", "npm-script", "module-boundary"],
     "node-http-express": ["express", "app.get", "status(201)", "status(404)", "express.json", "asyncHandler"],
     "node-validation-errors": ["safeParse", "VALIDATION_ERROR", "DomainError", "errorHandler", "issues", "requestId"],
-    "node-architecture-auth": ["Authorization", "Bearer", "status(401)", "status(403)", "ownerId", "cross-user"],
+    "node-auth-isolation-foundations": ["Authorization", "Bearer", "status(401)", "status(403)", "ownerId", "cross-user"],
     "node-data-testing": ["request(app)", "expect(200)", "expect(400)", "expect(403)", "beforeEach", "fixtures"],
     "node-production-ops": ["helmet", "cors", "rateLimit", "durationMs", "statusCode", "rollback"]
   };

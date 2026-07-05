@@ -22,7 +22,7 @@ const trackPresentation = {
 
 export default function CurriculumHub({ locale = "fr" }) {
   const { user } = useSupabaseSession();
-  const { tracks, loading, error } = useLearningTracks();
+  const { tracks, loading, error } = useLearningTracks({ remoteCatalog: Boolean(user) });
   const [openTrack, setOpenTrack] = useState(null);
   const progress = useMemo(readProgress, []);
   const courseDrafts = useMemo(readCourseDrafts, []);

@@ -193,7 +193,10 @@ function EditorWorkbench({ code, consoleOutput, editorRef, fileName, locale, onC
         </div>
         <div className="flex flex-wrap gap-2">
           {onRunCode && <WorkbenchButton onClick={onRunCode} icon={Terminal}>{locale === "fr" ? "Exécuter" : "Run"}</WorkbenchButton>}
-          <WorkbenchButton onClick={onRunTests} icon={Play} primary>{locale === "fr" ? "Tester" : "Test"}</WorkbenchButton>
+          <WorkbenchButton onClick={onRunTests} icon={Play} primary>
+            <span className="xl:hidden">{locale === "fr" ? "Lancer" : "Run"}</span>
+            <span className="hidden xl:inline">{locale === "fr" ? "Tester" : "Test"}</span>
+          </WorkbenchButton>
           <WorkbenchButton onClick={onSave} icon={Save}>{locale === "fr" ? "Sauver" : "Save"}</WorkbenchButton>
           <WorkbenchButton onClick={onReset} icon={RotateCcw}>Reset</WorkbenchButton>
         </div>
@@ -212,7 +215,7 @@ function EditorWorkbench({ code, consoleOutput, editorRef, fileName, locale, onC
           <CodeEditor code={code} editorRef={editorRef} locale={locale} onChange={onChange} onKeyDown={onKeyDown} />
         </div>
         <div className="grid border-t border-white/10 bg-white xl:border-l xl:border-t-0">
-          <div className={`${selectedPanel === "preview" ? "block" : "hidden"} xl:block`}>
+          <div className={`${selectedPanel === "code" || selectedPanel === "preview" || selectedPanel === "tests" ? "block" : "hidden"} xl:block`}>
             <Preview lesson={lesson} locale={locale} code={code} preview={preview} previewKind={previewKind} consoleOutput={consoleOutput} />
           </div>
           <div className={`${selectedPanel === "tests" ? "block" : "hidden"} border-t border-slate-200 xl:block`}>
@@ -245,7 +248,7 @@ function CodeEditor({ code, editorRef, locale, onChange, onKeyDown }) {
 }
 
 function Preview({ lesson, locale, code, preview, previewKind, consoleOutput }) {
-  return <div className="overflow-hidden bg-slate-50"><div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-white px-4 py-3 text-sm font-bold"><span className="inline-flex items-center gap-2"><Eye className="size-5 text-indigoPop" />{locale === "fr" ? "Aperçu live" : "Live preview"}</span><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black uppercase text-slate-500">{previewKind}</span></div>{previewKind === "javascript" ? <div><div className="min-h-[170px] p-5 text-sm text-slate-500">{locale === "fr" ? "Exécute le code pour afficher ses sorties dans la console." : "Run the code to display its output in the console."}</div><pre className="min-h-32 overflow-auto bg-ink p-4 font-mono text-sm text-indigo-100">{consoleOutput || "Console"}</pre></div> : previewKind === "terminal" ? <CodePreview icon={Terminal} title={locale === "fr" ? "Terminal simulé" : "Simulated terminal"} code={`$ ${code || "…"}`} /> : ["typescript", "react", "node", "sql"].includes(previewKind) ? <CodePreview icon={Code2} title={codePreviewTitle(previewKind, locale)} code={code} /> : previewKind === "text" ? <CodePreview icon={BookOpen} title={locale === "fr" ? "Réponse structurée" : "Structured response"} code={code} light /> : <iframe key={`${lesson.id}-${preview}`} title="PulsaTeach preview" srcDoc={preview} sandbox={PREVIEW_IFRAME_SANDBOX} referrerPolicy="no-referrer" className="h-[360px] w-full bg-white" />}</div>;
+  return <div className="overflow-hidden bg-slate-50"><div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-white px-4 py-3 text-sm font-bold"><span className="inline-flex items-center gap-2"><Eye className="size-5 text-indigoPop" />{locale === "fr" ? "Aperçu live" : "Live preview"}</span><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black uppercase text-slate-700">{previewKind}</span></div>{previewKind === "javascript" ? <div><div className="min-h-[170px] p-5 text-sm text-slate-500">{locale === "fr" ? "Exécute le code pour afficher ses sorties dans la console." : "Run the code to display its output in the console."}</div><pre className="min-h-32 overflow-auto bg-ink p-4 font-mono text-sm text-indigo-100">{consoleOutput || "Console"}</pre></div> : previewKind === "terminal" ? <CodePreview icon={Terminal} title={locale === "fr" ? "Terminal simulé" : "Simulated terminal"} code={`$ ${code || "…"}`} /> : ["typescript", "react", "node", "sql"].includes(previewKind) ? <CodePreview icon={Code2} title={codePreviewTitle(previewKind, locale)} code={code} /> : previewKind === "text" ? <CodePreview icon={BookOpen} title={locale === "fr" ? "Réponse structurée" : "Structured response"} code={code} light /> : <iframe key={`${lesson.id}-${preview}`} title="PulsaTeach preview" srcDoc={preview} sandbox={PREVIEW_IFRAME_SANDBOX} referrerPolicy="no-referrer" className="h-[360px] w-full bg-white" />}</div>;
 }
 
 function TestPanel({ locale, result, tests, total, passed, onRunTests }) {

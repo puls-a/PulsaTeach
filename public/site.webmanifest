@@ -27,7 +27,7 @@
       "purpose": "any"
     },
     {
-      "src": "/assets/logo_horizontale.webp",
+      "src": "/assets/logo_horizontale_optimized.webp",
       "sizes": "512x512",
       "type": "image/webp",
       "purpose": "any"

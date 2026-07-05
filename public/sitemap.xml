@@ -590,14 +590,14 @@
   <url><loc>https://pulsateach.vercel.app/learn/node-api/node-validation-errors/node-validation-errors-problem-details</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/node-api/node-validation-errors/node-validation-project</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/node-api/node-validation-errors/node-validation-quiz</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-architecture-auth/node-architecture-auth-layers</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-architecture-auth/node-architecture-auth-dependency</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-architecture-auth/node-architecture-auth-bearer</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-architecture-auth/node-architecture-auth-roles</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-architecture-auth/node-architecture-auth-owner</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-architecture-auth/node-architecture-auth-cross-user</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-architecture-auth/node-auth-project</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-architecture-auth/node-auth-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-auth-isolation-foundations/node-auth-isolation-foundations-layers</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-auth-isolation-foundations/node-auth-isolation-foundations-dependency</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-auth-isolation-foundations/node-auth-isolation-foundations-bearer</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-auth-isolation-foundations/node-auth-isolation-foundations-roles</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-auth-isolation-foundations/node-auth-isolation-foundations-owner</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-auth-isolation-foundations/node-auth-isolation-foundations-cross-user</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-auth-isolation-foundations/node-auth-project</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/node-api/node-auth-isolation-foundations/node-auth-quiz</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/node-api/node-data-testing/node-data-testing-repo-memory</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/node-api/node-data-testing/node-data-testing-supertest</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/node-api/node-data-testing/node-data-testing-validation-test</loc></url>
