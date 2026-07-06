@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import {
   BarChart3,
   BookOpen,
@@ -148,6 +149,7 @@ function App() {
       <main id="main-content" tabIndex={-1}><Suspense fallback={<RouteFallback locale={locale} />}>{renderRoute(route, locale)}</Suspense></main>
       <AppFooter locale={locale} />
       <CookieConsent locale={locale} />
+      <Analytics />
     </div>
   );
 }
