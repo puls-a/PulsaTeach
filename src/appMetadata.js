@@ -112,6 +112,7 @@ export function updatePageMetadata(route, locale, fallbackTitle, courseOverride 
   setMeta("twitter:description", description);
   setMeta("twitter:image", SOCIAL_IMAGE);
   setCanonical(canonical);
+  updateHreflang(canonical);
   updateStructuredData(route, language, title, description, course);
   if (route === "learn") updateLearnMetadataFromCatalog(language, canonical, courseOverride);
 }
@@ -289,6 +290,20 @@ function setCanonical(href) {
   }
   for (const duplicate of elements.slice(1)) duplicate.remove();
   element.setAttribute("href", href);
+}
+
+function updateHreflang(canonicalUrl) {
+  const base = SITE_URL;
+  const path = canonicalUrl.replace(base, "") || "/";
+
+  ["fr", "en", "x-default"].forEach((lang) => {
+    const existing = document.querySelector(`link[rel="alternate"][hreflang="${lang}"]`);
+    const el = existing || document.createElement("link");
+    el.setAttribute("rel", "alternate");
+    el.setAttribute("hreflang", lang);
+    el.setAttribute("href", `${base}${path}`);
+    if (!existing) document.head.appendChild(el);
+  });
 }
 
 function setMeta(name, content) {

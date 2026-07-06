@@ -17,7 +17,15 @@ export function FocusedLearningLayout(props) {
       <div className="mx-auto max-w-[1800px]">
         <header className="mb-3 flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm lg:flex-row lg:items-center">
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500"><a href="/catalog" className="hover:text-indigoPop">{locale === "fr" ? "Formations" : "Courses"}</a><span>/</span><span>{activeTrack.title[locale]}</span><span>/</span><span>{activeModule.title[locale]}</span></div>
+            <nav aria-label={locale === "fr" ? "Fil d'Ariane" : "Breadcrumb"}>
+              <ol className="flex flex-wrap items-center gap-1 text-xs font-bold text-slate-500">
+                <li><a href="/catalog" className="hover:text-indigoPop transition-colors">{locale === "fr" ? "Formations" : "Courses"}</a></li>
+                <li aria-hidden="true" className="text-slate-300">/</li>
+                <li><span className="text-slate-600">{activeTrack.title[locale]}</span></li>
+                <li aria-hidden="true" className="text-slate-300">/</li>
+                <li><span className="font-medium text-slate-800">{activeModule.title[locale]}</span></li>
+              </ol>
+            </nav>
             <h1 className="mt-1 font-display text-xl font-bold leading-tight text-ink sm:text-2xl">{activeLesson.title[locale]}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm">

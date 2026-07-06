@@ -55,7 +55,7 @@ export default function LandingPage({ locale = "fr" }) {
   const fr = locale === "fr";
 
   return (
-    <main className="overflow-hidden bg-slate-950 text-white">
+    <div className="overflow-hidden bg-slate-950 text-white">
       <section className="relative px-4 pb-16 pt-28 sm:px-6 lg:px-8 lg:pb-24">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(85,70,246,.45),transparent_30rem),radial-gradient(circle_at_82%_12%,rgba(57,214,163,.22),transparent_28rem),linear-gradient(135deg,#1e1b4b,#0f172a_56%,#082f49)]" />
         <div className="absolute left-1/2 top-28 h-72 w-72 -translate-x-1/2 rounded-full bg-indigo-500/20 blur-3xl" />
@@ -208,6 +208,6 @@ export default function LandingPage({ locale = "fr" }) {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

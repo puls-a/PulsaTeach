@@ -55,9 +55,15 @@ console.log(`Prerendered ${learningTracks.reduce((sum, track) => sum + track.mod
 
 async function renderPage(route, page) {
   const canonical = route ? `${siteUrl}/${route}` : `${siteUrl}/`;
+  const hreflangTags = [
+    `<link rel="alternate" hreflang="fr" href="${canonical}" />`,
+    `<link rel="alternate" hreflang="en" href="${canonical}" />`,
+    `<link rel="alternate" hreflang="x-default" href="${canonical}" />`
+  ].join("\n    ");
+
   const html = template
     .replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(page.title)}</title>`)
-    .replace(/<link rel="canonical" href="[^"]*"\s*\/>/, `<link rel="canonical" href="${canonical}" />`)
+    .replace(/<link rel="canonical" href="[^"]*"\s*\/>/, `<link rel="canonical" href="${canonical}" />\n    ${hreflangTags}`)
     .replace(/<meta\s+name="description"\s+content="[^"]*"\s*\/>/s, `<meta name="description" content="${escapeAttribute(page.description)}" />`)
     .replace(/<meta property="og:title" content="[^"]*"\s*\/>/, `<meta property="og:title" content="${escapeAttribute(page.title)}" />`)
     .replace(/<meta property="og:description" content="[^"]*"\s*\/>/, `<meta property="og:description" content="${escapeAttribute(page.description)}" />`)

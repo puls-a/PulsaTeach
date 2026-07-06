@@ -158,16 +158,19 @@ function TrackCard({ track, locale, progress, loading, open, onToggle }) {
 
   return (
     <article className="overflow-hidden border border-slate-300 bg-white">
-      <button type="button" onClick={onToggle} className="flex w-full cursor-pointer items-center gap-4 p-4 text-left hover:bg-slate-50 sm:p-5">
-        <span className={`grid size-12 shrink-0 place-items-center border ${presentation.badge}`}><Icon className="size-6" /></span>
-        <span className="min-w-0 flex-1">
-          <span className="block font-display text-lg font-bold sm:text-xl">{track.title[locale]}</span>
-          <span className="mt-1 block text-sm text-slate-500">{track.level?.[locale]} · {moduleCount} modules · {lessons} {locale === "fr" ? "leçons" : "lessons"}{completed !== null ? ` · ${completed} ${locale === "fr" ? "terminées" : "completed"}` : ""}</span>
-          {percent !== null && <span className="mt-3 block h-1.5 rounded-full bg-slate-200"><span className="block h-full rounded-full bg-indigoPop" style={{ width: `${percent}%` }} /></span>}
-        </span>
-        <span className="text-sm font-bold text-slate-500">{percent !== null ? `${percent}%` : loading ? "..." : ""}</span>
-        <ChevronDown className={`size-5 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
+      <div className="relative">
+        <h3 className="sr-only">{track.title[locale]}</h3>
+        <button type="button" onClick={onToggle} className="flex w-full cursor-pointer items-center gap-4 p-4 text-left hover:bg-slate-50 sm:p-5" aria-expanded={open}>
+          <span className={`grid size-12 shrink-0 place-items-center border ${presentation.badge}`}><Icon className="size-6" /></span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-display text-lg font-bold sm:text-xl" aria-hidden="true">{track.title[locale]}</span>
+            <span className="mt-1 block text-sm text-slate-500">{track.level?.[locale]} · {moduleCount} modules · {lessons} {locale === "fr" ? "leçons" : "lessons"}{completed !== null ? ` · ${completed} ${locale === "fr" ? "terminées" : "completed"}` : ""}</span>
+            {percent !== null && <span className="mt-3 block h-1.5 rounded-full bg-slate-200"><span className="block h-full rounded-full bg-indigoPop" style={{ width: `${percent}%` }} /></span>}
+          </span>
+          <span className="text-sm font-bold text-slate-500">{percent !== null ? `${percent}%` : loading ? "..." : ""}</span>
+          <ChevronDown className={`size-5 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
+      </div>
 
       {open && (
         <div className="border-t border-slate-200 bg-slate-50 p-4 sm:p-5">

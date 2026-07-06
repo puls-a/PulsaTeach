@@ -118,9 +118,11 @@ export const publicTrackCatalog = [
   }
 ];
 
+const totalLessons = publicTrackCatalog.reduce((sum, track) => sum + (track.lessons || 0), 0);
+
 export const publicLearningStats = {
-  tracks: 13,
-  lessons: 812,
+  tracks: publicTrackCatalog.length,
+  lessons: totalLessons,
   projects: 140
 };
 
