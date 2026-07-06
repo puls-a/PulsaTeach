@@ -35,6 +35,32 @@ await renderPage("glossary", {
   schema: glossarySchema(glossary)
 });
 
+await renderPage("certification", {
+  title: "Certificats de progression web | PulsaTeach",
+  description: "Valide tes parcours avec des projets, examens et certificats partageables.",
+  body: `<main><h1>Certifications PulsaTeach</h1><p>Prouve tes compétences web avec nos certificats gratuits.</p></main>`,
+  schema: aboutSchema() // Reuse aboutSchema for generic pages or create a specific one if needed
+});
+
+await renderPage("projects", {
+  title: "Projets web et portfolio | PulsaTeach",
+  description: "Construis, soumets et améliore des projets web vérifiables pour prouver tes compétences.",
+  body: `<main><h1>Projets et Portfolio</h1><p>Crée et partage des projets complets.</p></main>`,
+  schema: aboutSchema()
+});
+
+for (const track of learningTracks) {
+  const route = `formations/${track.id}`;
+  const title = `Formation ${track.title.fr} en ligne gratuite | PulsaTeach`;
+  const description = `Rejoins la formation complète et gratuite sur ${track.title.fr}. Apprends par la pratique avec des leçons interactives, des quiz et des projets.`;
+  await renderPage(route, {
+    title,
+    description,
+    body: `<main><h1>Formation ${escapeHtml(track.title.fr)}</h1><p>${escapeHtml(track.summary.fr)}</p>${trackCard(track)}</main>`,
+    schema: collectionSchema() // Could be a specific course list schema
+  });
+}
+
 for (const track of learningTracks) {
   for (const module of track.modules) {
     for (const lesson of module.lessons) {
@@ -162,7 +188,15 @@ function homeSchema() {
         "@type": "WebSite",
         name: "PulsaTeach",
         url: siteUrl,
-        inLanguage: ["fr", "en"]
+        inLanguage: ["fr", "en"],
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${siteUrl}/glossary?q={search_term_string}`
+          },
+          "query-input": "required name=search_term_string"
+        }
       },
       {
         "@type": "ItemList",

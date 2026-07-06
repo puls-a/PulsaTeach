@@ -40,6 +40,7 @@ const GlossaryPage = lazy(() => import("./features/glossary/GlossaryPage.jsx"));
 const ReviewPage = lazy(() => import("./features/review/ReviewPage.jsx"));
 const CourseStudio = lazy(() => import("./CourseStudio.jsx"));
 const CurriculumHub = lazy(() => import("./CurriculumHub.jsx"));
+const TrackLandingPage = lazyNamed(() => import("./features/catalog/TrackLandingPage.jsx"), "TrackLandingPage");
 const FlexboxArenaPage = lazyNamed(() => import("./GamePages.jsx"), "FlexboxArenaPage");
 const JavaScriptArenaPage = lazyNamed(() => import("./GamePages.jsx"), "JavaScriptArenaPage");
 const LivePlaygroundPage = lazyNamed(() => import("./GamePages.jsx"), "LivePlaygroundPage");
@@ -391,6 +392,7 @@ function renderRoute(route, locale) {
   if (route === "flexbox-arena") return <FlexboxArenaPage locale={locale} />;
   if (route === "js-arena") return <JavaScriptArenaPage locale={locale} />;
   if (route === "learn") return <LearnPage locale={locale} />;
+  if (route === "formations") return <TrackLandingPage locale={locale} trackId={currentPathSegments()[1]} />;
   if (route === "catalog") return <CurriculumHub locale={locale} />;
   if (route === "glossary") return <GlossaryPage locale={locale} />;
   if (route === "review") return <ReviewPage locale={locale} />;
@@ -416,7 +418,7 @@ function getPageRoute() {
     return new URLSearchParams(window.location.search).has("recovery") ? "recovery" : "onboarding";
   }
   const route = currentPathSegments()[0] || "home";
-  const known = ["home", "about", "auth", "signup", "onboarding", "recovery", "verify", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "catalog", "glossary", "review", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap", "privacy", "cookies", "terms", "legal"];
+  const known = ["home", "about", "auth", "signup", "onboarding", "recovery", "verify", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "formations", "catalog", "glossary", "review", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap", "privacy", "cookies", "terms", "legal"];
   return known.includes(route) ? route : "not-found";
 }
 

@@ -6,8 +6,8 @@ const BRAND_ICON = `${SITE_URL}/assets/logo_horizontale_optimized.webp`;
 
 const routeMetadata = {
   home: {
-    fr: ["Apprendre le développement web gratuitement | PulsaTeach", "Cours gratuits, quiz, ateliers guidés, éditeur en ligne, projets portfolio et certificats pour progresser concrètement en développement web."],
-    en: ["Learn web development for free | PulsaTeach", "Free courses, quizzes, guided workshops, an online editor, portfolio projects, and certificates to make concrete progress in web development."]
+    fr: ["PulsaTeach : Apprendre le Développement Web Gratuitement (HTML, CSS, JS, React...)", "Cours gratuits, quiz, ateliers guidés, éditeur en ligne, projets portfolio et certificats pour progresser concrètement en développement web."],
+    en: ["PulsaTeach: Learn Web Development for Free (HTML, CSS, JS, React...)", "Free courses, quizzes, guided workshops, an online editor, portfolio projects, and certificates to make concrete progress in web development."]
   },
   about: {
     fr: ["À propos de PulsaTeach | Projet gratuit pour apprendre le web", "Découvre la méthode PulsaTeach : cours gratuits, pratique guidée, sécurité, accessibilité, transparence et progression vérifiable."],
@@ -84,7 +84,8 @@ const noIndexRoutes = new Set(["admin", "author", "analytics", "settings", "prof
 export function updatePageMetadata(route, locale, fallbackTitle, courseOverride = null) {
   const language = locale === "fr" ? "fr" : "en";
   const course = route === "learn" ? readCourseMetadata(language, courseOverride) : null;
-  const selected = course || routeMetadata[route]?.[language] || [
+  const formation = route === "formations" ? readFormationMetadata(language) : null;
+  const selected = course || formation || routeMetadata[route]?.[language] || [
     fallbackTitle,
     language === "fr"
       ? "Plateforme gratuite et bilingue pour apprendre le développement web par la pratique."
@@ -113,8 +114,8 @@ export function updatePageMetadata(route, locale, fallbackTitle, courseOverride 
   setMeta("twitter:image", SOCIAL_IMAGE);
   setCanonical(canonical);
   updateHreflang(canonical);
-  updateStructuredData(route, language, title, description, course);
-  if (route === "learn") updateLearnMetadataFromCatalog(language, canonical, courseOverride);
+  updateStructuredData(route, language, title, description, course || formation);
+  if (route === "learn" || route === "formations") updateLearnMetadataFromCatalog(language, canonical, courseOverride);
 }
 
 function readCourseMetadata(language, override = null) {
@@ -137,8 +138,22 @@ function readCourseMetadata(language, override = null) {
   return [title, description, { trackId, trackName, moduleName, lessonName, lessonId }];
 }
 
+function readFormationMetadata(language) {
+  const match = window.location.pathname.match(/^\/formations\/([^/]+)/);
+  if (!match) return null;
+  const trackId = match[1];
+  const trackName = humanize(trackId);
+  const title = language === "fr"
+    ? `Formation ${trackName} en ligne gratuite | PulsaTeach`
+    : `Free online ${trackName} course | PulsaTeach`;
+  const description = language === "fr"
+    ? `Rejoins la formation complète et gratuite sur ${trackName}. Apprends par la pratique avec des leçons interactives, des quiz et des projets.`
+    : `Join the complete and free ${trackName} course. Learn by doing with interactive lessons, quizzes, and projects.`;
+  return [title, description, { trackId, trackName, isFormation: true }];
+}
+
 function updateLearnMetadataFromCatalog(language, expectedCanonical, override = null) {
-  const match = window.location.pathname.match(/^\/learn\/([^/]+)(?:\/([^/]+)\/([^/]+))?/);
+  const match = window.location.pathname.match(/^\/(?:learn|formations)\/([^/]+)(?:\/([^/]+)\/([^/]+))?/);
   if (!match) return;
   const [, trackId, moduleId, lessonId] = match;
   if (expectedCanonical !== canonicalUrl()) return;
@@ -183,7 +198,7 @@ function updateStructuredData(route, language, title, description, courseMetadat
   }
 
   const pageUrl = canonicalUrl();
-  const pageType = route === "catalog" || route === "glossary" ? "CollectionPage" : "WebPage";
+  const pageType = route === "catalog" || route === "glossary" || route === "formations" ? "CollectionPage" : "WebPage";
   const graph = [
     {
       "@type": "Organization",
@@ -198,7 +213,15 @@ function updateStructuredData(route, language, title, description, courseMetadat
       name: "PulsaTeach",
       url: `${SITE_URL}/`,
       inLanguage: ["fr", "en"],
-      publisher: { "@id": `${SITE_URL}/#organization` }
+      publisher: { "@id": `${SITE_URL}/#organization` },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${SITE_URL}/glossary?q={search_term_string}`
+        },
+        "query-input": "required name=search_term_string"
+      }
     },
     {
       "@type": pageType,
@@ -222,7 +245,7 @@ function updateStructuredData(route, language, title, description, courseMetadat
     }
   ];
 
-  if (route === "learn" && courseMetadata?.[2]) {
+  if ((route === "learn" || route === "formations") && courseMetadata?.[2]) {
     const details = courseMetadata[2];
     graph.push({
       "@type": "Course",
@@ -247,10 +270,13 @@ function breadcrumbs(language) {
     : { home: "Home", catalog: "Courses", learn: "Lesson" };
   const items = [{ name: labels.home, url: `${SITE_URL}/` }];
   const segments = window.location.pathname.split("/").filter(Boolean);
-  if (segments[0] === "learn") {
+  if (segments[0] === "learn" || segments[0] === "formations") {
     items.push({ name: labels.catalog, url: `${SITE_URL}/catalog` });
-    items.push({ name: humanize(segments[1] || labels.learn), url: `${SITE_URL}/learn/${segments[1] || ""}` });
-    if (segments[3]) items.push({ name: humanize(segments[3]), url: canonicalUrl() });
+    if (segments[1]) items.push({ name: humanize(segments[1]), url: `${SITE_URL}/formations/${segments[1]}` });
+    if (segments[2]) items.push({ name: humanize(segments[2]), url: `${SITE_URL}/learn/${segments[1]}/${segments[2]}` });
+    if (segments[3]) items.push({ name: humanize(segments[3]), url: `${SITE_URL}/learn/${segments[1]}/${segments[2]}/${segments[3]}` });
+  } else if (segments[0] === "catalog") {
+    items.push({ name: labels.catalog, url: `${SITE_URL}/catalog` });
   } else if (segments[0]) {
     items.push({ name: routeLabel(segments[0], language), url: canonicalUrl() });
   }

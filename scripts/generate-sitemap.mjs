@@ -37,12 +37,14 @@ for (const track of learningTracks) {
 }
 
 const lessonRoutes = [...lessonRouteMap.keys()];
+const trackRoutes = learningTracks.map(track => `/formations/${track.id}`);
 
 // Combine and deduplicate (Set handles any remaining static duplicates)
-const allRoutes = [...new Set([...staticRoutes, ...lessonRoutes])];
+const allRoutes = [...new Set([...staticRoutes, ...trackRoutes, ...lessonRoutes])];
 
 function getPriority(route) {
   if (staticRoutePriority[route] !== undefined) return staticRoutePriority[route];
+  if (route.startsWith("/formations/")) return "0.85";
   if (route.startsWith("/learn/")) return "0.7";
   return "0.5";
 }
@@ -62,7 +64,7 @@ if (dupeCheck.size !== allRoutes.length) {
   console.log(`✅ No duplicate URLs detected.`);
 }
 
-console.log(`Sitemap generated with ${allRoutes.length} public URLs (${staticRoutes.length} static + ${lessonRoutes.length} lessons), lastmod=${today}.`);
+console.log(`Sitemap generated with ${allRoutes.length} public URLs (${staticRoutes.length} static + ${trackRoutes.length} tracks + ${lessonRoutes.length} lessons), lastmod=${today}.`);
 
 function escapeXml(value) {
   return value
