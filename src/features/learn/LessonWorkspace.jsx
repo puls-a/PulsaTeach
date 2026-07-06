@@ -145,6 +145,11 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
         <p className="mt-2 text-sm leading-6 text-slate-500">{locale === "fr" ? "Écris, prévisualise, exécute et valide depuis un espace plus calme. Sur mobile, utilise les onglets pour garder l’écran respirable." : "Write, preview, run, and validate from a calmer workspace. On mobile, use tabs to keep the screen readable."}</p>
       </div>
 
+      <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1.5 text-sm font-bold text-indigoPop">
+        <Eye className="size-4" />
+        {locale === "fr" ? "Aperçu live disponible dans l'onglet Aperçu." : "Live preview available in the Preview tab."}
+      </p>
+
       <EditorWorkbench
         code={code}
         consoleOutput={consoleOutput}
@@ -175,10 +180,12 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
 }
 
 function EditorWorkbench({ code, consoleOutput, editorRef, fileName, locale, onChange, onKeyDown, onReset, onRunCode, onRunTests, onSave, preview, previewKind, result, saveState, selectedPanel, setSelectedPanel, tests, total, passed, lesson }) {
+  const testBadge = result ? `${passed}/${total}` : `${total}`;
+  const showPreviewPanel = selectedPanel === "preview" || (selectedPanel === "tests" && (previewKind === "terminal" || (result && passed === total)));
   const panels = [
     ["code", locale === "fr" ? "Code" : "Code", FileCode2],
-    ["preview", locale === "fr" ? "Aperçu" : "Preview", Eye],
-    ["tests", locale === "fr" ? "Tests" : "Tests", CheckCircle2]
+    ["preview", locale === "fr" ? "Aperçu" : "Preview", Eye, previewKind],
+    ["tests", locale === "fr" ? "Tests" : "Tests", CheckCircle2, testBadge]
   ];
 
   return (
@@ -202,10 +209,18 @@ function EditorWorkbench({ code, consoleOutput, editorRef, fileName, locale, onC
         </div>
       </div>
 
+      <div className="border-b border-white/10 bg-slate-900/95 px-3 pb-3 text-xs font-semibold text-slate-300 xl:hidden">
+        <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2" role="status">
+          {nextActionMessage({ locale, onRunCode: Boolean(onRunCode), previewKind, result, total, passed, selectedPanel })}
+        </div>
+      </div>
+
       <div className="grid grid-cols-3 border-b border-white/10 bg-slate-900 p-2 xl:hidden" role="tablist" aria-label={locale === "fr" ? "Panneaux de l’éditeur" : "Editor panels"}>
-        {panels.map(([id, label, Icon]) => (
+        {panels.map(([id, label, Icon, badge]) => (
           <button key={id} type="button" role="tab" aria-selected={selectedPanel === id} onClick={() => setSelectedPanel(id)} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-2 text-sm font-black ${selectedPanel === id ? "bg-indigoPop text-white" : "text-slate-300 hover:bg-white/10"}`}>
-            <Icon className="size-4" />{label}
+            <Icon className="size-4" />
+            <span>{label}</span>
+            {badge && <span className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${selectedPanel === id ? "bg-white/20 text-white" : "bg-white/10 text-slate-200"}`}>{badge}</span>}
           </button>
         ))}
       </div>
@@ -215,7 +230,7 @@ function EditorWorkbench({ code, consoleOutput, editorRef, fileName, locale, onC
           <CodeEditor code={code} editorRef={editorRef} locale={locale} onChange={onChange} onKeyDown={onKeyDown} />
         </div>
         <div className="grid border-t border-white/10 bg-white xl:border-l xl:border-t-0">
-          <div className={`${selectedPanel === "code" || selectedPanel === "preview" || selectedPanel === "tests" ? "block" : "hidden"} xl:block`}>
+          <div className={`${showPreviewPanel ? "block" : "hidden"} xl:block`}>
             <Preview lesson={lesson} locale={locale} code={code} preview={preview} previewKind={previewKind} consoleOutput={consoleOutput} />
           </div>
           <div className={`${selectedPanel === "tests" ? "block" : "hidden"} border-t border-slate-200 xl:block`}>
@@ -321,6 +336,22 @@ function codePreviewTitle(kind, locale) {
     typescript: { fr: "Contrat TypeScript", en: "TypeScript contract" }
   };
   return titles[kind]?.[locale] || kind;
+}
+
+function nextActionMessage({ locale, onRunCode, previewKind, result, total, passed, selectedPanel }) {
+  const fr = locale === "fr";
+  if (!result && selectedPanel === "code") {
+    return onRunCode
+      ? (fr ? `Prochain geste : execute d'abord ton ${previewKind} pour verifier la sortie.` : `Next step: run your ${previewKind} first to verify the output.`)
+      : (fr ? "Prochain geste : lance les tests pour verifier ton code avant de passer a la suite." : "Next step: run the tests to verify your code before moving on.");
+  }
+  if (!result) {
+    return fr ? "Tu peux revenir au code a tout moment, puis relancer la verification." : "You can always return to code, then rerun the checks.";
+  }
+  if (passed === total) {
+    return fr ? "Tout passe : relis la correction si besoin, puis ouvre la lecon suivante." : "Everything passes: review the explanation if needed, then open the next lesson.";
+  }
+  return fr ? `Il reste ${total - passed} verification${total - passed > 1 ? "s" : ""} a corriger. Commence par le premier echec.` : `${total - passed} check${total - passed > 1 ? "s" : ""} still need fixing. Start with the first failure.`;
 }
 
 function fileExtension(lesson) {

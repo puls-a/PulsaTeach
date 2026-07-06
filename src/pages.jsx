@@ -19,7 +19,7 @@ import {
 import AuthNotice from "./components/AuthNotice.jsx";
 import DashCard from "./components/DashCard.jsx";
 import { Field, SelectField, TextAreaField } from "./components/FormFields.jsx";
-import { learningTracks } from "./content/allTrackRegistry.js";
+import { publicTrackSummaries } from "./content/publicTrackCatalog.js";
 import {
   createLessonDraft,
   deleteLessonDraft,
@@ -35,7 +35,7 @@ import {
   updateLessonDraft
 } from "./apiClient.js";
 
-const authorTrackOptions = learningTracks.map((track) => track.id);
+const authorTrackOptions = publicTrackSummaries.map((track) => track.id);
 
 export function ProfilePage({ locale }) {
   const [profile, setProfile] = useState(null);

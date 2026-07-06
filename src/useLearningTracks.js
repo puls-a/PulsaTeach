@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCatalog, getTrack } from "./apiClient.js";
-import { loadAllLocalTracks, loadLocalTrack } from "./content/localTrackLoader.js";
+import { loadAllLocalTracks, loadLocalTrack, mergeLoadedTrack } from "./content/localTrackLoader.js";
 import { publicTrackSummaries } from "./content/publicTrackCatalog.js";
 
 export function useLearningTracks({ remoteCatalog = false, mode = "summary" } = {}) {
@@ -10,28 +10,32 @@ export function useLearningTracks({ remoteCatalog = false, mode = "summary" } = 
   const [error, setError] = useState(null);
   const pendingLoads = useRef(new Map());
 
-  const loadTrack = useCallback(async (trackId) => {
+  const loadTrack = useCallback(async (trackId, options = {}) => {
     const current = tracks.find((track) => track.id === trackId);
-    if (current && !current.isSummary) return current;
-    if (pendingLoads.current.has(trackId)) return pendingLoads.current.get(trackId);
+    if (current && !current.isSummary && (!options.moduleId || current.modules.some((module) => module.id === options.moduleId))) return current;
+    const pendingKey = `${trackId}:${options.moduleId || "full"}`;
+    if (pendingLoads.current.has(pendingKey)) return pendingLoads.current.get(pendingKey);
 
-    const pending = loadLocalTrack(trackId)
+    const pending = loadLocalTrack(trackId, options)
       .catch(async () => {
         const response = await getTrack(trackId);
         return response.track;
       })
       .then((track) => {
         if (!track) throw new Error(`Track ${trackId} is unavailable.`);
+        const nextTrack = mergeLoadedTrack(current, track);
         setTracks((items) => {
-          const exists = items.some((item) => item.id === track.id);
+          const currentTrack = items.find((item) => item.id === track.id) || null;
+          const mergedTrack = mergeLoadedTrack(currentTrack, track);
+          const exists = items.some((item) => item.id === nextTrack.id);
           return exists
-            ? items.map((item) => item.id === track.id ? track : item)
-            : [...items, track];
+            ? items.map((item) => item.id === mergedTrack.id ? mergedTrack : item)
+            : [...items, mergedTrack];
         });
-        return track;
+        return nextTrack;
       })
-      .finally(() => pendingLoads.current.delete(trackId));
-    pendingLoads.current.set(trackId, pending);
+      .finally(() => pendingLoads.current.delete(pendingKey));
+    pendingLoads.current.set(pendingKey, pending);
     return pending;
   }, [tracks]);
 

@@ -94,6 +94,22 @@
   <url><loc>https://pulsateach.vercel.app/learn/css/css-grid-layout/css-grid-layout-align-content</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-grid-layout/css-grid-layout-quiz</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-grid-layout/css-grid-layout-lab</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors/css-01-selectors</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors/css-01-combinators</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors/css-01-states</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors/css-01-specificity-quiz</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-box-model</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-typography</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-custom-properties</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-sizing</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-overflow</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-flexbox/css-03-flexbox</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-flexbox/css-03-flex-wrap</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-flexbox/css-03-space-between</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-flexbox/css-03-mini-project-navbar</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-grid/css-04-grid</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-grid/css-04-grid-gap</loc></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-grid/css-04-place-items</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-responsive/css-responsive-width</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-responsive/css-responsive-max-width</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-responsive/css-responsive-media</loc></url>
@@ -134,22 +150,6 @@
   <url><loc>https://pulsateach.vercel.app/learn/css/css-capstone/css-capstone-overflow-wrap</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-capstone/css-capstone-quiz</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-capstone/css-capstone-lab</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors/css-01-selectors</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors/css-01-combinators</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors/css-01-states</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors/css-01-specificity-quiz</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-box-model</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-typography</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-custom-properties</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-sizing</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-overflow</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-flexbox/css-03-flexbox</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-flexbox/css-03-flex-wrap</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-flexbox/css-03-space-between</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-flexbox/css-03-mini-project-navbar</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-grid/css-04-grid</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-grid/css-04-grid-gap</loc></url>
-  <url><loc>https://pulsateach.vercel.app/learn/css/css-grid/css-04-place-items</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-responsive-motion/css-05-responsive</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-responsive-motion/css-05-mobile-first</loc></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-responsive-motion/css-05-motion</loc></url>

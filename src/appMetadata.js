@@ -81,9 +81,9 @@ const routeMetadata = {
 
 const noIndexRoutes = new Set(["admin", "author", "analytics", "settings", "profile", "dashboard", "review", "signup", "login", "not-found"]);
 
-export function updatePageMetadata(route, locale, fallbackTitle) {
+export function updatePageMetadata(route, locale, fallbackTitle, courseOverride = null) {
   const language = locale === "fr" ? "fr" : "en";
-  const course = route === "learn" ? readCourseMetadata(language) : null;
+  const course = route === "learn" ? readCourseMetadata(language, courseOverride) : null;
   const selected = course || routeMetadata[route]?.[language] || [
     fallbackTitle,
     language === "fr"
@@ -113,44 +113,46 @@ export function updatePageMetadata(route, locale, fallbackTitle) {
   setMeta("twitter:image", SOCIAL_IMAGE);
   setCanonical(canonical);
   updateStructuredData(route, language, title, description, course);
-  if (route === "learn") updateLearnMetadataFromCatalog(language, canonical);
+  if (route === "learn") updateLearnMetadataFromCatalog(language, canonical, courseOverride);
 }
 
-function readCourseMetadata(language) {
+function readCourseMetadata(language, override = null) {
   const match = window.location.pathname.match(/^\/learn\/([^/]+)(?:\/([^/]+)\/([^/]+))?/);
   if (!match) return null;
   const [, trackId, moduleId, lessonId] = match;
-  const trackName = humanize(trackId);
-  const moduleName = moduleId ? humanize(moduleId) : null;
-  const lessonName = lessonId ? humanize(lessonId) : null;
+  const trackName = override?.trackName || humanize(trackId);
+  const moduleName = override?.moduleName || (moduleId ? humanize(moduleId) : null);
+  const lessonName = override?.lessonName || (lessonId ? humanize(lessonId) : null);
   const subject = lessonName || moduleName || trackName;
   const title = language === "fr"
     ? `${subject} — ${trackName} gratuit | PulsaTeach`
     : `${subject} — Free ${trackName} course | PulsaTeach`;
   const description = sentence(
-    language === "fr"
+    override?.description || (language === "fr"
       ? `Apprends ${trackName} avec une leçon pratique, des exemples, un quiz et une progression sauvegardée gratuitement.`
       : `Learn ${trackName} with a practical lesson, examples, a quiz, and free saved progress.`
+    )
   );
   return [title, description, { trackId, trackName, moduleName, lessonName, lessonId }];
 }
 
-function updateLearnMetadataFromCatalog(language, expectedCanonical) {
+function updateLearnMetadataFromCatalog(language, expectedCanonical, override = null) {
   const match = window.location.pathname.match(/^\/learn\/([^/]+)(?:\/([^/]+)\/([^/]+))?/);
   if (!match) return;
   const [, trackId, moduleId, lessonId] = match;
   if (expectedCanonical !== canonicalUrl()) return;
   const track = findPublicTrack(trackId);
   if (!track) return;
-  const trackName = localized(track.title, language) || humanize(trackId);
-  const moduleName = moduleId ? humanize(moduleId) : null;
-  const lessonName = lessonId ? humanize(lessonId) : null;
+  const trackName = override?.trackName || localized(track.title, language) || humanize(trackId);
+  const moduleName = override?.moduleName || (moduleId ? humanize(moduleId) : null);
+  const lessonName = override?.lessonName || (lessonId ? humanize(lessonId) : null);
   const subject = lessonName || moduleName || trackName;
   const title = language === "fr"
     ? `${subject} — ${trackName} gratuit | PulsaTeach`
     : `${subject} — Free ${trackName} course | PulsaTeach`;
   const description = sentence(
-    localized(track.summary, language)
+    override?.description
+      || localized(track.summary, language)
       || (language === "fr"
         ? `Apprends ${trackName} avec une leçon pratique, des exemples, un quiz et une progression sauvegardée gratuitement.`
         : `Learn ${trackName} with a practical lesson, examples, a quiz, and free saved progress.`)

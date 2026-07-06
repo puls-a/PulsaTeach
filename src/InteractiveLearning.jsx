@@ -7,6 +7,7 @@ import {
   XCircle
 } from "lucide-react";
 import { getQuizSession, loadRemoteProgress, recordAttempt, recordLearningEvent, saveQuizSession, saveRemoteProgress } from "./apiClient.js";
+import { getDeferredTrackGroupModuleId, hasDeferredTrackGroup } from "./content/localTrackLoader.js";
 import { createQuizDraft, evaluateQuestion, normalizeQuizLesson, scoreQuiz } from "./features/quizzes/quizEngine.js";
 import QuizModal from "./features/quizzes/QuizModal.jsx";
 import { scheduleQuizReview } from "./features/review/spacedRepetition.js";
@@ -86,12 +87,8 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
   useEffect(() => {
     if (!activeTrack || !activeModule || !activeLesson || trackLoading) return;
     window.history.replaceState(null, "", `/learn/${activeTrackId}/${activeModuleId}/${activeLessonId}`);
-    updatePageMetadata("learn", locale, "PulsaTeach");
-    recordLearningEvent({
-      eventType: "lesson_opened",
-      lessonId: activeLessonId,
-      trackId: activeTrackId
-    }).catch(() => {});
+    updatePageMetadata("learn", locale, "PulsaTeach", { trackName: localize(activeTrack.title, locale), moduleName: localize(activeModule.title, locale), lessonName: localize(activeLesson.title, locale), description: localize(activeLesson.brief, locale) || localize(activeTrack.summary, locale) });
+    recordLearningEvent({ eventType: "lesson_opened", lessonId: activeLessonId, trackId: activeTrackId }).catch(() => {});
   }, [activeLesson, activeLessonId, activeModule, activeModuleId, activeTrack, activeTrackId, locale, trackLoading]);
 
   useEffect(() => {
@@ -129,6 +126,40 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
       setTrackLoadError(locale === "fr" ? "Impossible de charger cette formation." : "Unable to load this course.");
     }
   };
+
+  const openLesson = async (moduleId, lessonId) => {
+    setTrackLoadError("");
+    if (!activeTrack) return;
+    try {
+      if (activeTrack.id === "css" && !activeTrack.modules.some((module) => module.id === moduleId) && onRequireTrack) {
+        await onRequireTrack(activeTrack.id, { moduleId });
+      }
+      setActiveModuleId(moduleId);
+      setActiveLessonId(lessonId);
+    } catch {
+      setTrackLoadError(locale === "fr" ? "Impossible de charger cette lecon." : "Unable to load this lesson.");
+    }
+  };
+
+  const goToNextLesson = async () => {
+    if (!activeTrack || !activeModule || !activeLesson) return;
+    let next = getNextLesson(activeTrack, activeModule.id, activeLesson.id);
+    if (!next && hasDeferredTrackGroup(activeTrack, activeModule.id) && onRequireTrack) {
+      const deferredModuleId = getDeferredTrackGroupModuleId(activeTrack, activeModule.id);
+      if (deferredModuleId) {
+        const expandedTrack = await onRequireTrack(activeTrack.id, { moduleId: deferredModuleId });
+        next = getNextLesson(expandedTrack, activeModule.id, activeLesson.id);
+      }
+    }
+    if (next) {
+      setActiveModuleId(next.moduleId);
+      setActiveLessonId(next.lessonId);
+    }
+  };
+
+  const hasNextLesson = Boolean(activeTrack && activeModule && activeLesson && (
+    getNextLesson(activeTrack, activeModule.id, activeLesson.id) || hasDeferredTrackGroup(activeTrack, activeModule.id)
+  ));
 
   const persistProgress = (next) => {
     localStorage.setItem(progressKey, JSON.stringify(next));
@@ -227,10 +258,7 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
       onTrackChange={handleTrackChange}
       onQueryChange={setLessonQuery}
       onFilterChange={setStatusFilter}
-      onOpenLesson={(moduleId, lessonId) => {
-        setActiveModuleId(moduleId);
-        setActiveLessonId(lessonId);
-      }}
+      onOpenLesson={openLesson}
       onToggleBookmark={() => toggleBookmark(activeLesson.id)}
       onComplete={completeLesson}
       onQuizResult={handleQuizResult}
@@ -243,14 +271,8 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
           window.location.assign("/catalog");
         }
       }}
-      onNext={() => {
-        const next = getNextLesson(activeTrack, activeModule.id, activeLesson.id);
-        if (next) {
-          setActiveModuleId(next.moduleId);
-          setActiveLessonId(next.lessonId);
-        }
-      }}
-      hasNext={Boolean(getNextLesson(activeTrack, activeModule.id, activeLesson.id))}
+      onNext={goToNextLesson}
+      hasNext={hasNextLesson}
     />
   );
 

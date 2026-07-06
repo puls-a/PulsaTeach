@@ -1,5 +1,3 @@
-import { getPedagogy } from "./pedagogy.js";
-
 export function createCssModuleGroup(entries, startIndex = 0, projectModuleIds = []) {
   const projectModules = new Set(projectModuleIds);
   return entries.map(([id, title, selector, checks], offset) => {
@@ -37,7 +35,7 @@ function lessonFor(moduleId, moduleTitle, selector, check, step) {
     brief,
     theory: { fr: brief.fr, en: brief.en },
     course,
-    pedagogy: getPedagogy(id, { course, guide, title, brief, solution, type: "css" }),
+    pedagogy: createGeneratedCssPedagogy({ course, guide, title, brief, solution, type: "css" }),
     guide,
     skills: [moduleId, check],
     difficulty: step <= 3 ? "easy" : step <= 6 ? "medium" : "hard",
@@ -69,7 +67,7 @@ function quizFor(moduleId, title, index) {
     title: { fr: `Quiz ${title[0]}`, en: `${title[1]} quiz` },
     brief,
     course,
-    pedagogy: getPedagogy(id, { course, guide, title: { fr: `Quiz ${title[0]}`, en: `${title[1]} quiz` }, brief, type: "quiz" }),
+    pedagogy: createGeneratedCssPedagogy({ course, guide, title: { fr: `Quiz ${title[0]}`, en: `${title[1]} quiz` }, brief, type: "quiz" }),
     theory: brief,
     guide,
     skills: [moduleId],
@@ -109,7 +107,7 @@ function projectFor(moduleId, title, selector, checks, index) {
     title: { fr: `Lab ${title[0]}`, en: `${title[1]} lab` },
     brief,
     course,
-    pedagogy: getPedagogy(id, { course, guide, title: { fr: `Lab ${title[0]}`, en: `${title[1]} lab` }, brief, solution, type: "project" }),
+    pedagogy: createGeneratedCssPedagogy({ course, guide, title: { fr: `Lab ${title[0]}`, en: `${title[1]} lab` }, brief, solution, type: "project" }),
     theory: brief,
     guide,
     skills: [moduleId, "lab"],
@@ -155,6 +153,96 @@ function sections(title, brief, solution, check, selector) {
 
 function guideFor(title, moduleTitle, step) {
   return { fr: { objectives: [`Implementer ${title.fr}.`, `Relier l'etape ${step} au module ${moduleTitle[0]}.`, "Valider avec rendu et tests."], prerequisites: ["Lire le selecteur", "Comprendre la propriete ciblee", "Savoir lancer les tests"], steps: ["Identifier le composant", "Ajouter la regle minimale", "Tester mobile et desktop"], mistakes: [`Sur-styliser ${title.fr}.`, "Masquer le focus.", "Corriger sans regarder le rendu."] }, en: { objectives: [`Implement ${title.en}.`, `Connect step ${step} to ${moduleTitle[1]}.`, "Validate with preview and tests."], prerequisites: ["Read the selector", "Understand the target property", "Know how to run tests"], steps: ["Identify the component", "Add the smallest rule", "Test mobile and desktop"], mistakes: [`Over-styling ${title.en}.`, "Hiding focus.", "Fixing without checking preview."] } };
+}
+
+function createGeneratedCssPedagogy({ course, guide, title, brief, solution = "", type = "css" }) {
+  const frTitle = title?.fr || "Atelier CSS";
+  const enTitle = title?.en || "CSS workshop";
+  const fallbackSolution = solution || ".demo {\n  /* reponse attendue */\n}";
+
+  return {
+    fr: createPedagogyLocale({
+      title: frTitle,
+      brief: brief?.fr || "Complete l'etape demandee puis valide les tests.",
+      course: course?.fr,
+      guide: guide?.fr,
+      solution: fallbackSolution,
+      goodTitle: "Approche courte, visible et testable",
+      badTitle: "Approche fragile",
+      goodExplanation: "La regle cible un composant precis, exprime l'intention CSS et reste facile a verifier dans le rendu.",
+      badExplanation: "La correction repose sur du hasard, masque parfois le focus ou ne prouve pas que le layout tient vraiment.",
+      autonomousPrefix: "Refais cette etape sans regarder la solution, puis explique le lien entre la regle CSS et le rendu.",
+      next: type === "quiz" ? "Continue avec le module suivant en gardant cette logique de preuve." : "Passe a l'etape suivante et reutilise la meme methode de validation."
+    }),
+    en: createPedagogyLocale({
+      title: enTitle,
+      brief: brief?.en || "Complete the requested step, then validate the tests.",
+      course: course?.en,
+      guide: guide?.en,
+      solution: fallbackSolution,
+      goodTitle: "Short, visible, testable approach",
+      badTitle: "Fragile approach",
+      goodExplanation: "The rule targets a precise component, expresses the CSS intent, and remains easy to verify in the preview.",
+      badExplanation: "The fix relies on guessing, may hide focus, or does not prove that the layout actually holds.",
+      autonomousPrefix: "Repeat this step without opening the solution, then explain how the CSS rule changes the output.",
+      next: type === "quiz" ? "Continue with the next module while keeping this proof-based habit." : "Move to the next step and reuse the same validation method."
+    })
+  };
+}
+
+function createPedagogyLocale({ title, brief, course = {}, guide = {}, solution, goodTitle, badTitle, goodExplanation, badExplanation, autonomousPrefix, next }) {
+  const objectives = nonEmpty(guide.objectives, course.check, [
+    `Comprendre le role de ${title}.`,
+    "Appliquer une modification CSS courte.",
+    "Verifier le resultat avec le rendu et les tests."
+  ]);
+  const steps = nonEmpty(guide.steps, [
+    "Lire l'objectif et reperer le selecteur cible.",
+    "Ajouter la plus petite regle CSS qui satisfait la contrainte.",
+    "Comparer le rendu avant/apres, puis relancer les tests."
+  ]);
+
+  return {
+    why: course.introduction || brief,
+    objectives,
+    prerequisites: nonEmpty(guide.prerequisites, [
+      "Savoir lire une regle CSS simple.",
+      "Comprendre le selecteur cible.",
+      "Utiliser les tests comme preuve, pas comme loterie."
+    ]),
+    vocabulary: normalizeVocabulary(course.vocabulary),
+    comparison: {
+      good: { title: goodTitle, code: solution, explanation: goodExplanation },
+      bad: { title: badTitle, code: ".demo {\n  color: red;\n}", explanation: badExplanation }
+    },
+    guided: steps,
+    autonomous: `${autonomousPrefix} (${title})`,
+    hints: [
+      `Commence par cet objectif : ${objectives[0]}`,
+      "Si un test echoue, lis la propriete ou le selecteur cite dans son message.",
+      "Evite les grands blocs : une declaration juste vaut mieux qu'une cascade confuse."
+    ],
+    correction: [
+      "La solution cible le composant demande.",
+      "La declaration ajoute une intention CSS observable.",
+      "Les tests confirment la propriete, la valeur et la stabilite du rendu."
+    ],
+    summary: course.introduction || brief,
+    next
+  };
+}
+
+function nonEmpty(...candidates) {
+  return candidates.find((items) => Array.isArray(items) && items.length >= 3) || [];
+}
+
+function normalizeVocabulary(vocabulary = []) {
+  if (Array.isArray(vocabulary) && vocabulary.length >= 3) return vocabulary;
+  return [
+    ["selecteur", "Partie de la regle qui choisit les elements a styliser."],
+    ["declaration", "Couple propriete/valeur qui produit un effet visible."],
+    ["preuve visuelle", "Verification du rendu sur plusieurs tailles et etats."]
+  ];
 }
 
 function cssFor(selector, check) {

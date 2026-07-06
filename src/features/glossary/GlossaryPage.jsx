@@ -6,6 +6,7 @@ import { currentPathSegments } from "../../navigation.js";
 
 const favoritesKey = "pulsateach-glossary-favorites";
 const historyKey = "pulsateach-glossary-history";
+const initialVisibleTerms = 60;
 
 export default function GlossaryPage({ locale = "fr" }) {
   const fr = locale === "fr";
@@ -19,7 +20,9 @@ export default function GlossaryPage({ locale = "fr" }) {
   const [category, setCategory] = useState("all");
   const [bilingual, setBilingual] = useState(false);
   const [favorites, setFavorites] = useState(readList(favoritesKey));
+  const [visibleCount, setVisibleCount] = useState(initialVisibleTerms);
   const results = useMemo(() => searchGlossary(terms, query, { track, category }), [category, query, terms, track]);
+  const visibleResults = results.slice(0, visibleCount);
   const categories = [...new Set(terms.map((term) => term.category))];
   const trackOptions = [...new Set(terms.flatMap((term) => term.trackIds))];
 
@@ -52,6 +55,10 @@ export default function GlossaryPage({ locale = "fr" }) {
     if (selectedTerm) remember(selectedTerm.slug);
   }, [selectedTerm]);
 
+  useEffect(() => {
+    setVisibleCount(query || track !== "all" || category !== "all" ? 120 : initialVisibleTerms);
+  }, [category, query, track]);
+
   if (selectedTerm) {
     return <GlossaryDetail term={selectedTerm} terms={terms} locale={locale} bilingual={bilingual} onBilingual={() => setBilingual((value) => !value)} favorites={favorites} onFavorite={() => setFavorites(toggleStored(favoritesKey, favorites, selectedTerm.slug))} />;
   }
@@ -81,7 +88,7 @@ export default function GlossaryPage({ locale = "fr" }) {
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {results.map((term) => (
+          {visibleResults.map((term) => (
             <article className="surface flex flex-col" key={term.id}>
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -97,6 +104,13 @@ export default function GlossaryPage({ locale = "fr" }) {
           ))}
         </div>
         {results.length === 0 && <p className="empty-state mt-6">{fr ? "Aucun terme ne correspond à ces filtres." : "No term matches these filters."}</p>}
+        {visibleResults.length < results.length && (
+          <div className="mt-6 text-center">
+            <button type="button" className="secondary-button" onClick={() => setVisibleCount((count) => count + 60)}>
+              {fr ? `Afficher 60 termes de plus (${visibleResults.length}/${results.length})` : `Show 60 more terms (${visibleResults.length}/${results.length})`}
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

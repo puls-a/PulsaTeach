@@ -30,7 +30,7 @@ describe("catalog consistency", () => {
     const catalog = readFileSync("src/CurriculumHub.jsx", "utf8");
     const missions = readFileSync("src/features/learn/LearningLayout.jsx", "utf8");
 
-    expect(authorPage).toContain("authorTrackOptions = learningTracks.map");
+    expect(authorPage).toContain("authorTrackOptions = publicTrackSummaries.map");
     expect(authorPage).not.toContain('options={["html", "css", "javascript"]}');
     expect(missions).toContain("projectMissions = learningTracks.map");
 

@@ -20,8 +20,14 @@ export default defineConfig({
           if (id.includes("node_modules/@supabase/supabase-js")) return "supabase";
           if (id.includes("node_modules/react") || id.includes("node_modules/react-dom")) return "react";
           if (id.includes("htmlPedagogy.js") || id.includes("cssPedagogy.js") || id.includes("jsPedagogy.js")) return "pedagogy";
-          if (id.includes("cssModulesFoundation")) return "content-css-foundations";
-          if (id.includes("cssModulesResponsive")) return "content-css-responsive";
+          if (id.includes("cssTrackSelectorsColorsChunk")) return "content-css-selectors";
+          if (id.includes("cssTrackBoxTypeChunk")) return "content-css-box";
+          if (id.includes("cssTrackFlexLayoutChunk")) return "content-css-flex";
+          if (id.includes("cssTrackGridLayoutChunk")) return "content-css-grid";
+          if (id.includes("cssTrackLegacyFoundationChunk")) return "content-css-legacy-foundation";
+          if (id.includes("cssModulesFoundation") || id.includes("cssTrackFoundationChunk")) return "content-css-foundations";
+          if (id.includes("cssModulesResponsive") || id.includes("cssTrackResponsiveChunk")) return "content-css-responsive";
+          if (id.includes("cssTrackMetadata")) return "content-css-shared";
           if (id.includes("cssModuleFactory")) return "content-css-shared";
           if (id.includes("/src/content/html") || id.includes("\\src\\content\\html")) return "content-html";
           if (id.includes("/src/content/css") || id.includes("\\src\\content\\css")) return "content-css";

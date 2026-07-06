@@ -35,7 +35,7 @@ await requireAllTrackIds("src/jsSandboxWorker.js", "sandbox catalog mock");
 await requireAllTrackIds("src/CurriculumHub.jsx", "catalog track presentation");
 
 const authorPage = await read("src/pages.jsx");
-if (!authorPage.includes("authorTrackOptions = learningTracks.map")) failures.push("AuthorPage must derive track options from allTrackRegistry.");
+if (!authorPage.includes("authorTrackOptions = publicTrackSummaries.map")) failures.push("AuthorPage must derive track options from the public track catalog.");
 if (authorPage.includes('options={["html", "css", "javascript"]}')) failures.push("AuthorPage still exposes only html/css/javascript.");
 
 const learningLayout = await read("src/features/learn/LearningLayout.jsx");

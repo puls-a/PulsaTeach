@@ -1,8 +1,9 @@
 import { publicTrackCatalog } from "./publicTrackCatalog.js";
+import { cssFoundationModuleIds, cssResponsiveModuleIds, getCssNextDeferredGroup, orderCssModules, resolveCssGroup } from "./cssTrackMetadata.js";
 
 const trackLoaders = {
   html: () => import("./htmlTrack.js").then((module) => module.htmlTrack),
-  css: () => import("./cssTrack.js").then((module) => module.cssTrack),
+  css: () => loadFullCssTrack(),
   javascript: () => import("./javascriptTrack.js").then((module) => module.javascriptTrack),
   git: () => import("./tracks/git.js").then((module) => module.gitTrack),
   accessibility: () => import("./tracks/accessibility.js").then((module) => module.accessibilityTrack),
@@ -16,7 +17,27 @@ const trackLoaders = {
   "devops-deployment": () => import("./tracks/devops-deployment.js").then((module) => module.devopsDeploymentTrack)
 };
 
-export async function loadLocalTrack(trackId) {
+const cssModuleLoaders = {
+  "css-selectors-colors": () => import("./cssTrackSelectorsColorsChunk.js").then((module) => module.cssTrackSelectorsColorsChunk),
+  "css-box-type": () => import("./cssTrackBoxTypeChunk.js").then((module) => module.cssTrackBoxTypeChunk),
+  "css-flex-layout": () => import("./cssTrackFlexLayoutChunk.js").then((module) => module.cssTrackFlexLayoutChunk),
+  "css-grid-layout": () => import("./cssTrackGridLayoutChunk.js").then((module) => module.cssTrackGridLayoutChunk),
+  "css-selectors": () => import("./cssTrackLegacyFoundationChunk.js").then((module) => module.cssTrackLegacyFoundationChunk),
+  "css-box-model": () => import("./cssTrackLegacyFoundationChunk.js").then((module) => module.cssTrackLegacyFoundationChunk),
+  "css-flexbox": () => import("./cssTrackLegacyFoundationChunk.js").then((module) => module.cssTrackLegacyFoundationChunk),
+  "css-grid": () => import("./cssTrackLegacyFoundationChunk.js").then((module) => module.cssTrackLegacyFoundationChunk),
+  "css-responsive": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackResponsiveChunk),
+  "css-a11y-states": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackResponsiveChunk),
+  "css-motion": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackResponsiveChunk),
+  "css-capstone": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackResponsiveChunk),
+  "css-responsive-motion": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackResponsiveChunk),
+  "css-advanced-responsive": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackResponsiveChunk)
+};
+
+export async function loadLocalTrack(trackId, options = {}) {
+  if (trackId === "css" && options.moduleId) {
+    return loadCssTrack(options);
+  }
   const load = trackLoaders[trackId];
   if (!load) throw new Error(`Unknown track ${trackId}`);
   return load();
@@ -24,4 +45,50 @@ export async function loadLocalTrack(trackId) {
 
 export async function loadAllLocalTracks() {
   return Promise.all(publicTrackCatalog.map((track) => loadLocalTrack(track.id)));
+}
+
+async function loadCssTrack(options = {}) {
+  if (!options.moduleId) return loadFullCssTrack();
+  const load = cssModuleLoaders[options.moduleId];
+  if (load) return load();
+  return resolveCssGroup(options.moduleId) === "responsive"
+    ? cssModuleLoaders["css-responsive"]()
+    : cssModuleLoaders["css-selectors-colors"]();
+}
+
+async function loadFullCssTrack() {
+  const tracks = await Promise.all([
+    cssModuleLoaders["css-selectors-colors"](),
+    cssModuleLoaders["css-box-type"](),
+    cssModuleLoaders["css-flex-layout"](),
+    cssModuleLoaders["css-grid-layout"](),
+    cssModuleLoaders["css-selectors"](),
+    cssModuleLoaders["css-responsive"]()
+  ]);
+  return tracks.reduce((merged, track) => mergeLoadedTrack(merged, track), null);
+}
+
+export function mergeLoadedTrack(existing, incoming) {
+  if (!existing || existing.id !== incoming.id) return incoming;
+  if (incoming.id !== "css") return incoming;
+  const mergedGroups = [...new Set([...(existing.loadedGroups || []), ...(incoming.loadedGroups || [])])];
+  const mergedModules = orderCssModules([...(existing.modules || []), ...(incoming.modules || [])].filter((module, index, items) => items.findIndex((candidate) => candidate.id === module.id) === index));
+  return {
+    ...incoming,
+    modules: mergedModules,
+    loadedGroups: mergedGroups,
+    isPartialTrack: mergedGroups.length < 2
+  };
+}
+
+export function hasDeferredTrackGroup(track, moduleId) {
+  return track?.id === "css" && Boolean(getCssNextDeferredGroup(moduleId, track.loadedGroups || []));
+}
+
+export function getDeferredTrackGroupModuleId(track, moduleId) {
+  if (track?.id !== "css") return null;
+  const nextGroup = getCssNextDeferredGroup(moduleId, track.loadedGroups || []);
+  if (nextGroup === "responsive") return cssResponsiveModuleIds[0];
+  if (nextGroup === "foundation") return cssFoundationModuleIds[0];
+  return null;
 }
