@@ -90,7 +90,7 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
     await expect(page.getByText(/Prévisualisation apprenant|Learner preview/)).toBeVisible();
 
     await page.goto("/catalog");
-    await expect(page.getByText("Formation CI dynamique")).toBeVisible();
+    await expect(page.locator("span", { hasText: /^Formation CI dynamique$/ })).toBeVisible();
     await page.goto(`/learn/${course.slug}/${module.id}/${lesson.id}`);
     await expect(page.getByText("Première leçon CI").first()).toBeVisible();
 

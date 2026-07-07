@@ -21,14 +21,14 @@ jobs:
           set -euo pipefail
           curl --retry 2 --retry-all-errors --fail --silent --show-error --max-time 20 https://pulsateach.vercel.app/ > /dev/null
           ready="$(curl --retry 2 --retry-all-errors --fail --silent --show-error --max-time 20 https://pulsateach.vercel.app/api/health/ready)"
-          echo "$ready" | grep -q '"ok":true'
-          echo "$ready" | grep -q '"storage":"supabase-strict"'
+          grep -q '"ok":true' <<< "$ready"
+          grep -q '"storage":"supabase-strict"' <<< "$ready"
           sitemap="$(curl --retry 2 --retry-all-errors --fail --silent --show-error --max-time 20 https://pulsateach.vercel.app/sitemap.xml)"
-          echo "$sitemap" | grep -q '<urlset'
-          echo "$sitemap" | grep -q '/learn/html/'
+          grep -q '<urlset' <<< "$sitemap"
+          grep -q '/learn/html/' <<< "$sitemap"
           headers="$(curl --fail --silent --show-error --head --max-time 20 https://pulsateach.vercel.app/)"
-          echo "$headers" | grep -qi '^content-security-policy:'
-          echo "$headers" | grep -qi '^strict-transport-security:'
+          grep -qi '^content-security-policy:' <<< "$headers"
+          grep -qi '^strict-transport-security:' <<< "$headers"
 
       - name: Open or update incident
         if: steps.probe.outcome == 'failure'

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { ArrowRight, BookOpen, Check, Clock3, Code2, Flag, GraduationCap, ArrowLeft, LayoutTemplate } from "lucide-react";
 import { useSupabaseSession } from "../../authState.js";
 import { useLearningTracks } from "../../useLearningTracks.js";
@@ -14,7 +14,7 @@ function readProgress() {
 
 export function TrackLandingPage({ locale = "fr", trackId }) {
   const { user } = useSupabaseSession();
-  const { tracks, loading, error, loadTrack } = useLearningTracks({ remoteCatalog: Boolean(user), mode: "summary" });
+  const { tracks, error, loadTrack } = useLearningTracks({ remoteCatalog: Boolean(user), mode: "summary" });
   const progress = useMemo(readProgress, []);
 
   // Ensure full track is loaded
@@ -47,7 +47,6 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
     );
   }
 
-  const moduleCount = Array.isArray(track.modules) ? track.modules.length : 0;
   const lessonsCount = track.modules.reduce((sum, m) => sum + (m.lessons?.length || 0), 0);
   const totalMinutes = track.modules.reduce((sum, m) => sum + (m.totalMinutes || 0), 0);
   const projects = track.modules.flatMap(m => m.lessons).filter(l => l.type === "project").length;

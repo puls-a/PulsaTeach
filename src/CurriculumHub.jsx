@@ -32,10 +32,11 @@ export default function CurriculumHub({ locale = "fr" }) {
   const canCreateCourses = canManageContent(user);
 
   useEffect(() => {
-    if (!openTrack && tracks[0]) setOpenTrack(tracks[0].id);
-  }, [openTrack, tracks]);
+    if (user && !openTrack && tracks[0]) setOpenTrack(tracks[0].id);
+  }, [openTrack, tracks, user]);
 
   useEffect(() => {
+    if (!user) return;
     const track = tracks.find((item) => item.id === openTrack);
     if (!track?.isSummary) return;
     let cancelled = false;
@@ -48,7 +49,7 @@ export default function CurriculumHub({ locale = "fr" }) {
     return () => {
       cancelled = true;
     };
-  }, [loadTrack, openTrack, tracks]);
+  }, [loadTrack, openTrack, tracks, user]);
 
   return (
     <section className="min-h-screen bg-[#f5f6fa] px-4 pb-20 pt-24 sm:px-6">
@@ -114,6 +115,7 @@ export default function CurriculumHub({ locale = "fr" }) {
               track={track}
               locale={locale}
               progress={progress}
+              signedIn={Boolean(user)}
               loading={loadingTrackId === track.id}
               open={openTrack === track.id}
               onToggle={() => setOpenTrack(openTrack === track.id ? null : track.id)}
@@ -143,7 +145,7 @@ export default function CurriculumHub({ locale = "fr" }) {
   );
 }
 
-function TrackCard({ track, locale, progress, loading, open, onToggle }) {
+function TrackCard({ track, locale, progress, signedIn, loading, open, onToggle }) {
   const presentation = trackPresentation[track.id] || { icon: BookOpen, badge: "bg-slate-100 text-ink border-slate-300" };
   const Icon = presentation.icon;
   const lessons = countLessons(track);
@@ -232,8 +234,8 @@ function TrackCard({ track, locale, progress, loading, open, onToggle }) {
               </div>
             </>
           )}
-          <a href={startHref} className="primary-button mt-5">
-            {completed ? (locale === "fr" ? "Continuer la formation" : "Continue course") : (locale === "fr" ? "Commencer la formation" : "Start course")}
+          <a href={signedIn ? startHref : `/formations/${track.id}`} className="primary-button mt-5">
+            {signedIn && completed ? (locale === "fr" ? "Continuer la formation" : "Continue course") : (locale === "fr" ? "Voir la formation" : "View course")}
             <ArrowRight className="size-4" />
           </a>
         </div>
