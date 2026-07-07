@@ -1,0 +1,143 @@
+import time
+import schedule
+from core.queue_manager import get_next_for_platform, remove_from_queue, add_to_history, is_duplicate
+from core.content_generator import generate_social_content
+from core.auto_ideation import auto_fill_queue
+from core.logger import get_logger
+from platforms.x_client import XBot
+from platforms.instagram_client import InstagramBot
+from platforms.tiktok_client import TikTokBot
+import os
+
+# Import du créateur de vidéo autonome
+try:
+    from core.auto_video_creator import create_faceless_video
+    HAS_VIDEO_CREATOR = True
+except ImportError:
+    HAS_VIDEO_CREATOR = False
+
+logger = get_logger("Scheduler")
+
+# Initialisation des clients (Lazy loading pour éviter les plantages au démarrage si configs manquantes)
+clients = {}
+
+def get_client(platform):
+    if platform not in clients:
+        if platform == "x":
+            clients["x"] = XBot()
+        elif platform == "instagram":
+            clients["instagram"] = InstagramBot()
+        elif platform == "tiktok":
+            clients["tiktok"] = TikTokBot()
+    return clients.get(platform)
+
+def process_queue_for_platform(platform: str):
+    """Récupère le prochain post de la file pour une plateforme et le publie."""
+    logger.info(f"🔍 Vérification de la file d'attente pour {platform}...")
+    
+    item = get_next_for_platform(platform)
+    
+    # 🧠 LE CERVEAU AUTONOME : Si la file est vide, on génère des idées tout seul !
+    if not item:
+        logger.info(f"⚠️ La file est vide pour {platform}. Activation de l'IA d'idéation...")
+        success_fill = auto_fill_queue(platform, count=3)
+        if success_fill:
+            # On retente de prendre le premier élément fraîchement généré
+            item = get_next_for_platform(platform)
+        
+        if not item:
+            logger.error(f"❌ Impossible de générer du contenu pour {platform}. Abandon.")
+            return
+
+    topic = item.get("topic")
+    content_type = item.get("type", "post")
+    media_path = item.get("media_path")
+
+    # Anti-duplication check
+    if is_duplicate(platform, topic):
+        logger.warning(f"⚠️ Sujet '{topic}' déjà publié sur {platform}. Suppression de la file.")
+        remove_from_queue(item["id"])
+        return
+
+    logger.info(f"🚀 Préparation publication {platform} : {topic}")
+    
+    # 1. Génération IA
+    ai_content = generate_social_content(platform, topic, content_type)
+    caption = ai_content.get("caption", "")
+    hook = ai_content.get("hook", None)
+
+    # 2. Publication
+    client = get_client(platform)
+    success = False
+
+    if platform == "x":
+        tweets = ai_content.get("tweets", [])
+        poll_options = ai_content.get("poll_options", None)
+        
+        # Fallback de sécurité si l'IA s'est trompée de format
+        if not tweets:
+            if "tweet_1" in ai_content:
+                tweets = [ai_content["tweet_1"], ai_content.get("tweet_2", "Lien : " + URL_PULSATEACH)]
+            elif "caption" in ai_content:
+                tweets = [ai_content["caption"]]
+        
+        success = client.post_thread(tweets, media_path=media_path, poll_options=poll_options)
+    elif platform == "instagram":
+        is_reel = content_type == "reel"
+        is_carousel = content_type == "carousel"
+        success = client.post(media_path, caption, is_reel=is_reel, is_carousel=is_carousel)
+    elif platform == "tiktok":
+        # 🎬 GÉNÉRATION VIDÉO AUTONOME (Si aucun média n'est fourni)
+        if not media_path and HAS_VIDEO_CREATOR:
+            logger.info("🤖 Création vidéo autonome (Faceless + IA Voice) en cours...")
+            generated_video = create_faceless_video(topic, hook, caption)
+            if generated_video:
+                media_path = generated_video
+            else:
+                logger.error("❌ Échec de la création vidéo autonome.")
+                
+        # On passe directement la vidéo à TikTok (plus besoin que TikTokBot ajoute le hook, car la vidéo a déjà le hook incrusté ET la voix !)
+        if media_path and os.path.exists(media_path):
+            # hook_text est mis à None car le texte est déjà incrusté dans l'étape 'create_faceless_video'
+            success = client.post(media_path, caption, hook_text=None)
+        else:
+            logger.error("❌ Impossible de publier sur TikTok : Vidéo introuvable.")
+
+    # 3. Post-traitement
+    if success:
+        logger.info(f"🎉 Succès publication {platform}. Ajout à l'historique.")
+        add_to_history(platform, topic)
+        remove_from_queue(item["id"])
+        
+        # Nettoyage si la vidéo a été générée par le bot
+        if platform == "tiktok" and media_path and "tiktok_auto_" in media_path:
+            try:
+                os.remove(media_path)
+            except:
+                pass
+    else:
+        logger.error(f"❌ Échec de la publication pour {platform}. Le post reste dans la file.")
+
+def setup_schedules():
+    """Planification intelligente des publications."""
+    logger.info("📅 Configuration du planificateur central...")
+
+    # TIKTOK : Matin et Soir (Vidéos courtes)
+    schedule.every().day.at("08:30").do(process_queue_for_platform, "tiktok")
+    schedule.every().day.at("18:30").do(process_queue_for_platform, "tiktok")
+
+    # X (Twitter) : Tout au long de la journée
+    schedule.every().day.at("10:00").do(process_queue_for_platform, "x")
+    schedule.every().day.at("14:00").do(process_queue_for_platform, "x")
+    schedule.every().day.at("20:00").do(process_queue_for_platform, "x")
+
+    # INSTAGRAM : Début d'après-midi (Carrousels, Reels, Posts)
+    schedule.every().day.at("12:30").do(process_queue_for_platform, "instagram")
+    schedule.every().day.at("17:45").do(process_queue_for_platform, "instagram")
+
+def run_scheduler():
+    setup_schedules()
+    logger.info("✅ Planificateur démarré. En attente...")
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
