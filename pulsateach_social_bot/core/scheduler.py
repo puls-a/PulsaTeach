@@ -1,9 +1,11 @@
 import time
 import schedule
-from core.queue_manager import get_next_for_platform, remove_from_queue, add_to_history, is_duplicate
+from core.config import PLATFORM_ENABLED
+from core.queue_manager import add_to_history, get_next_for_platform, is_duplicate, mark_attempt, remove_from_queue
 from core.content_generator import generate_social_content
 from core.auto_ideation import auto_fill_queue
 from core.logger import get_logger
+from core.state import add_failed, add_quality_report, can_publish, increment_metric
 from platforms.x_client import XBot
 from platforms.instagram_client import InstagramBot
 from platforms.tiktok_client import TikTokBot
@@ -31,9 +33,18 @@ def get_client(platform):
             clients["tiktok"] = TikTokBot()
     return clients.get(platform)
 
-def process_queue_for_platform(platform: str):
+def process_queue_for_platform(platform: str, forced: bool = False):
     """Récupère le prochain post de la file pour une plateforme et le publie."""
     logger.info(f"🔍 Vérification de la file d'attente pour {platform}...")
+
+    if not PLATFORM_ENABLED.get(platform, False) and not forced:
+        logger.info(f"Plateforme {platform} desactivee. Skip.")
+        return
+
+    allowed, reason = can_publish(platform, forced=forced)
+    if not allowed:
+        logger.warning(f"Publication bloquee pour {platform}: {reason}")
+        return
     
     item = get_next_for_platform(platform)
     
@@ -60,6 +71,7 @@ def process_queue_for_platform(platform: str):
         return
 
     logger.info(f"🚀 Préparation publication {platform} : {topic}")
+    mark_attempt(item["id"])
     
     # 1. Génération IA
     ai_content = generate_social_content(platform, topic, content_type)
@@ -71,17 +83,16 @@ def process_queue_for_platform(platform: str):
     success = False
 
     if platform == "x":
-        tweets = ai_content.get("tweets", [])
-        poll_options = ai_content.get("poll_options", None)
-        
-        # Fallback de sécurité si l'IA s'est trompée de format
-        if not tweets:
-            if "tweet_1" in ai_content:
-                tweets = [ai_content["tweet_1"], ai_content.get("tweet_2", "Lien : " + URL_PULSATEACH)]
-            elif "caption" in ai_content:
-                tweets = [ai_content["caption"]]
-        
-        success = client.post_thread(tweets, media_path=media_path, poll_options=poll_options)
+        main_post = ai_content.get("main_post") or ai_content.get("caption") or ""
+        reply = ai_content.get("reply")
+        add_quality_report("x", topic, {
+            "score": ai_content.get("quality_score"),
+            "notes": ai_content.get("quality_notes", []),
+            "format": ai_content.get("format"),
+            "main_post": main_post,
+            "reply": reply,
+        })
+        success = client.post_value_with_reply(main_post, reply)
     elif platform == "instagram":
         is_reel = content_type == "reel"
         is_carousel = content_type == "carousel"
@@ -106,7 +117,8 @@ def process_queue_for_platform(platform: str):
     # 3. Post-traitement
     if success:
         logger.info(f"🎉 Succès publication {platform}. Ajout à l'historique.")
-        add_to_history(platform, topic)
+        add_to_history(platform, topic, ai_content)
+        increment_metric(platform, "published")
         remove_from_queue(item["id"])
         
         # Nettoyage si la vidéo a été générée par le bot
@@ -117,6 +129,10 @@ def process_queue_for_platform(platform: str):
                 pass
     else:
         logger.error(f"❌ Échec de la publication pour {platform}. Le post reste dans la file.")
+        increment_metric(platform, "failed")
+        if int(item.get("attempts", 0)) >= 3:
+            add_failed(item, "3 tentatives echouees")
+            remove_from_queue(item["id"])
 
 def setup_schedules():
     """Planification intelligente des publications."""

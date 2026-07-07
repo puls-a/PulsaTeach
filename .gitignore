@@ -24,6 +24,13 @@ data/
 playwright-report/
 playwright-report-supabase/
 test-results/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+pulsateach_social_bot/assets/debug_*.png
+pulsateach_social_bot/assets/x_*_failed.png
+pulsateach_social_bot/assets/x_*_exception.png
 
 .vercel
 supabase/.temp/

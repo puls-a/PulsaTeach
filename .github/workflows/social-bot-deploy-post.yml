@@ -1,0 +1,66 @@
+name: Social Bot Deploy Post
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  post-after-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Wait for Vercel deployment window
+        run: sleep 90
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working-directory: pulsateach_social_bot
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m playwright install chromium
+
+      - name: Configure bot environment
+        working-directory: pulsateach_social_bot
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          X_COOKIES_JSON: ${{ secrets.X_COOKIES_JSON }}
+        run: |
+          mkdir -p data
+          cat > .env <<EOF
+          DRY_RUN=False
+          GEMINI_API_KEY=${GEMINI_API_KEY}
+          URL_PULSATEACH=https://pulsateach.vercel.app
+          X_ENABLED=True
+          X_COOKIES_FILE=data/x_cookies.json
+          X_DAILY_LIMIT=10
+          X_MIN_MINUTES_BETWEEN_POSTS=0
+          INSTAGRAM_ENABLED=False
+          TIKTOK_ENABLED=False
+          EOF
+          python - <<'PY'
+          import os
+          cookies = os.environ.get("X_COOKIES_JSON", "").strip()
+          if not cookies:
+              raise SystemExit("Missing GitHub secret X_COOKIES_JSON")
+          with open("data/x_cookies.json", "w", encoding="utf-8") as f:
+              f.write(cookies)
+          PY
+
+      - name: Health check
+        working-directory: pulsateach_social_bot
+        run: python main.py health
+
+      - name: Publish deployment post on X
+        working-directory: pulsateach_social_bot
+        run: python main.py deploy-post

@@ -1,84 +1,95 @@
-import google.generativeai as genai
 import random
+
+import requests
+
 from core.config import GEMINI_API_KEY
 from core.logger import get_logger
 from core.queue_manager import add_to_queue
-
 from core.tech_news import get_latest_tech_news
 
 logger = get_logger("AutoIdeation")
 
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-2.5-flash')
-else:
-    model = None
+MODEL_NAME = "gemini-2.5-flash"
+
+
+def _gemini_text(prompt: str) -> str:
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent"
+    response = requests.post(
+        url,
+        params={"key": GEMINI_API_KEY},
+        json={
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.8, "topP": 0.9},
+        },
+        timeout=45,
+    )
+    response.raise_for_status()
+    data = response.json()
+    return data["candidates"][0]["content"]["parts"][0]["text"]
+
 
 def auto_fill_queue(platform: str, count: int = 3):
-    """
-    Génère automatiquement de nouvelles idées si la file d'attente est vide.
-    """
-    if not model:
-        logger.error("Impossible de générer des idées : Clé IA manquante.")
+    """Genere automatiquement de nouvelles idees si la file est vide."""
+    if not GEMINI_API_KEY:
+        logger.error("Impossible de generer des idees : cle IA manquante.")
         return False
 
-    logger.info(f"🧠 File d'attente vide pour {platform}. Génération de {count} sujets...")
+    logger.info(f"File d'attente vide pour {platform}. Generation de {count} sujets...")
 
-    # Tirage au sort de la stratégie de contenu (A/B Testing)
     strategies = [
-        "Un tutoriel technique étape par étape (Mega-Thread).",
-        "Une opinion très controversée ou 'Hot Take' sur le monde du dev.",
-        "Une erreur classique de développeur junior et comment la corriger.",
-        "Un coup de gueule motivant sur la recherche du premier job en tech.",
-        "NEWS_JACKING" # Nouvelle stratégie
+        "mini-defi pratique avec correction",
+        "erreur classique de debutant et correction",
+        "astuce concrete JavaScript/CSS/React",
+        "conseil portfolio ou premier job",
+        "news-jacking webdev",
     ]
     selected_strategy = random.choice(strategies)
-    logger.info(f"🎯 Stratégie sélectionnée par l'IA : {selected_strategy}")
+    logger.info(f"Strategie selectionnee: {selected_strategy}")
 
-    if selected_strategy == "NEWS_JACKING":
+    if selected_strategy == "news-jacking webdev":
         latest_news = get_latest_tech_news()
-        if latest_news:
-            prompt = f"""
-            Voici les 3 articles les plus tendances du jour dans le monde du développement web :
-            {latest_news}
-            
-            Crée EXACTEMENT {count} idées de posts très courts pour {platform} qui résument ou débattent de ces actualités.
-            Règle absolue : Renvoie UNIQUEMENT une liste de textes séparés par des retours à la ligne. Pas de blabla.
-            """
-        else:
-            selected_strategy = "Une astuce ultra courte" # Fallback
-            prompt = f"Donne-moi EXACTEMENT {count} idées d'astuces de dev web pour {platform}. Renvoie juste la liste."
+        news_context = "\n".join(latest_news) if latest_news else ""
+        prompt = f"""
+Voici des titres recents webdev:
+{news_context}
+
+Genere EXACTEMENT {count} idees de posts X en francais, utiles pour des debutants web.
+Chaque idee doit etre specifique, pas generique, et tenir sur une ligne.
+Pas de numerotation, pas de markdown, pas de blabla.
+"""
     else:
         prompt = f"""
-        Tu es un expert en création de contenu pour développeurs web.
-        Donne-moi EXACTEMENT {count} idées de sujets pour des posts sur {platform}.
-        
-        Format imposé pour cette session : {selected_strategy}
-        Sujets possibles : HTML, CSS, JavaScript, React, NextJS, ou la vie d'un dev (trouver un job, portfolio).
-        
-        Règle absolue : Renvoie UNIQUEMENT une liste de textes séparés par des retours à la ligne. Pas de blabla.
-        """
+Tu trouves des sujets X pour @pulsateach, compte educatif francophone dev web.
+
+Strategie: {selected_strategy}
+Themes: HTML, CSS, JavaScript, React, Git, portfolio, premier job, projets juniors.
+
+Genere EXACTEMENT {count} idees de posts.
+Chaque idee doit etre precise, actionnable, et tenir sur une ligne.
+Exemples de qualite:
+Corrige ce useEffect qui boucle a l'infini
+Pourquoi ton portfolio ne rassure pas les recruteurs
+Mini-defi CSS: reproduis ce layout sans media queries
+
+Pas de numerotation, pas de markdown, pas de blabla.
+"""
 
     try:
-        response = model.generate_content(prompt)
-        ideas = response.text.strip().split('\n')
-        
-        # Nettoyage des puces éventuelles (1., -, *, etc.)
+        ideas = _gemini_text(prompt).strip().split("\n")
+
         clean_ideas = []
         for idea in ideas:
-            clean_idea = idea.strip(' 1234567890.*-')
-            if len(clean_idea) > 10: # Ignorer les lignes trop courtes ou vides
+            clean_idea = idea.strip(" 1234567890.*-–—")
+            if len(clean_idea) > 10:
                 clean_ideas.append(clean_idea)
 
         added = 0
         for topic in clean_ideas[:count]:
-            content_type = "thread" if platform == "x" else "post"
-            add_to_queue(platform, content_type, topic)
+            add_to_queue(platform, "post", topic)
             added += 1
-            
-        logger.info(f"✅ {added} nouvelles idées ajoutées à la file d'attente pour {platform} !")
-        return True
-        
+
+        logger.info(f"{added} nouvelles idees ajoutees a la file pour {platform}.")
+        return added > 0
     except Exception as e:
-        logger.error(f"❌ Erreur lors de la génération d'idées : {e}")
+        logger.error(f"Erreur generation idees : {e}")
         return False
