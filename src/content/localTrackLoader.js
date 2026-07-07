@@ -1,8 +1,9 @@
 import { publicTrackCatalog } from "./publicTrackCatalog.js";
 import { cssFoundationModuleIds, cssResponsiveModuleIds, getCssNextDeferredGroup, orderCssModules, resolveCssGroup } from "./cssTrackMetadata.js";
+import { htmlAdvancedModuleIds, htmlFoundationModuleIds, htmlHardeningModuleIds, htmlTrackMetadata, htmlWorkshopModuleIds } from "./htmlTrackMetadata.js";
 
 const trackLoaders = {
-  html: () => import("./htmlTrack.js").then((module) => module.htmlTrack),
+  html: () => loadFullHtmlTrack(),
   css: () => loadFullCssTrack(),
   javascript: () => import("./javascriptTrack.js").then((module) => module.javascriptTrack),
   git: () => import("./tracks/git.js").then((module) => module.gitTrack),
@@ -15,6 +16,13 @@ const trackLoaders = {
   "web-security": () => import("./tracks/web-security.js").then((module) => module.webSecurityTrack),
   "web-performance": () => import("./tracks/web-performance.js").then((module) => module.webPerformanceTrack),
   "devops-deployment": () => import("./tracks/devops-deployment.js").then((module) => module.devopsDeploymentTrack)
+};
+
+const htmlModuleLoaders = {
+  foundation: () => import("./htmlModulesFoundation.js").then((module) => ({ ...htmlTrackMetadata, modules: module.htmlFoundationModules, loadedGroups: ["foundation"], isPartialTrack: true })),
+  advanced: () => import("./htmlModulesAdvanced.js").then((module) => ({ ...htmlTrackMetadata, modules: module.htmlAdvancedModules, loadedGroups: ["advanced"], isPartialTrack: true })),
+  workshop: () => import("./htmlModulesWorkshop.js").then((module) => ({ ...htmlTrackMetadata, modules: module.htmlWorkshopModules, loadedGroups: ["workshop"], isPartialTrack: true })),
+  hardening: () => import("./htmlModulesHardening.js").then((module) => ({ ...htmlTrackMetadata, modules: module.htmlProductionHardeningModules, loadedGroups: ["hardening"], isPartialTrack: true }))
 };
 
 const cssModuleLoaders = {
@@ -35,12 +43,34 @@ const cssModuleLoaders = {
 };
 
 export async function loadLocalTrack(trackId, options = {}) {
+  if (trackId === "html" && options.moduleId) {
+    return loadHtmlTrack(options);
+  }
   if (trackId === "css" && options.moduleId) {
     return loadCssTrack(options);
   }
   const load = trackLoaders[trackId];
   if (!load) throw new Error(`Unknown track ${trackId}`);
   return load();
+}
+
+async function loadHtmlTrack(options = {}) {
+  if (!options.moduleId) return loadFullHtmlTrack();
+  if (htmlFoundationModuleIds.includes(options.moduleId)) return htmlModuleLoaders.foundation();
+  if (htmlAdvancedModuleIds.includes(options.moduleId)) return htmlModuleLoaders.advanced();
+  if (htmlWorkshopModuleIds.includes(options.moduleId)) return htmlModuleLoaders.workshop();
+  if (htmlHardeningModuleIds.includes(options.moduleId)) return htmlModuleLoaders.hardening();
+  return htmlModuleLoaders.foundation();
+}
+
+async function loadFullHtmlTrack() {
+  const tracks = await Promise.all([
+    htmlModuleLoaders.foundation(),
+    htmlModuleLoaders.advanced(),
+    htmlModuleLoaders.workshop(),
+    htmlModuleLoaders.hardening()
+  ]);
+  return tracks.reduce((merged, track) => mergeLoadedTrack(merged, track), null);
 }
 
 export async function loadAllLocalTracks() {
@@ -70,14 +100,15 @@ async function loadFullCssTrack() {
 
 export function mergeLoadedTrack(existing, incoming) {
   if (!existing || existing.id !== incoming.id) return incoming;
-  if (incoming.id !== "css") return incoming;
+  if (incoming.id !== "css" && incoming.id !== "html") return incoming;
   const mergedGroups = [...new Set([...(existing.loadedGroups || []), ...(incoming.loadedGroups || [])])];
-  const mergedModules = orderCssModules([...(existing.modules || []), ...(incoming.modules || [])].filter((module, index, items) => items.findIndex((candidate) => candidate.id === module.id) === index));
+  const modules = [...(existing.modules || []), ...(incoming.modules || [])].filter((module, index, items) => items.findIndex((candidate) => candidate.id === module.id) === index);
+  const mergedModules = incoming.id === "css" ? orderCssModules(modules) : modules;
   return {
     ...incoming,
     modules: mergedModules,
     loadedGroups: mergedGroups,
-    isPartialTrack: mergedGroups.length < 2
+    isPartialTrack: incoming.id === "css" ? mergedGroups.length < 2 : mergedGroups.length < 4
   };
 }
 

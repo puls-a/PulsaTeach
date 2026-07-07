@@ -29,6 +29,11 @@ export default defineConfig({
           if (id.includes("cssModulesResponsive") || id.includes("cssTrackResponsiveChunk")) return "content-css-responsive";
           if (id.includes("cssTrackMetadata")) return "content-css-shared";
           if (id.includes("cssModuleFactory")) return "content-css-shared";
+          if (id.includes("htmlModulesFoundation")) return "content-html-foundation";
+          if (id.includes("htmlModulesAdvanced")) return "content-html-advanced";
+          if (id.includes("htmlModulesWorkshop") || id.includes("htmlWorkshopBuilders")) return "content-html-workshop";
+          if (id.includes("htmlModulesHardening")) return "content-html-hardening";
+          if (id.includes("htmlTrackMetadata")) return "content-html-shared";
           if (id.includes("/src/content/html") || id.includes("\\src\\content\\html")) return "content-html";
           if (id.includes("/src/content/css") || id.includes("\\src\\content\\css")) return "content-css";
           if (id.includes("/src/content/javascript") || id.includes("\\src\\content\\javascript") || id.includes("/src/content/jsBuilders") || id.includes("\\src\\content\\jsBuilders")) return "content-js";

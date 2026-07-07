@@ -64,15 +64,8 @@
   .clay, .clay-soft {
     border: 1px solid #e2e8f0;
     box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
-    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
   }
   .hero-stage { background: #f8fafc; }
-  .mission-enter { animation: missionEnter .25s ease both; }
-}
-
-@keyframes missionEnter {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
