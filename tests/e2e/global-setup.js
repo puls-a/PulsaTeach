@@ -23,7 +23,7 @@ export default async function globalSetup() {
     }
   });
   await viteServer.listen();
-  await warmupRoutes(["/", "/about", "/glossary", "/learn/html/html-a11y-final/html-10-accessibility-quiz"]);
+  await warmupRoutes(["/", "/about", "/catalog", "/glossary", "/learn/html/html-final-audit/html-09-final-exam"]);
 
   return async () => {
     await viteServer.close();

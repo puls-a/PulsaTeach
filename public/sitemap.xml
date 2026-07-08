@@ -25,50 +25,93 @@
   <url><loc>https://pulsateach.vercel.app/formations/web-security</loc><lastmod>2026-07-08</lastmod><priority>0.85</priority></url>
   <url><loc>https://pulsateach.vercel.app/formations/web-performance</loc><lastmod>2026-07-08</lastmod><priority>0.85</priority></url>
   <url><loc>https://pulsateach.vercel.app/formations/devops-deployment</loc><lastmod>2026-07-08</lastmod><priority>0.85</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-foundations/html-01-document-skeleton</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-foundations/html-02-text-content</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-foundations/html-02-details-summary</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-foundations/html-02-comments-entities</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-content-navigation/html-03-links-navigation</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-content-navigation/html-04-images-media</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-content-navigation/html-05-lists</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-content-navigation/html-05-card-metadata</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-content-navigation/html-05-audio-video</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-content-navigation/html-05-mini-project-profile</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-forms-seo/html-06-tables</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-forms-seo/html-07-forms-basics</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-forms-seo/html-09-semantic-layout</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-forms-seo/html-09-fieldset-groups</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-forms-seo/html-09-native-validation</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-a11y-final/html-08-form-controls-validation</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-a11y-final/html-09-aria-status</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-a11y-final/html-10-accessibility-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-a11y-final/html-11-seo-best-practices</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-a11y-final/html-11-landmarks-skip-link</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-a11y-final/html-11-accessibility-audit</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-a11y-final/html-12-final-project</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-shell</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-header</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-nav</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-nav-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-hero</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-schedule</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-speakers</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-venue</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-content-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-register-form</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-form-help</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-consent</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-status</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-footer</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-a11y-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-pulsaconf-workshop/html-13-workshop-capstone</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-production-hardening/html-14-production-head</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-production-hardening/html-14-navigation-keyboard</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-production-hardening/html-14-form-production</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-production-hardening/html-14-rich-data</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-production-hardening/html-14-media-accessible</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/html/html-production-hardening/html-14-production-audit-project</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-getting-started/html-00-what-html-does</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-getting-started/html-00-install-toolkit</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-getting-started/html-00-create-index-file</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-getting-started/html-00-open-in-browser</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-getting-started/html-00-devtools-inspector</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-getting-started/html-00-read-tests</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-getting-started/html-00-setup-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-getting-started/html-00-project-local-setup</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-modern-document/html-01-doctype-standard-mode</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-modern-document/html-01-root-lang</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-modern-document/html-01-head-body-roles</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-modern-document/html-01-charset-utf8</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-modern-document/html-01-viewport-mobile</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-modern-document/html-01-title-description</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-modern-document/html-01-document-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-modern-document/html-01-project-skeleton</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-text-sections/html-02-main-h1</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-text-sections/html-02-heading-outline</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-text-sections/html-02-paragraphs-emphasis</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-text-sections/html-02-section-article-aside</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-text-sections/html-02-quote-details</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-text-sections/html-02-address-abbr-code</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-text-sections/html-02-semantics-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-text-sections/html-02-project-program</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-navigation-links/html-03-explicit-link-text</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-navigation-links/html-03-internal-anchor</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-navigation-links/html-03-nav-aria-label</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-navigation-links/html-03-current-external-safe</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-navigation-links/html-03-contact-download-links</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-navigation-links/html-03-skip-link</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-navigation-links/html-03-navigation-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-navigation-links/html-03-project-navigation</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-media-content/html-04-informative-image-alt</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-media-content/html-04-decorative-image-alt-empty</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-media-content/html-04-figure-caption</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-media-content/html-04-lazy-dimensions</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-media-content/html-04-audio-fallback</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-media-content/html-04-video-captions</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-media-content/html-04-media-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-media-content/html-04-project-speakers-gallery</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-data-tables/html-05-unordered-benefits</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-data-tables/html-05-ordered-steps</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-data-tables/html-05-definition-list</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-data-tables/html-05-table-caption</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-data-tables/html-05-thead-tbody-scope</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-data-tables/html-05-time-data</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-data-tables/html-05-data-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-data-tables/html-05-project-schedule</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-native-forms/html-06-form-action-method</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-native-forms/html-06-label-input-text</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-native-forms/html-06-email-required</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-native-forms/html-06-textarea-select</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-native-forms/html-06-radio-checkbox</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-native-forms/html-06-submit-button</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-native-forms/html-06-forms-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-native-forms/html-06-project-registration-form</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-accessible-feedback/html-07-help-describedby</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-accessible-feedback/html-07-error-message</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-accessible-feedback/html-07-fieldset-legend</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-accessible-feedback/html-07-disabled-state</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-accessible-feedback/html-07-status-live</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-accessible-feedback/html-07-busy-alert</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-accessible-feedback/html-07-feedback-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-accessible-feedback/html-07-project-robust-form</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-seo-publication/html-08-seo-title</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-seo-publication/html-08-meta-description</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-seo-publication/html-08-canonical</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-seo-publication/html-08-open-graph</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-seo-publication/html-08-favicon-hreflang</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-seo-publication/html-08-json-ld</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-seo-publication/html-08-seo-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-seo-publication/html-08-project-head</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-final-audit/html-09-assemble-shell</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-final-audit/html-09-assemble-navigation</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-final-audit/html-09-assemble-content</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-final-audit/html-09-assemble-form-media</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-final-audit/html-09-audit-antipatterns</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-final-audit/html-09-final-exam</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/html/html-final-audit/html-09-final-project-pulsaconf</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-getting-started/css-00-what-css-does</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-getting-started/css-00-create-stylesheet</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-getting-started/css-00-link-stylesheet</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-getting-started/css-00-devtools-styles</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-getting-started/css-00-cascade-method</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-getting-started/css-00-responsive-check-loop</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-getting-started/css-00-setup-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-getting-started/css-00-project-style-setup</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors-colors/css-selectors-colors-color</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors-colors/css-selectors-colors-background</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors-colors/css-selectors-colors-border-color</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
@@ -78,6 +121,7 @@
   <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors-colors/css-selectors-colors-box-shadow</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors-colors/css-selectors-colors-opacity</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors-colors/css-selectors-colors-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors-colors/css-selectors-colors-lab</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-box-type/css-box-type-box-sizing</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-box-type/css-box-type-padding</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-box-type/css-box-type-margin</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
@@ -87,6 +131,7 @@
   <url><loc>https://pulsateach.vercel.app/learn/css/css-box-type/css-box-type-overflow-wrap</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-box-type/css-box-type-border-radius</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-box-type/css-box-type-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-box-type/css-box-type-lab</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-flex-layout/css-flex-layout-display-flex</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-flex-layout/css-flex-layout-gap</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-flex-layout/css-flex-layout-align-items</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
@@ -111,18 +156,24 @@
   <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors/css-01-combinators</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors/css-01-states</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors/css-01-specificity-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-selectors/css-01-selectors-project</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-box-model</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-typography</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-custom-properties</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-sizing</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-overflow</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-box-model-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-box-model/css-02-box-model-project</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-flexbox/css-03-flexbox</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-flexbox/css-03-flex-wrap</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-flexbox/css-03-space-between</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-flexbox/css-03-flexbox-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-flexbox/css-03-mini-project-navbar</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-grid/css-04-grid</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-grid/css-04-grid-gap</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-grid/css-04-place-items</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-grid/css-04-grid-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-grid/css-04-grid-project</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-responsive/css-responsive-width</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-responsive/css-responsive-max-width</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-responsive/css-responsive-media</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
@@ -167,12 +218,14 @@
   <url><loc>https://pulsateach.vercel.app/learn/css/css-responsive-motion/css-05-mobile-first</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-responsive-motion/css-05-motion</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-responsive-motion/css-05-reduced-motion</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-responsive-motion/css-05-responsive-motion-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-responsive-motion/css-06-final-project</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-advanced-responsive/css-07-fluid-type</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-advanced-responsive/css-07-fluid-spacing</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-advanced-responsive/css-07-responsive-images</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-advanced-responsive/css-07-container-queries</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-advanced-responsive/css-07-responsive-navigation</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/css/css-advanced-responsive/css-07-advanced-responsive-quiz</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/css/css-advanced-responsive/css-07-responsive-audit-project</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-variables-strings/js-variables-strings-runtime-map</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-variables-strings/js-variables-strings-type-tags</loc><lastmod>2026-07-08</lastmod><priority>0.7</priority></url>

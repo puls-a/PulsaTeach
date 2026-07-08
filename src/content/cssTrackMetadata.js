@@ -25,6 +25,7 @@ export const cssTrackMetadata = {
 };
 
 export const cssFoundationModuleIds = [
+  "css-getting-started",
   "css-selectors-colors",
   "css-box-type",
   "css-flex-layout",

@@ -8,7 +8,7 @@ const [indexHtml, robots, sitemap, metadata] = await Promise.all([
   readFile(new URL("../src/appMetadata.js", import.meta.url), "utf8")
 ]);
 const prerenderedCatalog = await readFile(new URL("../dist/catalog/index.html", import.meta.url), "utf8").catch(() => "");
-const prerenderedLesson = await readFile(new URL("../dist/learn/html/html-foundations/html-01-document-skeleton/index.html", import.meta.url), "utf8").catch(() => "");
+const prerenderedLesson = await readFile(new URL("../dist/learn/html/html-modern-document/html-01-doctype-standard-mode/index.html", import.meta.url), "utf8").catch(() => "");
 
 const expectedLessonCount = learningTracks.reduce(
   (total, track) => total + track.modules.reduce((sum, module) => sum + module.lessons.length, 0),

@@ -42,6 +42,83 @@ function moduleLearningMeta(id) {
       vocabulary: ["canonical", "Open Graph", "skip link", "autocomplete", "caption", "track", "transcription"],
       mastery: { fr: ["La page est indexable et partageable", "Le clavier atteint directement le contenu", "Chaque formulaire, tableau et media porte un nom ou une aide"], en: ["The page is indexable and shareable", "Keyboard users reach content directly", "Every form, table, and media item has a name or help"] }
     },
+    "html-getting-started": {
+      importance: { fr: "Ce module transforme le tout premier contact avec HTML en méthode de travail claire : outils, fichier d'entrée, navigateur, DevTools et tests.", en: "This module turns the very first contact with HTML into a clear workflow: tools, entry file, browser, DevTools, and tests." },
+      prerequisites: { fr: ["Aucun prérequis", "Savoir créer un dossier sur son ordinateur"], en: ["No prerequisite", "Know how to create a folder on your computer"] },
+      outcomes: { fr: ["Expliquer le rôle de HTML", "Préparer un poste de travail minimal", "Créer index.html", "Utiliser navigateur, DevTools et tests comme boucle de feedback"], en: ["Explain HTML's role", "Prepare a minimal workstation", "Create index.html", "Use browser, DevTools, and tests as a feedback loop"] },
+      vocabulary: ["HTML", "éditeur", "navigateur", "index.html", "DevTools", "test"],
+      mastery: { fr: ["Je sais quoi installer et pourquoi", "Je sais ouvrir et recharger une page locale", "Je lis un test comme une exigence observable"], en: ["I know what to install and why", "I can open and reload a local page", "I read a test as an observable requirement"] }
+    },
+    "html-modern-document": {
+      importance: { fr: "Un document fiable commence par des métadonnées correctes avant le moindre composant visuel.", en: "A reliable document starts with correct metadata before any visual component." },
+      prerequisites: { fr: ["Aucun prérequis", "Savoir lire une balise simple"], en: ["No prerequisite", "Know how to read a simple tag"] },
+      outcomes: { fr: ["Créer un squelette HTML moderne", "Déclarer langue, charset et viewport", "Écrire title et description utiles"], en: ["Create a modern HTML skeleton", "Declare language, charset, and viewport", "Write useful title and description"] },
+      vocabulary: ["doctype", "html", "head", "body", "charset", "viewport", "meta description"],
+      mastery: { fr: ["Le document sort du mode quirks", "Les accents s'affichent correctement", "Le head décrit clairement PulsaConf"], en: ["The document leaves quirks mode", "Accents render correctly", "The head clearly describes PulsaConf"] }
+    },
+    "html-text-sections": {
+      importance: { fr: "Le contenu de PulsaConf doit former un plan clair pour humains, moteurs et lecteurs d'écran.", en: "PulsaConf content must form a clear outline for humans, search engines, and screen readers." },
+      prerequisites: { fr: ["Document HTML moderne"], en: ["Modern HTML document"] },
+      outcomes: { fr: ["Construire un main avec h1 unique", "Organiser sections, articles et aside", "Utiliser details, citations et balises textuelles précises"], en: ["Build a main with one h1", "Organize sections, articles, and aside", "Use details, quotes, and precise text elements"] },
+      vocabulary: ["main", "h1", "section", "article", "aside", "blockquote", "details"],
+      mastery: { fr: ["Le plan de titres reste logique", "Chaque section est nommée", "Les blocs complémentaires gardent un rôle natif"], en: ["The heading outline remains logical", "Every section is named", "Supplementary blocks keep a native role"] }
+    },
+    "html-navigation-links": {
+      importance: { fr: "Une page événementielle doit permettre de se déplacer sans ambiguïté, au clavier comme au lecteur d'écran.", en: "An event page must allow unambiguous movement, with keyboard and screen reader alike." },
+      prerequisites: { fr: ["Textes et sections"], en: ["Text and sections"] },
+      outcomes: { fr: ["Écrire des liens explicites", "Créer une navigation nommée", "Sécuriser liens externes et liens d'action"], en: ["Write explicit links", "Create named navigation", "Secure external and action links"] },
+      vocabulary: ["nav", "href", "aria-current", "skip link", "mailto", "download"],
+      mastery: { fr: ["Aucun lien vague ne reste", "Le contenu principal est atteignable directement", "Les liens externes sont sécurisés"], en: ["No vague link remains", "Main content is directly reachable", "External links are secured"] }
+    },
+    "html-media-content": {
+      importance: { fr: "Les médias renforcent PulsaConf seulement s'ils restent compréhensibles sans image, sans son ou avec connexion lente.", en: "Media strengthens PulsaConf only if it remains understandable without image, sound, or with slow connections." },
+      prerequisites: { fr: ["Navigation et sections"], en: ["Navigation and sections"] },
+      outcomes: { fr: ["Écrire des alternatives utiles", "Associer figures et légendes", "Publier audio et vidéo avec secours"], en: ["Write useful alternatives", "Connect figures and captions", "Publish audio and video with fallbacks"] },
+      vocabulary: ["alt", "figure", "figcaption", "loading", "audio", "video", "track"],
+      mastery: { fr: ["Chaque image a le bon type d'alternative", "Les dimensions stabilisent les médias", "Les vidéos restent compréhensibles sans son"], en: ["Every image has the right alternative type", "Dimensions stabilize media", "Videos remain understandable without sound"] }
+    },
+    "html-data-tables": {
+      importance: { fr: "Programme, horaires et jauges doivent être structurés comme des données, pas comme du texte décoratif.", en: "Program, times, and capacity must be structured as data, not decorative text." },
+      prerequisites: { fr: ["Médias et contenu riche"], en: ["Media and rich content"] },
+      outcomes: { fr: ["Choisir ul, ol ou dl selon le besoin", "Construire un tableau accessible", "Marquer dates et valeurs machine"], en: ["Choose ul, ol, or dl by need", "Build an accessible table", "Mark machine-readable dates and values"] },
+      vocabulary: ["ul", "ol", "dl", "table", "caption", "scope", "time", "data"],
+      mastery: { fr: ["Les listes représentent la bonne relation", "Les tableaux exposent caption et scope", "Les horaires ont une valeur machine"], en: ["Lists represent the right relationship", "Tables expose caption and scope", "Times have machine values"] }
+    },
+    "html-native-forms": {
+      importance: { fr: "Le formulaire d'inscription doit fonctionner avec les mécanismes HTML natifs avant tout JavaScript.", en: "The registration form must work with native HTML mechanisms before any JavaScript." },
+      prerequisites: { fr: ["Listes et données"], en: ["Lists and data"] },
+      outcomes: { fr: ["Créer un form action/method", "Relier labels et contrôles", "Utiliser types, required et autocomplete"], en: ["Create form action/method", "Connect labels and controls", "Use types, required, and autocomplete"] },
+      vocabulary: ["form", "label", "input", "select", "textarea", "required", "autocomplete"],
+      mastery: { fr: ["Chaque champ possède un nom visible", "Les contraintes natives sont utiles", "Le bouton d'envoi annonce l'action"], en: ["Every field has a visible name", "Native constraints are useful", "The submit button announces the action"] }
+    },
+    "html-accessible-feedback": {
+      importance: { fr: "Un formulaire réaliste explique les aides, erreurs et statuts au bon moment.", en: "A realistic form explains help, errors, and statuses at the right time." },
+      prerequisites: { fr: ["Formulaires natifs"], en: ["Native forms"] },
+      outcomes: { fr: ["Relier aides et erreurs", "Grouper les contrôles", "Annoncer statut, alertes et états busy"], en: ["Connect help and errors", "Group controls", "Announce status, alerts, and busy states"] },
+      vocabulary: ["fieldset", "legend", "aria-describedby", "aria-invalid", "aria-live", "status", "alert"],
+      mastery: { fr: ["Les aides sont référencées", "Les erreurs sont localisables", "Les statuts dynamiques sont annoncés"], en: ["Help text is referenced", "Errors are locatable", "Dynamic statuses are announced"] }
+    },
+    "html-seo-publication": {
+      importance: { fr: "Une page publiable doit être trouvable, partageable et identifiable avant même le rendu visuel.", en: "A publishable page must be findable, shareable, and identifiable before visual rendering." },
+      prerequisites: { fr: ["Tous les modules HTML précédents"], en: ["All previous HTML modules"] },
+      outcomes: { fr: ["Écrire title, description et canonical", "Préparer Open Graph et favicon", "Ajouter un JSON-LD simple"], en: ["Write title, description, and canonical", "Prepare Open Graph and favicon", "Add simple JSON-LD"] },
+      vocabulary: ["title", "meta description", "canonical", "Open Graph", "favicon", "hreflang", "JSON-LD"],
+      mastery: { fr: ["Le head décrit PulsaConf", "Les réseaux ont une preview complète", "Les données structurées restent lisibles"], en: ["The head describes PulsaConf", "Social networks have a complete preview", "Structured data remains readable"] }
+    },
+    "html-final-audit": {
+      importance: { fr: "Le projet final transforme les micro-compétences en page complète, auditable et présentable.", en: "The final project turns micro-skills into a complete, auditable, presentable page." },
+      prerequisites: { fr: ["SEO et publication", "Formulaires accessibles", "Médias accessibles"], en: ["SEO and publishing", "Accessible forms", "Accessible media"] },
+      outcomes: { fr: ["Assembler PulsaConf", "Auditer les anti-patterns", "Réussir l'examen et le projet final"], en: ["Assemble PulsaConf", "Audit anti-patterns", "Pass the exam and final project"] },
+      vocabulary: ["audit", "landmark", "anti-pattern", "rubric", "livrable", "certification"],
+      mastery: { fr: ["Le livrable passe les tests finaux", "Chaque zone a une finalité", "Les décisions sont explicables sans solution"], en: ["The deliverable passes final tests", "Every region has a purpose", "Decisions are explainable without the solution"] }
+    },
+    "css-getting-started": {
+      importance: { fr: "Ce module installe une méthode CSS complète avant les sélecteurs : rôle du langage, fichier styles.css, lien HTML, DevTools, cascade et validation responsive.", en: "This module installs a complete CSS method before selectors: language role, styles.css file, HTML link, DevTools, cascade, and responsive validation." },
+      prerequisites: { fr: ["Avoir terminé l'introduction HTML", "Savoir créer index.html", "Savoir ouvrir la preview du lab"], en: ["Complete the HTML introduction", "Know how to create index.html", "Know how to open the lab preview"] },
+      outcomes: { fr: ["Expliquer ce que CSS change", "Créer et relier styles.css", "Inspecter les règles actives", "Valider mobile, desktop et focus"], en: ["Explain what CSS changes", "Create and link styles.css", "Inspect active rules", "Validate mobile, desktop, and focus"] },
+      vocabulary: ["CSS", "styles.css", "link stylesheet", "sélecteur", "déclaration", "cascade", "DevTools", "focus-visible"],
+      mastery: { fr: ["Chaque règle a une intention", "La feuille de style reste séparée du HTML", "Le rendu est vérifié dans DevTools et sur plusieurs largeurs"], en: ["Every rule has intent", "The stylesheet remains separate from HTML", "The output is checked in DevTools and across widths"] }
+    },
     "css-selectors": {
       importance: { fr: "Des sélecteurs prévisibles permettent de faire évoluer une interface sans modifier accidentellement d'autres composants.", en: "Predictable selectors let an interface evolve without accidentally changing other components." },
       prerequisites: { fr: ["Lire une structure HTML simple", "Reconnaître balises, classes et identifiants"], en: ["Read simple HTML structure", "Recognize tags, classes, and identifiers"] },
@@ -152,6 +229,17 @@ function moduleMeta(id) {
     "html-a11y-final": ["Auditer, corriger et livrer une page accessible et bien référencée.", "Audit, fix, and ship an accessible well-indexed page.", "Le site événementiel PulsaConf", "The PulsaConf event website"],
     "html-pulsaconf-workshop": ["Construire PulsaConf par micro-étapes testées, comme un atelier professionnel.", "Build PulsaConf through tested micro-steps, like a professional workshop.", "Une page événementielle assemblée progressivement", "An event page assembled progressively"],
     "html-production-hardening": ["Finaliser une page HTML comme un livrable public : SEO, navigation, formulaires, données, médias et audit.", "Finalize an HTML page as a public deliverable: SEO, navigation, forms, data, media, and audit.", "Une page HTML publiable et auditable", "A publishable auditable HTML page"],
+    "html-getting-started": ["Installer les bons outils, créer index.html et apprendre la boucle modifier, sauvegarder, recharger, inspecter, tester.", "Install the right tools, create index.html, and learn the edit, save, reload, inspect, test loop.", "Un poste de travail HTML prêt", "An HTML workstation ready to use"],
+    "html-modern-document": ["Poser une base HTML moderne pour PulsaConf : doctype, langue, encodage, viewport et métadonnées utiles.", "Set a modern HTML base for PulsaConf: doctype, language, encoding, viewport, and useful metadata.", "Un squelette PulsaConf valide", "A valid PulsaConf skeleton"],
+    "html-text-sections": ["Transformer le contenu brut en plan lisible avec titres, sections, articles et compléments natifs.", "Turn raw content into a readable outline with headings, sections, articles, and native supplements.", "Une page programme structurée", "A structured program page"],
+    "html-navigation-links": ["Créer des chemins de navigation explicites, sûrs et utilisables au clavier.", "Create explicit, safe, keyboard-usable navigation paths.", "Une navigation PulsaConf complète", "A complete PulsaConf navigation"],
+    "html-media-content": ["Intégrer images, figures, audio et vidéo sans perdre accessibilité ni stabilité.", "Integrate images, figures, audio, and video without losing accessibility or stability.", "Une galerie média accessible", "An accessible media gallery"],
+    "html-data-tables": ["Représenter bénéfices, étapes, glossaire, horaires et jauges avec les structures adaptées.", "Represent benefits, steps, glossary, times, and capacity with appropriate structures.", "Un planning accessible", "An accessible schedule"],
+    "html-native-forms": ["Construire un formulaire d'inscription fonctionnel avec labels, types et contraintes natives.", "Build a functional registration form with labels, types, and native constraints.", "Un formulaire natif robuste", "A robust native form"],
+    "html-accessible-feedback": ["Ajouter aides, erreurs, groupes et statuts pour rendre le formulaire utilisable en contexte réel.", "Add help, errors, groups, and statuses to make the form usable in real contexts.", "Un formulaire accessible avec feedback", "An accessible form with feedback"],
+    "html-seo-publication": ["Préparer PulsaConf à l'indexation, au partage social et aux données structurées.", "Prepare PulsaConf for indexing, social sharing, and structured data.", "Un head SEO/social publiable", "A publishable SEO/social head"],
+    "html-final-audit": ["Assembler, auditer et livrer PulsaConf comme projet final de certification HTML.", "Assemble, audit, and ship PulsaConf as the HTML certification final project.", "PulsaConf final auditable", "Auditable final PulsaConf"],
+    "css-getting-started": ["Installer la méthode CSS : feuille séparée, lien HTML, DevTools, cascade et validation responsive.", "Install the CSS method: separate stylesheet, HTML link, DevTools, cascade, and responsive validation.", "Un setup CSS PulsaConf prêt", "A ready PulsaConf CSS setup"],
     "css-selectors": ["Cibler précisément les éléments et gérer les états interactifs.", "Target elements precisely and handle interactive states.", "Des composants ciblés sans effets de bord", "Targeted components without side effects"],
     "css-box-model": ["Construire une base visuelle stable, lisible et fluide.", "Build a stable, readable, fluid visual foundation.", "Un système de cartes robuste", "A robust card system"],
     "css-flexbox": ["Aligner et distribuer des composants sur un axe.", "Align and distribute components on one axis.", "Une navbar responsive", "A responsive navbar"],

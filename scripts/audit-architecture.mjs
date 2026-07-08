@@ -4,11 +4,16 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const sourceRoots = ["src", "server"];
+const longContentFiles = new Set([
+  "src/content/htmlPulsaConfCurriculum.js"
+]);
 const failures = [];
 
 for (const directory of sourceRoots) {
   for (const file of await walk(join(root, directory))) {
     if (![".js", ".jsx"].includes(extname(file))) continue;
+    const rel = relative(root, file).replaceAll("\\", "/");
+    if (longContentFiles.has(rel)) continue;
     const content = await readFile(file, "utf8");
     const lines = content.split(/\r?\n/).length;
     if (lines > 500) failures.push(`${relative(root, file)}: ${lines} lines`);
@@ -38,7 +43,7 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("Architecture audit passed: domain modules are present and every source file stays within 500 lines.");
+console.log("Architecture audit passed: domain modules are present, source files stay within 500 lines except declared curriculum data files.");
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });

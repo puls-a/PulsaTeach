@@ -79,6 +79,45 @@ function projectLesson({ id, title, brief, starterCode, solution, tests, xp }) {
   };
 }
 
+function quizLesson(id, title, focus, risk) {
+  const explanation = { fr: `Une bonne reponse prouve ${focus[0]} sans creer ${risk[0]}.`, en: `A good answer proves ${focus[1]} without creating ${risk[1]}.` };
+  const choices = [{ id: "proof", label: { fr: "Tester plusieurs largeurs et citer la regle active", en: "Test several widths and cite the active rule" } }, { id: "desktop", label: { fr: "Regarder seulement desktop", en: "Only check desktop" } }, { id: "fixed", label: { fr: "Forcer une largeur fixe", en: "Force a fixed width" } }];
+  const prompt = { fr: `Quelle methode valide ${focus[0]} ?`, en: `Which method validates ${focus[1]}?` };
+  return {
+    id,
+    type: "quiz",
+    title: { fr: title[0], en: title[1] },
+    brief: { fr: `Revois ${focus[0]} comme un audit responsive.`, en: `Review ${focus[1]} as a responsive audit.` },
+    course: courseFor({ fr: title[0], en: title[1] }, { fr: `Diagnostiquer ${focus[0]}.`, en: `Diagnose ${focus[1]}.` }, ".panel { width: min(100%, 72rem); }", ["@media", "clamp(", "overflow"], ".panel"),
+    guide: guideFor({ fr: title[0], en: title[1] }, ".panel"),
+    pedagogy: pedagogyFor({ fr: title[0], en: title[1] }, { fr: `Diagnostiquer ${focus[0]}.`, en: `Diagnose ${focus[1]}.` }, courseFor({ fr: title[0], en: title[1] }, { fr: `Diagnostiquer ${focus[0]}.`, en: `Diagnose ${focus[1]}.` }, ".panel { width: min(100%, 72rem); }", ["@media", "clamp(", "overflow"], ".panel"), guideFor({ fr: title[0], en: title[1] }, ".panel"), ".panel { width: min(100%, 72rem); }"),
+    theory: { fr: `Diagnostiquer ${focus[0]}.`, en: `Diagnose ${focus[1]}.` },
+    skills: ["css", "responsive", "quiz"],
+    difficulty: "quiz",
+    durationMin: 24,
+    question: prompt,
+    options: choices,
+    answer: "proof",
+    explanation,
+    questions: [
+      { id: `${id}-q1`, type: "single", prompt, choices, answer: "proof", explanation },
+      { id: `${id}-q2`, type: "multiple", prompt: { fr: "Quelles preuves sont utiles ?", en: "Which evidence is useful?" }, choices: [{ id: "mobile", label: { fr: "375 px", en: "375 px" } }, { id: "desktop", label: { fr: "1024 px", en: "1024 px" } }, { id: "guess", label: { fr: "Capture unique", en: "Single screenshot" } }], answer: ["mobile", "desktop"], explanation },
+      { id: `${id}-q3`, type: "true-false", prompt: { fr: "Vrai ou faux : un audit responsive doit tester du contenu long.", en: "True or false: a responsive audit should test long content." }, choices: [{ id: "true", label: { fr: "Vrai", en: "True" } }, { id: "false", label: { fr: "Faux", en: "False" } }], answer: "true", explanation },
+      { id: `${id}-q4`, type: "ordering", prompt: { fr: "Classe l'audit responsive.", en: "Order the responsive audit." }, choices: [{ id: "mobile", label: { fr: "Tester mobile", en: "Test mobile" } }, { id: "wide", label: { fr: "Tester grand ecran", en: "Test wide screen" } }, { id: "content", label: { fr: "Allonger le contenu", en: "Lengthen content" } }, { id: "motion", label: { fr: "Verifier preferences", en: "Check preferences" } }], answer: ["mobile", "wide", "content", "motion"], explanation },
+      { id: `${id}-q5`, type: "code-reading", prompt: { fr: ".panel { width: 1200px; } Quel risque vois-tu ?", en: ".panel { width: 1200px; } What risk do you see?" }, choices: [{ id: "risk", label: { fr: risk[0], en: risk[1] } }, { id: "ok", label: { fr: "Aucun risque", en: "No risk" } }, { id: "html", label: { fr: "Probleme HTML uniquement", en: "HTML-only problem" } }], answer: "risk", explanation },
+      { id: `${id}-q6`, type: "short-open", prompt: { fr: "Quelle preuve citerais-tu ?", en: "What evidence would you cite?" }, choices: [], answer: ["mobile", "desktop", "overflow", "devtools"], explanation }
+    ],
+    passingScore: 75,
+    randomizeQuestions: false,
+    feedbackMode: "immediate",
+    starterCode: "",
+    solution: "",
+    tests: [test("quiz", "correct answer", "proof")],
+    hint: { fr: "Cherche la preuve responsive, pas l'effet le plus voyant.", en: "Look for responsive evidence, not the flashiest effect." },
+    xp: 35
+  };
+}
+
 function test(type, label, value, amount = 1) {
   return { type, label, value, amount };
 }
@@ -227,6 +266,7 @@ const responsiveModules = [
     cssLesson("css-05-mobile-first", ["Approche mobile-first", "Mobile-first approach"], "Definis une colonne par defaut puis passe a trois colonnes a partir de 700px.", ".panel {\n  /* mobile */\n}\n\n@media (min-width: 700px) {\n  .panel {\n    /* grand ecran */\n  }\n}", ".panel", ["display: grid", "grid-template-columns"], 40),
     cssLesson("css-05-motion", ["Micro-interaction", "Micro-interaction"], "Ajoute une transition et un etat hover sur les boutons.", ".toolbar button {\n  /* interaction ici */\n}", ".toolbar button", ["transition", ":hover", "transform"], 35),
     cssLesson("css-05-reduced-motion", ["Motion responsable", "Responsible motion"], "Ajoute une media query prefers-reduced-motion qui desactive les transitions.", "@media (prefers-reduced-motion: reduce) {\n  /* stop motion */\n}", "@media", ["prefers-reduced-motion", "transition: none"], 35),
+    quizLesson("css-05-responsive-motion-quiz", ["Quiz responsive et motion", "Responsive and motion quiz"], ["une interface adaptable et confortable", "an adaptable comfortable interface"], ["debordement, mouvement force ou breakpoint arbitraire", "overflow, forced motion, or arbitrary breakpoint"]),
     projectLesson({
       id: "css-06-final-project",
       title: ["Projet landing responsive", "Responsive landing project"],
@@ -243,6 +283,7 @@ const responsiveModules = [
     cssLesson("css-07-responsive-images", ["Images adaptatives", "Responsive images"], "Empeche les medias de deborder avec max-width, aspect-ratio et object-fit.", ".card img {\n  /* image robuste */\n}", ".card img", ["max-width", "aspect-ratio", "object-fit"], 45),
     cssLesson("css-07-container-queries", ["Container queries", "Container queries"], "Adapte une carte selon la largeur de son conteneur, pas selon toute la fenetre.", ".card {\n  /* prepare le conteneur */\n}\n\n/* container query ici */", ".card", ["container-type", "@container", "grid-template-columns"], 55),
     cssLesson("css-07-responsive-navigation", ["Navigation adaptative", "Adaptive navigation"], "Construis une navigation qui scrolle horizontalement sur petit ecran puis devient distribuee sur grand ecran.", ".toolbar {\n  /* base mobile */\n}\n\n@media (min-width: 760px) {\n  .toolbar {\n    /* grand ecran */\n  }\n}", ".toolbar", ["display: flex", "overflow-x", "@media", "justify-content"], 50),
+    quizLesson("css-07-advanced-responsive-quiz", ["Quiz responsive avance", "Advanced responsive quiz"], ["un audit responsive complet", "a complete responsive audit"], ["layout rigide, media deformant ou conteneur ignore", "rigid layout, distorted media, or ignored container" ]),
     projectLesson({
       id: "css-07-responsive-audit-project",
       title: ["Projet : audit responsive complet", "Project: complete responsive audit"],

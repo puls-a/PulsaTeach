@@ -1,18 +1,21 @@
+import { cssModuleProfile } from "./cssModuleProfiles.js";
+
 export function createCssModuleGroup(entries, startIndex = 0, projectModuleIds = []) {
   const projectModules = new Set(projectModuleIds);
   return entries.map(([id, title, selector, checks], offset) => {
     const moduleIndex = startIndex + offset;
-    const lessons = checks.map((check, index) => lessonFor(id, title, selector, check, index + 1));
-    lessons.push(quizFor(id, title, moduleIndex));
-    if (projectModules.has(id)) lessons.push(projectFor(id, title, selector, checks, moduleIndex));
+    const profile = cssModuleProfile(id, title);
+    const lessons = checks.map((check, index) => lessonFor(id, title, selector, check, index + 1, profile));
+    lessons.push(quizFor(id, title, moduleIndex, profile, selector, checks));
+    if (projectModules.has(id)) lessons.push(projectFor(id, title, selector, checks, moduleIndex, profile));
     return {
       id,
       title: { fr: title[0], en: title[1] },
-      description: { fr: `Atelier progressif ${title[0]} inspire des meilleurs formats RWD.`, en: `Progressive ${title[1]} workshop inspired by strong RWD formats.` },
-      deliverable: { fr: `Un composant ${title[0]} verifie`, en: `A verified ${title[1]} component` },
-      importance: { fr: `${title[0]} rend une interface plus robuste, lisible et adaptable.`, en: `${title[1]} makes an interface more robust, readable, and adaptable.` },
+      description: { fr: profile.scene[0], en: profile.scene[1] },
+      deliverable: { fr: profile.project[0], en: profile.project[1] },
+      importance: { fr: `${title[0]} compte parce que ${profile.risk[0]}.`, en: `${title[1]} matters because ${profile.risk[1]}.` },
       prerequisites: { fr: moduleIndex ? ["Avoir termine les modules CSS precedents", "Savoir lire un selecteur"] : ["Connaitre HTML de base", "Savoir lancer les tests"], en: moduleIndex ? ["Complete previous CSS modules", "Know how to read a selector"] : ["Know basic HTML", "Know how to run tests"] },
-      outcomes: { fr: ["Ecrire une regle courte", "Relier propriete et effet", "Valider sans deviner"], en: ["Write a short rule", "Connect property and effect", "Validate without guessing"] },
+      outcomes: { fr: ["Ecrire une regle courte", `Prouver que ${profile.proof[0]}`, "Valider sans deviner"], en: ["Write a short rule", `Prove that ${profile.proof[1]}`, "Validate without guessing"] },
       vocabulary: checks.map((item) => item.replace(/[():.-]/g, " ").trim()).slice(0, 6),
       mastery: { fr: ["Le composant ne deborde pas", "Les etats restent visibles", "Les choix sont justifies"], en: ["The component does not overflow", "States remain visible", "Choices are justified"] },
       lessons,
@@ -21,13 +24,13 @@ export function createCssModuleGroup(entries, startIndex = 0, projectModuleIds =
   });
 }
 
-function lessonFor(moduleId, moduleTitle, selector, check, step) {
+function lessonFor(moduleId, moduleTitle, selector, check, step, profile) {
   const id = `${moduleId}-${slug(check)}`;
   const title = { fr: `${step}. ${labelFr(check)}`, en: `${step}. ${labelEn(check)}` };
-  const brief = { fr: `Ajoute ${check} a ${selector} et verifie l'effet attendu.`, en: `Add ${check} to ${selector} and verify the expected effect.` };
+  const brief = { fr: `${profile.scene[0]} Dans cette etape, ${check} doit corriger ${profile.risk[0]} sur ${selector}.`, en: `${profile.scene[1]} In this step, ${check} must address ${profile.risk[1]} on ${selector}.` };
   const solution = cssFor(selector, check);
-  const course = courseFor(title, brief, solution, check, selector, moduleTitle, step);
-  const guide = guideFor(title, moduleTitle, step);
+  const course = courseFor(title, brief, solution, check, selector, moduleTitle, step, profile);
+  const guide = guideFor(title, moduleTitle, step, profile, check, selector);
   return {
     id,
     type: "css",
@@ -49,18 +52,19 @@ function lessonFor(moduleId, moduleTitle, selector, check, step) {
   };
 }
 
-function quizFor(moduleId, title, index) {
+function quizFor(moduleId, title, index, profile, selector, checks) {
   const id = `${moduleId}-quiz`;
-  const brief = { fr: "Valide les reflexes responsive et CSS du module.", en: "Validate responsive and CSS habits from the module." };
-  const explanation = { fr: "Un bon choix CSS repond au contenu, au support et a l'accessibilite.", en: "A good CSS choice responds to content, device, and accessibility." };
+  const brief = { fr: `Diagnostique ${title[0]} comme une revue CSS : risque, preuve et correction minimale.`, en: `Diagnose ${title[1]} like a CSS review: risk, evidence, and minimal fix.` };
+  const explanation = { fr: `Le bon choix prouve que ${profile.proof[0]}.`, en: `The right choice proves that ${profile.proof[1]}.` };
   const choices = [
     { id: "proof", label: { fr: "Ecrire une regle courte puis verifier le rendu et les tests", en: "Write a short rule, then verify preview and tests" } },
     { id: "random", label: { fr: "Essayer des valeurs au hasard", en: "Try random values" } },
     { id: "desktop", label: { fr: "Ne regarder que le desktop", en: "Check desktop only" } }
   ];
   const prompt = { fr: `Quel reflexe rend ${title[0]} fiable ?`, en: `Which habit makes ${title[1]} reliable?` };
-  const course = courseFor({ fr: `Quiz ${title[0]}`, en: `${title[1]} quiz` }, brief, "", "proof", ".demo", title, index + 1);
-  const guide = guideFor({ fr: `Quiz ${title[0]}`, en: `${title[1]} quiz` }, title, index + 1);
+  const course = courseFor({ fr: `Quiz ${title[0]}`, en: `${title[1]} quiz` }, brief, `${selector} { ${checks[0]}: ... }`, checks[0] || "proof", selector, title, index + 1, profile);
+  const guide = guideFor({ fr: `Quiz ${title[0]}`, en: `${title[1]} quiz` }, title, index + 1, profile, checks[0] || "proof", selector);
+  const ordered = ["read", "risk", "fix", "prove"];
   return {
     id,
     type: "quiz",
@@ -79,9 +83,11 @@ function quizFor(moduleId, title, index) {
     explanation,
     questions: [
       { id: `${id}-single`, type: "single", prompt, choices, answer: "proof", explanation },
-      { id: `${id}-multiple`, type: "multiple", prompt: { fr: "Quelles verifications sont utiles ?", en: "Which checks are useful?" }, choices: [{ id: "mobile", label: { fr: "Mobile", en: "Mobile" } }, { id: "keyboard", label: { fr: "Clavier/focus", en: "Keyboard/focus" } }, { id: "guess", label: { fr: "Hasard", en: "Guessing" } }], answer: ["mobile", "keyboard"], explanation },
+      { id: `${id}-multiple`, type: "multiple", prompt: { fr: "Quelles preuves sont utiles avant de valider ?", en: "Which evidence is useful before validating?" }, choices: [{ id: "preview", label: { fr: "Rendu compare avant/apres", en: "Before/after preview" } }, { id: "devtools", label: { fr: "Regle active dans DevTools", en: "Active rule in DevTools" } }, { id: "guess", label: { fr: "Valeur choisie au hasard", en: "Random value" } }], answer: ["preview", "devtools"], explanation },
       { id: `${id}-tf`, type: "true-false", prompt: { fr: "Vrai ou faux : une regle responsive doit etre verifiee avec du contenu reel.", en: "True or false: a responsive rule should be checked with real content." }, answer: "true", explanation },
-      { id: `${id}-open`, type: "short-open", prompt: { fr: "Cite une preuve qu'un layout tient sur mobile.", en: "Name one proof that a layout holds on mobile." }, answer: ["mobile", "debordement"], keywords: ["mobile"], explanation }
+      { id: `${id}-order`, type: "ordering", prompt: { fr: "Classe la revue CSS la plus fiable.", en: "Order the most reliable CSS review." }, choices: [{ id: "read", label: { fr: "Lire le composant cible", en: "Read the target component" } }, { id: "risk", label: { fr: `Nommer le risque : ${profile.risk[0]}`, en: `Name the risk: ${profile.risk[1]}` } }, { id: "fix", label: { fr: "Ajouter la plus petite regle utile", en: "Add the smallest useful rule" } }, { id: "prove", label: { fr: `Prouver que ${profile.proof[0]}`, en: `Prove that ${profile.proof[1]}` } }], answer: ordered, explanation },
+      { id: `${id}-code`, type: "code-reading", prompt: { fr: `Lis ${selector} { ${checks[0]}: initial; }. Quel diagnostic est prioritaire ?`, en: `Read ${selector} { ${checks[0]}: initial; }. What is the priority diagnosis?` }, choices: [{ id: "risk", label: { fr: profile.risk[0], en: profile.risk[1] } }, { id: "ok", label: { fr: "Le code est forcement pret", en: "The code is necessarily ready" } }, { id: "delete", label: { fr: "Supprimer tout le CSS", en: "Delete all CSS" } }], answer: "risk", explanation },
+      { id: `${id}-open`, type: "short-open", prompt: { fr: "Quelle preuve citerais-tu en revue CSS ?", en: "What evidence would you cite in CSS review?" }, answer: ["devtools", "mobile", "focus", "rendu", "test"], keywords: ["mobile"], explanation }
     ],
     passingScore: 75,
     randomizeQuestions: true,
@@ -94,13 +100,13 @@ function quizFor(moduleId, title, index) {
   };
 }
 
-function projectFor(moduleId, title, selector, checks, index) {
+function projectFor(moduleId, title, selector, checks, index, profile) {
   const id = `${moduleId}-lab`;
   const picked = checks.slice(0, 5);
   const solution = `${selector} {\n  ${picked.map((check) => declaration(check)).join("\n  ")}\n}`;
-  const brief = { fr: `Assemble un lab ${title[0]} avec plusieurs contraintes CSS.`, en: `Assemble a ${title[1]} lab with several CSS constraints.` };
-  const course = courseFor({ fr: `Lab ${title[0]}`, en: `${title[1]} lab` }, brief, solution, picked[0], selector, title, index + 1);
-  const guide = guideFor({ fr: `Lab ${title[0]}`, en: `${title[1]} lab` }, title, index + 1);
+  const brief = { fr: `Assemble ${profile.project[0]} avec des regles lisibles, testables et reliees au scenario PulsaConf.`, en: `Assemble ${profile.project[1]} with readable, testable rules connected to the PulsaConf scenario.` };
+  const course = courseFor({ fr: `Lab ${title[0]}`, en: `${title[1]} lab` }, brief, solution, picked[0], selector, title, index + 1, profile);
+  const guide = guideFor({ fr: `Lab ${title[0]}`, en: `${title[1]} lab` }, title, index + 1, profile, picked[0], selector);
   return {
     id,
     type: "project",
@@ -119,8 +125,8 @@ function projectFor(moduleId, title, selector, checks, index) {
     tests: picked.map((check) => ({ type: "contains", label: `Le lab contient ${check}`, value: check })),
     rubric: {
       fr: [
-        `Les regles ecrites pour ${selector} restent lisibles, groupees par intention et sans duplication inutile.`,
-        `Le rendu reste verifiable sur petit et grand ecran, avec au moins une preuve claire liee a ${picked[0]}.`,
+        `Les regles ecrites pour ${selector} prouvent que ${profile.proof[0]}.`,
+        `Le lab evite le risque principal : ${profile.risk[0]}.`,
         "Les etats interactifs conservent un focus visible et une cible utilisable au clavier comme a la souris.",
         "Les textes longs, contenus variables et espacements choisis ne creent ni debordement ni masquage critique."
       ],
@@ -136,23 +142,25 @@ function projectFor(moduleId, title, selector, checks, index) {
   };
 }
 
-function courseFor(title, brief, solution, check, selector, moduleTitle) {
+function courseFor(title, brief, solution, check, selector, moduleTitle, step, profile) {
   return {
-    fr: { introduction: `${title.fr} ajoute une preuve CSS courte au module ${moduleTitle[0]}.`, sections: sections(title.fr, brief.fr, solution, check, selector), vocabulary: vocab(check, selector), check: [`Je sais appliquer ${check}.`, "Je verifie le rendu mobile.", "Je peux expliquer le choix."] },
-    en: { introduction: `${title.en} adds a short CSS proof to ${moduleTitle[1]}.`, sections: sections(title.en, brief.en, solution, check, selector), vocabulary: vocab(check, selector), check: [`I can apply ${check}.`, "I verify mobile output.", "I can explain the choice."] }
+    fr: { introduction: `${profile.scene[0]} ${title.fr} traite une partie precise du probleme : ${profile.risk[0]}.`, sections: sections(title.fr, brief.fr, solution, check, selector, profile), vocabulary: vocab(check, selector, profile), check: [`Je sais appliquer ${check}.`, `Je prouve que ${profile.proof[0]}.`, "Je peux expliquer le choix."] },
+    en: { introduction: `${profile.scene[1]} ${title.en} handles a precise part of the problem: ${profile.risk[1]}.`, sections: sections(title.en, brief.en, solution, check, selector, profile, true), vocabulary: vocab(check, selector, profile, true), check: [`I can apply ${check}.`, `I prove that ${profile.proof[1]}.`, "I can explain the choice."] }
   };
 }
 
-function sections(title, brief, solution, check, selector) {
+function sections(title, brief, solution, check, selector, profile, english = false) {
+  const risk = english ? profile.risk[1] : profile.risk[0];
+  const proof = english ? profile.proof[1] : profile.proof[0];
   return [
-    { title: "Intention", paragraphs: [brief, `${check} doit repondre a une contrainte visible, pas decorer au hasard.`], example: solution.slice(0, 220) },
-    { title: "Methode", paragraphs: [`Cible ${selector}, ecris une regle minimale, puis observe le composant.`, "Un bon test CSS prouve la presence d'une decision maintenable."], example: `${selector} { ${check}: ... }` },
-    { title: "Validation", paragraphs: [`${title} est termine quand le test passe et que le layout reste lisible.`, "Relis aussi le focus, les textes longs et le petit ecran."], example: check }
+    { title: english ? "Intent" : "Intention", paragraphs: [brief, english ? `${check} must answer a visible constraint, not decorate randomly.` : `${check} doit repondre a une contrainte visible, pas decorer au hasard.`], example: solution.slice(0, 220) },
+    { title: english ? "Method" : "Methode", paragraphs: [english ? `Target ${selector}, add one useful declaration, then inspect the active rule.` : `Cible ${selector}, ajoute une declaration utile, puis inspecte la regle active.`, english ? `The risk to avoid is: ${risk}.` : `Le risque a eviter est : ${risk}.`], example: `${selector} { ${check}: ... }` },
+    { title: english ? "Validation" : "Validation", paragraphs: [english ? `${title} is complete when tests pass and ${proof}.` : `${title} est termine quand les tests passent et que ${proof}.`, english ? "Also reread focus, long text, and small screens." : "Relis aussi le focus, les textes longs et le petit ecran."], example: check }
   ];
 }
 
-function guideFor(title, moduleTitle, step) {
-  return { fr: { objectives: [`Implementer ${title.fr}.`, `Relier l'etape ${step} au module ${moduleTitle[0]}.`, "Valider avec rendu et tests."], prerequisites: ["Lire le selecteur", "Comprendre la propriete ciblee", "Savoir lancer les tests"], steps: ["Identifier le composant", "Ajouter la regle minimale", "Tester mobile et desktop"], mistakes: [`Sur-styliser ${title.fr}.`, "Masquer le focus.", "Corriger sans regarder le rendu."] }, en: { objectives: [`Implement ${title.en}.`, `Connect step ${step} to ${moduleTitle[1]}.`, "Validate with preview and tests."], prerequisites: ["Read the selector", "Understand the target property", "Know how to run tests"], steps: ["Identify the component", "Add the smallest rule", "Test mobile and desktop"], mistakes: [`Over-styling ${title.en}.`, "Hiding focus.", "Fixing without checking preview."] } };
+function guideFor(title, moduleTitle, step, profile, check, selector) {
+  return { fr: { objectives: [`Implementer ${title.fr} sans perdre le scenario PulsaConf.`, `Relier ${check} au risque : ${profile.risk[0]}.`, `Prouver que ${profile.proof[0]}.`], prerequisites: ["Lire le selecteur", "Comprendre la propriete ciblee", "Savoir lancer les tests"], steps: [`Identifier pourquoi ${selector} est la bonne cible.`, `Ajouter la plus petite regle utile pour ${check}.`, "Tester mobile, desktop, focus et contenu long."], mistakes: [`Sur-styliser ${title.fr} au lieu de corriger ${profile.risk[0]}.`, "Masquer le focus.", "Corriger sans regarder le rendu."] }, en: { objectives: [`Implement ${title.en} without losing the PulsaConf scenario.`, `Connect ${check} to the risk: ${profile.risk[1]}.`, `Prove that ${profile.proof[1]}.`], prerequisites: ["Read the selector", "Understand the target property", "Know how to run tests"], steps: [`Identify why ${selector} is the right target.`, `Add the smallest useful rule for ${check}.`, "Test mobile, desktop, focus, and long content."], mistakes: [`Over-styling ${title.en} instead of fixing ${profile.risk[1]}.`, "Hiding focus.", "Fixing without checking preview."] } };
 }
 
 function createGeneratedCssPedagogy({ course, guide, title, brief, solution = "", type = "css" }) {
