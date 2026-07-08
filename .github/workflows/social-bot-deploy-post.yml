@@ -40,7 +40,7 @@ jobs:
           cat > .env <<EOF
           DRY_RUN=False
           GEMINI_API_KEY=${GEMINI_API_KEY}
-          URL_PULSATEACH=https://pulsateach.vercel.app/?x_card=og_v2
+          URL_PULSATEACH=https://pulsateach.vercel.app/?x_card=cardx
           X_ENABLED=True
           X_COOKIES_FILE=data/x_cookies.json
           X_DAILY_LIMIT=10
