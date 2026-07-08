@@ -6,6 +6,9 @@ from core.config import LOG_FILE
 # S'assure que le dossier data/ existe
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - [%(levelname)s] - %(name)s - %(message)s",

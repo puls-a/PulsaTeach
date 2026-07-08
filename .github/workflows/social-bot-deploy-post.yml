@@ -34,7 +34,7 @@ jobs:
         working-directory: pulsateach_social_bot
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          X_COOKIES_JSON: ${{ secrets.X_COOKIES_JSON }}
+          X_COOKIES_JSON_B64: ${{ secrets.X_COOKIES_JSON_B64 }}
         run: |
           mkdir -p data
           cat > .env <<EOF
@@ -49,10 +49,12 @@ jobs:
           TIKTOK_ENABLED=False
           EOF
           python - <<'PY'
+          import base64
           import os
-          cookies = os.environ.get("X_COOKIES_JSON", "").strip()
-          if not cookies:
-              raise SystemExit("Missing GitHub secret X_COOKIES_JSON")
+          cookies_b64 = os.environ.get("X_COOKIES_JSON_B64", "").strip()
+          if not cookies_b64:
+              raise SystemExit("Missing GitHub secret X_COOKIES_JSON_B64")
+          cookies = base64.b64decode(cookies_b64).decode("utf-8")
           with open("data/x_cookies.json", "w", encoding="utf-8") as f:
               f.write(cookies)
           PY

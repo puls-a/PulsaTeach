@@ -24,7 +24,9 @@ if __name__ == "__main__":
         topic = "Nouvelle amélioration PulsaTeach déployée pour aider les débutants à apprendre le dev web plus efficacement"
         add_to_queue("x", "post", topic, priority=10, metadata={"source": "deploy_post"})
         logger.info("🚀 Post de déploiement ajouté à la queue X")
-        process_queue_for_platform("x", forced=True)
+        if not process_queue_for_platform("x", forced=True):
+            logger.error("❌ Publication du post de déploiement échouée")
+            sys.exit(1)
     # Si on lance avec un argument, on peut forcer une exécution immédiate
     # ex: python main.py force tiktok
     elif len(sys.argv) > 1 and sys.argv[1] == "force":

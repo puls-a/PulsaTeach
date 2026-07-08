@@ -39,12 +39,12 @@ def process_queue_for_platform(platform: str, forced: bool = False):
 
     if not PLATFORM_ENABLED.get(platform, False) and not forced:
         logger.info(f"Plateforme {platform} desactivee. Skip.")
-        return
+        return False
 
     allowed, reason = can_publish(platform, forced=forced)
     if not allowed:
         logger.warning(f"Publication bloquee pour {platform}: {reason}")
-        return
+        return False
     
     item = get_next_for_platform(platform)
     
@@ -58,7 +58,7 @@ def process_queue_for_platform(platform: str, forced: bool = False):
         
         if not item:
             logger.error(f"❌ Impossible de générer du contenu pour {platform}. Abandon.")
-            return
+            return False
 
     topic = item.get("topic")
     content_type = item.get("type", "post")
@@ -68,7 +68,7 @@ def process_queue_for_platform(platform: str, forced: bool = False):
     if is_duplicate(platform, topic):
         logger.warning(f"⚠️ Sujet '{topic}' déjà publié sur {platform}. Suppression de la file.")
         remove_from_queue(item["id"])
-        return
+        return False
 
     logger.info(f"🚀 Préparation publication {platform} : {topic}")
     mark_attempt(item["id"])
@@ -127,12 +127,14 @@ def process_queue_for_platform(platform: str, forced: bool = False):
                 os.remove(media_path)
             except:
                 pass
+        return True
     else:
         logger.error(f"❌ Échec de la publication pour {platform}. Le post reste dans la file.")
         increment_metric(platform, "failed")
         if int(item.get("attempts", 0)) >= 3:
             add_failed(item, "3 tentatives echouees")
             remove_from_queue(item["id"])
+        return False
 
 def setup_schedules():
     """Planification intelligente des publications."""
