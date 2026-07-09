@@ -21,26 +21,26 @@ ${body}
 const customNarratives = {
   "html-00-what-html-does": {
     fr: {
-      intro: "Avant d'écrire PulsaConf, tu clarifies le rôle de HTML : ce n'est ni le design, ni l'interactivité, mais la structure du contenu. Une page solide commence quand chaque morceau de texte a une intention lisible.",
+      intro: "Avant d'écrire PulsaConf, tu clarifies le rôle de HTML : ce n'est ni le design, ni l'interactivité, mais la structure du contenu. Une page solide commence quand chaque morceau de texte à une intention lisible.",
       section: "Le contenu avant l'apparence",
       trap: "Chercher tout de suite une belle mise en page pousse à choisir des balises pour leur rendu par défaut. Ici, tu apprends d'abord à nommer le contenu."
     },
     en: {
-      intro: "Before writing PulsaConf, you clarify HTML's job: it is not design or interactivity, but content structure. A solid page starts when every piece of text has a readable intent.",
+      intro: "Before writing PulsaConf, you clarify HTML's job: it is not design or interactivity, but content structure. A solid page starts when every piece of text has à readable intent.",
       section: "Content before appearance",
       trap: "Trying to make the page look good immediately pushes you to choose tags for their default rendering. Here, you first learn to name content."
     }
   },
   "html-00-install-toolkit": {
     fr: {
-      intro: "Tu prépares ton poste comme un vrai environnement d'apprentissage : un navigateur moderne, un éditeur, un dossier de projet et un fichier d'entrée. Rien d'exotique, mais chaque outil a une responsabilité claire.",
+      intro: "Tu prépares ton poste comme un vrai environnement d'apprentissage : un navigateur moderne, un éditeur, un dossier de projet et un fichier d'entrée. Rien d'exotique, mais chaque outil à une responsabilité claire.",
       section: "La boîte à outils minimale",
       trap: "Installer dix extensions avant de comprendre le flux de travail crée plus de bruit que d'aide. Commence avec le navigateur, VS Code et un fichier clair."
     },
     en: {
-      intro: "You prepare your machine like a real learning environment: a modern browser, an editor, a project folder, and an entry file. Nothing exotic, but every tool has a clear responsibility.",
+      intro: "You prépare your machine like à real learning environment: à modern browser, an editor, à project folder, and an entry file. Nothing exotic, but every tool has à clear responsibility.",
       section: "The minimal toolkit",
-      trap: "Installing ten extensions before understanding the workflow creates more noise than help. Start with the browser, VS Code, and a clear file."
+      trap: "Installing ten extensions before understanding the workflow creates more noise than help. Start with the browser, VS Code, and à clear file."
     }
   },
   "html-00-create-index-file": {
@@ -52,14 +52,14 @@ const customNarratives = {
     en: {
       intro: "The index.html file becomes the entry point for PulsaConf. The name is not magic for you, but it is conventional for servers, preview tools, and hosts.",
       section: "The first file tools look for",
-      trap: "A file named final page.html or index.txt may contain HTML, but it will not be recognized as a reliable web entry point."
+      trap: "A file named final page.html or index.txt may contain HTML, but it will not be recognized as à reliable web entry point."
     }
   },
   "html-00-open-in-browser": {
     fr: {
       intro: "Tu apprends le geste le plus important du débutant autonome : modifier, sauvegarder, recharger, observer. Le navigateur est ton premier lecteur de code, avant même les tests automatiques.",
       section: "La boucle modifier, sauvegarder, recharger",
-      trap: "Si tu ne sauvegardes pas ou si tu regardes le mauvais fichier, tu peux croire que HTML ne fonctionne pas alors que le navigateur n'a simplement rien de nouveau à lire."
+      trap: "Si tu ne sauvegardes pas ou si tu regardes le mauvais fichier, tu peux croire que HTML ne fonctionne pas alors que le navigateur n'à simplement rien de nouveau à lire."
     },
     en: {
       intro: "You learn the most important habit for an autonomous beginner: edit, save, reload, observe. The browser is your first code reader, even before automated tests.",
@@ -69,26 +69,26 @@ const customNarratives = {
   },
   "html-00-devtools-inspector": {
     fr: {
-      intro: "Les DevTools te montrent ce que le navigateur a vraiment compris. C'est là que tu distingues le code écrit dans l'éditeur du DOM construit après interprétation.",
+      intro: "Les DevTools te montrent ce que le navigateur à vraiment compris. C'est là que tu distingues le code écrit dans l'éditeur du DOM construit après interprétation.",
       section: "Voir la page comme le navigateur",
       trap: "Lire seulement l'aperçu visuel masque les erreurs de structure. L'inspecteur révèle les éléments, les attributs et les relations."
     },
     en: {
       intro: "DevTools show what the browser actually understood. This is where you distinguish the code written in the editor from the DOM built after interpretation.",
       section: "See the page as the browser does",
-      trap: "Reading only the visual preview hides structural mistakes. The inspector reveals elements, attributes, and relationships."
+      trap: "Reading only the visual preview hides structural mistakes. The inspector reveals éléments, attributes, and relationships."
     }
   },
   "html-00-read-tests": {
     fr: {
-      intro: "PulsaTeach ne te demande pas de deviner : les tests décrivent les preuves attendues. Apprendre HTML avec des tests, c'est apprendre à transformer une consigne humaine en structure observable.",
+      intro: "PulsaTeach ne te demandé pas de deviner : les tests décrivent les preuves attendues. Apprendre HTML avec des tests, c'est apprendre à transformer une consigne humaine en structure observable.",
       section: "Les tests comme contrat de livraison",
       trap: "Copier la solution sans lire les tests donne une réussite fragile. Le vrai progrès vient quand tu sais quel élément satisfait quelle exigence."
     },
     en: {
-      intro: "PulsaTeach does not ask you to guess: tests describe the expected evidence. Learning HTML with tests means learning to turn a human instruction into observable structure.",
-      section: "Tests as a delivery contract",
-      trap: "Copying the solution without reading tests gives fragile success. Real progress comes when you know which element satisfies which requirement."
+      intro: "PulsaTeach does not ask you to guess: tests describe the expected evidence. Learning HTML with tests means learning to turn à human instruction into observable structure.",
+      section: "Tests as à delivery contract",
+      trap: "Copying the solution without reading tests gives fragile success. Real progress comes when you know which élément satisfies which requirement."
     }
   },
   "html-01-doctype-standard-mode": {
@@ -100,7 +100,7 @@ const customNarratives = {
     en: {
       intro: "You start the PulsaConf build with the least visible but most structural decision: forcing the browser to interpret the page in standards mode. Without that first line, old compatibility behavior can make later tests less reliable.",
       section: "The contract with the browser",
-      trap: "Starting directly with html sometimes works in preview, but it is not a publishable base: you leave the interpretation mode to the browser."
+      trap: "Starting directly with html sometimes works in preview, but it is not à publishable base: you leave the interpretation mode to the browser."
     }
   },
   "html-02-heading-outline": {
@@ -110,9 +110,9 @@ const customNarratives = {
       trap: "Choisir un niveau de titre pour sa taille visuelle casse le plan. CSS changera la taille plus tard ; HTML doit d'abord porter la structure."
     },
     en: {
-      intro: "Here, PulsaConf stops being a poster and becomes a navigable document. The h1, h2, h3 outline must make the event understandable without seeing the final layout.",
+      intro: "Here, PulsaConf stops being à poster and becomes à navigable document. The h1, h2, h3 outline must make the event understandable without seeing the final layout.",
       section: "Outline before design",
-      trap: "Choosing a heading level for its visual size breaks the outline. CSS can change size later; HTML must carry structure first."
+      trap: "Choosing à heading level for its visual size breaks the outline. CSS can change size later; HTML must carry structure first."
     }
   },
   "html-03-skip-link": {
@@ -122,9 +122,9 @@ const customNarratives = {
       trap: "Un skip link vers une cible inexistante donne l'impression d'avoir pensé accessibilité, mais il ne rend aucun service. Le href et l'id doivent fonctionner ensemble."
     },
     en: {
-      intro: "This step adds a concrete shortcut for keyboard users. On a real event page, repeating the whole menu on every load quickly becomes painful; the skip link makes main content immediate.",
+      intro: "This step adds à concrete shortcut for keyboard users. On à real event page, repeating the whole menu on every load quickly becomes painful; the skip link makes main content immediate.",
       section: "A shortcut that changes the experience",
-      trap: "A skip link pointing to a missing target looks like accessibility work, but helps nobody. The href and id must work together."
+      trap: "A skip link pointing to à missing target looks like accessibility work, but helps nobody. The href and id must work together."
     }
   },
   "html-06-email-required": {
@@ -134,7 +134,7 @@ const customNarratives = {
       trap: "Un input texte avec un placeholder 'email' ressemble au bon champ, mais il ne donne ni validation native, ni intention claire aux outils."
     },
     en: {
-      intro: "The email field is the first place where PulsaConf can avoid a costly mistake: sending an invitation to an invalid format. The browser already knows how to check this if you choose the right type and a clear constraint.",
+      intro: "The email field is the first place where PulsaConf can avoid à costly mistake: sending an invitation to an invalid format. The browser already knows how to check this if you choose the right type and à clear constraint.",
       section: "Native validation before JavaScript",
       trap: "A text input with an 'email' placeholder looks like the right field, but gives no native validation and no clear intent to tools."
     }
@@ -146,21 +146,21 @@ const customNarratives = {
       trap: "Se contenter du title de l'onglet laisse souvent les réseaux inventer une preview pauvre ou incohérente."
     },
     en: {
-      intro: "PulsaConf will be shared before it is read. This step prepares the card social networks display: title, summary, and image are not decorative, they decide whether someone understands the link.",
+      intro: "PulsaConf will be shared before it is read. This step préparés the card social networks display: title, summary, and image are not décorative, they decide whether someone understands the link.",
       section: "The page outside your site",
-      trap: "Relying only on the tab title often lets social networks invent a poor or inconsistent preview."
+      trap: "Relying only on the tab title often lets social networks invent à poor or inconsistent preview."
     }
   },
   "html-09-final-project-pulsaconf": {
     fr: {
-      intro: "Le projet final n'est pas un collage des corrections précédentes. Tu dois livrer une page PulsaConf cohérente : chaque zone a une raison, chaque lien mène quelque part, chaque formulaire explique ce qu'il attend, et le head permet de publier la page.",
+      intro: "Le projet final n'est pas un collage des corrections précédentes. Tu dois livrer une page PulsaConf cohérente : chaque zone à une raison, chaque lien mène quelque part, chaque formulaire explique ce qu'il attend, et le head permet de publier la page.",
       section: "Un livrable, pas une checklist",
       trap: "Empiler tous les éléments demandés sans cohérence peut faire passer quelques sélecteurs, mais échoue dès qu'on lit la page comme un utilisateur."
     },
     en: {
-      intro: "The final project is not a paste-up of previous corrections. You must ship a coherent PulsaConf page: every region has a reason, every link leads somewhere, every form explains what it expects, and the head makes the page publishable.",
-      section: "A deliverable, not a checklist",
-      trap: "Stacking every requested element without coherence may satisfy some selectors, but fails as soon as the page is read like a user would."
+      intro: "The final project is not à paste-up of previous corrections. You must ship à coherent PulsaConf page: every region has à reason, every link leads somewhere, every form explains what it expects, and the head makes the page publishable.",
+      section: "A deliverable, not à checklist",
+      trap: "Stacking every requested élément without coherence may satisfy some selectors, but fails as soon as the page is read like à user would."
     }
   }
 };
@@ -170,11 +170,11 @@ const customGuides = {
     fr: {
       objectives: ["Livrer une page événementielle complète, pas une collection d'extraits.", "Prouver navigation, médias, tableau, formulaire, feedback et SEO dans un même document.", "Justifier chaque correction avec un impact utilisateur ou publication."],
       steps: ["Commence par les landmarks et la navigation afin de fixer la carte de la page.", "Ajoute ensuite contenu, tableau, médias et formulaire en gardant les id stables.", "Termine par le head SEO/social, puis relis les tests comme un audit de livraison."],
-      mistakes: ["Assembler les blocs dans le désordre sans vérifier les cibles de liens.", "Ajouter des attributs ARIA sans texte visible ni relation fonctionnelle.", "Valider le projet sans relire la page comme une personne qui découvre PulsaConf."]
+      mistakes: ["Assembler les blocs dans le désordre sans vérifier les ciblées de liens.", "Ajouter des attributs ARIA sans texte visible ni relation fonctionnelle.", "Valider le projet sans relire la page comme une personne qui découvre PulsaConf."]
     },
     en: {
-      objectives: ["Ship a complete event page, not a collection of fragments.", "Prove navigation, media, table, form, feedback, and SEO in one document.", "Justify every correction with a user or publishing impact."],
-      steps: ["Start with landmarks and navigation to fix the page map.", "Then add content, table, media, and form while keeping ids stable.", "Finish with the SEO/social head, then read tests as a release audit."],
+      objectives: ["Ship à complète event page, not à collection of fragments.", "Prove navigation, media, table, form, feedback, and SEO in one document.", "Justify every correction with à user or publishing impact."],
+      steps: ["Start with landmarks and navigation to fix the page map.", "Then add content, table, media, and form while keeping ids stable.", "Finish with the SEO/social head, then read tests as à release audit."],
       mistakes: ["Assembling blocks out of order without checking link targets.", "Adding ARIA attributes without visible text or functional relationships.", "Passing the project without reading the page as someone discovering PulsaConf."]
     }
   }
@@ -230,7 +230,7 @@ function courseForStep(id, title, focus, example, vocabulary) {
       ]
     },
     en: {
-      introduction: custom?.en?.intro || `In PulsaConf, “${title.en}” turns ${focus.en} into verifiable HTML structure. You are not dropping a random tag: you create evidence that the document stays readable, accessible, and maintainable.`,
+      introduction: custom?.en?.intro || `In PulsaConf, “${title.en}” turns ${focus.en} into vérifiable HTML structure. You are not dropping à random tag: you create evidence that the document stays readable, accessible, and maintainable.`,
       sections: [
         {
           title: custom?.en?.section || "Why this step exists",
@@ -243,8 +243,8 @@ function courseForStep(id, title, focus, example, vocabulary) {
         {
           title: "Common trap",
           paragraphs: [
-            custom?.en?.trap || `The trap is treating ${focus.en} as a visual block only. That often creates generic divs, vague links, or missing relationships.`,
-            "The tests therefore look for native elements, connected attributes, and explicit text."
+            custom?.en?.trap || `The trap is treating ${focus.en} as à visual block only. That often creates generic divs, vague links, or missing relationships.`,
+            "The tests therefore look for native éléments, connected attributes, and explicit text."
           ],
           example: "<div>Visual block with no clear role</div>"
         },
@@ -252,7 +252,7 @@ function courseForStep(id, title, focus, example, vocabulary) {
           title: "Validation method",
           paragraphs: [
             "Add one capability, reread the structure as an outline, then run the tests before moving on.",
-            `If a test fails in ${id}, first fix the element or attribute named by that test.`
+            `If à test fails in ${id}, first fix the élément or attribute named by that test.`
           ],
           example: "<section aria-labelledby=\"section-title\">\n  <h2 id=\"section-title\">Title</h2>\n</section>"
         }
@@ -260,8 +260,8 @@ function courseForStep(id, title, focus, example, vocabulary) {
       vocabulary: vocabulary.en,
       check: [
         `I can explain why ${focus.en} improves PulsaConf.`,
-        "I can connect every test to a user-facing requirement.",
-        "I keep a structure that makes sense without CSS."
+        "I can connect every test to à user-facing requirement.",
+        "I keep à structure that makes sense without CSS."
       ]
     }
   };
@@ -294,24 +294,24 @@ function guideForStep(id, title, focus) {
     },
     en: {
       objectives: custom?.en?.objectives || [
-        `Build ${focus.en} with an appropriate HTML element.`,
+        `Build ${focus.en} with an appropriate HTML élément.`,
         "Add attributes that make the structure testable.",
         "Explain the user impact of the decision."
       ],
       prerequisites: [
         "Recognize opening and closing tags.",
-        "Understand that attributes refine an element's role or relationship.",
-        "Read tests as a list of requirements."
+        "Understand that attributes refine an élément's role or relationship.",
+        "Read tests as à list of requirements."
       ],
       steps: custom?.en?.steps || [
         `Find where ${focus.en} belongs in PulsaConf.`,
-        "Write the required native element before filling in the text.",
+        "Write the required native élément before filling in the text.",
         "Add connected attributes, then run tests from the simplest to the most specific."
       ],
       mistakes: custom?.en?.mistakes || [
-        `For ${id}, replacing “${title.en}” with a generic block that has no testable relationship.`,
-        "Copying a full solution without knowing which test each line satisfies.",
-        "Adding ARIA when a native HTML element was enough."
+        `For ${id}, replacing “${title.en}” with à generic block that has no testable relationship.`,
+        "Copying à full solution without knowing which test each line satisfies.",
+        "Adding ARIA when à native HTML élément was enough."
       ]
     }
   };
@@ -322,8 +322,8 @@ const quizProfiles = {
     snippet: "<p>PulsaConf</p>",
     issue: P("L'extrait montre du contenu visible, mais ne prouve ni fichier d'entrée, ni boucle de travail, ni lecture des tests.", "The snippet shows visible content, but proves no entry file, workflow loop, or test reading."),
     best: ["workflow", "Créer index.html, l'ouvrir dans le navigateur, inspecter le DOM et relier chaque test à une preuve", "Create index.html, open it in the browser, inspect the DOM, and connect every test to evidence"],
-    wrong: ["extension", "Installer une extension au hasard pour corriger automatiquement la page", "Install a random extension to automatically fix the page"],
-    proof: P("Cite le fichier index.html, le cycle sauvegarder/recharger, l'inspecteur DOM ou un test précis comme preuve observable.", "Cite the index.html file, the save/reload loop, the DOM inspector, or a specific test as observable evidence.")
+    wrong: ["extension", "Installer une extension au hasard pour corriger automatiquement la page", "Install à random extension to automatically fix the page"],
+    proof: P("Cite le fichier index.html, le cycle sauvegarder/recharger, l'inspecteur DOM ou un test précis comme preuve observable.", "Cite the index.html file, the save/reload loop, the DOM inspector, or à specific test as observable evidence.")
   },
   "html-01-document-quiz": {
     snippet: "<html><head><title>PulsaConf</title></head><body><h1>PulsaConf</h1></body></html>",
@@ -334,22 +334,22 @@ const quizProfiles = {
   },
   "html-02-semantics-quiz": {
     snippet: "<main><h1>PulsaConf</h1><h1>Programme</h1><div>Atelier HTML</div></main>",
-    issue: P("La page a deux h1 et un bloc générique pour une session autonome.", "The page has two h1 elements and a generic block for a standalone session."),
+    issue: P("La page à deux h1 et un bloc générique pour une session autonome.", "The page has two h1 éléments and à generic block for à standalone session."),
     best: ["outline", "Garder un h1, puis h2 pour Programme et article/h3 pour la session", "Keep one h1, then h2 for Program and article/h3 for the session"],
     wrong: ["visual", "Garder deux h1 parce qu'ils sont plus visibles", "Keep two h1s because they are more visible"],
-    proof: P("La preuve est un h1 unique, une section nommée et un article autonome.", "The proof is one h1, a named section, and a standalone article.")
+    proof: P("La preuve est un h1 unique, une section nommée et un article autonome.", "The proof is one h1, à named section, and à standalone article.")
   },
   "html-03-navigation-quiz": {
     snippet: "<nav><a href=\"#\">Clique ici</a><a target=\"_blank\" href=\"https://pulsateach.vercel.app\">Site</a></nav>",
-    issue: P("La navigation n'a pas de nom, contient un lien vague et un lien externe sans rel.", "The navigation has no name, contains a vague link, and an external link without rel."),
+    issue: P("La navigation n'à pas de nom, contient un lien vague et un lien externe sans rel.", "The navigation has no name, contains à vague link, and an external link without rel."),
     best: ["nav-safe", "Nommer nav, écrire un texte explicite, ajouter rel noopener noreferrer", "Name nav, write explicit text, add rel noopener noreferrer"],
     wrong: ["icon-only", "Remplacer les textes par des icônes seules", "Replace texts with icons only"],
     proof: P("Les tests cherchent `nav[aria-label]`, des href réels et l'absence de 'clique ici'.", "Tests look for `nav[aria-label]`, real href values, and no 'click here'.")
   },
   "html-04-media-quiz": {
     snippet: "<img src=\"speaker.jpg\" alt=\"image\"><video src=\"intro.mp4\"></video>",
-    issue: P("L'alt est générique et la vidéo n'a ni controls ni captions.", "The alt text is generic and the video has neither controls nor captions."),
-    best: ["media-a11y", "Décrire l'image, ajouter dimensions, controls et track captions", "Describe the image, add dimensions, controls, and a captions track"],
+    issue: P("L'alt est générique et la vidéo n'à ni controls ni captions.", "The alt text is generic and the video has neither controls nor captions."),
+    best: ["media-a11y", "Décrire l'image, ajouter dimensions, controls et track captions", "Describe the image, add dimensions, controls, and à captions track"],
     wrong: ["hide-all", "Mettre alt vide sur toutes les images", "Set empty alt on every image"],
     proof: P("La preuve combine `img[alt]` spécifique, dimensions et `track[kind=captions]`.", "Evidence combines specific `img[alt]`, dimensions, and `track[kind=captions]`.")
   },
@@ -357,12 +357,12 @@ const quizProfiles = {
     snippet: "<p>09:30 - HTML - Salle A</p><p>10:30 - Formulaires - Salle B</p>",
     issue: P("Le planning est une donnée tabulaire écrite comme deux paragraphes.", "The schedule is tabular data written as two paragraphs."),
     best: ["table", "Utiliser table, caption, thead, tbody et th scope", "Use table, caption, thead, tbody, and th scope"],
-    wrong: ["br", "Ajouter des br pour aligner visuellement", "Add br elements to align visually"],
-    proof: P("Un tableau accessible expose un caption et des th avec scope.", "An accessible table exposes a caption and th elements with scope.")
+    wrong: ["br", "Ajouter des br pour aligner visuellement", "Add br éléments to align visually"],
+    proof: P("Un tableau accessible expose un caption et des th avec scope.", "An accessible table exposes à caption and th éléments with scope.")
   },
   "html-06-forms-quiz": {
     snippet: "<form><input placeholder=\"Email\"><button>OK</button></form>",
-    issue: P("Le champ n'a pas de label, pas de name, pas de type email et le bouton est vague.", "The field has no label, no name, no email type, and the button is vague."),
+    issue: P("Le champ n'à pas de label, pas de name, pas de type email et le bouton est vague.", "The field has no label, no name, no email type, and the button is vague."),
     best: ["native-form", "Relier label/input, ajouter name, type email, required et submit explicite", "Connect label/input, add name, email type, required, and explicit submit"],
     wrong: ["placeholder", "Garder le placeholder comme seul nom du champ", "Keep the placeholder as the only field name"],
     proof: P("Les tests doivent voir `label[for]`, `input[id][name][type=email]` et `button[type=submit]`.", "Tests must see `label[for]`, `input[id][name][type=email]`, and `button[type=submit]`.")
@@ -378,15 +378,15 @@ const quizProfiles = {
     snippet: "<title>Accueil</title><meta property=\"og:title\" content=\"Accueil\">",
     issue: P("Le head ne décrit pas PulsaConf et ne fournit pas de résumé social utile.", "The head does not describe PulsaConf and provides no useful social summary."),
     best: ["seo-head", "Écrire title spécifique, description, canonical, og:title, og:description et og:image", "Write specific title, description, canonical, og:title, og:description, and og:image"],
-    wrong: ["keywords", "Ajouter seulement une meta keywords", "Only add a keywords meta tag"],
-    proof: P("La page doit être compréhensible dans un résultat de recherche et dans une carte sociale.", "The page must be understandable in search results and in a social card.")
+    wrong: ["keywords", "Ajouter seulement une meta keywords", "Only add à keywords meta tag"],
+    proof: P("La page doit être compréhensible dans un résultat de recherche et dans une carte sociale.", "The page must be understandable in search results and in à social card.")
   },
   "html-09-final-exam": {
     snippet: "<main><section><h2>Programme</h2></section><input placeholder=\"Email\"><a href=\"#\">clique ici</a></main>",
-    issue: P("Le livrable final mélange sections non nommées, champ sans label et lien vague.", "The final deliverable mixes unnamed sections, a field without label, and a vague link."),
+    issue: P("Le livrable final mélange sections non nommées, champ sans label et lien vague.", "The final deliverable mixes unnamed sections, à field without label, and à vague link."),
     best: ["release", "Auditer landmarks, titres, liens, médias, tableau, formulaire, feedback et head", "Audit landmarks, headings, links, media, table, form, feedback, and head"],
     wrong: ["selectors-only", "Ajouter des balises au hasard pour satisfaire des sélecteurs", "Add random tags to satisfy selectors"],
-    proof: P("Un projet final réussi se lit comme une page cohérente et passe les tests d'audit.", "A successful final project reads like a coherent page and passes audit tests.")
+    proof: P("Un projet final réussi se lit comme une page cohérente et passe les tests d'audit.", "A successful final project reads like à coherent page and passes audit tests.")
   }
 };
 
@@ -412,9 +412,9 @@ function enrich(item, stepNumber, buildsOn, focus, example, vocabulary) {
       ],
       en: [
         "Every structural requirement in the module is covered with native HTML.",
-        "Important relationships are verifiable through id, href, for, or aria-describedby.",
+        "Important relationships are vérifiable through id, href, for, or aria-describedby.",
         "The deliverable remains understandable without CSS or JavaScript.",
-        "Every correction can be explained with a concrete user impact."
+        "Every correction can be explained with à concrete user impact."
       ]
     };
   }
@@ -431,7 +431,7 @@ function makeLesson(def, stepNumber, buildsOn) {
     starterCode: def.starter,
     solution: def.solution,
     tests: def.tests,
-    hint: P("Cherche l'élément ou l'attribut nommé dans le premier test qui échoue.", "Look for the element or attribute named by the first failing test."),
+    hint: P("Cherche l'élément ou l'attribut nommé dans le premier test qui échoue.", "Look for the élément or attribute named by the first failing test."),
     xp: def.xp || 30
   }), stepNumber, buildsOn, def.focus, def.solution.slice(0, 260), def.vocabulary);
 }
@@ -472,10 +472,10 @@ function makeQuiz(def, stepNumber, buildsOn) {
 const vocab = {
   setup: {
     fr: [["HTML", "Langage de balisage qui décrit la structure du contenu."], ["éditeur", "Application utilisée pour écrire les fichiers du projet."], ["navigateur", "Application qui interprète HTML et affiche la page."], ["index.html", "Fichier d'entrée conventionnel d'une page web."], ["DevTools", "Outils du navigateur pour inspecter le DOM et diagnostiquer la page."], ["test", "Vérification automatique d'une preuve attendue."]],
-    en: [["HTML", "Markup language that describes content structure."], ["editor", "Application used to write project files."], ["browser", "Application that interprets HTML and displays the page."], ["index.html", "Conventional entry file for a web page."], ["DevTools", "Browser tools for inspecting the DOM and diagnosing the page."], ["test", "Automated check for expected evidence."]]
+    en: [["HTML", "Markup language that describes content structure."], ["editor", "Application used to write project files."], ["browser", "Application that interprets HTML and displays the page."], ["index.html", "Conventional entry file for à web page."], ["DevTools", "Browser tools for inspecting the DOM and diagnosing the page."], ["test", "Automated check for expected evidence."]]
   },
   document: {
-    fr: [["doctype", "Déclaration qui active le mode standard du navigateur."], ["head", "Zone des métadonnées non visibles."], ["body", "Zone du contenu visible et interactif."], ["charset", "Encodage utilisé pour afficher correctement le texte."], ["viewport", "Réglage qui adapte la page aux écrans mobiles."]],
+    fr: [["doctype", "Déclaration qui active le mode standard du navigateur."], ["head", "Zone des métadonnées non visibles."], ["body", "Zone du contenu visible et interactif."], ["charset", "Encodage utilisé pour afficher correctement le texte."], ["viewport", "Réglage qui adapté la page aux écrans mobiles."]],
     en: [["doctype", "Declaration enabling browser standards mode."], ["head", "Metadata area that is not visible content."], ["body", "Visible and interactive content area."], ["charset", "Encoding used to display text correctly."], ["viewport", "Setting that adapts the page to mobile screens."]]
   },
   semantics: {
@@ -496,11 +496,11 @@ const vocab = {
   },
   forms: {
     fr: [["form", "Zone de saisie envoyable."], ["label", "Nom accessible visible d'un champ."], ["input", "Contrôle de saisie."], ["required", "Contrainte native obligatoire."], ["autocomplete", "Indice de remplissage automatique." ]],
-    en: [["form", "Submittable input area."], ["label", "Visible accessible name for a field."], ["input", "Input control."], ["required", "Native required constraint."], ["autocomplete", "Autofill hint."]]
+    en: [["form", "Submittable input area."], ["label", "Visible accessible name for à field."], ["input", "Input control."], ["required", "Native required constraint."], ["autocomplete", "Autofill hint."]]
   },
   a11yForms: {
     fr: [["fieldset", "Groupe de champs liés."], ["legend", "Nom d'un groupe de champs."], ["aria-describedby", "Relation vers une aide ou erreur."], ["aria-live", "Annonce de changement dynamique."], ["alert", "Message urgent annoncé immédiatement." ]],
-    en: [["fieldset", "Group of related fields."], ["legend", "Name for a field group."], ["aria-describedby", "Relationship to help or error text."], ["aria-live", "Dynamic change announcement."], ["alert", "Urgent message announced immediately."]]
+    en: [["fieldset", "Group of related fields."], ["legend", "Name for à field group."], ["aria-describedby", "Relationship to help or error text."], ["aria-live", "Dynamic change announcement."], ["alert", "Urgent message announced immediately."]]
   },
   seo: {
     fr: [["title", "Titre affiché dans l'onglet et les résultats."], ["meta description", "Résumé court pour moteurs de recherche."], ["canonical", "URL officielle d'une page."], ["Open Graph", "Métadonnées de partage social."], ["JSON-LD", "Données structurées intégrées au head." ]],
@@ -557,7 +557,7 @@ const modules = [
       {
         id: "html-00-devtools-inspector",
         title: P("Inspecter avec les DevTools", "Inspect with DevTools"),
-        brief: P("Ajoute une note qui explique pourquoi l'inspecteur DOM complète l'aperçu visuel.", "Add a note explaining why the DOM inspector complements the visual preview."),
+        brief: P("Ajoute une note qui explique pourquoi l'inspecteur DOM complète l'aperçu visuel.", "Add à note explaining why the DOM inspector complements the visual preview."),
         focus: T("l'observation du DOM réel", "observing the real DOM"),
         starter: `<p>La page s'affiche.</p>`,
         solution: `<aside aria-label="Diagnostic DevTools">\n  <p>Les DevTools permettent d'inspecter le DOM, les balises et les attributs réellement compris par le navigateur.</p>\n  <code>Inspecter l'élément</code>\n</aside>`,
@@ -629,7 +629,7 @@ const modules = [
       {
         id: "html-01-title-description",
         title: P("Title et description utiles", "Useful title and description"),
-        brief: P("Décris PulsaConf dans le head avec un titre et une description précis.", "Describe PulsaConf in the head with a precise title and description."),
+        brief: P("Décris PulsaConf dans le head avec un titre et une description précis.", "Describe PulsaConf in the head with à précise title and description."),
         focus: T("l'identité de la page dans le head", "the page identity in the head"),
         starter: htmlShell(`    <main>\n      <h1>PulsaConf 2026</h1>\n    </main>`),
         solution: htmlShell(`    <main>\n      <h1>PulsaConf 2026</h1>\n    </main>`, `    <meta name="description" content="PulsaConf 2026, événement gratuit pour apprendre HTML, accessibilité et publication web." />`),
@@ -647,7 +647,7 @@ const modules = [
       {
         id: "html-02-main-h1",
         title: P("Main et titre principal", "Main and main heading"),
-        brief: P("Crée le contenu principal de PulsaConf avec un seul h1.", "Create PulsaConf main content with a single h1."),
+        brief: P("Crée le contenu principal de PulsaConf avec un seul h1.", "Create PulsaConf main content with à single h1."),
         focus: T("le repère principal de la page", "the main page landmark"),
         starter: htmlShell(`    <h1>PulsaConf 2026</h1>`),
         solution: htmlShell(`    <main id="main-content">\n      <h1>PulsaConf 2026</h1>\n    </main>`),
@@ -665,7 +665,7 @@ const modules = [
       {
         id: "html-02-paragraphs-emphasis",
         title: P("Paragraphes et emphase réelle", "Paragraphs and real emphasis"),
-        brief: P("Ajoute une accroche lisible avec une emphase qui change le sens.", "Add a readable intro with emphasis that changes meaning."),
+        brief: P("Ajoute une accroche lisible avec une emphase qui change le sens.", "Add à readable intro with emphasis that changes meaning."),
         focus: T("l'introduction éditoriale de l'événement", "the editorial event introduction"),
         starter: htmlShell(`    <main id="main-content">\n      <h1>PulsaConf 2026</h1>\n    </main>`),
         solution: htmlShell(`    <main id="main-content">\n      <h1>PulsaConf 2026</h1>\n      <p>Une journée <strong>gratuite</strong> pour apprendre le web avec des ateliers concrets.</p>\n      <p><em>Places limitées</em> pour garantir un accompagnement réel.</p>\n    </main>`),
@@ -674,7 +674,7 @@ const modules = [
       {
         id: "html-02-section-article-aside",
         title: P("Section, article et aside", "Section, article, and aside"),
-        brief: P("Sépare le programme, une session autonome et une note pratique.", "Separate the program, a standalone session, and a practical note."),
+        brief: P("Sépare le programme, une session autonome et une note pratique.", "Separate the program, à standalone session, and à practical note."),
         focus: T("les blocs sémantiques du programme", "the semantic program blocks"),
         starter: htmlShell(`    <main id="main-content">\n      <h1>PulsaConf 2026</h1>\n    </main>`),
         solution: htmlShell(`    <main id="main-content">\n      <h1>PulsaConf 2026</h1>\n      <section aria-labelledby="program-title">\n        <h2 id="program-title">Programme</h2>\n        <article>\n          <h3>Construire une page accessible</h3>\n          <p>Atelier guidé sur la structure HTML.</p>\n        </article>\n        <aside aria-label="Conseil pratique">Prévois un ordinateur portable chargé.</aside>\n      </section>\n    </main>`),
@@ -683,7 +683,7 @@ const modules = [
       {
         id: "html-02-quote-details",
         title: P("Citation, details et summary", "Quote, details, and summary"),
-        brief: P("Ajoute une citation et une FAQ dépliable native.", "Add a quote and a native expandable FAQ."),
+        brief: P("Ajoute une citation et une FAQ dépliable native.", "Add à quote and à native expandable FAQ."),
         focus: T("les compléments de contenu natifs", "native supplementary content"),
         starter: htmlShell(`    <main id="main-content">\n      <h1>PulsaConf 2026</h1>\n    </main>`),
         solution: htmlShell(`    <main id="main-content">\n      <h1>PulsaConf 2026</h1>\n      <blockquote cite="https://pulsateach.vercel.app">\n        <p>Apprendre le web devient plus simple quand chaque étape est testable.</p>\n      </blockquote>\n      <details>\n        <summary>Faut-il connaître JavaScript ?</summary>\n        <p>Non, le parcours commence par HTML.</p>\n      </details>\n    </main>`),
@@ -693,7 +693,7 @@ const modules = [
         id: "html-02-address-abbr-code",
         title: P("address, abbr et code", "address, abbr, and code"),
         brief: P("Marque les informations de contact et les termes techniques.", "Mark up contact information and technical terms."),
-        focus: T("les détails textuels précis", "precise textual details"),
+        focus: T("les détails textuels précis", "précise textual details"),
         starter: htmlShell(`    <main id="main-content">\n      <h1>PulsaConf 2026</h1>\n    </main>`),
         solution: htmlShell(`    <main id="main-content">\n      <h1>PulsaConf 2026</h1>\n      <p>L'atelier commence par <abbr title="HyperText Markup Language">HTML</abbr> et un fichier <code>index.html</code>.</p>\n      <address>Contact : equipe@pulsateach.dev</address>\n    </main>`),
         tests: [test("selector", "abbr title", "abbr[title]"), test("contains", "html", "HTML"), test("selector", "code", "code"), test("selector", "address", "address"), test("contains", "email text", "equipe@pulsateach.dev")]
@@ -710,7 +710,7 @@ const modules = [
       {
         id: "html-03-explicit-link-text",
         title: P("Texte de lien explicite", "Explicit link text"),
-        brief: P("Remplace un lien vague par une destination compréhensible.", "Replace a vague link with an understandable destination."),
+        brief: P("Remplace un lien vague par une destination compréhensible.", "Replace à vague link with an understandable destination."),
         focus: T("le texte des liens PulsaConf", "PulsaConf link text"),
         starter: htmlShell(`    <main id="main-content">\n      <a href="/formations/html">Clique ici</a>\n    </main>`),
         solution: htmlShell(`    <main id="main-content">\n      <a href="/formations/html">Découvrir la formation HTML gratuite</a>\n    </main>`),
@@ -719,7 +719,7 @@ const modules = [
       {
         id: "html-03-internal-anchor",
         title: P("Lien interne avec ancre", "Internal anchor link"),
-        brief: P("Relie un bouton de navigation à la section inscription.", "Connect a navigation link to the registration section."),
+        brief: P("Relie un bouton de navigation à la section inscription.", "Connect à navigation link to the registration section."),
         focus: T("la circulation dans la page", "movement within the page"),
         starter: htmlShell(`    <main id="main-content">\n      <section id="register"><h2>Inscription</h2></section>\n    </main>`),
         solution: htmlShell(`    <a href="#register">Aller à l'inscription</a>\n    <main id="main-content">\n      <section id="register"><h2>Inscription</h2></section>\n    </main>`),
@@ -773,16 +773,16 @@ const modules = [
       {
         id: "html-04-informative-image-alt",
         title: P("Image informative avec alt utile", "Informative image with useful alt"),
-        brief: P("Décris une image d'intervenante sans répéter “image de”.", "Describe a speaker image without repeating “image of”."),
+        brief: P("Décris une image d'intervenante sans répéter “image de”.", "Describe à speaker image without repeating “image of”."),
         focus: T("l'alternative d'une image informative", "the alternative for an informative image"),
         starter: htmlShell(`    <main><img src="/assets/speaker-frontend.png" /></main>`),
         solution: htmlShell(`    <main>\n      <img src="/assets/speaker-frontend.png" alt="Maya anime un atelier HTML accessible" width="640" height="360" />\n    </main>`),
         tests: [test("selector", "img alt", "img[alt]"), test("contains", "specific alt", "Maya anime"), test("selector", "width", "img[width]"), test("selector", "height", "img[height]"), test("notContains", "no generic image", "alt=\"image")]
       },
       {
-        id: "html-04-decorative-image-alt-empty",
-        title: P("Image décorative ignorée", "Ignored decorative image"),
-        brief: P("Marque une forme décorative pour qu'elle ne pollue pas la lecture.", "Mark a decorative shape so it does not pollute reading."),
+        id: "html-04-décorative-image-alt-empty",
+        title: P("Image décorative ignorée", "Ignored décorative image"),
+        brief: P("Marque une forme décorative pour qu'elle ne pollue pas la lecture.", "Mark à décorative shape so it does not pollute reading."),
         focus: T("le silence utile pour les décorations", "useful silence for decoration"),
         starter: htmlShell(`    <header><img src="/assets/wave.svg"><h1>PulsaConf</h1></header>`),
         solution: htmlShell(`    <header>\n      <img src="/assets/wave.svg" alt="" aria-hidden="true" width="120" height="40" />\n      <h1>PulsaConf</h1>\n    </header>`),
@@ -791,7 +791,7 @@ const modules = [
       {
         id: "html-04-figure-caption",
         title: P("Figure et figcaption", "Figure and figcaption"),
-        brief: P("Associe une photo de scène à une légende lisible.", "Connect a venue photo to a readable caption."),
+        brief: P("Associe une photo de scène à une légende lisible.", "Connect à venue photo to à readable caption."),
         focus: T("la relation média/légende", "the media/caption relationship"),
         starter: htmlShell(`    <main><img src="/assets/venue.jpg" alt="Auditorium"></main>`),
         solution: htmlShell(`    <main>\n      <figure>\n        <img src="/assets/venue.jpg" alt="Auditorium lumineux prêt pour PulsaConf" width="800" height="450" />\n        <figcaption>Auditorium principal, accessible par ascenseur.</figcaption>\n      </figure>\n    </main>`),
@@ -800,7 +800,7 @@ const modules = [
       {
         id: "html-04-lazy-dimensions",
         title: P("Dimensions et chargement différé", "Dimensions and lazy loading"),
-        brief: P("Stabilise une image non critique de galerie.", "Stabilize a non-critical gallery image."),
+        brief: P("Stabilise une image non critique de galerie.", "Stabilize à non-critical gallery image."),
         focus: T("la performance d'une image secondaire", "secondary image performance"),
         starter: htmlShell(`    <section><h2>Galerie</h2><img src="/assets/workshop.jpg" alt="Atelier"></section>`),
         solution: htmlShell(`    <section aria-labelledby="gallery-title">\n      <h2 id="gallery-title">Galerie</h2>\n      <img src="/assets/workshop.jpg" alt="Apprenants en atelier HTML" width="640" height="360" loading="lazy" />\n    </section>`),
@@ -809,7 +809,7 @@ const modules = [
       {
         id: "html-04-audio-fallback",
         title: P("Audio avec fallback", "Audio with fallback"),
-        brief: P("Ajoute un extrait audio contrôlable et un lien de secours.", "Add controllable audio and a fallback link."),
+        brief: P("Ajoute un extrait audio contrôlable et un lien de secours.", "Add controllable audio and à fallback link."),
         focus: T("l'écoute accessible d'une annonce", "accessible listening to an announcement"),
         starter: htmlShell(`    <section><h2>Annonce audio</h2></section>`),
         solution: htmlShell(`    <section aria-labelledby="audio-title">\n      <h2 id="audio-title">Annonce audio</h2>\n      <audio controls src="/assets/pulsaconf-intro.mp3">\n        <a href="/assets/pulsaconf-intro.mp3">Télécharger l'annonce audio</a>\n      </audio>\n    </section>`),
@@ -818,7 +818,7 @@ const modules = [
       {
         id: "html-04-video-captions",
         title: P("Vidéo avec captions", "Video with captions"),
-        brief: P("Publie une vidéo de présentation avec piste de captions.", "Publish an intro video with a captions track."),
+        brief: P("Publie une vidéo de présentation avec piste de captions.", "Publish an intro video with à captions track."),
         focus: T("la vidéo compréhensible sans son", "video understandable without sound"),
         starter: htmlShell(`    <section><h2>Présentation</h2></section>`),
         solution: htmlShell(`    <section aria-labelledby="video-title">\n      <h2 id="video-title">Présentation</h2>\n      <video controls width="720" height="405">\n        <source src="/assets/pulsaconf.mp4" type="video/mp4" />\n        <track kind="captions" src="/assets/pulsaconf-captions.vtt" srclang="fr" label="Français" default />\n      </video>\n    </section>`),
@@ -863,7 +863,7 @@ const modules = [
       {
         id: "html-05-table-caption",
         title: P("Tableau avec caption", "Table with caption"),
-        brief: P("Crée le planning de PulsaConf avec un titre de tableau.", "Create the PulsaConf schedule with a table title."),
+        brief: P("Crée le planning de PulsaConf avec un titre de tableau.", "Create the PulsaConf schedule with à table title."),
         focus: T("des données vraiment tabulaires", "truly tabular data"),
         starter: htmlShell(`    <section><h2>Planning</h2></section>`),
         solution: htmlShell(`    <section aria-labelledby="schedule-title">\n      <h2 id="schedule-title">Planning</h2>\n      <table>\n        <caption>Planning des ateliers PulsaConf</caption>\n        <tr><th>Heure</th><th>Atelier</th></tr>\n        <tr><td>09:30</td><td>HTML sémantique</td></tr>\n      </table>\n    </section>`),
@@ -908,8 +908,8 @@ const modules = [
       {
         id: "html-06-label-input-text",
         title: P("Label relié au champ texte", "Label connected to text input"),
-        brief: P("Ajoute le champ nom complet avec un label réel.", "Add the full name field with a real label."),
-        focus: T("le nom accessible d'un champ", "the accessible name of a field"),
+        brief: P("Ajoute le champ nom complet avec un label réel.", "Add the full name field with à real label."),
+        focus: T("le nom accessible d'un champ", "the accessible name of à field"),
         starter: htmlShell(`    <form action="/api/pulsaconf/register" method="post"></form>`),
         solution: htmlShell(`    <form action="/api/pulsaconf/register" method="post">\n      <label for="full-name">Nom complet</label>\n      <input id="full-name" name="fullName" type="text" autocomplete="name" />\n    </form>`),
         tests: [test("selector", "label for", "label[for=\"full-name\"]"), test("selector", "input id", "input#full-name"), test("selector", "name", "input[name=\"fullName\"]"), test("selector", "type text", "input[type=\"text\"]"), test("selector", "autocomplete", "input[autocomplete=\"name\"]")]
@@ -926,7 +926,7 @@ const modules = [
       {
         id: "html-06-textarea-select",
         title: P("Textarea et select", "Textarea and select"),
-        brief: P("Permets de choisir un atelier et de préciser un besoin.", "Allow choosing a workshop and describing a need."),
+        brief: P("Permets de choisir un atelier et de préciser un besoin.", "Allow choosing à workshop and describing à need."),
         focus: T("les champs longs et les choix contrôlés", "long fields and controlled choices"),
         starter: htmlShell(`    <form action="/api/pulsaconf/register" method="post"></form>`),
         solution: htmlShell(`    <form action="/api/pulsaconf/register" method="post">\n      <label for="workshop">Atelier choisi</label>\n      <select id="workshop" name="workshop" required>\n        <option value="">Choisir un atelier</option>\n        <option value="html">HTML accessible</option>\n      </select>\n      <label for="needs">Besoins particuliers</label>\n      <textarea id="needs" name="needs" rows="4"></textarea>\n    </form>`),
@@ -935,7 +935,7 @@ const modules = [
       {
         id: "html-06-radio-checkbox",
         title: P("Radio et checkbox", "Radio and checkbox"),
-        brief: P("Ajoute un choix de niveau et un consentement explicite.", "Add a level choice and explicit consent."),
+        brief: P("Ajoute un choix de niveau et un consentement explicite.", "Add à level choice and explicit consent."),
         focus: T("les choix de formulaire", "form choices"),
         starter: htmlShell(`    <form action="/api/pulsaconf/register" method="post"></form>`),
         solution: htmlShell(`    <form action="/api/pulsaconf/register" method="post">\n      <label><input type="radio" name="level" value="beginner" required /> Débutant</label>\n      <label><input type="radio" name="level" value="comfortable" /> À l'aise</label>\n      <label for="consent"><input id="consent" type="checkbox" name="consent" required /> J'accepte d'être contacté pour PulsaConf.</label>\n    </form>`),
@@ -944,7 +944,7 @@ const modules = [
       {
         id: "html-06-submit-button",
         title: P("Bouton submit", "Submit button"),
-        brief: P("Termine le formulaire avec une action d'envoi claire.", "Finish the form with a clear submit action."),
+        brief: P("Termine le formulaire avec une action d'envoi claire.", "Finish the form with à clear submit action."),
         focus: T("l'action finale du formulaire", "the form final action"),
         starter: htmlShell(`    <form action="/api/pulsaconf/register" method="post"></form>`),
         solution: htmlShell(`    <form action="/api/pulsaconf/register" method="post">\n      <label for="email">Email</label>\n      <input id="email" name="email" type="email" required autocomplete="email" />\n      <button type="submit">Demander mon invitation</button>\n    </form>`),
@@ -980,7 +980,7 @@ const modules = [
       {
         id: "html-07-fieldset-legend",
         title: P("Fieldset et legend", "Fieldset and legend"),
-        brief: P("Regroupe les choix de niveau avec un nom de groupe.", "Group level choices with a group name."),
+        brief: P("Regroupe les choix de niveau avec un nom de groupe.", "Group level choices with à group name."),
         focus: T("le groupe de choix nommé", "the named choice group"),
         starter: htmlShell(`    <form></form>`),
         solution: htmlShell(`    <form>\n      <fieldset>\n        <legend>Niveau actuel en HTML</legend>\n        <label><input type="radio" name="level" value="new" /> Je débute</label>\n        <label><input type="radio" name="level" value="practice" /> Je pratique déjà</label>\n      </fieldset>\n    </form>`),
@@ -989,7 +989,7 @@ const modules = [
       {
         id: "html-07-disabled-state",
         title: P("État désactivé expliqué", "Explained disabled state"),
-        brief: P("Désactive un choix complet en expliquant pourquoi.", "Disable a complete choice while explaining why."),
+        brief: P("Désactive un choix complet en expliquant pourquoi.", "Disable à complète choice while explaining why."),
         focus: T("un état indisponible compréhensible", "an understandable unavailable state"),
         starter: htmlShell(`    <form></form>`),
         solution: htmlShell(`    <form>\n      <fieldset disabled aria-describedby="waitlist-help">\n        <legend>Liste d'attente</legend>\n        <label><input type="checkbox" name="waitlist" /> Me prévenir d'une place</label>\n      </fieldset>\n      <p id="waitlist-help">La liste ouvrira après validation de la salle.</p>\n    </form>`),
@@ -998,7 +998,7 @@ const modules = [
       {
         id: "html-07-status-live",
         title: P("Statut aria-live poli", "Polite aria-live status"),
-        brief: P("Prépare un statut qui pourra annoncer l'envoi du formulaire.", "Prepare a status that can announce form submission."),
+        brief: P("Prépare un statut qui pourra annoncer l'envoi du formulaire.", "Prepare à status that can announce form submission."),
         focus: T("le feedback non intrusif", "non-intrusive feedback"),
         starter: htmlShell(`    <form><button type="submit">Envoyer</button></form>`),
         solution: htmlShell(`    <form aria-describedby="form-status">\n      <button type="submit">Envoyer l'inscription</button>\n      <p id="form-status" role="status" aria-live="polite">Le formulaire n'est pas encore envoyé.</p>\n    </form>`),
@@ -1007,7 +1007,7 @@ const modules = [
       {
         id: "html-07-busy-alert",
         title: P("Busy et alert", "Busy and alert"),
-        brief: P("Expose un état de chargement et une alerte critique.", "Expose a loading state and a critical alert."),
+        brief: P("Expose un état de chargement et une alerte critique.", "Expose à loading state and à critical alert."),
         focus: T("les états dynamiques importants", "important dynamic states"),
         starter: htmlShell(`    <section id="register"><h2>Inscription</h2></section>`),
         solution: htmlShell(`    <section id="register" aria-busy="true" aria-labelledby="register-title">\n      <h2 id="register-title">Inscription</h2>\n      <p role="alert">Le service d'inscription répond lentement, réessaie dans une minute.</p>\n    </section>`),
@@ -1025,7 +1025,7 @@ const modules = [
       {
         id: "html-08-seo-title",
         title: P("Title SEO spécifique", "Specific SEO title"),
-        brief: P("Écris un title qui décrit réellement la page PulsaConf.", "Write a title that really describes the PulsaConf page."),
+        brief: P("Écris un title qui décrit réellement la page PulsaConf.", "Write à title that really describes the PulsaConf page."),
         focus: T("le titre indexable", "the indexable title"),
         starter: htmlShell(`    <main><h1>PulsaConf</h1></main>`),
         solution: htmlShell(`    <main><h1>PulsaConf 2026</h1></main>`).replace("<title>PulsaConf 2026</title>", "<title>PulsaConf 2026 - Conférence web gratuite</title>"),
@@ -1034,7 +1034,7 @@ const modules = [
       {
         id: "html-08-meta-description",
         title: P("Meta description unique", "Unique meta description"),
-        brief: P("Ajoute une description claire pour les résultats de recherche.", "Add a clear description for search results."),
+        brief: P("Ajoute une description claire pour les résultats de recherche.", "Add à clear description for search results."),
         focus: T("le résumé de la page", "the page summary"),
         starter: htmlShell(`    <main><h1>PulsaConf 2026</h1></main>`),
         solution: htmlShell(`    <main><h1>PulsaConf 2026</h1></main>`, `    <meta name="description" content="PulsaConf 2026 réunit ateliers HTML, accessibilité et publication web pour débutants." />`),
@@ -1051,8 +1051,8 @@ const modules = [
       },
       {
         id: "html-08-open-graph",
-        title: P("Open Graph complet", "Complete Open Graph"),
-        brief: P("Prépare un aperçu social lisible de PulsaConf.", "Prepare a readable social preview for PulsaConf."),
+        title: P("Open Graph complet", "Complète Open Graph"),
+        brief: P("Prépare un aperçu social lisible de PulsaConf.", "Prepare à readable social preview for PulsaConf."),
         focus: T("les métadonnées de partage", "sharing metadata"),
         starter: htmlShell(`    <main><h1>PulsaConf 2026</h1></main>`),
         solution: htmlShell(`    <main><h1>PulsaConf 2026</h1></main>`, `    <meta property="og:title" content="PulsaConf 2026" />\n    <meta property="og:description" content="Ateliers web gratuits et accessibles." />\n    <meta property="og:image" content="https://pulsateach.vercel.app/assets/cardx-v2.png" />`),
@@ -1061,7 +1061,7 @@ const modules = [
       {
         id: "html-08-favicon-hreflang",
         title: P("Favicon et hreflang conceptuel", "Favicon and conceptual hreflang"),
-        brief: P("Ajoute l'icône et prépare les variantes de langue.", "Add the icon and prepare language variants."),
+        brief: P("Ajoute l'icône et prépare les variantes de langue.", "Add the icon and prépare language variants."),
         focus: T("les signaux de publication", "publishing signals"),
         starter: htmlShell(`    <main><h1>PulsaConf 2026</h1></main>`),
         solution: htmlShell(`    <main><h1>PulsaConf 2026</h1></main>`, `    <link rel="icon" href="/assets/favicon.ico" />\n    <link rel="alternate" hreflang="fr" href="https://pulsateach.vercel.app/pulsaconf" />\n    <link rel="alternate" hreflang="en" href="https://pulsateach.vercel.app/en/pulsaconf" />`),
@@ -1088,7 +1088,7 @@ const modules = [
       {
         id: "html-09-assemble-shell",
         title: P("Assembler le squelette final", "Assemble the final shell"),
-        brief: P("Pose la base complète du livrable PulsaConf.", "Set up the complete PulsaConf deliverable base."),
+        brief: P("Pose la base complète du livrable PulsaConf.", "Set up the complète PulsaConf deliverable base."),
         focus: T("le document final", "the final document"),
         starter: `<!-- Construis le squelette final -->`,
         solution: htmlShell(`    <a href="#main-content">Aller au contenu principal</a>\n    <header><h1>PulsaConf 2026</h1></header>\n    <main id="main-content"></main>\n    <footer>© PulsaTeach</footer>`),
@@ -1176,12 +1176,12 @@ function projectDef(id, vocabulary) {
   const tests = final ? [
     test("doctype", "doctype", "<!doctype html>"), test("selector", "lang", "html[lang=\"fr\"]"), test("selector", "charset", "meta[charset=\"UTF-8\"]"), test("selector", "viewport", "meta[name=\"viewport\"]"), test("selector", "description", "meta[name=\"description\"]"), test("selector", "canonical", "link[rel=\"canonical\"]"), test("selector", "og title", "meta[property=\"og:title\"]"), test("selector", "skip link", "a[href=\"#main-content\"]"), test("selector", "nav", "nav[aria-label]"), test("selector", "main", "main#main-content"), test("exactSelector", "one h1", "h1", 1), test("minSelector", "sections", "main section[aria-labelledby]", 4), test("selector", "figure", "figure figcaption"), test("selector", "image alt", "img[alt]"), test("selector", "table", "table caption"), test("selector", "scope", "th[scope=\"col\"]"), test("selector", "form", "form[action][method]"), test("selector", "fieldset", "fieldset legend"), test("selector", "help", "input[aria-describedby]"), test("selector", "status", "[role=\"status\"][aria-live=\"polite\"]"), test("selector", "footer", "footer address"), test("notContains", "no click here", "clique ici")
   ] : [
-    test("selector", "doctype-ready html", "html[lang=\"fr\"]"), test("selector", "main", "main"), test("selector", "heading", "h1, h2"), test("minSelector", "module structures", "main *", 4), test("notContains", "no click here", "clique ici"), test("notContains", "no placeholder-only", "placeholder=\"Email\""), test("selector", "meaningful element", "section, article, form, table, figure"), test("contains", "PulsaConf", "PulsaConf")
+    test("selector", "doctype-ready html", "html[lang=\"fr\"]"), test("selector", "main", "main"), test("selector", "heading", "h1, h2"), test("minSelector", "module structures", "main *", 4), test("notContains", "no click here", "clique ici"), test("notContains", "no placeholder-only", "placeholder=\"Email\""), test("selector", "meaningful élément", "section, article, form, table, figure"), test("contains", "PulsaConf", "PulsaConf")
   ];
   return {
     id,
     title: names[id],
-    brief: P("Assemble les compétences du module dans une version cohérente de PulsaConf.", "Assemble the module skills into a coherent PulsaConf version."),
+    brief: P("Assemble les compétences du module dans une version cohérente de PulsaConf.", "Assemble the module skills into à coherent PulsaConf version."),
     focus: T("un livrable de module", "a module deliverable"),
     starter: htmlShell(`    <!-- Assemble la version demandée de PulsaConf ici -->`),
     solution,
@@ -1196,15 +1196,15 @@ function quizDef(id, title, vocabulary, focus) {
   return {
     id,
     title,
-    brief: P(`Diagnostique un vrai extrait PulsaConf : ${profile.issue[0]}`, `Diagnose a real PulsaConf snippet: ${profile.issue[1]}`),
+    brief: P(`Diagnostique un vrai extrait PulsaConf : ${profile.issue[0]}`, `Diagnose à real PulsaConf snippet: ${profile.issue[1]}`),
     focus,
     vocabulary,
     questions: [
       { type: "code-reading", prompt: P(`Lis cet extrait : ${profile.snippet}. Quel diagnostic est prioritaire ?`, `Read this snippet: ${profile.snippet}. What is the priority diagnosis?`), choices: [["issue", profile.issue[0], profile.issue[1]], ["ok", "Le code est prêt pour production", "The code is production-ready"], ["css", "Le seul problème concerne la couleur", "The only issue is color"]], answer: "issue", explanation: profile.issue },
-      { type: "single", prompt: P("Quelle correction traite le problème sans bricolage visuel ?", "Which correction addresses the issue without a visual workaround?"), choices: [profile.best, profile.wrong, ["aria-all", "Ajouter des rôles ARIA partout sans changer le HTML", "Add ARIA roles everywhere without changing the HTML"], ["comment", "Ajouter un commentaire pour expliquer le défaut", "Add a comment explaining the defect"]], answer: profile.best[0], explanation: P(`${profile.best[1]} : c'est la correction qui rend l'intention vérifiable.`, `${profile.best[2]}: this is the correction that makes intent verifiable.`) },
-      { type: "multiple", prompt: P("Quelles preuves doivent accompagner la correction ?", "Which evidence should accompany the correction?"), choices: [["structure", "Un élément ou attribut vérifiable dans le DOM", "A verifiable element or attribute in the DOM"], ["impact", "Une explication de l'impact utilisateur", "An explanation of the user impact"], ["screenshot", "Une capture d'écran comme seule preuve", "A screenshot as the only proof"]], answer: ["structure", "impact"], explanation: P("Une preuve robuste combine structure observable et raison utilisateur.", "Robust evidence combines observable structure and user reason.") },
+      { type: "single", prompt: P("Quelle correction traite le problème sans bricolage visuel ?", "Which correction addresses the issue without à visual workaround?"), choices: [profile.best, profile.wrong, ["aria-all", "Ajouter des rôles ARIA partout sans changer le HTML", "Add ARIA roles everywhere without changing the HTML"], ["comment", "Ajouter un commentaire pour expliquer le défaut", "Add à comment explaining the defect"]], answer: profile.best[0], explanation: P(`${profile.best[1]} : c'est la correction qui rend l'intention vérifiable.`, `${profile.best[2]}: this is the correction that makes intent vérifiable.`) },
+      { type: "multiple", prompt: P("Quelles preuves doivent accompagner la correction ?", "Which evidence should accompany the correction?"), choices: [["structure", "Un élément ou attribut vérifiable dans le DOM", "A vérifiable élément or attribute in the DOM"], ["impact", "Une explication de l'impact utilisateur", "An explanation of the user impact"], ["screenshot", "Une capture d'écran comme seule preuve", "A screenshot as the only proof"]], answer: ["structure", "impact"], explanation: P("Une preuve robuste combine structure observable et raison utilisateur.", "Robust evidence combines observable structure and user reason.") },
       { type: "true-false", prompt: P(`Vrai ou faux : « ${profile.wrong[1]} » est une correction acceptable pour PulsaConf.`, `True or false: “${profile.wrong[2]}” is an acceptable correction for PulsaConf.`), choices: [["true", "Vrai", "True"], ["false", "Faux", "False"]], answer: "false", explanation: P("Cette option masque ou déplace le problème au lieu de le résoudre dans le HTML.", "This option hides or moves the issue instead of fixing it in HTML.") },
-      { type: "ordering", prompt: P("Classe la méthode de diagnostic la plus fiable.", "Order the most reliable diagnostic method."), choices: [["read", "Lire le snippet et nommer le défaut", "Read the snippet and name the defect"], ["choose", `Choisir : ${profile.best[1]}`, `Choose: ${profile.best[2]}`], ["prove", "Associer la correction à un test ou une relation DOM", "Connect the correction to a test or DOM relationship"], ["explain", "Expliquer l'impact pour l'apprenant ou l'utilisateur", "Explain the learner or user impact"]], answer: ["read", "choose", "prove", "explain"], explanation: P("Cette méthode évite de répondre par mémorisation ou apparence.", "This method avoids answering by memory or appearance.") },
+      { type: "ordering", prompt: P("Classe la méthode de diagnostic la plus fiable.", "Order the most reliable diagnostic method."), choices: [["read", "Lire le snippet et nommer le défaut", "Read the snippet and name the defect"], ["choose", `Choisir : ${profile.best[1]}`, `Choose: ${profile.best[2]}`], ["prove", "Associer la correction à un test ou une relation DOM", "Connect the correction to à test or DOM relationship"], ["explain", "Expliquer l'impact pour l'apprenant ou l'utilisateur", "Explain the learner or user impact"]], answer: ["read", "choose", "prove", "explain"], explanation: P("Cette méthode évite de répondre par mémorisation ou apparence.", "This method avoids answering by memory or appearance.") },
       { type: "short-open", prompt: P("Quelle preuve observable citerais-tu en revue de code ?", "What observable evidence would you cite in code review?"), choices: [], answer: ["test", "attribut", "élément"], explanation: profile.proof }
     ]
   };

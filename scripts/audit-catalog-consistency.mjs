@@ -5,6 +5,7 @@ import { learningTracks } from "../src/content/allTrackRegistry.js";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const expectedTrackIds = [
+  "tools",
   "html",
   "css",
   "javascript",
@@ -28,7 +29,7 @@ if (actualTrackIds.length !== expectedTrackIds.length) failures.push(`expected $
 for (const id of expectedTrackIds) {
   if (!actualTrackIds.includes(id)) failures.push(`missing track in allTrackRegistry: ${id}`);
 }
-if (lessonCount !== 865) failures.push(`expected 865 lessons, found ${lessonCount}`);
+if (lessonCount !== 868) failures.push(`expected 868 lessons, found ${lessonCount}`);
 
 await rejectDangerousLegacyImports();
 await requireAllTrackIds("src/jsSandboxWorker.js", "sandbox catalog mock");
@@ -39,11 +40,11 @@ if (!authorPage.includes("authorTrackOptions = publicTrackSummaries.map")) failu
 if (authorPage.includes('options={["html", "css", "javascript"]}')) failures.push("AuthorPage still exposes only html/css/javascript.");
 
 const learningLayout = await read("src/features/learn/LearningLayout.jsx");
-if (!learningLayout.includes("projectMissions = learningTracks.map")) failures.push("MissionBoard must derive missions from all 13 tracks.");
+if (!learningLayout.includes("projectMissions = learningTracks.map")) failures.push("MissionBoard must derive missions from all 14 tracks.");
 if (learningLayout.includes('trackId: "html"') && learningLayout.includes('trackId: "css"') && learningLayout.includes('trackId: "javascript"')) failures.push("MissionBoard still contains the old three-track mission set.");
 
 const roadmapEvidence = await read("docs/ROADMAP_EVIDENCE.md");
-if (!roadmapEvidence.includes("13 parcours, 865 leçons")) failures.push("ROADMAP_EVIDENCE must state 865 lessons.");
+if (!roadmapEvidence.includes("14 parcours, 868 leçons")) failures.push("ROADMAP_EVIDENCE must state 14 parcours, 868 lessons.");
 if (!roadmapEvidence.includes("596 termes")) failures.push("ROADMAP_EVIDENCE must state 596 linked terms.");
 if (roadmapEvidence.includes("272 leçons") || roadmapEvidence.includes("357 termes")) failures.push("ROADMAP_EVIDENCE still contains obsolete curriculum numbers.");
 

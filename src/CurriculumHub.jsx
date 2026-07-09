@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Accessibility, ArrowRight, BookOpen, Check, ChevronDown, Clock3, Code2, Database, Flag, Gauge, GitBranch, GraduationCap, Plus, Server, ShieldCheck, Trophy } from "lucide-react";
+import { Accessibility, ArrowRight, BookOpen, Check, ChevronDown, Clock3, Code2, Database, Flag, Gauge, GitBranch, GraduationCap, Laptop, Plus, Server, ShieldCheck, Trophy } from "lucide-react";
 import { useSupabaseSession } from "./authState.js";
 import { canManageContent } from "./authRoles.js";
 import { useLearningTracks } from "./useLearningTracks.js";
 
 const trackPresentation = {
+  tools: { icon: Laptop, badge: "bg-slate-50 text-slate-700 border-slate-100" },
   html: { icon: BookOpen, badge: "bg-orange-50 text-orange-700 border-orange-100" },
   css: { icon: Code2, badge: "bg-sky-50 text-sky-700 border-sky-100" },
   javascript: { icon: Code2, badge: "bg-amber-50 text-amber-700 border-amber-100" },

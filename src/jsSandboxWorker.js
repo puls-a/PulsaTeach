@@ -1,5 +1,6 @@
 const storage = createStorage();
 const mockCatalogCourses = [
+  { id: "tools", title: "Outils de développement" },
   { id: "html", title: "HTML interactif" },
   { id: "css", title: "CSS interactif" },
   { id: "javascript", title: "JavaScript interactif" },

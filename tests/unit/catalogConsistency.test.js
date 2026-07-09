@@ -3,6 +3,7 @@ import { describe, expect, test } from "vitest";
 import { learningTracks } from "../../src/content/allTrackRegistry.js";
 
 const expectedTrackIds = [
+  "tools",
   "html",
   "css",
   "javascript",
@@ -21,7 +22,7 @@ const expectedTrackIds = [
 describe("catalog consistency", () => {
   test("published registry exposes every public course", () => {
     expect(learningTracks.map((track) => track.id)).toEqual(expectedTrackIds);
-    expect(learningTracks.reduce((total, track) => total + track.modules.reduce((sum, module) => sum + module.lessons.length, 0), 0)).toBe(865);
+    expect(learningTracks.reduce((total, track) => total + track.modules.reduce((sum, module) => sum + module.lessons.length, 0), 0)).toBe(868);
   });
 
   test("authoring, sandbox, catalog and missions are not limited to HTML/CSS/JS", () => {
