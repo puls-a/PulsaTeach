@@ -164,8 +164,10 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
             {track.modules.map((module, index) => {
               const moduleCompleted = module.lessons.filter((lesson) => progress.completed?.[lesson.id]).length;
               const first = module.lessons[0];
+              const moduleHref = first ? `/learn/${track.id}/${module.id}/${first.id}` : `/formations/${track.id}`;
+              const mastery = formatModuleField(module.mastery?.[locale]);
               return (
-                <a key={module.id} href={`/learn/${track.id}/${module.id}/${first?.id}`} className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:border-indigo-300 hover:shadow-md sm:flex-row sm:items-center">
+                <a key={module.id} href={moduleHref} className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:border-indigo-300 hover:shadow-md sm:flex-row sm:items-center">
                   <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl font-display text-lg font-bold transition-colors ${moduleCompleted === module.lessons.length ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600 group-hover:bg-indigo-50 group-hover:text-indigoPop"}`}>
                     {moduleCompleted === module.lessons.length ? <Check className="size-6" /> : index + 1}
                   </div>
@@ -174,7 +176,7 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
                     <p className="mt-1 text-sm leading-relaxed text-slate-500">{module.description?.[locale]}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {module.deliverable?.[locale] && <span className="inline-block rounded bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700">{locale === "fr" ? "Livrable" : "Deliverable"}: {module.deliverable[locale]}</span>}
-                      {module.mastery?.[locale] && <span className="inline-block rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">{locale === "fr" ? "Maîtrise" : "Mastery"}: {module.mastery[locale].join(", ")}</span>}
+                      {mastery && <span className="inline-block rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">{locale === "fr" ? "Maîtrise" : "Mastery"}: {mastery}</span>}
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center justify-between sm:flex-col sm:items-end sm:justify-center">
@@ -205,6 +207,11 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
 
 function ProofStat({ value, label }) {
   return <div className="rounded-2xl border border-white/10 bg-white/10 p-3"><p className="font-display text-2xl font-black">{value}</p><p className="mt-1 text-xs font-bold uppercase tracking-wider text-indigo-100">{label}</p></div>;
+}
+
+function formatModuleField(value) {
+  if (Array.isArray(value)) return value.join(", ");
+  return value || "";
 }
 
 function ProofLine({ icon: Icon, text }) {

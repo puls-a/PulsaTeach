@@ -3,6 +3,7 @@ import { cssFoundationModuleIds, cssResponsiveModuleIds, getCssNextDeferredGroup
 import { htmlAdvancedModuleIds, htmlFoundationModuleIds, htmlHardeningModuleIds, htmlTrackMetadata, htmlWorkshopModuleIds } from "./htmlTrackMetadata.js";
 
 const trackLoaders = {
+  tools: () => import("./toolsTrack.js").then((module) => module.toolsTrack),
   html: () => loadFullHtmlTrack(),
   css: () => loadFullCssTrack(),
   javascript: () => import("./javascriptTrack.js").then((module) => module.javascriptTrack),

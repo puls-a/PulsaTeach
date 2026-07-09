@@ -47,6 +47,13 @@ test("lesson routes expose unique course metadata", async ({ page }) => {
   ]));
 });
 
+test("tools formation links to a valid first lesson", async ({ page }) => {
+  await page.goto("/formations/tools", { waitUntil: "domcontentloaded" });
+  await expect(page.getByText(/Poste de travail|Workstation Setup/).first()).toBeVisible();
+  await expect(page.locator('a[href*="undefined"]')).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /Environnement de développement|Development environment/ }).first()).toHaveAttribute("href", /\/learn\/tools\/tools-setup\/tools-01-vscode$/);
+});
+
 test("legal pages are reachable and indexable", async ({ page }) => {
   for (const route of ["/privacy", "/cookies", "/terms", "/legal"]) {
     await gotoRoute(page, route);

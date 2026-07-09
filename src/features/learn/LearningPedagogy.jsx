@@ -6,15 +6,15 @@ export function CourseChapter({ course, theory, locale }) {
   if (!content) return null;
   const reminder = theory?.[locale] || theory?.en;
   return (
-    <article className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-      <header className="border-b border-slate-200 bg-slate-50 px-5 py-5">
+    <article className="mt-6 min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <header className="border-b border-slate-200 bg-slate-50 px-4 py-5 sm:px-5">
         <p className="text-xs font-bold uppercase tracking-[.14em] text-indigoPop">{locale === "fr" ? "Cours" : "Lesson"}</p>
-        <h4 className="mt-2 font-display text-2xl font-bold text-ink">{locale === "fr" ? "Comprendre avant de pratiquer" : "Understand before practicing"}</h4>
-        <p className="mt-3 max-w-4xl leading-7 text-slate-600">{content.introduction}</p>
+        <h4 className="mt-2 break-words font-display text-2xl font-bold text-ink">{locale === "fr" ? "Comprendre avant de pratiquer" : "Understand before practicing"}</h4>
+        <RichText as="p" className="mt-3 max-w-4xl break-words leading-7 text-slate-600" value={content.introduction} />
       </header>
-      <div className="grid gap-8 p-5 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="grid gap-8">
-          {(content.sections || []).map((section, index) => <section key={section.title}><div className="flex items-start gap-3"><span className="grid size-7 shrink-0 place-items-center rounded-full bg-indigoPop text-xs font-bold text-white">{index + 1}</span><div><h5 className="font-display text-xl font-bold text-ink">{section.title}</h5><div className="mt-3 grid gap-3">{(section.paragraphs || []).map((paragraph) => <p className="leading-7 text-slate-600" key={paragraph}>{paragraph}</p>)}</div>{section.example && <pre className="mt-4 overflow-x-auto rounded-xl bg-ink p-4 font-mono text-sm leading-6 text-indigo-100">{section.example}</pre>}</div></div></section>)}
+      <div className="grid min-w-0 gap-8 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="grid min-w-0 gap-8">
+          {(content.sections || []).map((section, index) => <section className="min-w-0" key={section.title}><div className="flex min-w-0 items-start gap-3"><span className="grid size-7 shrink-0 place-items-center rounded-full bg-indigoPop text-xs font-bold text-white">{index + 1}</span><div className="min-w-0"><h5 className="break-words font-display text-xl font-bold leading-snug text-ink">{section.title}</h5><div className="mt-3 grid gap-3">{(section.paragraphs || []).map((paragraph) => <RichText className="break-words leading-7 text-slate-600" key={paragraph} value={paragraph} />)}</div>{section.example && <pre className="mt-4 overflow-x-auto rounded-xl bg-ink p-4 font-mono text-sm leading-6 text-indigo-100">{section.example}</pre>}</div></div></section>)}
         </div>
         <aside className="grid content-start gap-4">
           {content.vocabulary?.length > 0 && <section className="rounded-xl border border-slate-200 bg-slate-50 p-4"><h5 className="font-display text-lg font-bold">{locale === "fr" ? "Vocabulaire" : "Vocabulary"}</h5><dl className="mt-3 grid gap-3">{content.vocabulary.map(([term, definition]) => <div key={term}><dt className="text-sm font-bold text-indigoPop">{term}</dt><dd className="mt-1 text-sm leading-6 text-slate-600">{definition}</dd></div>)}</dl></section>}
@@ -43,6 +43,12 @@ export function PedagogyWorkshop({ pedagogy, locale }) {
 function ListCard({ title, items, color }) {
   const icon = color === "green" ? "text-green-600" : "text-indigoPop";
   return <article className="rounded-xl border border-slate-200 bg-slate-50 p-4"><p className="text-xs font-bold uppercase tracking-[.12em] text-slate-500">{title}</p><ul className="mt-3 grid gap-2 text-sm text-slate-600">{(items || []).map((item) => <li className="flex gap-2" key={item}><CheckCircle2 className={`mt-0.5 size-4 shrink-0 ${icon}`} />{item}</li>)}</ul></article>;
+}
+
+function RichText({ as: Tag = "p", className, value }) {
+  const html = String(value || "");
+  if (!html.includes("<")) return <Tag className={className}>{html}</Tag>;
+  return <Tag className={className} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 function ComparisonCard({ title, item, tone }) {

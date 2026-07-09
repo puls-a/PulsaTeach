@@ -87,6 +87,9 @@ test("tools lesson opens without guide rendering errors", async ({ page }) => {
   await acceptPrivacy(page);
   await expect(page.getByRole("heading", { name: /Éditeur : VS Code & Cursor|Editor: VS Code & Cursor/ }).first()).toBeVisible();
   await expect(page.getByText(/Installer l'outil sans étape cachée|Install the tool without hidden steps/)).toBeVisible();
+  await expect(page.getByRole("img", { name: "VS Code Logo" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "cursor.sh" })).toHaveAttribute("href", "https://cursor.sh");
+  await expect(page.getByText("<img", { exact: false })).toHaveCount(0);
   expect(pageErrors).toEqual([]);
 });
 

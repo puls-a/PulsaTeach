@@ -1,5 +1,14 @@
 export const publicTrackCatalog = [
   {
+    id: "tools",
+    label: "TOOLS",
+    title: { fr: "Poste de travail", en: "Workstation Setup" },
+    summary: { fr: "Installe VS Code, Cursor, PHP, PostgreSQL et prépare ton PC pour coder.", en: "Install VS Code, Cursor, PHP, PostgreSQL and prep your PC." },
+    modules: 1,
+    lessons: 3,
+    firstHref: "/learn/tools/tools-setup/tools-01-vscode"
+  },
+  {
     id: "html",
     label: "HTML",
     title: { fr: "HTML interactif", en: "Interactive HTML" },
