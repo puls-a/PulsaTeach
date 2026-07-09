@@ -1,25 +1,25 @@
 <p align="center">
   <a href="https://pulsateach.vercel.app">
-    <img src="public/assets/logo_horizontale_optimized.webp" alt="PulsaTeach" width="360" />
+    <img src="public/assets/logo_horizontale_optimized.webp" alt="PulsaTeach" width="380" />
   </a>
 </p>
 
 <h1 align="center">PulsaTeach</h1>
 
 <p align="center">
-  Plateforme gratuite et bilingue pour apprendre le développement web par la pratique : cours guidés, lab interactif, quiz, projets, certificats, Course Studio et API sécurisée.
+  Plateforme d'apprentissage web bilingue, testable et prête production : cours guidés, labs interactifs, quiz techniques, projets, certificats, Course Studio, API sécurisée et chaîne qualité automatisée.
 </p>
 
 <p align="center">
-  <a href="https://pulsateach.vercel.app"><strong>Ouvrir le site</strong></a>
+  <a href="https://pulsateach.vercel.app"><strong>Ouvrir la production</strong></a>
+  ·
+  <a href="https://pulsateach.vercel.app/catalog">Catalogue</a>
   ·
   <a href="https://discord.gg/pnAdQQggUg">Discord</a>
   ·
-  <a href="https://www.tiktok.com/@pulsateach">TikTok</a>
-  ·
-  <a href="https://www.instagram.com/pulsateach_/">Instagram</a>
-  ·
   <a href="https://x.com/pulsateach">X</a>
+  ·
+  <a href="mailto:pulsateach@gmail.com">Contact</a>
 </p>
 
 <p align="center">
@@ -32,43 +32,58 @@
 </p>
 
 <p align="center">
-  <img src="public/assets/og-pulsateach.png" alt="PulsaTeach preview" width="900" />
+  <img src="public/assets/og-pulsateach.png" alt="Aperçu PulsaTeach" width="900" />
 </p>
 
-## Pourquoi PulsaTeach
+## Vision
 
-PulsaTeach transforme l'apprentissage web en parcours testable : chaque leçon pousse à produire, valider, corriger et comprendre. Le produit combine une expérience apprenant publique, un backend sécurisé, un studio de création de cours et une chaîne qualité automatisée.
+PulsaTeach n'est pas une bibliothèque de cours statiques. C'est un système complet pour apprendre le développement web comme dans une vraie équipe produit : comprendre, coder, exécuter, tester, corriger, documenter et livrer.
 
-## Produit
+Le produit combine une expérience apprenant publique, un catalogue pédagogique riche, un lab sécurisé, un backend strict, un studio de création de cours et des audits qui empêchent les régressions de contenu, de sécurité et de production.
 
-- 13 formations : HTML, CSS, JavaScript, Git, Accessibilité, Testing, TypeScript, React, Node/API, SQL/PostgreSQL, Sécurité web, Performance web et Déploiement.
-- 812 leçons bilingues avec exercices, ateliers, quiz, projets et feedback contextualisé.
-- 616 termes de glossaire reliés aux leçons et aux quiz.
-- Lab interactif avec éditeur, aperçu, tests, sauvegarde locale et progression.
-- Dashboard apprenant, révisions espacées, projets, certificats vérifiables et profil.
-- Course Studio avec workflow brouillon, review, approval, publication, versioning et rollback.
-- API Express sécurisée : validation Zod, Helmet, CORS strict, rate limiting, readiness/liveness checks.
-- SEO public : sitemap, pré-rendu, metadata dynamiques, Open Graph, données structurées et pages formation dédiées.
+## Chiffres Clés
 
-## Réseaux Et Contact
+| Indicateur | État actuel |
+| --- | --- |
+| Parcours | 14 formations web et outillage |
+| Leçons publiques | 871 leçons pré-rendues et indexées |
+| URLs publiques | 897 URLs dans le sitemap |
+| Tests automatisés | Vitest, Supertest, Playwright, Supabase E2E, Lighthouse |
+| Glossaire | 577 termes bilingues reliés au catalogue |
+| Qualité | `npm run validate` bloque lint, tests, audits, build, SEO et bundle |
 
-- Email : <mailto:pulsateach@gmail.com>
-- Discord : <https://discord.gg/pnAdQQggUg>
-- TikTok : <https://www.tiktok.com/@pulsateach>
-- Instagram : <https://www.instagram.com/pulsateach_/>
-- X : <https://x.com/pulsateach>
-- Powered by PulsaFlow : <https://pulsaflow.fr>
+## Expérience Produit
+
+PulsaTeach couvre l'ensemble du parcours apprenant : découverte, pratique, progression, révision, projet et preuve finale.
+
+| Zone | Ce qui est livré |
+| --- | --- |
+| Catalogue | Pages formation SEO, résumés, niveaux, objectifs et parcours publics |
+| Learning workspace | Éditeur, aperçu, tests, feedback, progression locale et sauvegarde |
+| Quiz | Questions typées, feedback bilingue, score, examens et révisions |
+| Projets | Rubrics, validations, livrables, review et versions immuables |
+| Certificats | Preuves publiques, révocation et impression |
+| Course Studio | Brouillon, review, approval, publication, versioning, diff et rollback |
+| Analytics | Consentement, agrégation, pseudonymisation et seuils de cohorte |
+
+## Parcours
+
+| Fondations | Professionnalisation | Production |
+| --- | --- | --- |
+| Outils, HTML, CSS, JavaScript | Git, Accessibilité, Testing, TypeScript, React | Node/API, SQL/PostgreSQL, Sécurité web, Performance web, DevOps |
+
+Les parcours HTML, CSS et JavaScript sont enrichis avec quiz variés, labs progressifs, projets concrets, guides bilingues, erreurs fréquentes, rubrics et preuves de validation.
 
 ## Stack
 
 | Couche | Technologies |
 | --- | --- |
 | Frontend | React 19, Vite 8, Tailwind CSS, Lucide |
-| Backend | Node.js, Express 5, Zod, Helmet, CORS |
-| Auth & stockage | Supabase en production stricte, JSON en développement local |
-| Tests | Vitest, Supertest, Playwright, axe-core |
-| Qualité | audits architecture, catalogue, learning, éditorial, i18n, migrations, SEO, bundle |
-| Déploiement | Vercel, GitHub Actions, smoke tests production |
+| Backend | Node.js, Express 5, Zod, Helmet, CORS, rate limiting |
+| Données | Supabase strict en production, stockage JSON isolé en local |
+| Tests | Vitest, Supertest, Playwright, axe-core, Lighthouse |
+| Qualité | Audits architecture, catalogue, learning, éditorial, glossaire, i18n, migrations, SEO, bundle |
+| Déploiement | Vercel, GitHub Actions, health checks, smoke tests production |
 
 ## Démarrage Local
 
@@ -77,7 +92,7 @@ npm ci
 npm run dev:full
 ```
 
-Par défaut, le frontend Vite tourne sur `127.0.0.1` et l'API Express peut être lancée avec `npm run server`.
+Le frontend Vite écoute par défaut sur `127.0.0.1`. L'API Express peut aussi être lancée seule avec `npm run server`.
 
 Configuration locale simple sans Supabase :
 
@@ -95,41 +110,38 @@ $env:PULSATEACH_ADMIN_KEY="dev-admin-key"
 $env:VITE_ADMIN_ACCESS_KEY="dev-admin-key"
 ```
 
-## Scripts
+## Commandes Utiles
 
 | Commande | Usage |
 | --- | --- |
 | `npm run dev` | Lance le frontend Vite |
 | `npm run server` | Lance l'API Express |
-| `npm run dev:full` | Lance frontend + API |
+| `npm run dev:full` | Lance frontend et API ensemble |
 | `npm run build` | Génère sitemap, build Vite et pré-rendu public |
-| `npm run lint` | Analyse ESLint |
-| `npm run test` | Tests unitaires Vitest |
-| `npm run test:api` | Tests API et sécurité |
-| `npm run test:e2e` | Parcours Playwright |
-| `npm run test:a11y` | Audit accessibilité E2E |
-| `npm run audit:seo` | Sitemap + audit SEO public |
-| `npm run audit:bundle` | Budgets JS/CSS générés |
-| `npm run validate` | Suite qualité complète |
-| `npm run smoke:production` | Smoke test production |
+| `npm run test` | Lance les tests unitaires Vitest |
+| `npm run test:api` | Lance les tests API et sécurité |
+| `npm run test:e2e` | Lance les parcours Playwright |
+| `npm run test:e2e:supabase` | Vérifie le scénario Supabase réel |
+| `npm run audit:lighthouse` | Contrôle Lighthouse automatisé |
+| `npm run smoke:production` | Vérifie la production déployée |
+| `npm run validate` | Lance la gate qualité complète |
 
-## Qualité Production
+## Gate Qualité
 
-`npm run validate` regroupe les contrôles bloquants : lint, tests, architecture, cohérence catalogue, profondeur learning, qualité éditoriale, glossaire, i18n, migrations, build, SEO et budget bundle.
+`npm run validate` est la commande de référence avant livraison. Elle exécute lint, tests, audit architecture, cohérence catalogue, audit pédagogique, qualité éditoriale, glossaire, i18n, migrations, build, SEO et budgets bundle.
 
-La CI GitHub lance aussi les tests E2E et Lighthouse. Un workflow séparé vérifie régulièrement la disponibilité production, le sitemap, les headers de sécurité et `/api/health/ready`.
+La CI ajoute les E2E navigateur, les E2E Supabase et Lighthouse. Un workflow séparé vérifie régulièrement la production, le sitemap, les headers et `/api/health/ready`.
 
 ## Architecture
 
 ```text
 src/
-  App.jsx                         Shell SPA, routes propres, guards
-  LandingPage.jsx                 Landing publique
+  App.jsx                         Shell SPA, routes et guards
   CurriculumHub.jsx               Catalogue des formations
   features/catalog/               Pages publiques /formations/:trackId
-  features/learn/                 Expérience d'apprentissage et workspace
-  features/quizzes/               Quiz, review et feedback
-  features/glossary/              Glossaire global
+  features/learn/                 Workspace d'apprentissage
+  features/quizzes/               Moteur quiz, review et feedback
+  features/glossary/              Glossaire et révisions
   content/                        Parcours pédagogiques et loaders lazy
   security/sandboxPolicy.js       Politique iframe/CSP des previews
 server/
@@ -140,10 +152,12 @@ server/
 scripts/
   generate-sitemap.mjs            Sitemap public
   prerender-public.mjs            Pré-rendu des pages publiques
-  audit-*.mjs                     Audits qualité et production
+  audit-*.mjs                     Audits qualité, contenu et production
+supabase/
+  migrations/                     Contrats persistants ordonnés
 ```
 
-## Production
+## Sécurité
 
 La production doit rester en stockage Supabase strict :
 
@@ -156,25 +170,48 @@ VITE_SUPABASE_ANON_KEY=<public-anon-key>
 VITE_AUTH_MODE=supabase
 ```
 
-Ne jamais exposer `SUPABASE_SERVICE_ROLE_KEY`, clé admin ou secret serveur dans le frontend. Les rôles de production doivent venir des metadata Supabase (`role` ou `roles`).
+Règles non négociables : `SUPABASE_SERVICE_ROLE_KEY`, clés admin, cookies de bot et secrets serveur restent exclusivement côté serveur ou GitHub Secrets. Les rôles production viennent des metadata Supabase (`role` ou `roles`).
+
+## Exploitation
+
+| Contrôle | Preuve |
+| --- | --- |
+| Liveness | `/api/health/live` |
+| Readiness | `/api/health/ready` |
+| SEO | `public/sitemap.xml`, `scripts/audit-seo.mjs`, pré-rendu public |
+| Monitoring | Workflow `Production uptime` |
+| Rollback contenu | Course Studio versioning et rollback |
+| Rollback infra | Vercel deployments et migrations Supabase ordonnées |
 
 ## Documentation
 
-- [Architecture backend](docs/BACKEND.md)
-- [SEO](docs/SEO.md)
-- [Exploitation](docs/OPERATIONS.md)
-- [Roadmap complète](docs/ROADMAP_COMPLETE.md)
-- [Preuves roadmap](docs/ROADMAP_EVIDENCE.md)
-- [Plan risques produit/CTO](docs/PRODUCT_RISK_ACTION_PLAN.md)
-- [Benchmark freeCodeCamp](docs/FREECODECAMP_BENCHMARK_COURSE_REWRITE.md)
-- [Référentiel éditorial](docs/EDITORIAL_QUALITY_SOURCES.md)
+| Document | Rôle |
+| --- | --- |
+| [`docs/BACKEND.md`](docs/BACKEND.md) | Architecture API, stockage, sécurité et workflows backend |
+| [`docs/SEO.md`](docs/SEO.md) | Stratégie SEO, sitemap, metadata et Search Console |
+| [`docs/OPERATIONS.md`](docs/OPERATIONS.md) | Procédures d'exploitation, monitoring et incidents |
+| [`docs/ROADMAP_EVIDENCE.md`](docs/ROADMAP_EVIDENCE.md) | Matrice de conformité et preuves de livraison |
+| [`docs/PRODUCT_RISK_ACTION_PLAN.md`](docs/PRODUCT_RISK_ACTION_PLAN.md) | Risques produit, priorités et plan CTO |
+| [`docs/FREECODECAMP_BENCHMARK_COURSE_REWRITE.md`](docs/FREECODECAMP_BENCHMARK_COURSE_REWRITE.md) | Benchmark pédagogique et réécritures |
+| [`docs/EDITORIAL_QUALITY_SOURCES.md`](docs/EDITORIAL_QUALITY_SOURCES.md) | Sources et exigences éditoriales |
+
+## Réseaux Et Contact
+
+| Canal | Lien |
+| --- | --- |
+| Email | <pulsateach@gmail.com> |
+| Discord | <https://discord.gg/pnAdQQggUg> |
+| TikTok | <https://www.tiktok.com/@pulsateach> |
+| Instagram | <https://www.instagram.com/pulsateach_/> |
+| X | <https://x.com/pulsateach> |
+| PulsaFlow | <https://pulsaflow.fr> |
 
 ## Statut Du Dépôt
 
-Ce dépôt contient le produit PulsaTeach complet. Le code est préparé pour consultation publique, mais aucune licence open source n'est publiée pour le moment. Sans fichier `LICENSE`, tous droits réservés par défaut.
+Ce dépôt contient le produit PulsaTeach complet. Le code est préparé pour exploitation produit, démo technique et audit interne. Aucune licence open source n'est publiée pour le moment ; sans fichier `LICENSE`, tous droits réservés par défaut.
 
 ---
 
 <p align="center">
-  Fait avec exigence par <a href="https://pulsaflow.fr">PulsaFlow</a> · <a href="mailto:pulsateach@gmail.com">pulsateach@gmail.com</a>
+  Conçu et maintenu par <a href="https://pulsaflow.fr">PulsaFlow</a> · <a href="mailto:pulsateach@gmail.com">pulsateach@gmail.com</a>
 </p>
