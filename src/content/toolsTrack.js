@@ -1,4 +1,4 @@
-import { module, test } from "./trackBuilders.js";
+import { module } from "./trackBuilders.js";
 
 const introVscode = {
   fr: {
@@ -96,7 +96,8 @@ const introDb = {
           "<img src='https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg' alt='PostgreSQL Logo' width='64' height='64' style='float:right; margin-left: 10px;' />",
           "Va sur <a href='https://www.postgresql.org/download/' target='_blank'>postgresql.org/download</a> et choisis ton système.",
           "Lors de l'installation, choisis un mot de passe pour l'utilisateur <code>postgres</code> (ne l'oublie pas !).",
-          "L'installateur inclut souvent <strong>pgAdmin</strong>, une interface visuelle pour voir tes bases de données."
+          "L'installateur inclut souvent <strong>pgAdmin</strong>, une interface visuelle pour voir tes bases de données.",
+          "Après l'installation, ouvre pgAdmin ou le terminal et vérifie que le serveur démarre correctement. Note le port utilisé, souvent <code>5432</code>, car tes futures applications en auront besoin pour se connecter."
         ],
         example: ""
       }
@@ -112,7 +113,8 @@ const introDb = {
         paragraphs: [
           "<img src='https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg' alt='PostgreSQL Logo' width='64' height='64' style='float:right; margin-left: 10px;' />",
           "Go to postgresql.org/download and choose your OS.",
-          "Remember the password you set for the <code>postgres</code> user."
+          "Remember the password you set for the <code>postgres</code> user.",
+          "After installation, open pgAdmin or a terminal and verify that the server starts correctly. Keep the port number, usually <code>5432</code>, because future apps will need it to connect."
         ],
         example: ""
       }
@@ -164,7 +166,18 @@ function manualLesson(id, title, brief, courseData) {
       }
     },
     theory: { fr: brief[0], en: brief[1] },
-    guide: {},
+    guide: {
+      fr: {
+        objectives: ["Installer l'outil sans étape cachée", "Identifier à quoi il sert dans un projet web", "Conserver une preuve simple de validation"],
+        steps: ["Lis le cours et ouvre le lien officiel.", "Installe l'outil avec les options recommandées.", "Vérifie l'installation puis écris OK dans l'exercice."],
+        mistakes: ["Fermer l'installateur avant la fin", "Ignorer les mots de passe, ports ou chemins affichés", "Valider la leçon sans avoir lancé l'outil au moins une fois"]
+      },
+      en: {
+        objectives: ["Install the tool without hidden steps", "Identify its role in a web project", "Keep a simple validation proof"],
+        steps: ["Read the course and open the official link.", "Install the tool with the recommended options.", "Verify the installation, then write OK in the exercise."],
+        mistakes: ["Closing the installer before it finishes", "Ignoring displayed passwords, ports, or paths", "Validating the lesson without launching the tool at least once"]
+      }
+    },
     skills: ["tools", "setup"],
     difficulty: "easy",
     durationMin: 15,
@@ -186,6 +199,13 @@ const toolsModule = module(
     manualLesson("tools-03-postgresql", ["Base de données : PostgreSQL", "Database: PostgreSQL"], ["Le stockage de données de référence.", "The reference data storage."], introDb)
   ]
 );
+
+Object.assign(toolsModule, {
+  importance: { fr: "Un environnement fiable évite de confondre bug de code et problème d'installation.", en: "A reliable environment prevents confusing code bugs with setup problems." },
+  prerequisites: { fr: "Avoir accès à son ordinateur, à Internet et aux droits d'installation.", en: "Have access to your computer, the internet, and installation permissions." },
+  outcomes: { fr: "Installer un éditeur, un moteur serveur et une base relationnelle prêts pour les prochains cours.", en: "Install an editor, a server engine, and a relational database ready for the next courses." },
+  mastery: { fr: "Tu sais expliquer quel outil sert à écrire, exécuter et stocker le code.", en: "You can explain which tool is used to write, run, and store code." }
+});
 
 export const toolsTrack = {
   id: "tools",

@@ -1,5 +1,6 @@
 import { module, quizLesson, test } from "./trackBuilders.js";
 import { getPedagogy } from "./pedagogy.js";
+import { jsModuleProfile } from "./jsModuleProfiles.js";
 
 const dense = {
   validation: ["function", "return", "const", "let", "if", "else", "trim", "Number", "Number.isFinite", "Array.isArray", "throw new Error", "try", "catch", "map", "filter", "reduce", "includes", "every", "some", "structuredClone"],
@@ -167,27 +168,43 @@ function createGuide(id, checks) {
 }
 
 function quiz(id, frTitle, enTitle, frQuestion, enQuestion, frAnswer, enAnswer) {
+  const moduleId = id.replace("-quiz", "");
+  const profile = jsModuleProfile(moduleId, [frTitle, enTitle]);
+  const explanation = { fr: `La bonne décision prouve que ${profile.proof[0]}.`, en: `The right decision proves that ${profile.proof[1]}.` };
+  const choices = [
+    { id: "correct", label: { fr: frAnswer, en: enAnswer } },
+    { id: "weak", label: { fr: "Masquer l’erreur et continuer silencieusement", en: "Hide the error and continue silently" } },
+    { id: "random", label: { fr: "Muter l'état sans validation préalable", en: "Mutate state without prior validation" } }
+  ];
+  const prompt = { fr: frQuestion, en: enQuestion };
   const item = quizLesson({
     id,
     title: [`Quiz : ${frTitle}`, `Quiz: ${enTitle}`],
-    brief: ["Vérifie la décision la plus sûre pour un JavaScript maintenable.", "Check the safest decision for maintainable JavaScript."],
-    question: { fr: frQuestion, en: enQuestion },
-    options: [
-      { id: "correct", label: { fr: frAnswer, en: enAnswer } },
-      { id: "weak", label: { fr: "Pour masquer l’erreur et continuer", en: "To hide the error and continue" } },
-      { id: "random", label: { fr: "Pour satisfaire un test sans protéger l’utilisateur", en: "To satisfy a test without protecting the user" } }
-    ],
+    brief: [`Diagnostique le risque : ${profile.risk[0]}.`, `Diagnose the risk: ${profile.risk[1]}.`],
+    question: prompt,
+    options: choices,
     answer: "correct",
-    explanation: { fr: frAnswer, en: enAnswer },
-    xp: 25
+    explanation,
+    xp: 35
   });
-  const title = [`Quiz : ${frTitle}`, `Quiz: ${enTitle}`];
-  const course = createCourse(id, title, frQuestion, frAnswer, ["choix", "feedback", "cas limite", "maintenance", "utilisateur"]);
+  const title = { fr: `Quiz : ${frTitle}`, en: `Quiz: ${enTitle}` };
+  const course = createCourse(id, [title.fr, title.en], frQuestion, frAnswer, ["choix", "feedback", "cas limite", "maintenance", "utilisateur"]);
   const guide = createGuide(id, ["choix", "feedback", "cas limite", "maintenance", "utilisateur"]);
   return {
     ...item,
     course,
     guide,
-    pedagogy: getPedagogy(id, { course, guide, title: { fr: title[0], en: title[1] }, brief: { fr: frQuestion, en: enQuestion }, solution: frAnswer })
+    questions: [
+      { id: `${id}-single`, type: "single", prompt, choices, answer: "correct", explanation },
+      { id: `${id}-multiple`, type: "multiple", prompt: { fr: "Quelles stratégies protègent l'application ?", en: "Which strategies protect the application?" }, choices: [{ id: "fail-fast", label: { fr: "Échouer tôt avec une erreur explicite", en: "Fail fast with an explicit error" } }, { id: "pure", label: { fr: "Fonctions pures sans effet de bord", en: "Pure functions without side effects" } }, { id: "ignore", label: { fr: "Ignorer les cas limites", en: "Ignore edge cases" } }], answer: ["fail-fast", "pure"], explanation },
+      { id: `${id}-tf`, type: "true-false", prompt: { fr: `Vrai ou faux : ${profile.risk[0]} est acceptable en production.`, en: `True or false: ${profile.risk[1]} is acceptable in production.` }, choices: [{ id: "true", label: { fr: "Vrai", en: "True" } }, { id: "false", label: { fr: "Faux", en: "False" } }], answer: "false", explanation },
+      { id: `${id}-order`, type: "ordering", prompt: { fr: "Classe la méthode de sécurisation du code.", en: "Order the code hardening method." }, choices: [{ id: "read", label: { fr: "Identifier les entrées", en: "Identify inputs" } }, { id: "guard", label: { fr: "Ajouter des garde-fous (type, limites)", en: "Add guardrails (type, bounds)" } }, { id: "logic", label: { fr: "Exécuter la logique métier", en: "Execute business logic" } }, { id: "test", label: { fr: "Prouver avec un cas limite", en: "Prove with an edge case" } }], answer: ["read", "guard", "logic", "test"], explanation },
+      { id: `${id}-code`, type: "code-reading", prompt: { fr: "Lis ce code qui omet les validations. Quel est le risque ?", en: "Read this code that omits validations. What is the risk?" }, choices: [{ id: "risk", label: { fr: profile.risk[0], en: profile.risk[1] } }, { id: "perf", label: { fr: "Il est trop lent", en: "It is too slow" } }, { id: "ok", label: { fr: "Il est parfait", en: "It is perfect" } }], answer: "risk", explanation },
+      { id: `${id}-open`, type: "short-open", prompt: { fr: "Quelle preuve de robustesse citerais-tu ?", en: "What proof of robustness would you cite?" }, choices: [], answer: ["erreur", "test", "limite", "try", "catch"], explanation }
+    ],
+    pedagogy: getPedagogy(id, { course, guide, title, brief: item.brief, solution: frAnswer, type: "quiz" }),
+    passingScore: 75,
+    randomizeQuestions: false,
+    feedbackMode: "immediate"
   };
 }

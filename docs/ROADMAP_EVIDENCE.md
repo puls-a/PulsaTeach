@@ -27,7 +27,7 @@
 | --- | --- | --- |
 | Sécurité | Conforme | tests 401/403/inter-utilisateurs, CORS/CSP/rate limit, scan des secrets, Supabase réel |
 | Qualité | Conforme | `npm run validate`, `npm run smoke:full`, Playwright desktop/mobile, audits contenu/glossaire/i18n/migrations/Lighthouse |
-| Pédagogique | Conforme | 14 parcours, 868 leçons, quiz par module, projets finaux, examens, 596 termes reliés |
+| Pédagogique | Conforme | 14 parcours, 871 leçons, quiz par module, projets finaux, examens, 596 termes reliés |
 | UX | Conforme | tests responsive, clavier, focus, modales, reduced motion, absence de débordement |
 | Production | Conforme | alias `https://pulsateach.vercel.app` READY, Supabase strict, migrations alignées, monitoring et procédures d’exploitation |
 

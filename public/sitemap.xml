@@ -351,24 +351,27 @@
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-basics/js-01-strings-template</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-basics/js-01-errors-console</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-basics/js-01-types-quiz</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-basics/js-01-basics-project</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-functions/js-02-functions</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-functions/js-02-parameters</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-functions/js-02-default-parameters</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-functions/js-02-object-method</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-functions/js-02-functions-quiz</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-functions/js-02-mini-project</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-arrays/js-03-arrays</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/javascript/js-arrays/js-03-map</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-arrays/js-03-reduce-xp</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-arrays/js-03-find</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-arrays/js-03-some</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-dom-events/js-04-dom-events</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-dom-events/js-04-class-toggle</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-dom-events/js-04-form-submit</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-dom-events/js-04-mini-project-counter</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-storage-async/js-05-storage</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-storage-async/js-05-json-settings</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-storage-async/js-06-fetch</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-storage-async/js-06-fetch-errors</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-storage-async/js-07-final-project</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-arrays/js-03-filter-manual</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-arrays/js-03-arrays-quiz</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-arrays/js-03-arrays-project</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-dom-events/js-04-dom-select-manual</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-dom-events/js-04-events-manual</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-dom-events/js-04-update-dom-manual</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-dom-events/js-04-dom-quiz</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-dom-events/js-04-dom-project</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-storage-async/js-05-json-parse-manual</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-storage-async/js-05-localstorage-manual</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-storage-async/js-05-fetch-manual</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-storage-async/js-05-async-quiz</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://pulsateach.vercel.app/learn/javascript/js-storage-async/js-05-final-project</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/git/git-safe-history/git-status-matrix</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/git/git-safe-history/git-stash-safely</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>
   <url><loc>https://pulsateach.vercel.app/learn/git/git-safe-history/git-reflog-recover</loc><lastmod>2026-07-09</lastmod><priority>0.7</priority></url>

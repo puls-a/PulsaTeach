@@ -1,3 +1,4 @@
+import { jsModuleProfile } from "./jsModuleProfiles.js";
 import { getPedagogy } from "./pedagogy.js";
 
 const moduleSpecs = [
@@ -156,45 +157,50 @@ function makeLesson(moduleId, moduleTitle, [slug, frTitle, enTitle, frBrief, enB
 function makeQuiz(moduleId, moduleTitle, moduleIndex) {
   const id = `${moduleId}-quiz`;
   const title = { fr: `Quiz ${moduleTitle[0]}`, en: `${moduleTitle[1]} quiz` };
-  const brief = { fr: "Valide les décisions du module avec plusieurs formats de questions.", en: "Validate the module decisions with several question formats." };
+  const profile = jsModuleProfile(moduleId, moduleTitle);
+  const brief = { fr: `Diagnostique le risque : ${profile.risk[0]}.`, en: `Diagnose the risk: ${profile.risk[1]}.` };
   const question = {
-    fr: `Quel réflexe rend le module « ${moduleTitle[0]} » vraiment testable ?`,
-    en: `Which habit makes “${moduleTitle[1]}” truly testable?`
+    fr: `Quel risque principal dois-tu éviter dans ${moduleTitle[0]} ?`,
+    en: `What is the main risk to avoid in ${moduleTitle[1]}?`
   };
   const choices = [
-    { id: "small-proof", label: { fr: "Coder une petite preuve puis lancer les tests", en: "Code a small proof, then run tests" } },
-    { id: "copy", label: { fr: "Copier un gros bloc sans le lire", en: "Copy a large block without reading it" } },
-    { id: "visual", label: { fr: "Se fier uniquement au rendu visuel", en: "Rely only on the visual output" } }
+    { id: "risk", label: { fr: profile.risk[0], en: profile.risk[1] } },
+    { id: "syntax", label: { fr: "Oublier un point-virgule", en: "Forgetting a semicolon" } },
+    { id: "var", label: { fr: "Utiliser var au lieu de let", en: "Using var instead of let" } }
   ];
-  return quizObject(id, title, brief, question, choices, moduleIndex);
+  return quizObject(id, title, brief, question, choices, moduleIndex, profile);
 }
 
 function makeCheckpoint(moduleId, moduleTitle, moduleIndex) {
   const id = `${moduleId}-checkpoint`;
-  return quizObject(id, { fr: `Checkpoint ${moduleTitle[0]}`, en: `${moduleTitle[1]} checkpoint` }, { fr: "Checkpoint de consolidation avant la suite.", en: "Consolidation checkpoint before moving on." }, { fr: "Quelle stratégie réduit le plus les bugs ?", en: "Which strategy reduces bugs the most?" }, [
-    { id: "isolate", label: { fr: "Isoler un cas, écrire une preuve, corriger petit", en: "Isolate a case, write proof, fix small" } },
+  const profile = jsModuleProfile(moduleId, moduleTitle);
+  return quizObject(id, { fr: `Checkpoint ${moduleTitle[0]}`, en: `${moduleTitle[1]} checkpoint` }, { fr: "Checkpoint de consolidation avant la suite.", en: "Consolidation checkpoint before moving on." }, { fr: "Quelle stratégie de validation protège ton code ?", en: "Which validation strategy protects your code?" }, [
+    { id: "proof", label: { fr: `Prouver que ${profile.proof[0]}`, en: `Prove that ${profile.proof[1]}` } },
     { id: "guess", label: { fr: "Changer plusieurs choses au hasard", en: "Change several things randomly" } },
-    { id: "ignore", label: { fr: "Ignorer les tests si le rendu semble correct", en: "Ignore tests if the UI looks correct" } }
-  ], moduleIndex);
+    { id: "ignore", label: { fr: "Ignorer les tests", en: "Ignore tests" } }
+  ], moduleIndex, profile);
 }
 
-function quizObject(id, title, brief, prompt, choices, moduleIndex) {
-  const explanation = { fr: "Une preuve courte relie le code au comportement attendu et évite la mémorisation passive.", en: "A short proof connects code to expected behavior and avoids passive memorization." };
-  const guide = guideFor(title, title, moduleIndex + 1);
-  const course = courseFor(id, title, brief, "", ["small-proof"], title, moduleIndex + 1);
+function quizObject(id, title, brief, prompt, choices, moduleIndex, profile) {
+  const explanation = { fr: `La bonne pratique prouve que ${profile.proof[0]}.`, en: `Good practice proves that ${profile.proof[1]}.` };
+  const guide = guideFor(title, title, moduleIndex + 1, profile);
+  const course = courseFor(id, title, brief, "", ["proof"], title, moduleIndex + 1, profile);
   const questions = [
     { id: `${id}-single`, type: "single", prompt, choices, answer: choices[0].id, explanation, points: 1 },
-    { id: `${id}-multiple`, type: "multiple", prompt: { fr: "Quels gestes sont fiables ?", en: "Which habits are reliable?" }, choices: [{ id: "test", label: { fr: "Tester souvent", en: "Test often" } }, { id: "name", label: { fr: "Nommer clairement", en: "Name clearly" } }, { id: "guess", label: { fr: "Deviner", en: "Guess" } }], answer: ["test", "name"], explanation, points: 1 },
-    { id: `${id}-tf`, type: "true-false", prompt: { fr: "Vrai ou faux : une micro-étape doit avoir une preuve observable.", en: "True or false: a micro-step needs observable proof." }, answer: "true", explanation, points: 1 },
-    { id: `${id}-open`, type: "short-open", prompt: { fr: "Explique pourquoi tester petit aide à progresser.", en: "Explain why testing small helps progress." }, answer: ["preuve", "test"], keywords: ["preuve", "test"], explanation, points: 1 }
+    { id: `${id}-multiple`, type: "multiple", prompt: { fr: "Quelles preuves sont utiles en JavaScript ?", en: "Which evidence is useful in JavaScript?" }, choices: [{ id: "test", label: { fr: "Tests verts", en: "Passing tests" } }, { id: "console", label: { fr: "Logs et DevTools", en: "Logs and DevTools" } }, { id: "guess", label: { fr: "Hasard", en: "Guessing" } }], answer: ["test", "console"], explanation, points: 1 },
+    { id: `${id}-tf`, type: "true-false", prompt: { fr: `Vrai ou faux : ${profile.risk[0]} est un problème mineur.`, en: `True or false: ${profile.risk[1]} is a minor problem.` }, choices: [{ id: "true", label: { fr: "Vrai", en: "True" } }, { id: "false", label: { fr: "Faux", en: "False" } }], answer: "false", explanation, points: 1 },
+    { id: `${id}-order`, type: "ordering", prompt: { fr: "Classe la méthode de résolution de bug.", en: "Order the bug resolution method." }, choices: [{ id: "read", label: { fr: "Lire l'erreur", en: "Read the error" } }, { id: "isolate", label: { fr: "Isoler le composant", en: "Isolate the component" } }, { id: "fix", label: { fr: "Corriger l'intention", en: "Fix the intent" } }, { id: "prove", label: { fr: "Vérifier la preuve", en: "Verify evidence" } }], answer: ["read", "isolate", "fix", "prove"], explanation, points: 1 },
+    { id: `${id}-code`, type: "code-reading", prompt: { fr: "Lis ce code silencieux. Que manque-t-il ?", en: "Read this silent code. What is missing?" }, choices: [{ id: "proof", label: { fr: "Une preuve d'exécution (console/test)", en: "Execution proof (console/test)" } }, { id: "nothing", label: { fr: "Rien", en: "Nothing" } }, { id: "comments", label: { fr: "Des commentaires vides", en: "Empty comments" } }], answer: "proof", explanation, points: 1 },
+    { id: `${id}-open`, type: "short-open", prompt: { fr: "Cite une preuve de bon fonctionnement JS.", en: "Name proof of working JS." }, choices: [], answer: ["console", "test", "dom", "log"], keywords: ["test"], explanation, points: 1 }
   ];
-  return { id, type: "quiz", title, brief, course, pedagogy: getPedagogy(id, { course, guide, title, brief, type: "quiz" }), theory: { fr: brief.fr, en: brief.en }, guide, skills: [id], difficulty: "quiz", durationMin: 20, question: prompt, options: choices, answer: choices[0].id, explanation, questions, passingScore: 75, randomizeQuestions: true, feedbackMode: "immediate", starterCode: "", solution: "", tests: [{ type: "quiz", label: "correct answer", value: choices[0].id }], hint: { fr: "Relie chaque réponse à une preuve observable.", en: "Connect each answer to observable proof." }, xp: 35 };
+  return { id, type: "quiz", title, brief, course, pedagogy: getPedagogy(id, { course, guide, title, brief, type: "quiz" }), theory: { fr: brief.fr, en: brief.en }, guide, skills: [id], difficulty: "quiz", durationMin: 20, question: prompt, options: choices, answer: choices[0].id, explanation, questions, passingScore: 75, randomizeQuestions: false, feedbackMode: "immediate", starterCode: "", solution: "", tests: [{ type: "quiz", label: "correct answer", value: choices[0].id }], hint: { fr: "Prouve le résultat au lieu de deviner.", en: "Prove the output instead of guessing." }, xp: 35 };
 }
 
 function makeProject(moduleId, moduleTitle, moduleIndex) {
   const id = `${moduleId}-lab`;
   const title = { fr: `Lab ${moduleTitle[0]}`, en: `${moduleTitle[1]} lab` };
-  const brief = { fr: `Assemble plusieurs micro-compétences du module ${moduleTitle[0]}.`, en: `Combine several micro-skills from ${moduleTitle[1]}.` };
+  const profile = jsModuleProfile(moduleId, moduleTitle);
+  const brief = { fr: `Assemble ${profile.project[0]} pour PulsaConf.`, en: `Assemble ${profile.project[1]} for PulsaConf.` };
   const solution = `const labState = { module: '${moduleId}', done: false, attempts: [] };
 function completeLab(note) {
   labState.attempts.push(note);
@@ -202,59 +208,61 @@ function completeLab(note) {
   return labState;
 }
 completeLab('preuve ${moduleIndex + 1}');`;
-  const course = courseFor(id, title, brief, solution, ["labState", "completeLab", "attempts"], moduleTitle, moduleIndex + 1);
-  const guide = guideFor(title, moduleTitle, moduleIndex + 1);
-  return { id, type: "project", title, brief, course, pedagogy: getPedagogy(id, { course, guide, title, brief, solution, type: "project" }), theory: { fr: brief.fr, en: brief.en }, guide, skills: [moduleId, "lab"], difficulty: "project", durationMin: 95, starterCode: "const labState = { attempts: [] };\n\nfunction completeLab(note) {\n}\n", solution, tests: ["labState", "completeLab", "attempts", "done = true", "return labState"].map((value) => ({ type: "contains", label: `Le lab contient ${value}`, value })), rubric: { fr: ["État central lisible avec une responsabilité unique et des noms métier.", "Fonction actionnable testable sans dépendre du hasard ou du rendu seul.", "Gestion explicite du cas nominal et d'au moins un cas limite documenté.", "Preuve finale compréhensible par une autre personne qui relit le code."], en: ["Readable central state with one responsibility and domain names.", "Actionable function testable without relying on chance or visuals only.", "Explicit handling of the happy path and at least one documented edge case.", "Final proof understandable by another person reviewing the code."] }, hint: { fr: "Assemble d’abord l’état, puis une action testable.", en: "Assemble state first, then a testable action." }, xp: 90 };
+  const course = courseFor(id, title, brief, solution, ["labState", "completeLab", "attempts"], moduleTitle, moduleIndex + 1, profile);
+  const guide = guideFor(title, moduleTitle, moduleIndex + 1, profile);
+  return { id, type: "project", title, brief, course, pedagogy: getPedagogy(id, { course, guide, title, brief, solution, type: "project" }), theory: { fr: brief.fr, en: brief.en }, guide, skills: [moduleId, "lab"], difficulty: "project", durationMin: 95, starterCode: "const labState = { attempts: [] };\n\nfunction completeLab(note) {\n}\n", solution, tests: ["labState", "completeLab", "attempts", "done = true", "return labState"].map((value) => ({ type: "contains", label: `Le lab contient ${value}`, value })), rubric: { fr: [`L'état central est lisible et documente ${profile.project[0]}.`, `La fonction actionnable est testable sans dépendre du hasard et évite ${profile.risk[0]}.`, "La gestion des cas nominaux et d'au moins un cas limite est explicite.", `La preuve finale confirme que ${profile.proof[0]}.`], en: [`Central state is readable and documents ${profile.project[1]}.`, `Actionable function is testable without relying on chance and avoids ${profile.risk[1]}.`, "Explicit handling of the happy path and at least one documented edge case.", `Final proof confirms that ${profile.proof[1]}.`] }, hint: { fr: "Assemble d’abord l’état, puis une action testable.", en: "Assemble state first, then a testable action." }, xp: 90 };
 }
 
-function courseFor(id, title, brief, code, checks, moduleTitle, stepNumber) {
-  return { fr: { introduction: `${title.fr} transforme le module ${moduleTitle[0]} en étape vérifiable ${stepNumber}.`, sections: sections(title.fr, brief.fr, code, checks), vocabulary: vocab(checks), check: [`Je peux expliquer ${title.fr}.`, `Je sais où ${checks[0]} apparaît.`, "Je peux relancer les tests sans hasard."] }, en: { introduction: `${title.en} turns ${moduleTitle[1]} into verifiable step ${stepNumber}.`, sections: sections(title.en, brief.en, code, checks), vocabulary: vocab(checks), check: [`I can explain ${title.en}.`, `I know where ${checks[0]} appears.`, "I can rerun tests without guessing."] } };
+function courseFor(id, title, brief, code, checks, moduleTitle, stepNumber, profile) {
+  const p = profile || jsModuleProfile(id, moduleTitle);
+  return { fr: { introduction: `${p.scene[0]} ${title.fr} traite une étape précise pour éviter que ${p.risk[0]}.`, sections: sections(title.fr, brief.fr, code, checks, p, false), vocabulary: vocab(checks), check: [`Je peux expliquer l'intention de ${title.fr}.`, `Je sais où ${checks[0]} modifie l'état.`, `Je prouve que ${p.proof[0]}.`] }, en: { introduction: `${p.scene[1]} ${title.en} handles a specific step to prevent ${p.risk[1]}.`, sections: sections(title.en, brief.en, code, checks, p, true), vocabulary: vocab(checks), check: [`I can explain the intent of ${title.en}.`, `I know where ${checks[0]} modifies state.`, `I prove that ${p.proof[1]}.`] } };
 }
 
-function sections(title, brief, code, checks) {
+function sections(title, brief, code, checks, profile, english) {
   return [
-    { title: "Intention", paragraphs: [brief, `La preuve attendue est courte : ${checks.slice(0, 2).join(", ")}.`], example: code.slice(0, 240) },
-    { title: "Raisonnement", paragraphs: ["Lis le starter, modifie une seule responsabilité, puis lance les tests.", "Si un test échoue, corrige la cause nommée dans son libellé."], example: checks.join(" · ") },
-    { title: "Validation", paragraphs: [`La micro-étape ${title} est réussie quand les assertions passent.`, "Explique le lien entre le code et le comportement avant de passer à la suite."], example: code.slice(0, 160) }
+    { title: english ? "Intent" : "Intention", paragraphs: [brief, english ? `The risk to avoid is: ${profile.risk[1]}.` : `Le risque à éviter est : ${profile.risk[0]}.`], example: code.slice(0, 240) },
+    { title: english ? "Reasoning" : "Raisonnement", paragraphs: [english ? "Read the starter, change a single responsibility, then run tests." : "Lis le starter, modifie une seule responsabilité, puis lance les tests.", english ? "If a test fails, fix the cause named in its label." : "Si un test échoue, corrige la cause nommée dans son libellé."], example: checks.join(" · ") },
+    { title: english ? "Validation" : "Validation", paragraphs: [english ? `The step is successful when assertions pass and ${profile.proof[1]}.` : `L'étape est réussie quand les assertions passent et que ${profile.proof[0]}.`], example: code.slice(0, 160) }
   ];
 }
 
-function guideFor(title, moduleTitle, stepNumber) {
+function guideFor(title, moduleTitle, stepNumber, profile) {
+  const p = profile || jsModuleProfile("js", moduleTitle);
   return {
     fr: {
       objectives: [
-        `Résoudre ${title.fr} comme un petit besoin produit, pas comme une ligne à recopier.`,
-        `Relier l’étape ${stepNumber} au module ${moduleTitle[0]} avec un exemple que tu peux expliquer à voix haute.`,
-        "Nommer la donnée, le calcul ou l’action de façon à rendre le comportement évident à la relecture."
+        `Résoudre ${title.fr} comme un besoin de PulsaConf, pas comme une ligne à copier.`,
+        `Éviter le risque : ${p.risk[0]}.`,
+        `Prouver que ${p.proof[0]}.`
       ],
-      prerequisites: ["Lire le starter", "Comprendre le module courant", "Savoir interpréter une erreur de test"],
+      prerequisites: ["Lire le starter", "Comprendre le contexte", "Savoir interpréter un test"],
       steps: [
-        "Repérer le comportement utilisateur ou métier attendu.",
-        "Écrire le contrat minimal : entrée, transformation, sortie observable.",
-        "Comparer ton résultat au test puis expliquer l'écart éventuel."
+        "Repérer le comportement métier attendu.",
+        "Écrire le contrat minimal : entrée, transformation, sortie.",
+        "Comparer ton résultat au test et vérifier la preuve."
       ],
       mistakes: [
-        `Traiter ${title.fr} comme du texte à copier.`,
+        `Traiter ${title.fr} au hasard.`,
         "Changer plusieurs responsabilités en même temps.",
-        "Faire passer le test sans pouvoir expliquer pourquoi le code fonctionne."
+        "Faire passer le test sans observer l'état réel."
       ]
     },
     en: {
       objectives: [
-        `Solve ${title.en} as a small product need, not as a line to copy.`,
-        `Connect step ${stepNumber} to ${moduleTitle[1]} with an example you can explain out loud.`,
-        "Name the data, calculation, or action so the behavior is obvious during review."
+        `Solve ${title.en} as a PulsaConf need, not a line to copy.`,
+        `Avoid the risk: ${p.risk[1]}.`,
+        `Prove that ${p.proof[1]}.`
       ],
-      prerequisites: ["Read the starter", "Understand the current module", "Know how to interpret a failing test"],
+      prerequisites: ["Read the starter", "Understand the context", "Know how to interpret a test"],
       steps: [
-        "Spot the expected user or business behavior.",
-        "Write the minimal contract: input, transformation, observable output.",
-        "Compare your result with the test and explain any gap."
+        "Spot the expected business behavior.",
+        "Write the minimal contract: input, transformation, output.",
+        "Compare your result with the test and verify evidence."
       ],
       mistakes: [
-        `Treating ${title.en} as text to copy.`,
+        `Treating ${title.en} randomly.`,
         "Changing several responsibilities at once.",
-        "Making the test pass without being able to explain why the code works."
+        "Making the test pass without observing real state."
       ]
     }
   };
