@@ -80,6 +80,16 @@ test("legacy hash links migrate to clean URLs", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /Choisis une formation|Choose a course/ })).toBeVisible();
 });
 
+test("tools lesson opens without guide rendering errors", async ({ page }) => {
+  const pageErrors = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  await page.goto("/learn/tools/tools-setup/tools-01-vscode");
+  await acceptPrivacy(page);
+  await expect(page.getByRole("heading", { name: /Éditeur : VS Code & Cursor|Editor: VS Code & Cursor/ }).first()).toBeVisible();
+  await expect(page.getByText(/Installer l'outil sans étape cachée|Install the tool without hidden steps/)).toBeVisible();
+  expect(pageErrors).toEqual([]);
+});
+
 async function acceptPrivacy(page) {
   const button = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await button.isVisible()) await button.click();

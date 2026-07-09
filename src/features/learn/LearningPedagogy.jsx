@@ -2,7 +2,8 @@ import { CheckCircle2, Sparkles } from "lucide-react";
 
 export function CourseChapter({ course, theory, locale }) {
   if (!course) return null;
-  const content = course[locale] || course.en;
+  const content = course[locale] || course.en || course.fr;
+  if (!content) return null;
   const reminder = theory?.[locale] || theory?.en;
   return (
     <article className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
@@ -13,11 +14,11 @@ export function CourseChapter({ course, theory, locale }) {
       </header>
       <div className="grid gap-8 p-5 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="grid gap-8">
-          {content.sections.map((section, index) => <section key={section.title}><div className="flex items-start gap-3"><span className="grid size-7 shrink-0 place-items-center rounded-full bg-indigoPop text-xs font-bold text-white">{index + 1}</span><div><h5 className="font-display text-xl font-bold text-ink">{section.title}</h5><div className="mt-3 grid gap-3">{section.paragraphs.map((paragraph) => <p className="leading-7 text-slate-600" key={paragraph}>{paragraph}</p>)}</div>{section.example && <pre className="mt-4 overflow-x-auto rounded-xl bg-ink p-4 font-mono text-sm leading-6 text-indigo-100">{section.example}</pre>}</div></div></section>)}
+          {(content.sections || []).map((section, index) => <section key={section.title}><div className="flex items-start gap-3"><span className="grid size-7 shrink-0 place-items-center rounded-full bg-indigoPop text-xs font-bold text-white">{index + 1}</span><div><h5 className="font-display text-xl font-bold text-ink">{section.title}</h5><div className="mt-3 grid gap-3">{(section.paragraphs || []).map((paragraph) => <p className="leading-7 text-slate-600" key={paragraph}>{paragraph}</p>)}</div>{section.example && <pre className="mt-4 overflow-x-auto rounded-xl bg-ink p-4 font-mono text-sm leading-6 text-indigo-100">{section.example}</pre>}</div></div></section>)}
         </div>
         <aside className="grid content-start gap-4">
           {content.vocabulary?.length > 0 && <section className="rounded-xl border border-slate-200 bg-slate-50 p-4"><h5 className="font-display text-lg font-bold">{locale === "fr" ? "Vocabulaire" : "Vocabulary"}</h5><dl className="mt-3 grid gap-3">{content.vocabulary.map(([term, definition]) => <div key={term}><dt className="text-sm font-bold text-indigoPop">{term}</dt><dd className="mt-1 text-sm leading-6 text-slate-600">{definition}</dd></div>)}</dl></section>}
-          <section className="rounded-xl border border-green-200 bg-green-50 p-4"><h5 className="font-display text-lg font-bold text-green-900">{locale === "fr" ? "Avant de pratiquer" : "Before practicing"}</h5><ul className="mt-3 grid gap-2">{content.check.map((item) => <li className="flex gap-2 text-sm leading-6 text-green-800" key={item}><CheckCircle2 className="mt-1 size-4 shrink-0" />{item}</li>)}</ul></section>
+          {(content.check || []).length > 0 && <section className="rounded-xl border border-green-200 bg-green-50 p-4"><h5 className="font-display text-lg font-bold text-green-900">{locale === "fr" ? "Avant de pratiquer" : "Before practicing"}</h5><ul className="mt-3 grid gap-2">{content.check.map((item) => <li className="flex gap-2 text-sm leading-6 text-green-800" key={item}><CheckCircle2 className="mt-1 size-4 shrink-0" />{item}</li>)}</ul></section>}
           {reminder?.points?.length > 0 && <section className="rounded-xl border border-indigo-100 bg-indigo-50 p-4"><h5 className="font-display text-lg font-bold text-indigo-950">{locale === "fr" ? "À retenir" : "Key takeaways"}</h5><ul className="mt-3 grid gap-2">{reminder.points.map((point) => <li className="flex gap-2 text-sm leading-6 text-indigo-900" key={point}><Sparkles className="mt-1 size-4 shrink-0" />{point}</li>)}</ul></section>}
         </aside>
       </div>
@@ -41,7 +42,7 @@ export function PedagogyWorkshop({ pedagogy, locale }) {
 
 function ListCard({ title, items, color }) {
   const icon = color === "green" ? "text-green-600" : "text-indigoPop";
-  return <article className="rounded-xl border border-slate-200 bg-slate-50 p-4"><p className="text-xs font-bold uppercase tracking-[.12em] text-slate-500">{title}</p><ul className="mt-3 grid gap-2 text-sm text-slate-600">{items.map((item) => <li className="flex gap-2" key={item}><CheckCircle2 className={`mt-0.5 size-4 shrink-0 ${icon}`} />{item}</li>)}</ul></article>;
+  return <article className="rounded-xl border border-slate-200 bg-slate-50 p-4"><p className="text-xs font-bold uppercase tracking-[.12em] text-slate-500">{title}</p><ul className="mt-3 grid gap-2 text-sm text-slate-600">{(items || []).map((item) => <li className="flex gap-2" key={item}><CheckCircle2 className={`mt-0.5 size-4 shrink-0 ${icon}`} />{item}</li>)}</ul></article>;
 }
 
 function ComparisonCard({ title, item, tone }) {
@@ -66,12 +67,14 @@ function SummaryCard({ label, value }) {
 
 export function LessonGuide({ guide, locale }) {
   if (!guide) return null;
-  const localized = guide[locale] || guide.en;
+  const localized = guide[locale] || guide.en || guide.fr;
+  if (!localized) return null;
   const sections = [
-    { title: locale === "fr" ? "Objectifs" : "Objectives", items: localized.objectives, tone: "bg-indigo-50 text-indigo-700" },
-    { title: locale === "fr" ? "Méthode" : "Method", items: localized.steps, tone: "bg-green-50 text-green-700" },
-    { title: locale === "fr" ? "Erreurs fréquentes" : "Common mistakes", items: localized.mistakes, tone: "bg-amber-50 text-amber-800" }
-  ];
+    { title: locale === "fr" ? "Objectifs" : "Objectives", items: localized.objectives || [], tone: "bg-indigo-50 text-indigo-700" },
+    { title: locale === "fr" ? "Méthode" : "Method", items: localized.steps || [], tone: "bg-green-50 text-green-700" },
+    { title: locale === "fr" ? "Erreurs fréquentes" : "Common mistakes", items: localized.mistakes || [], tone: "bg-amber-50 text-amber-800" }
+  ].filter((section) => section.items.length > 0);
+  if (sections.length === 0) return null;
   return <section className="mt-4 grid gap-3 lg:grid-cols-3" aria-label={locale === "fr" ? "Guide de leçon" : "Lesson guide"}>{sections.map((section) => <article className="rounded-xl border border-slate-200 bg-white p-4" key={section.title}><h4 className={`inline-flex rounded-lg px-2.5 py-1 text-xs font-bold uppercase tracking-[.08em] ${section.tone}`}>{section.title}</h4><ol className="mt-3 grid gap-2 text-sm leading-6 text-slate-600">{section.items.map((item, index) => <li className="flex gap-2" key={item}><span className="font-bold text-slate-600">{index + 1}.</span><span>{item}</span></li>)}</ol></article>)}</section>;
 }
 
