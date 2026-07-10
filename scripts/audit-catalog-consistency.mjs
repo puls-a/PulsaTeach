@@ -2,6 +2,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { extname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { learningTracks } from "../src/content/allTrackRegistry.js";
+import { publicTrackCatalog } from "../src/content/publicTrackCatalog.js";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const expectedTrackIds = [
@@ -24,12 +25,25 @@ const failures = [];
 
 const actualTrackIds = learningTracks.map((track) => track.id);
 const lessonCount = learningTracks.reduce((total, track) => total + track.modules.reduce((sum, module) => sum + (module.lessons?.length || 0), 0), 0);
+const publicLessonCount = publicTrackCatalog.reduce((total, track) => total + Number(track.lessons || 0), 0);
 
 if (actualTrackIds.length !== expectedTrackIds.length) failures.push(`expected ${expectedTrackIds.length} tracks, found ${actualTrackIds.length}`);
 for (const id of expectedTrackIds) {
   if (!actualTrackIds.includes(id)) failures.push(`missing track in allTrackRegistry: ${id}`);
 }
 if (lessonCount !== 871) failures.push(`expected 871 lessons, found ${lessonCount}`);
+if (publicLessonCount !== lessonCount) failures.push(`public catalog counts ${publicLessonCount} lessons, registry has ${lessonCount}`);
+for (const track of learningTracks) {
+  const publicTrack = publicTrackCatalog.find((item) => item.id === track.id);
+  if (!publicTrack) {
+    failures.push(`missing track in public catalog: ${track.id}`);
+    continue;
+  }
+  const modules = track.modules.length;
+  const lessons = track.modules.reduce((sum, module) => sum + (module.lessons?.length || 0), 0);
+  if (Number(publicTrack.modules || 0) !== modules) failures.push(`${track.id}: public modules=${publicTrack.modules}, registry modules=${modules}`);
+  if (Number(publicTrack.lessons || 0) !== lessons) failures.push(`${track.id}: public lessons=${publicTrack.lessons}, registry lessons=${lessons}`);
+}
 
 await rejectDangerousLegacyImports();
 await requireAllTrackIds("src/jsSandboxWorker.js", "sandbox catalog mock");

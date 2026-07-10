@@ -13,8 +13,8 @@ export const publicTrackCatalog = [
     label: "HTML",
     title: { fr: "HTML interactif", en: "Interactive HTML" },
     summary: { fr: "Structure, sémantique, formulaires, accessibilité et SEO avec tests DOM.", en: "Structure, semantics, forms, accessibility, and SEO with DOM tests." },
-    modules: 6,
-    lessons: 44,
+    modules: 10,
+    lessons: 79,
     firstHref: "/learn/html/html-foundations/html-01-document-skeleton"
   },
   {
@@ -22,8 +22,8 @@ export const publicTrackCatalog = [
     label: "CSS",
     title: { fr: "CSS interactif", en: "Interactive CSS" },
     summary: { fr: "Sélecteurs, box model, Flexbox, Grid, responsive et animations avec rendu visuel.", en: "Selectors, box model, Flexbox, Grid, responsive, and motion with visual output." },
-    modules: 14,
-    lessons: 105,
+    modules: 15,
+    lessons: 123,
     firstHref: "/learn/css/css-selectors-colors/css-selectors-colors-color"
   },
   {
@@ -32,7 +32,7 @@ export const publicTrackCatalog = [
     title: { fr: "JavaScript interactif", en: "Interactive JavaScript" },
     summary: { fr: "Logique, fonctions, tableaux, DOM, événements, API, localStorage et debugging.", en: "Logic, functions, arrays, DOM, events, APIs, localStorage, and debugging." },
     modules: 18,
-    lessons: 138,
+    lessons: 141,
     firstHref: "/learn/javascript/js-variables-strings/js-variables-strings-runtime-map"
   },
   {
