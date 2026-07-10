@@ -59,7 +59,7 @@ if (learningLayout.includes('trackId: "html"') && learningLayout.includes('track
 
 const roadmapEvidence = await read("docs/ROADMAP_EVIDENCE.md");
 if (!roadmapEvidence.includes("14 parcours, 871 leçons")) failures.push("ROADMAP_EVIDENCE must state 14 parcours, 871 lessons.");
-if (!roadmapEvidence.includes("596 termes")) failures.push("ROADMAP_EVIDENCE must state 596 linked terms.");
+if (!roadmapEvidence.includes("577 termes")) failures.push("ROADMAP_EVIDENCE must state 577 linked terms.");
 if (roadmapEvidence.includes("272 leçons") || roadmapEvidence.includes("357 termes")) failures.push("ROADMAP_EVIDENCE still contains obsolete curriculum numbers.");
 
 const legalPages = await read("src/LegalPages.jsx");

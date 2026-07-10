@@ -7,7 +7,7 @@ const introVscode = {
       {
         title: "1. Télécharger Cursor (Recommandé)",
         paragraphs: [
-          "<img src='https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg' alt='VS Code Logo' width='64' height='64' style='float:right; margin-left: 10px;' />",
+          "<img src='/assets/tool-vscode.svg' alt='VS Code Logo' />",
           "Va sur <a href='https://cursor.sh' target='_blank'>cursor.sh</a> et télécharge l'installateur.",
           "Cursor comprend le code et peut autocompléter des fichiers entiers. Il est parfait pour apprendre car tu peux lui poser des questions sur ton code directement dans l'éditeur."
         ],
@@ -31,7 +31,7 @@ const introVscode = {
       {
         title: "1. Download Cursor (Recommended)",
         paragraphs: [
-          "<img src='https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg' alt='VS Code Logo' width='64' height='64' style='float:right; margin-left: 10px;' />",
+          "<img src='/assets/tool-vscode.svg' alt='VS Code Logo' />",
           "Go to <a href='https://cursor.sh' target='_blank'>cursor.sh</a> and download the installer.",
           "Cursor understands code and can autocomplete entire files. It's perfect for learning."
         ],
@@ -50,8 +50,8 @@ const introPhp = {
       {
         title: "Installation sous Windows (Laragon ou XAMPP)",
         paragraphs: [
-          "<img src='https://upload.wikimedia.org/wikipedia/commons/2/27/PHP-logo.svg' alt='PHP Logo' width='100' height='64' style='float:right; margin-left: 10px;' />",
-          "La façon la plus simple sous Windows est d'utiliser <strong>Laragon</strong>. Va sur laragon.org et télécharge la version 'Full'.",
+          "<img src='/assets/tool-php.svg' alt='PHP Logo' />",
+          "La façon la plus simple sous Windows est d'utiliser <strong>Laragon</strong>. Va sur <a href='https://laragon.org/download/' target='_blank'>laragon.org/download</a> et télécharge la version 'Full'.",
           "Une fois installé, lance Laragon et clique sur 'Start All'. Ton PC est maintenant un serveur web !"
         ],
         example: ""
@@ -74,8 +74,8 @@ const introPhp = {
       {
         title: "Install on Windows",
         paragraphs: [
-          "<img src='https://upload.wikimedia.org/wikipedia/commons/2/27/PHP-logo.svg' alt='PHP Logo' width='100' height='64' style='float:right; margin-left: 10px;' />",
-          "The easiest way is <strong>Laragon</strong>. Go to laragon.org and download the 'Full' version.",
+          "<img src='/assets/tool-php.svg' alt='PHP Logo' />",
+          "The easiest way is <strong>Laragon</strong>. Go to <a href='https://laragon.org/download/' target='_blank'>laragon.org/download</a> and download the 'Full' version.",
           "Click 'Start All'. Your PC is now a web server!"
         ],
         example: ""
@@ -93,7 +93,7 @@ const introDb = {
       {
         title: "Installer PostgreSQL",
         paragraphs: [
-          "<img src='https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg' alt='PostgreSQL Logo' width='64' height='64' style='float:right; margin-left: 10px;' />",
+          "<img src='/assets/tool-postgresql.svg' alt='PostgreSQL Logo' />",
           "Va sur <a href='https://www.postgresql.org/download/' target='_blank'>postgresql.org/download</a> et choisis ton système.",
           "Lors de l'installation, choisis un mot de passe pour l'utilisateur <code>postgres</code> (ne l'oublie pas !).",
           "L'installateur inclut souvent <strong>pgAdmin</strong>, une interface visuelle pour voir tes bases de données.",
@@ -111,8 +111,8 @@ const introDb = {
       {
         title: "Install PostgreSQL",
         paragraphs: [
-          "<img src='https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg' alt='PostgreSQL Logo' width='64' height='64' style='float:right; margin-left: 10px;' />",
-          "Go to postgresql.org/download and choose your OS.",
+          "<img src='/assets/tool-postgresql.svg' alt='PostgreSQL Logo' />",
+          "Go to <a href='https://www.postgresql.org/download/' target='_blank'>postgresql.org/download</a> and choose your OS.",
           "Remember the password you set for the <code>postgres</code> user.",
           "After installation, open pgAdmin or a terminal and verify that the server starts correctly. Keep the port number, usually <code>5432</code>, because future apps will need it to connect."
         ],

@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="VS Code Logo">
+  <rect width="64" height="64" rx="14" fill="#0f172a"/>
+  <path fill="#38bdf8" d="M47 10 22 25 12 17l-5 3v24l5 3 10-8 25 15 10-5V15l-10-5Zm0 13v18L30 32l17-9ZM13 25l5 7-5 7V25Z"/>
+</svg>

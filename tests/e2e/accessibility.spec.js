@@ -12,6 +12,8 @@ const pages = [
   { name: "privacy", path: "/privacy" },
   { name: "legal", path: "/legal" },
   { name: "lesson", path: "/learn/html/html-foundations/html-01-document-skeleton" },
+  { name: "tools lesson", path: "/learn/tools/tools-setup/tools-01-vscode" },
+  { name: "tools formation", path: "/formations/tools" },
   { name: "playground", path: "/playground" }
 ];
 

@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { ArrowRight, Award, BookOpen, Check, Clock3, Code2, Flag, GraduationCap, ArrowLeft, LayoutTemplate, ShieldCheck, Sparkles } from "lucide-react";
 import { useSupabaseSession } from "../../authState.js";
+import { findPublicTrack } from "../../content/publicTrackCatalog.js";
 import { useLearningTracks } from "../../useLearningTracks.js";
 
 // Utility for reading progress from localStorage if offline or getting it from Supabase context
@@ -16,12 +17,17 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
   const { user } = useSupabaseSession();
   const { tracks, error, loadTrack } = useLearningTracks({ remoteCatalog: Boolean(user), mode: "summary" });
   const progress = useMemo(readProgress, []);
+  const knownPublicTrack = findPublicTrack(trackId);
 
   // Ensure full track is loaded
   useEffect(() => {
-    if (!trackId) return;
+    if (!trackId || !knownPublicTrack) return;
     loadTrack(trackId).catch(() => {});
-  }, [trackId, loadTrack]);
+  }, [knownPublicTrack, trackId, loadTrack]);
+
+  if (!knownPublicTrack) {
+    return <UnknownTrack locale={locale} trackId={trackId} />;
+  }
 
   const track = tracks.find(t => t.id === trackId);
 
@@ -181,7 +187,7 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
                   </div>
                   <div className="flex shrink-0 items-center justify-between sm:flex-col sm:items-end sm:justify-center">
                      <span className="text-sm font-semibold text-slate-500">{module.totalMinutes} min</span>
-                     <span className="mt-1 text-xs font-medium text-slate-400">{moduleCompleted}/{module.lessons.length} {locale === "fr" ? "leçons" : "lessons"}</span>
+                     <span className="mt-1 text-xs font-medium text-slate-500">{moduleCompleted}/{module.lessons.length} {locale === "fr" ? "leçons" : "lessons"}</span>
                   </div>
                 </a>
               );
@@ -235,5 +241,22 @@ function CourseFact({ icon: Icon, value, label }) {
       <p className="font-display text-3xl font-black text-ink">{value}</p>
       <p className="mt-1 text-sm font-semibold text-slate-500">{label}</p>
     </div>
+  );
+}
+
+function UnknownTrack({ locale, trackId }) {
+  return (
+    <section className="app-page grid min-h-screen place-items-center bg-slate-50">
+      <div className="surface max-w-xl text-center">
+        <p className="eyebrow">404</p>
+        <h1 className="mt-3 font-display text-3xl font-black text-ink">{locale === "fr" ? "Formation introuvable" : "Course not found"}</h1>
+        <p className="mt-3 leading-7 text-slate-600">
+          {locale === "fr"
+            ? `La formation "${trackId || "inconnue"}" n'existe pas dans le catalogue public PulsaTeach.`
+            : `The "${trackId || "unknown"}" course does not exist in the public PulsaTeach catalog.`}
+        </p>
+        <a href="/catalog" className="primary-button mt-6">{locale === "fr" ? "Retour aux formations" : "Back to courses"}</a>
+      </div>
+    </section>
   );
 }

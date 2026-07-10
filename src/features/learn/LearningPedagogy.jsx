@@ -1,4 +1,5 @@
 import { CheckCircle2, Sparkles } from "lucide-react";
+import { sanitizeRichText } from "./richTextSanitizer.js";
 
 export function CourseChapter({ course, theory, locale }) {
   if (!course) return null;
@@ -14,7 +15,7 @@ export function CourseChapter({ course, theory, locale }) {
       </header>
       <div className="grid min-w-0 gap-8 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="grid min-w-0 gap-8">
-          {(content.sections || []).map((section, index) => <section className="min-w-0" key={section.title}><div className="flex min-w-0 items-start gap-3"><span className="grid size-7 shrink-0 place-items-center rounded-full bg-indigoPop text-xs font-bold text-white">{index + 1}</span><div className="min-w-0"><h5 className="break-words font-display text-xl font-bold leading-snug text-ink">{section.title}</h5><div className="mt-3 grid gap-3">{(section.paragraphs || []).map((paragraph) => <RichText className="break-words leading-7 text-slate-600" key={paragraph} value={paragraph} />)}</div>{section.example && <pre className="mt-4 overflow-x-auto rounded-xl bg-ink p-4 font-mono text-sm leading-6 text-indigo-100">{section.example}</pre>}</div></div></section>)}
+          {(content.sections || []).map((section, index) => <section className="min-w-0" key={section.title}><div className="flex min-w-0 items-start gap-3"><span className="grid size-7 shrink-0 place-items-center rounded-full bg-indigoPop text-xs font-bold text-white">{index + 1}</span><div className="min-w-0"><h5 className="break-words font-display text-xl font-bold leading-snug text-ink">{section.title}</h5><div className="mt-3 grid gap-3">{(section.paragraphs || []).map((paragraph) => <RichText className="break-words leading-7 text-slate-600" key={paragraph} value={paragraph} />)}</div>{section.example && <pre tabIndex={0} aria-label={locale === "fr" ? "Exemple de code scrollable" : "Scrollable code example"} className="mt-4 overflow-x-auto rounded-xl bg-ink p-4 font-mono text-sm leading-6 text-indigo-100">{section.example}</pre>}</div></div></section>)}
         </div>
         <aside className="grid content-start gap-4">
           {content.vocabulary?.length > 0 && <section className="rounded-xl border border-slate-200 bg-slate-50 p-4"><h5 className="font-display text-lg font-bold">{locale === "fr" ? "Vocabulaire" : "Vocabulary"}</h5><dl className="mt-3 grid gap-3">{content.vocabulary.map(([term, definition]) => <div key={term}><dt className="text-sm font-bold text-indigoPop">{term}</dt><dd className="mt-1 text-sm leading-6 text-slate-600">{definition}</dd></div>)}</dl></section>}
@@ -48,12 +49,12 @@ function ListCard({ title, items, color }) {
 function RichText({ as: Tag = "p", className, value }) {
   const html = String(value || "");
   if (!html.includes("<")) return <Tag className={className}>{html}</Tag>;
-  return <Tag className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+  return <Tag className={className} dangerouslySetInnerHTML={{ __html: sanitizeRichText(html) }} />;
 }
 
 function ComparisonCard({ title, item, tone }) {
   const good = tone === "good";
-  return <article className={`overflow-hidden rounded-xl border ${good ? "border-green-200" : "border-red-200"}`}><header className={`px-4 py-3 text-sm font-bold ${good ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"}`}>{title} : {item.title}</header><pre className="overflow-x-auto bg-ink p-4 font-mono text-xs leading-6 text-indigo-100">{item.code}</pre><p className="border-t border-slate-200 bg-white p-4 text-sm leading-6 text-slate-600">{item.explanation}</p></article>;
+  return <article className={`overflow-hidden rounded-xl border ${good ? "border-green-200" : "border-red-200"}`}><header className={`px-4 py-3 text-sm font-bold ${good ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"}`}>{title} : {item.title}</header><pre tabIndex={0} aria-label="Scrollable comparison code" className="overflow-x-auto bg-ink p-4 font-mono text-xs leading-6 text-indigo-100">{item.code}</pre><p className="border-t border-slate-200 bg-white p-4 text-sm leading-6 text-slate-600">{item.explanation}</p></article>;
 }
 
 export function ProgressiveHints({ pedagogy, fallback, level, locale }) {
@@ -64,7 +65,7 @@ export function ProgressiveHints({ pedagogy, fallback, level, locale }) {
 
 export function ExplainedCorrection({ lesson, locale, onLoadSolution }) {
   const pedagogy = lesson.pedagogy?.[locale] || lesson.pedagogy?.fr;
-  return <details className="mt-6 rounded-xl border border-indigo-200 bg-indigo-50 p-5" open><summary className="cursor-pointer font-display text-xl font-bold text-indigo-950">{locale === "fr" ? "Correction expliquée" : "Explained correction"}</summary>{pedagogy && <><ol className="mt-4 grid gap-2">{pedagogy.correction.map((item, index) => <li className="flex gap-3 text-sm leading-6 text-indigo-900" key={item}><span className="font-bold">{index + 1}.</span>{item}</li>)}</ol><div className="mt-5 grid gap-3 md:grid-cols-2"><SummaryCard label={locale === "fr" ? "Synthèse" : "Summary"} value={pedagogy.summary} /><SummaryCard label={locale === "fr" ? "Ensuite" : "Next"} value={pedagogy.next} /></div></>}<pre className="mt-5 overflow-x-auto rounded-xl bg-ink p-4 font-mono text-xs leading-6 text-indigo-100">{lesson.solution}</pre><button type="button" onClick={onLoadSolution} className="secondary-button mt-4 min-h-10 py-2 text-sm">{locale === "fr" ? "Charger cette solution dans l'éditeur" : "Load this solution in the editor"}</button></details>;
+  return <details className="mt-6 rounded-xl border border-indigo-200 bg-indigo-50 p-5" open><summary className="cursor-pointer font-display text-xl font-bold text-indigo-950">{locale === "fr" ? "Correction expliquée" : "Explained correction"}</summary>{pedagogy && <><ol className="mt-4 grid gap-2">{pedagogy.correction.map((item, index) => <li className="flex gap-3 text-sm leading-6 text-indigo-900" key={item}><span className="font-bold">{index + 1}.</span>{item}</li>)}</ol><div className="mt-5 grid gap-3 md:grid-cols-2"><SummaryCard label={locale === "fr" ? "Synthèse" : "Summary"} value={pedagogy.summary} /><SummaryCard label={locale === "fr" ? "Ensuite" : "Next"} value={pedagogy.next} /></div></>}<pre tabIndex={0} aria-label={locale === "fr" ? "Solution de code scrollable" : "Scrollable code solution"} className="mt-5 overflow-x-auto rounded-xl bg-ink p-4 font-mono text-xs leading-6 text-indigo-100">{lesson.solution}</pre><button type="button" onClick={onLoadSolution} className="secondary-button mt-4 min-h-10 py-2 text-sm">{locale === "fr" ? "Charger cette solution dans l'éditeur" : "Load this solution in the editor"}</button></details>;
 }
 
 function SummaryCard({ label, value }) {

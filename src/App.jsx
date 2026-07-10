@@ -35,6 +35,7 @@ import CookieConsent from "./components/CookieConsent.jsx";
 import { CookiesPage, LegalNoticePage, PrivacyPage, TermsPage } from "./LegalPages.jsx";
 import { currentPathSegments, migrateLegacyHashRoute } from "./navigation.js";
 import { updatePageMetadata } from "./appMetadata.js";
+import { knownRoutes } from "./appRoutes.js";
 
 const GlossaryPage = lazy(() => import("./features/glossary/GlossaryPage.jsx"));
 const ReviewPage = lazy(() => import("./features/review/ReviewPage.jsx"));
@@ -418,8 +419,7 @@ function getPageRoute() {
     return new URLSearchParams(window.location.search).has("recovery") ? "recovery" : "onboarding";
   }
   const route = currentPathSegments()[0] || "home";
-  const known = ["home", "about", "auth", "signup", "onboarding", "recovery", "verify", "studio", "world", "playground", "flexbox-arena", "js-arena", "learn", "formations", "catalog", "glossary", "review", "path", "profile", "settings", "projects", "certification", "dashboard", "analytics", "author", "admin", "roadmap", "privacy", "cookies", "terms", "legal"];
-  return known.includes(route) ? route : "not-found";
+  return knownRoutes.includes(route) ? route : "not-found";
 }
 
 function RouteFallback({ locale }) {

@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PostgreSQL Logo">
+  <rect width="64" height="64" rx="14" fill="#e0f2fe"/>
+  <path fill="#0369a1" d="M33 8c-13 0-22 8-22 20 0 10 7 18 18 20l-1 6c0 2 2 3 4 2 5-2 8-6 9-11 8-3 12-9 12-17C53 16 45 8 33 8Zm-9 20c-2 0-4-2-4-4s2-4 4-4 4 2 4 4-2 4-4 4Zm17 0c-2 0-4-2-4-4s2-4 4-4 4 2 4 4-2 4-4 4Z"/>
+</svg>

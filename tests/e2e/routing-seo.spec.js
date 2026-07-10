@@ -54,6 +54,12 @@ test("tools formation links to a valid first lesson", async ({ page }) => {
   await expect(page.getByRole("link", { name: /Environnement de développement|Development environment/ }).first()).toHaveAttribute("href", /\/learn\/tools\/tools-setup\/tools-01-vscode$/);
 });
 
+test("unknown formation returns an explicit catalog 404", async ({ page }) => {
+  await page.goto("/formations/unknown-track", { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /Formation introuvable|Course not found/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Retour aux formations|Back to courses/ })).toHaveAttribute("href", "/catalog");
+});
+
 test("legal pages are reachable and indexable", async ({ page }) => {
   for (const route of ["/privacy", "/cookies", "/terms", "/legal"]) {
     await gotoRoute(page, route);
