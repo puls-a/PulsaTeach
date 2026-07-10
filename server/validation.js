@@ -1,6 +1,14 @@
 import { z } from "zod";
 
 const id = z.string().trim().min(1).max(160);
+const httpUrl = (max = 1000) => z.string().url().max(max).refine((value) => {
+  try {
+    const protocol = new URL(value).protocol;
+    return protocol === "https:" || protocol === "http:";
+  } catch {
+    return false;
+  }
+}, "URL must use http or https");
 const localizedText = z.union([
   z.string().max(5000),
   z.object({
@@ -84,7 +92,7 @@ export const userSettingsSchema = z.object({
   weeklyMinutes: z.coerce.number().int().min(15).max(2520).optional(),
   locale: z.enum(["fr", "en"]).optional(),
   bio: z.string().max(500).optional(),
-  avatarUrl: z.union([z.literal(""), z.string().url().max(500)]).optional(),
+  avatarUrl: z.union([z.literal(""), httpUrl(500)]).optional(),
   onboardingCompleted: z.boolean().optional()
 }).strict();
 
@@ -128,10 +136,10 @@ export const submissionSchema = z.object({
   projectId: id,
   title: z.string().trim().min(1).max(160),
   description: z.string().max(4000).optional().default(""),
-  url: z.union([z.literal(""), z.string().url().max(1000)]).optional().default(""),
-  repositoryUrl: z.union([z.literal(""), z.string().url().max(1000)]).optional().default(""),
-  archiveUrl: z.union([z.literal(""), z.string().url().max(1000)]).optional().default(""),
-  screenshots: z.array(z.string().url().max(1000)).max(8).optional().default([]),
+  url: z.union([z.literal(""), httpUrl()]).optional().default(""),
+  repositoryUrl: z.union([z.literal(""), httpUrl()]).optional().default(""),
+  archiveUrl: z.union([z.literal(""), httpUrl()]).optional().default(""),
+  screenshots: z.array(httpUrl()).max(8).optional().default([]),
   deliverables: z.array(z.string().trim().min(1).max(500)).max(30).optional().default([]),
   selfAssessment: z.string().max(4000).optional().default(""),
   visibility: z.enum(["private", "unlisted", "public"]).optional().default("private")

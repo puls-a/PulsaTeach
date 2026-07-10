@@ -57,7 +57,7 @@ function sanitizeElement(element) {
 
 function safeHref(value) {
   const href = String(value || "").trim();
-  if (/^https:\/\//i.test(href) || href.startsWith("/")) return href;
+  if (/^https:\/\//i.test(href) || (href.startsWith("/") && !href.startsWith("//"))) return href;
   return "";
 }
 

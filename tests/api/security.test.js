@@ -123,6 +123,15 @@ describe("API security boundaries", () => {
     expect(response.body.error.code).toBe("VALIDATION_ERROR");
   });
 
+  test("rejects non-http project URLs", async () => {
+    const response = await request(app)
+      .post("/api/submissions")
+      .set("X-PulsaTeach-User-Id", "user-a")
+      .send({ projectId: "project-1", title: "Projet", url: "javascript:alert(1)" })
+      .expect(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+  });
+
   test("persists quiz drafts without exposing them to another learner", async () => {
     await request(app)
       .put("/api/quizzes/html-quiz/session")

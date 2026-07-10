@@ -18,4 +18,9 @@ describe("sanitizeRichText", () => {
     expect(html).toContain('src="/assets/tool-vscode.svg"');
     expect(html).toContain('loading="lazy"');
   });
+
+  test("drops protocol-relative links", () => {
+    const html = sanitizeRichText("Open <a href='//evil.example/phish'>external mirror</a>");
+    expect(html).toBe("Open external mirror");
+  });
 });
