@@ -50,7 +50,7 @@ export default function AppFooter({ locale }) {
             {"\u00a9"} 2026 PulsaTeach {"\u00b7"} {locale === "fr" ? "Derni\u00e8re mise en ligne" : "Last deployment"} :{" "}
             <time dateTime={deploymentInfo.isoDate}>{deploymentInfo.label[locale]}</time>
           </p>
-          <a href="https://pulsaflow.fr" target="_blank" rel="noreferrer" className="pulsaflow-badge inline-flex w-fit items-center gap-1 self-start rounded-full border border-indigo-100 bg-indigo-50/70 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-[0.06em] text-indigoPop transition hover:-translate-y-0.5 hover:bg-indigo-100 sm:self-auto" aria-label="Powered by PulsaFlow">
+          <a href="https://pulsaflow.fr" target="_blank" rel="noopener noreferrer" className="pulsaflow-badge inline-flex w-fit items-center gap-1 self-start rounded-full border border-indigo-100 bg-indigo-50/70 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-[0.06em] text-indigoPop transition hover:-translate-y-0.5 hover:bg-indigo-100 sm:self-auto" aria-label="Powered by PulsaFlow">
             <span className="pulsaflow-badge-dot size-1.5 rounded-full bg-indigoPop" aria-hidden="true" />
             Powered by PulsaFlow
           </a>
@@ -64,7 +64,7 @@ function SocialLinks() {
   return (
     <nav className="grid w-full max-w-sm grid-cols-2 gap-2 sm:flex sm:max-w-none sm:flex-wrap" aria-label="R\u00e9seaux sociaux PulsaTeach">
       {socialLinks.map((link) => (
-        <a key={link.id} href={link.href} target="_blank" rel="me noreferrer" className="group inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-black uppercase tracking-[.08em] text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigoPop" aria-label={`${link.label} PulsaTeach`}>
+        <a key={link.id} href={link.href} target="_blank" rel="me noopener noreferrer" className="group inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-black uppercase tracking-[.08em] text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigoPop" aria-label={`${link.label} PulsaTeach`}>
           <SocialIcon id={link.id} />
           {link.id === "x" ? <span className="sr-only">X</span> : <span>{link.label}</span>}
         </a>

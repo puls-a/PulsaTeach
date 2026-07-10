@@ -412,7 +412,7 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
           <div className="h-2 min-w-16 flex-1 overflow-hidden rounded-full bg-slate-200 sm:max-w-40"><div className="h-full rounded-full bg-indigoPop" style={{ width: `${((draft.currentIndex + 1) / quiz.questions.length) * 100}%` }} /></div>
         </div>
         <p className="mt-4 break-words font-display text-xl font-bold leading-snug sm:text-2xl">{localize(question.prompt, locale)}</p>
-        {question.code && <pre className="mt-4 overflow-x-auto rounded-xl bg-slate-950 p-4 text-sm text-indigo-100"><code>{question.code}</code></pre>}
+        {question.code && <pre tabIndex={0} aria-label={locale === "fr" ? "Code de question scrollable" : "Scrollable question code"} className="mt-4 overflow-x-auto rounded-xl bg-slate-950 p-4 text-sm text-indigo-100"><code>{question.code}</code></pre>}
         <QuestionInput question={question} response={response} locale={locale} onChange={setResponse} />
         {question.requiresRationale && <>
           <label className="mt-5 block text-sm font-bold text-slate-700" htmlFor={`quiz-rationale-${question.id}`}>

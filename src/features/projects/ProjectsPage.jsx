@@ -99,5 +99,5 @@ function TextField({ label, value, onChange }) {
 }
 
 function ExternalLink({ href }) {
-  return <a className="mt-2 block break-all text-sm font-bold text-indigoPop hover:underline" href={href} target="_blank" rel="noreferrer">{href}</a>;
+  return <a className="mt-2 block break-all text-sm font-bold text-indigoPop hover:underline" href={href} target="_blank" rel="noopener noreferrer">{href}</a>;
 }

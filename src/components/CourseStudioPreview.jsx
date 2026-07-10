@@ -17,7 +17,7 @@ export default function LessonPreview({ lesson, locale }) {
         </div>
       ) : <div className="mt-5 overflow-hidden rounded-xl border border-slate-200">
         <div className="bg-slate-900 px-4 py-2 text-xs font-bold text-white">Éditeur · {lesson.type}</div>
-        <pre className="max-h-64 overflow-auto bg-slate-950 p-4 text-xs leading-6 text-slate-100"><code>{lesson.starterCode}</code></pre>
+        <pre tabIndex={0} aria-label={locale === "fr" ? "Code de départ scrollable" : "Scrollable starter code"} className="max-h-64 overflow-auto bg-slate-950 p-4 text-xs leading-6 text-slate-100"><code>{lesson.starterCode}</code></pre>
       </div>}
       {lesson.type !== "quiz" && <div className="mt-4 rounded-xl bg-slate-50 p-4">
         <p className="font-bold">{lesson.tests?.length || 0} tests automatiques</p>

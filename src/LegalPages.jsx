@@ -142,5 +142,5 @@ function Notice({ children }) {
 }
 
 function ExternalLink({ href, children }) {
-  return <a href={href} target="_blank" rel="noreferrer" className="font-semibold text-indigoPop underline underline-offset-2">{children}</a>;
+  return <a href={href} target="_blank" rel="noopener noreferrer" className="font-semibold text-indigoPop underline underline-offset-2">{children}</a>;
 }
