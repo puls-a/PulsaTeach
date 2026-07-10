@@ -1,5 +1,5 @@
 export default {
-  content: ["./index.html", "./src/**/*.{js,jsx}"],
+  content: ["./index.html", "./src/**/*.{js,jsx}", "!./src/content/**/*.{js,jsx}"],
   theme: {
     extend: {
       colors: {
@@ -23,6 +23,9 @@ export default {
         clayPressed: "0 1px 2px rgba(15,23,42,.08)"
       }
     }
+  },
+  corePlugins: {
+    preflight: false
   },
   plugins: []
 };

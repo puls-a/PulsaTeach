@@ -56,6 +56,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
   };
 
   const runTests = async () => {
+    recordLearningEvent({ eventType: "tests_run", lessonId: lesson.id, trackId: activeTrack.id, payload: { testCount: lesson.tests.length } }).catch(() => {});
     const checks = await validateLesson(lesson, code);
     setResult(checks);
     setWorkspacePanel("tests");

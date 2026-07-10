@@ -11,6 +11,11 @@
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   }
   * { box-sizing: border-box; }
+  h1, h2, h3, h4, h5, h6, p, figure, blockquote { margin: 0; }
+  button, input, textarea, select { font: inherit; }
+  button, select { text-transform: none; }
+  button { background: transparent; border: 0; color: inherit; cursor: pointer; padding: 0; }
+  img, svg, video, canvas { display: block; max-width: 100%; }
   a, button { transition: color .18s ease, background-color .18s ease, border-color .18s ease, opacity .18s ease, transform .18s ease; }
   :focus-visible { outline: 3px solid rgba(79, 70, 229, .35); outline-offset: 3px; }
 }
