@@ -44,6 +44,8 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
 
   const preview = useMemo(() => createPreview(lesson, code), [code, lesson]);
   const previewKind = getPreviewKind(lesson);
+  const localizedHints = lesson.pedagogy?.[locale]?.hints || lesson.pedagogy?.fr?.hints || [];
+  const hintsCount = Math.max(1, localizedHints.length);
   const passed = result?.filter((check) => check.pass).length ?? 0;
   const total = result?.length || lesson.tests.length;
   const allPassed = Boolean(result?.length) && result.every((check) => check.pass);
@@ -118,7 +120,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
           <SkillChips skills={lesson.skills} />
         </div>
         <div className="flex flex-wrap gap-3">
-          <ActionButton onClick={() => setHintLevel((value) => Math.min(value + 1, lesson.pedagogy?.hints?.length || 1))} icon={Lightbulb}>{locale === "fr" ? `Indice ${Math.min(hintLevel + 1, lesson.pedagogy?.hints?.length || 1)}` : "Next hint"}</ActionButton>
+          <ActionButton onClick={() => setHintLevel((value) => Math.min(value + 1, hintsCount))} icon={Lightbulb}>{locale === "fr" ? `Indice ${Math.min(hintLevel + 1, hintsCount)}` : "Next hint"}</ActionButton>
           <ActionButton onClick={() => { copyLessonLink(); setCopied(true); window.setTimeout(() => setCopied(false), 1600); }} icon={Copy}>{copied ? (locale === "fr" ? "Copié" : "Copied") : (locale === "fr" ? "Lien" : "Link")}</ActionButton>
           <ActionButton onClick={onToggleBookmark} icon={isBookmarked ? BookmarkCheck : Bookmark}>{isBookmarked ? (locale === "fr" ? "Sauvé" : "Saved") : (locale === "fr" ? "Favori" : "Save")}</ActionButton>
           <ActionButton onClick={() => setShowCorrection((value) => !value)} icon={Eye}>{locale === "fr" ? "Correction expliquée" : "Explained correction"}</ActionButton>

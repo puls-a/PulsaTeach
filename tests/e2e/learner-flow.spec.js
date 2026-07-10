@@ -90,6 +90,12 @@ test("tools lesson opens without guide rendering errors", async ({ page }) => {
   await expect(page.getByRole("img", { name: "VS Code Logo" })).toBeVisible();
   await expect(page.getByRole("link", { name: "cursor.sh" })).toHaveAttribute("href", "https://cursor.sh");
   await expect(page.getByText("<img", { exact: false })).toHaveCount(0);
+  await page.getByRole("button", { name: /Indice 1|Next hint/ }).click();
+  await page.getByRole("button", { name: /Indice 2|Next hint/ }).click();
+  const hints = page.getByRole("heading", { name: /Indices débloqués progressivement|Progressive hints/ }).locator("xpath=ancestor::section[1]");
+  await expect(hints.locator("li")).toHaveCount(2);
+  await expect(hints).toContainText(/Ouvre le lien|Click link/);
+  await expect(hints).toContainText(/Suis l'installateur|Install/);
   expect(pageErrors).toEqual([]);
 });
 
