@@ -146,7 +146,7 @@ const customNarratives = {
       trap: "Se contenter du title de l'onglet laisse souvent les réseaux inventer une preview pauvre ou incohérente."
     },
     en: {
-      intro: "PulsaConf will be shared before it is read. This step préparés the card social networks display: title, summary, and image are not decorative, they decide whether someone understands the link.",
+      intro: "PulsaConf will be shared before it is read. This step prepares the card social networks display: title, summary, and image are not decorative, they decide whether someone understands the link.",
       section: "The page outside your site",
       trap: "Relying only on the tab title often lets social networks invent a poor or inconsistent preview."
     }
@@ -693,7 +693,7 @@ const modules = [
         id: "html-02-address-abbr-code",
         title: P("address, abbr et code", "address, abbr, and code"),
         brief: P("Marque les informations de contact et les termes techniques.", "Mark up contact information and technical terms."),
-        focus: T("les détails textuels précis", "précise textual details"),
+        focus: T("les détails textuels précis", "precise textual details"),
         starter: htmlShell(`    <main id="main-content">\n      <h1>PulsaConf 2026</h1>\n    </main>`),
         solution: htmlShell(`    <main id="main-content">\n      <h1>PulsaConf 2026</h1>\n      <p>L'atelier commence par <abbr title="HyperText Markup Language">HTML</abbr> et un fichier <code>index.html</code>.</p>\n      <address>Contact : equipe@pulsateach.dev</address>\n    </main>`),
         tests: [test("selector", "abbr title", "abbr[title]"), test("contains", "html", "HTML"), test("selector", "code", "code"), test("selector", "address", "address"), test("contains", "email text", "equipe@pulsateach.dev")]
@@ -781,7 +781,7 @@ const modules = [
       },
       {
         id: "html-04-decorative-image-alt-empty",
-        title: P("Image décorative ignorée", "Ignored décorative image"),
+        title: P("Image décorative ignorée", "Ignored decorative image"),
         brief: P("Marque une forme décorative pour qu'elle ne pollue pas la lecture.", "Mark a decorative shape so it does not pollute reading."),
         focus: T("le silence utile pour les décorations", "useful silence for decoration"),
         starter: htmlShell(`    <header><img src="/assets/wave.svg"><h1>PulsaConf</h1></header>`),
@@ -1051,7 +1051,7 @@ const modules = [
       },
       {
         id: "html-08-open-graph",
-        title: P("Open Graph complet", "Complète Open Graph"),
+        title: P("Open Graph complet", "Complete Open Graph"),
         brief: P("Prépare un aperçu social lisible de PulsaConf.", "Prepare a readable social preview for PulsaConf."),
         focus: T("les métadonnées de partage", "sharing metadata"),
         starter: htmlShell(`    <main><h1>PulsaConf 2026</h1></main>`),
@@ -1088,7 +1088,7 @@ const modules = [
       {
         id: "html-09-assemble-shell",
         title: P("Assembler le squelette final", "Assemble the final shell"),
-        brief: P("Pose la base complète du livrable PulsaConf.", "Set up the complète PulsaConf deliverable base."),
+        brief: P("Pose la base complète du livrable PulsaConf.", "Set up the complete PulsaConf deliverable base."),
         focus: T("le document final", "the final document"),
         starter: `<!-- Construis le squelette final -->`,
         solution: htmlShell(`    <a href="#main-content">Aller au contenu principal</a>\n    <header><h1>PulsaConf 2026</h1></header>\n    <main id="main-content"></main>\n    <footer>© PulsaTeach</footer>`),
@@ -1176,7 +1176,7 @@ function projectDef(id, vocabulary) {
   const tests = final ? [
     test("doctype", "doctype", "<!doctype html>"), test("selector", "lang", "html[lang=\"fr\"]"), test("selector", "charset", "meta[charset=\"UTF-8\"]"), test("selector", "viewport", "meta[name=\"viewport\"]"), test("selector", "description", "meta[name=\"description\"]"), test("selector", "canonical", "link[rel=\"canonical\"]"), test("selector", "og title", "meta[property=\"og:title\"]"), test("selector", "skip link", "a[href=\"#main-content\"]"), test("selector", "nav", "nav[aria-label]"), test("selector", "main", "main#main-content"), test("exactSelector", "one h1", "h1", 1), test("minSelector", "sections", "main section[aria-labelledby]", 4), test("selector", "figure", "figure figcaption"), test("selector", "image alt", "img[alt]"), test("selector", "table", "table caption"), test("selector", "scope", "th[scope=\"col\"]"), test("selector", "form", "form[action][method]"), test("selector", "fieldset", "fieldset legend"), test("selector", "help", "input[aria-describedby]"), test("selector", "status", "[role=\"status\"][aria-live=\"polite\"]"), test("selector", "footer", "footer address"), test("notContains", "no click here", "clique ici")
   ] : [
-    test("selector", "doctype-ready html", "html[lang=\"fr\"]"), test("selector", "main", "main"), test("selector", "heading", "h1, h2"), test("minSelector", "module structures", "main *", 4), test("notContains", "no click here", "clique ici"), test("notContains", "no placeholder-only", "placeholder=\"Email\""), test("selector", "meaningful élément", "section, article, form, table, figure"), test("contains", "PulsaConf", "PulsaConf")
+    test("selector", "doctype-ready html", "html[lang=\"fr\"]"), test("selector", "main", "main"), test("selector", "heading", "h1, h2"), test("minSelector", "module structures", "main *", 4), test("notContains", "no click here", "clique ici"), test("notContains", "no placeholder-only", "placeholder=\"Email\""), test("selector", "meaningful element", "section, article, form, table, figure"), test("contains", "PulsaConf", "PulsaConf")
   ];
   return {
     id,
@@ -1202,7 +1202,7 @@ function quizDef(id, title, vocabulary, focus) {
     questions: [
       { type: "code-reading", prompt: P(`Lis cet extrait : ${profile.snippet}. Quel diagnostic est prioritaire ?`, `Read this snippet: ${profile.snippet}. What is the priority diagnosis?`), choices: [["issue", profile.issue[0], profile.issue[1]], ["ok", "Le code est prêt pour production", "The code is production-ready"], ["css", "Le seul problème concerne la couleur", "The only issue is color"]], answer: "issue", explanation: profile.issue },
       { type: "single", prompt: P("Quelle correction traite le problème sans bricolage visuel ?", "Which correction addresses the issue without a visual workaround?"), choices: [profile.best, profile.wrong, ["aria-all", "Ajouter des rôles ARIA partout sans changer le HTML", "Add ARIA roles everywhere without changing the HTML"], ["comment", "Ajouter un commentaire pour expliquer le défaut", "Add a comment explaining the defect"]], answer: profile.best[0], explanation: P(`${profile.best[1]} : c'est la correction qui rend l'intention vérifiable.`, `${profile.best[2]}: this is the correction that makes intent verifiable.`) },
-      { type: "multiple", prompt: P("Quelles preuves doivent accompagner la correction ?", "Which evidence should accompany the correction?"), choices: [["structure", "Un élément ou attribut vérifiable dans le DOM", "A verifiable élément or attribute in the DOM"], ["impact", "Une explication de l'impact utilisateur", "An explanation of the user impact"], ["screenshot", "Une capture d'écran comme seule preuve", "A screenshot as the only proof"]], answer: ["structure", "impact"], explanation: P("Une preuve robuste combine structure observable et raison utilisateur.", "Robust evidence combines observable structure and user reason.") },
+      { type: "multiple", prompt: P("Quelles preuves doivent accompagner la correction ?", "Which evidence should accompany the correction?"), choices: [["structure", "Un élément ou attribut vérifiable dans le DOM", "A verifiable element or attribute in the DOM"], ["impact", "Une explication de l'impact utilisateur", "An explanation of the user impact"], ["screenshot", "Une capture d'écran comme seule preuve", "A screenshot as the only proof"]], answer: ["structure", "impact"], explanation: P("Une preuve robuste combine structure observable et raison utilisateur.", "Robust evidence combines observable structure and user reason.") },
       { type: "true-false", prompt: P(`Vrai ou faux : « ${profile.wrong[1]} » est une correction acceptable pour PulsaConf.`, `True or false: “${profile.wrong[2]}” is an acceptable correction for PulsaConf.`), choices: [["true", "Vrai", "True"], ["false", "Faux", "False"]], answer: "false", explanation: P("Cette option masque ou déplace le problème au lieu de le résoudre dans le HTML.", "This option hides or moves the issue instead of fixing it in HTML.") },
       { type: "ordering", prompt: P("Classe la méthode de diagnostic la plus fiable.", "Order the most reliable diagnostic method."), choices: [["read", "Lire le snippet et nommer le défaut", "Read the snippet and name the defect"], ["choose", `Choisir : ${profile.best[1]}`, `Choose: ${profile.best[2]}`], ["prove", "Associer la correction à un test ou une relation DOM", "Connect the correction to a test or DOM relationship"], ["explain", "Expliquer l'impact pour l'apprenant ou l'utilisateur", "Explain the learner or user impact"]], answer: ["read", "choose", "prove", "explain"], explanation: P("Cette méthode évite de répondre par mémorisation ou apparence.", "This method avoids answering by memory or appearance.") },
       { type: "short-open", prompt: P("Quelle preuve observable citerais-tu en revue de code ?", "What observable evidence would you cite in code review?"), choices: [], answer: ["test", "attribut", "élément"], explanation: profile.proof }
