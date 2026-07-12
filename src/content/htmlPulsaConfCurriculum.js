@@ -1360,6 +1360,7 @@ function projectDef(id, vocabulary) {
     "html-08-project-head": P("Mini-projet : head publiable", "Mini project: publishable head"),
     "html-09-final-project-pulsaconf": P("Projet final : PulsaConf publiable", "Final project: publishable PulsaConf")
   };
+  const title = names[id];
   const solution = projectSolutions[id];
   const final = id.includes("final-project");
   const tests = final ? [
@@ -1369,9 +1370,9 @@ function projectDef(id, vocabulary) {
   ];
   return {
     id,
-    title: names[id],
-    brief: P("Assemble les compétences du module dans une version cohérente de PulsaConf.", "Assemble the module skills into a coherent PulsaConf version."),
-    focus: T("un livrable de module", "a module deliverable"),
+    title,
+    brief: P(`${title[0]} transforme les compétences du module en une étape concrète et vérifiable de PulsaConf.`, `${title[1]} turns the module skills into a concrete, verifiable PulsaConf step.`),
+    focus: T(`la réalisation de « ${title[0]} »`, `the delivery of “${title[1]}”`),
     starter: htmlShell(`    <!-- Assemble la version demandée de PulsaConf ici -->`),
     solution,
     tests,
@@ -1410,7 +1411,7 @@ export const htmlPulsaConfModules = modules.map((mod, moduleIndex) => {
     return item;
   });
   if (mod.quiz) {
-    const quiz = makeQuiz(quizDef(mod.quiz, P(`Quiz : ${mod.title[0]}`, `Quiz: ${mod.title[1]}`), mod.vocabulary, T("les décisions du module", "the module decisions")), stepNumber++, previous);
+    const quiz = makeQuiz(quizDef(mod.quiz, P(`Quiz : ${mod.title[0]}`, `Quiz: ${mod.title[1]}`), mod.vocabulary, T(`les décisions de « ${mod.title[0]} »`, `the decisions in “${mod.title[1]}”`)), stepNumber++, previous);
     previous = quiz.id;
     lessons.push(quiz);
   }
