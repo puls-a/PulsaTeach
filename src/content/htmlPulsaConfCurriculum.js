@@ -129,24 +129,24 @@ const customNarratives = {
   },
   "html-06-email-required": {
     fr: {
-      intro: "Le champ email est le premier endroit où PulsaConf peut éviter une erreur coûteuse : une invitation envoyée au mauvais format. Le navigateur sait déjà vérifier ce cas si tu choisis le bon type et une contrainte claire.",
+      intro: "Le champ email est le premier endroit où PulsaConf peut éviter une erreur de saisie coûteuse : enregistrer une adresse impossible à contacter. Le navigateur sait déjà vérifier le format si tu choisis le bon type et une contrainte claire.",
       section: "Validation native avant JavaScript",
       trap: "Un input de type texte avec le placeholder « email » peut sembler correct, mais il n'apporte ni validation native de l'adresse ni signal sémantique fiable."
     },
     en: {
-      intro: "The email field is the first place where PulsaConf can avoid a costly mistake: sending an invitation to an invalid format. The browser already knows how to check this if you choose the right type and a clear constraint.",
+      intro: "The email field is the first place where PulsaConf can prevent a costly input mistake: storing an address that cannot be contacted. The browser can already validate the format when you choose the correct type and a clear constraint.",
       section: "Native validation before JavaScript",
       trap: "A text input with an 'email' placeholder may look correct, but it provides neither native email validation nor a reliable semantic signal."
     }
   },
   "html-08-open-graph": {
     fr: {
-      intro: "PulsaConf sera partagé avant d'être lu. Cette étape prépare la carte que les réseaux affichent : titre, résumé et image ne sont pas décoratifs, ils décident si quelqu'un comprend le lien.",
+      intro: "PulsaConf sera partagé avant d'être lu. Cette étape prépare la carte que les réseaux affichent : le titre, le résumé et l'image ne sont pas de simples décorations : ils déterminent si le lien sera compris.",
       section: "La page hors de ton site",
       trap: "Se contenter du title de l'onglet laisse souvent les réseaux inventer un aperçu pauvre ou incohérent."
     },
     en: {
-      intro: "PulsaConf will be shared before it is read. This step prepares the card social networks display: title, summary, and image are not merely decorative: they determine whether someone understands the link.",
+      intro: "PulsaConf will be shared before it is read. This step prepares the card social networks display: the title, summary, and image are not decoration: they determine whether people understand the link.",
       section: "The page outside your site",
       trap: "Relying only on the tab title often lets social networks invent a poor or inconsistent preview."
     }
@@ -537,8 +537,8 @@ const quizProfiles = {
   },
   "html-04-media-quiz": {
     snippet: "<img src=\"speaker.jpg\" alt=\"image\"><video src=\"intro.mp4\"></video>",
-    issue: P("L'alt est générique et la vidéo n'a ni controls ni captions.", "The alt text is generic and the video has neither controls nor captions."),
-    best: ["media-a11y", "Décrire l'image, ajouter dimensions, controls et track captions", "Describe the image, add dimensions, controls, and a captions track"],
+    issue: P("L'alt est générique et la vidéo n'a ni contrôles ni sous-titres.", "The alt text is generic and the video has neither controls nor captions."),
+    best: ["media-a11y", "Décrire l'image, ajouter ses dimensions, les contrôles vidéo et une piste de sous-titres", "Describe the image, add dimensions, controls, and a captions track"],
     wrong: ["hide-all", "Mettre alt vide sur toutes les images", "Set empty alt on every image"],
     proof: P("La preuve combine `img[alt]` spécifique, dimensions et `track[kind=captions]`.", "Evidence combines specific `img[alt]`, dimensions, and `track[kind=captions]`.")
   },
@@ -1006,8 +1006,8 @@ const modules = [
       },
       {
         id: "html-04-video-captions",
-        title: P("Vidéo avec captions", "Video with captions"),
-        brief: P("Publie une vidéo de présentation avec piste de captions.", "Publish an intro video with a captions track."),
+        title: P("Vidéo avec sous-titres", "Video with captions"),
+        brief: P("Publie une vidéo de présentation avec une piste de sous-titres.", "Publish an intro video with a captions track."),
         focus: T("la vidéo compréhensible sans son", "video understandable without sound"),
         starter: htmlShell(`    <section><h2>Présentation</h2></section>`),
         solution: htmlShell(`    <section aria-labelledby="video-title">\n      <h2 id="video-title">Présentation</h2>\n      <video controls width="720" height="405">\n        <source src="/assets/pulsaconf.mp4" type="video/mp4" />\n        <track kind="captions" src="/assets/pulsaconf-captions.vtt" srclang="fr" label="Français" default />\n      </video>\n    </section>`),
@@ -1249,9 +1249,9 @@ const modules = [
       },
       {
         id: "html-08-favicon-hreflang",
-        title: P("Favicon et hreflang conceptuel", "Favicon and conceptual hreflang"),
-        brief: P("Ajoute l'icône et prépare les variantes de langue.", "Add the icon and prepare language variants."),
-        focus: T("les signaux de publication", "publishing signals"),
+        title: P("Favicon et variantes linguistiques", "Favicon and language variants"),
+        brief: P("Ajoute le favicon et relie les variantes linguistiques avec hreflang.", "Add the favicon and connect language variants with hreflang."),
+        focus: T("l'identité visuelle et les variantes linguistiques", "visual identity and language variants"),
         starter: htmlShell(`    <main><h1>PulsaConf 2026</h1></main>`),
         solution: htmlShell(`    <main><h1>PulsaConf 2026</h1></main>`, `    <link rel="icon" href="/assets/favicon.ico" />\n    <link rel="alternate" hreflang="fr" href="https://pulsateach.vercel.app/pulsaconf" />\n    <link rel="alternate" hreflang="en" href="https://pulsateach.vercel.app/en/pulsaconf" />`),
         tests: [test("selector", "favicon", "link[rel=\"icon\"]"), test("contains", "favicon path", "favicon.ico"), test("selector", "fr alternate", "link[hreflang=\"fr\"]"), test("selector", "en alternate", "link[hreflang=\"en\"]"), test("contains", "absolute alternate", "https://pulsateach.vercel.app")]
@@ -1312,7 +1312,7 @@ const modules = [
       },
       {
         id: "html-09-audit-antipatterns",
-        title: P("Audit anti-pattern", "Anti-pattern audit"),
+        title: P("Audit des anti-patterns", "Anti-pattern audit"),
         brief: P("Supprime les pièges qui rendent le HTML fragile.", "Remove traps that make HTML fragile."),
         focus: T("la relecture qualité", "quality review"),
         starter: htmlShell(`    <main><a href="#">clique ici</a><input placeholder="Email"></main>`),
