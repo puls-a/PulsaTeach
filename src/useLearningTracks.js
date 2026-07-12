@@ -3,7 +3,7 @@ import { getCatalog, getTrack } from "./apiClient.js";
 import { loadAllLocalTracks, loadLocalTrack, mergeLoadedTrack } from "./content/localTrackLoader.js";
 import { publicTrackSummaries } from "./content/publicTrackCatalog.js";
 
-export function useLearningTracks({ remoteCatalog = false, mode = "summary" } = {}) {
+export function useLearningTracks({ remoteCatalog = false, mode = "summary", freshCatalog = false } = {}) {
   const summaryMode = mode !== "full";
   const [tracks, setTracks] = useState(summaryMode ? publicTrackSummaries : []);
   const [loading, setLoading] = useState(remoteCatalog || !summaryMode);
@@ -58,7 +58,7 @@ export function useLearningTracks({ remoteCatalog = false, mode = "summary" } = 
           setError(null);
           return;
         }
-        return getCatalog()
+        return getCatalog({ fresh: freshCatalog })
           .then((catalog) => {
             if (!active) return;
             const remoteTracks = Array.isArray(catalog?.tracks) ? catalog.tracks : [];
@@ -77,7 +77,7 @@ export function useLearningTracks({ remoteCatalog = false, mode = "summary" } = 
     return () => {
       active = false;
     };
-  }, [remoteCatalog, summaryMode]);
+  }, [freshCatalog, remoteCatalog, summaryMode]);
 
   return { tracks, loading, error, loadTrack };
 }

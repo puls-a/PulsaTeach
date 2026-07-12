@@ -42,6 +42,7 @@ import { registerAdministrationRoutes } from "./routes/administration.js";
 import { registerAccountsRoutes } from "./routes/accounts.js";
 import { registerAuthoringRoutes } from "./routes/authoring.js";
 import { registerLearningRoutes } from "./routes/learning.js";
+import { rolesFromUser } from "./authRoles.js";
 
 const app = express();
 const productionRuntime = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
@@ -400,16 +401,6 @@ function sendApiError(response, request, status, code, message, details) {
 function hasRole(request, ...roles) {
   const granted = new Set(request.authRoles || []);
   return roles.some((role) => granted.has(role));
-}
-
-function rolesFromUser(user) {
-  const metadata = {
-    ...(user.app_metadata || {}),
-    ...(user.user_metadata || {})
-  };
-  const rawRoles = metadata.roles || metadata.role || [];
-  const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles];
-  return roles.map((role) => String(role).trim()).filter(Boolean);
 }
 
 async function publishDueScheduledCourses(now = new Date()) {

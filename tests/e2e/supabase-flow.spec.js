@@ -18,6 +18,11 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
   let authUserId;
   let localUserId;
   let courseId;
+  const browserErrors = [];
+  page.on("pageerror", (error) => browserErrors.push(`pageerror: ${error.message}`));
+  page.on("console", (message) => {
+    if (message.type() === "error") browserErrors.push(`console: ${message.text()}`);
+  });
 
   try {
     const { data: created, error: createError } = await admin.auth.admin.createUser({
@@ -89,8 +94,33 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
     await expect(page.getByText(/Éditer la leçon|Edit lesson/)).toBeVisible();
     await expect(page.getByText(/Prévisualisation apprenant|Learner preview/)).toBeVisible();
 
+    await expect.poll(async () => {
+      const catalogResponse = await request.get("http://127.0.0.1:4190/api/catalog", { headers });
+      if (!catalogResponse.ok()) return false;
+      const catalog = await catalogResponse.json();
+      return catalog.tracks.some((track) => track.id === course.slug);
+    }, {
+      message: "Published course should become available through the public catalog API",
+      timeout: 15_000
+    }).toBe(true);
+
+    const browserCatalogResponse = page.waitForResponse((response) =>
+      response.url().includes("/api/catalog") && response.request().resourceType() === "fetch"
+    );
     await page.goto("/catalog");
-    await expect(page.locator("span", { hasText: /^Formation CI dynamique$/ })).toBeVisible();
+    const catalogResponse = await browserCatalogResponse;
+    expect(catalogResponse.ok()).toBeTruthy();
+    const browserCatalog = await catalogResponse.json();
+    expect(browserCatalog.tracks.some((track) => track.id === course.slug)).toBe(true);
+    const expectedCatalogTitle = await page.evaluate(() =>
+      document.documentElement.lang === "en" ? "Dynamic CI course" : "Formation CI dynamique"
+    );
+    expect(browserErrors).toEqual([]);
+    await expect(page.getByRole("heading", { name: /Formations disponibles|Available courses/ })).toBeVisible();
+    await expect.poll(
+      () => page.locator("body").innerText(),
+      { message: "The published course title should be visible in the catalog" }
+    ).toContain(expectedCatalogTitle);
     await page.goto(`/learn/${course.slug}/${module.id}/${lesson.id}`);
     await expect(page.getByText("Première leçon CI").first()).toBeVisible();
 

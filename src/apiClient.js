@@ -29,8 +29,8 @@ export async function getRoadmap() {
   return request("/api/roadmap");
 }
 
-export async function getCatalog() {
-  return request("/api/catalog");
+export async function getCatalog({ fresh = false } = {}) {
+  return request("/api/catalog", fresh ? { cache: "no-store" } : {});
 }
 
 export async function getTrack(trackId) {

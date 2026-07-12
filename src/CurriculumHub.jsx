@@ -23,7 +23,7 @@ const trackPresentation = {
 
 export default function CurriculumHub({ locale = "fr" }) {
   const { user } = useSupabaseSession();
-  const { tracks, loading, error, loadTrack } = useLearningTracks({ remoteCatalog: Boolean(user), mode: "summary" });
+  const { tracks, loading, error, loadTrack } = useLearningTracks({ remoteCatalog: true, mode: "summary", freshCatalog: Boolean(user) });
   const [openTrack, setOpenTrack] = useState(null);
   const [loadingTrackId, setLoadingTrackId] = useState("");
   const progress = useMemo(readProgress, []);
@@ -197,18 +197,18 @@ function TrackCard({ track, locale, progress, signedIn, loading, open, onToggle 
                 <div>
                   <h3 className="flex items-center gap-2 text-sm font-bold text-ink"><GraduationCap className="size-4 text-indigoPop" />{locale === "fr" ? "À la fin, tu sauras" : "By the end, you will"}</h3>
                   <ul className="mt-3 grid gap-2 text-sm text-slate-600">
-                    {(track.outcomes?.[locale] || []).map((item) => <li className="flex gap-2" key={item}><Check className="mt-0.5 size-4 shrink-0 text-green-600" />{item}</li>)}
+                    {localizedList(track.outcomes, locale).map((item) => <li className="flex gap-2" key={item}><Check className="mt-0.5 size-4 shrink-0 text-green-600" />{item}</li>)}
                   </ul>
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-ink">{locale === "fr" ? "Projet final" : "Capstone project"}</h3>
                   <p className="mt-2 text-sm leading-6 text-slate-600">{track.capstone?.[locale]}</p>
                   <h3 className="mt-4 text-sm font-bold text-ink">{locale === "fr" ? "Prérequis" : "Prerequisites"}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{(track.prerequisites?.[locale] || []).join(" · ")}</p>
-                  {track.certification?.[locale] && (
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{localizedList(track.prerequisites, locale).join(" · ")}</p>
+                  {localizedList(track.certification, locale).length > 0 && (
                     <>
                       <h3 className="mt-4 text-sm font-bold text-ink">{locale === "fr" ? "Critères de certification" : "Certification criteria"}</h3>
-                      <ul className="mt-2 grid gap-1 text-sm leading-6 text-slate-600">{track.certification[locale].map((item) => <li key={item}>• {item}</li>)}</ul>
+                      <ul className="mt-2 grid gap-1 text-sm leading-6 text-slate-600">{localizedList(track.certification, locale).map((item) => <li key={item}>• {item}</li>)}</ul>
                     </>
                   )}
                 </div>
@@ -226,7 +226,7 @@ function TrackCard({ track, locale, progress, signedIn, loading, open, onToggle 
                         <span className="block font-bold">{module.title[locale]}</span>
                         <span className="mt-1 block text-xs leading-5 text-slate-500">{module.description?.[locale]}</span>
                         <span className="mt-1 block text-xs font-semibold text-indigoPop">{locale === "fr" ? "Livrable :" : "Deliverable:"} {module.deliverable?.[locale]}</span>
-                        {module.mastery?.[locale] && <span className="mt-1 block text-xs text-slate-500">{locale === "fr" ? "Maîtrise :" : "Mastery:"} {module.mastery[locale].join(" · ")}</span>}
+                        {localizedList(module.mastery, locale).length > 0 && <span className="mt-1 block text-xs text-slate-500">{locale === "fr" ? "Maîtrise :" : "Mastery:"} {localizedList(module.mastery, locale).join(" · ")}</span>}
                       </span>
                       <span className="text-xs font-semibold text-slate-500">{module.totalMinutes} min · {moduleCompleted}/{module.lessons.length}</span>
                     </a>
@@ -253,6 +253,15 @@ function CourseFact({ icon: Icon, value, label }) {
       <p className="mt-1 text-xs font-semibold text-slate-500">{label}</p>
     </div>
   );
+}
+
+function localizedList(value, locale) {
+  const localized = value && typeof value === "object" && !Array.isArray(value)
+    ? value[locale] ?? value.fr ?? value.en
+    : value;
+  if (Array.isArray(localized)) return localized.filter(Boolean);
+  if (localized === undefined || localized === null || localized === "") return [];
+  return [String(localized)];
 }
 
 function countLessons(track) {
