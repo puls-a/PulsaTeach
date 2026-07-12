@@ -780,7 +780,7 @@ const modules = [
         tests: [test("selector", "img alt", "img[alt]"), test("contains", "specific alt", "Maya anime"), test("selector", "width", "img[width]"), test("selector", "height", "img[height]"), test("notContains", "no generic image", "alt=\"image")]
       },
       {
-        id: "html-04-decorative-image-alt-empty",
+        id: "html-04-décorative-image-alt-empty",
         title: P("Image décorative ignorée", "Ignored decorative image"),
         brief: P("Marque une forme décorative pour qu'elle ne pollue pas la lecture.", "Mark a decorative shape so it does not pollute reading."),
         focus: T("le silence utile pour les décorations", "useful silence for decoration"),
