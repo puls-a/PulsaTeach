@@ -21,6 +21,7 @@ for (const directory of sourceRoots) {
 }
 
 const requiredModules = [
+  "server/authService.js",
   "server/routes/system.js",
   "server/routes/courses.js",
   "server/routes/accounts.js",
@@ -38,12 +39,25 @@ for (const modulePath of requiredModules) {
   }
 }
 
+const serverEntry = await readFile(new URL("../server/index.js", import.meta.url), "utf8");
+for (const forbiddenDefinition of [
+  "function attachAuthUser(",
+  "function authorizeUserParam(",
+  "function requireAuthenticatedRequest(",
+  "function requireRole(",
+  "function hasRole("
+]) {
+  if (serverEntry.includes(forbiddenDefinition)) {
+    failures.push(`server/index.js: authentication concern must stay in authService.js (${forbiddenDefinition})`);
+  }
+}
+
 if (failures.length) {
   console.error(`Architecture audit failed:\n${failures.join("\n")}`);
   process.exit(1);
 }
 
-console.log("Architecture audit passed: domain modules are present, source files stay within 500 lines except declared curriculum data files.");
+console.log("Architecture audit passed: domain modules are present, authentication is isolated, and source files stay within 500 lines except declared curriculum data files.");
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
