@@ -107,7 +107,13 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
     expect(catalogResponse.ok()).toBeTruthy();
     const browserCatalog = await catalogResponse.json();
     expect(browserCatalog.tracks.some((track) => track.id === course.slug)).toBe(true);
-    await expect(page.locator("span", { hasText: /^(Formation CI dynamique|Dynamic CI course)$/ })).toBeVisible();
+    const expectedCatalogTitle = await page.evaluate(() =>
+      document.documentElement.lang === "en" ? "Dynamic CI course" : "Formation CI dynamique"
+    );
+    await expect.poll(
+      () => page.locator("article button span[aria-hidden=\"true\"]").allTextContents(),
+      { message: "The published course should be rendered as a catalog card" }
+    ).toContain(expectedCatalogTitle);
     await page.goto(`/learn/${course.slug}/${module.id}/${lesson.id}`);
     await expect(page.getByText("Première leçon CI").first()).toBeVisible();
 
