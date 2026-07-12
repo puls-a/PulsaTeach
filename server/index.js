@@ -403,11 +403,11 @@ function hasRole(request, ...roles) {
 }
 
 function rolesFromUser(user) {
-  const metadata = {
-    ...(user.app_metadata || {}),
-    ...(user.user_metadata || {})
-  };
-  const rawRoles = metadata.roles || metadata.role || [];
+  // Authorization data must only come from server-controlled metadata.
+  // Supabase users can update user_metadata themselves, so trusting roles from
+  // that object would allow privilege escalation.
+  const appMetadata = user.app_metadata || {};
+  const rawRoles = appMetadata.roles || appMetadata.role || [];
   const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles];
   return roles.map((role) => String(role).trim()).filter(Boolean);
 }
