@@ -89,8 +89,18 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
     await expect(page.getByText(/Éditer la leçon|Edit lesson/)).toBeVisible();
     await expect(page.getByText(/Prévisualisation apprenant|Learner preview/)).toBeVisible();
 
+    await expect.poll(async () => {
+      const catalogResponse = await request.get("http://127.0.0.1:4190/api/catalog", { headers });
+      if (!catalogResponse.ok()) return false;
+      const catalog = await catalogResponse.json();
+      return catalog.tracks.some((track) => track.id === course.slug);
+    }, {
+      message: "Published course should become available through the public catalog API",
+      timeout: 15_000
+    }).toBe(true);
+
     await page.goto("/catalog");
-    await expect(page.locator("span", { hasText: /^Formation CI dynamique$/ })).toBeVisible();
+    await expect(page.locator("span", { hasText: /^(Formation CI dynamique|Dynamic CI course)$/ })).toBeVisible();
     await page.goto(`/learn/${course.slug}/${module.id}/${lesson.id}`);
     await expect(page.getByText("Première leçon CI").first()).toBeVisible();
 
