@@ -15,11 +15,11 @@ const perFileBudgets = {
   ".css": 60 * KB
 };
 const aggregateBudgets = {
-  rawJs: budgetFromEnv("BUNDLE_BUDGET_RAW_JS_MB", 8 * MB),
-  rawCss: budgetFromEnv("BUNDLE_BUDGET_RAW_CSS_KB", 120 * KB),
-  gzipJs: budgetFromEnv("BUNDLE_BUDGET_GZIP_JS_KB", 2500 * KB),
-  initialGzip: budgetFromEnv("BUNDLE_BUDGET_INITIAL_GZIP_KB", 500 * KB),
-  routeGzip: budgetFromEnv("BUNDLE_BUDGET_ROUTE_GZIP_KB", 900 * KB)
+  rawJs: budgetFromEnv("BUNDLE_BUDGET_RAW_JS_MB", 2.25 * MB),
+  rawCss: budgetFromEnv("BUNDLE_BUDGET_RAW_CSS_KB", 70 * KB),
+  gzipJs: budgetFromEnv("BUNDLE_BUDGET_GZIP_JS_KB", 700 * KB),
+  initialGzip: budgetFromEnv("BUNDLE_BUDGET_INITIAL_GZIP_KB", 220 * KB),
+  routeGzip: budgetFromEnv("BUNDLE_BUDGET_ROUTE_GZIP_KB", 350 * KB)
 };
 const metrics = new Map();
 
