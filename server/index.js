@@ -42,6 +42,7 @@ import { registerAdministrationRoutes } from "./routes/administration.js";
 import { registerAccountsRoutes } from "./routes/accounts.js";
 import { registerAuthoringRoutes } from "./routes/authoring.js";
 import { registerLearningRoutes } from "./routes/learning.js";
+import { rolesFromUser } from "./authRoles.js";
 
 const app = express();
 const productionRuntime = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
@@ -400,16 +401,6 @@ function sendApiError(response, request, status, code, message, details) {
 function hasRole(request, ...roles) {
   const granted = new Set(request.authRoles || []);
   return roles.some((role) => granted.has(role));
-}
-
-function rolesFromUser(user) {
-  // Authorization data must only come from server-controlled metadata.
-  // Supabase users can update user_metadata themselves, so trusting roles from
-  // that object would allow privilege escalation.
-  const appMetadata = user.app_metadata || {};
-  const rawRoles = appMetadata.roles || appMetadata.role || [];
-  const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles];
-  return roles.map((role) => String(role).trim()).filter(Boolean);
 }
 
 async function publishDueScheduledCourses(now = new Date()) {
