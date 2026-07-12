@@ -180,6 +180,194 @@ const customGuides = {
   }
 };
 
+const moduleNarratives = {
+  "00": {
+    fr: {
+      section: "Construire une méthode de travail fiable",
+      context: "Avant les balises, tu mets en place une boucle courte : modifier, sauvegarder, observer, inspecter puis vérifier. Cette discipline évite de confondre une erreur de fichier, de navigateur ou de consigne avec un problème HTML.",
+      decisionTitle: "Décision de méthode",
+      decision: "Chaque outil doit répondre à une question précise : l'éditeur montre le fichier écrit, le navigateur montre le rendu et les DevTools montrent le DOM réellement interprété.",
+      validationTitle: "Preuve de fonctionnement",
+      validation: "Une étape est validée lorsque tu peux nommer le fichier concerné, reproduire le résultat dans le navigateur et relier un test à une preuve observable."
+    },
+    en: {
+      section: "Build a reliable working method",
+      context: "Before writing tags, establish a short loop: edit, save, observe, inspect, then verify. This discipline prevents file, browser, or instruction mistakes from being confused with HTML problems.",
+      decisionTitle: "Workflow decision",
+      decision: "Each tool must answer a precise question: the editor shows the file you wrote, the browser shows the rendered result, and DevTools show the DOM that was actually interpreted.",
+      validationTitle: "Evidence that it works",
+      validation: "A step is complete when you can name the relevant file, reproduce the result in the browser, and connect a test to observable evidence."
+    }
+  },
+  "01": {
+    fr: {
+      section: "Établir le contrat du document",
+      context: "Le squelette HTML fixe les règles de lecture avant le contenu : mode standard, langue, encodage, viewport et séparation entre métadonnées et contenu visible.",
+      decisionTitle: "Décision de structure",
+      decision: "Place chaque information dans la zone qui lui donne son rôle. Le head décrit la ressource ; le body porte ce que la personne consulte et utilise.",
+      validationTitle: "Contrôle du document",
+      validation: "Inspecte le code source et le DOM : les déclarations doivent être uniques, placées au bon niveau et compréhensibles sans dépendre du rendu visuel."
+    },
+    en: {
+      section: "Establish the document contract",
+      context: "The HTML skeleton defines reading rules before content: standards mode, language, encoding, viewport, and the separation between metadata and visible content.",
+      decisionTitle: "Structural decision",
+      decision: "Put each piece of information in the area that gives it meaning. The head describes the resource; the body contains what people read and use.",
+      validationTitle: "Document check",
+      validation: "Inspect both source and DOM: declarations must be unique, placed at the correct level, and understandable without relying on visual rendering."
+    }
+  },
+  "02": {
+    fr: {
+      section: "Transformer le contenu en plan lisible",
+      context: "La sémantique ne consiste pas à remplacer tous les div par d'autres balises. Elle consiste à identifier le rôle réel de chaque contenu et les relations qui organisent sa lecture.",
+      decisionTitle: "Décision éditoriale et sémantique",
+      decision: "Commence par le plan des titres, puis choisis l'élément natif qui correspond à l'autonomie ou à la fonction du bloc : section, article, aside, citation ou information de contact.",
+      validationTitle: "Lecture sans mise en forme",
+      validation: "Relis la page comme un plan textuel. L'ordre des titres et les limites des sections doivent expliquer PulsaConf même lorsque CSS et JavaScript sont absents."
+    },
+    en: {
+      section: "Turn content into a readable outline",
+      context: "Semantics is not about replacing every div with another tag. It is about identifying the real role of each piece of content and the relationships that organize its reading.",
+      decisionTitle: "Editorial and semantic decision",
+      decision: "Start with the heading outline, then choose the native element that matches the block's independence or purpose: section, article, aside, quotation, or contact information.",
+      validationTitle: "Read without styling",
+      validation: "Read the page as a text outline. Heading order and section boundaries must explain PulsaConf even when CSS and JavaScript are absent."
+    }
+  },
+  "03": {
+    fr: {
+      section: "Rendre chaque destination prévisible",
+      context: "Un lien est une promesse de destination ou d'action. Son texte, son URL et son état doivent permettre de savoir ce qui va se passer avant de l'activer.",
+      decisionTitle: "Décision de navigation",
+      decision: "Utilise un lien pour changer de ressource ou de position, un bouton pour déclencher une action, et conserve des libellés explicites hors de leur contexte visuel.",
+      validationTitle: "Parcours clavier et destinations",
+      validation: "Parcours tous les liens au clavier, vérifie chaque cible et relis leur texte isolément. Aucun libellé ne doit dépendre de « ici », d'une icône seule ou d'une destination factice."
+    },
+    en: {
+      section: "Make every destination predictable",
+      context: "A link is a promise of a destination or action. Its text, URL, and state should reveal what will happen before it is activated.",
+      decisionTitle: "Navigation decision",
+      decision: "Use a link to change resource or location, a button to trigger an action, and keep labels explicit when removed from their visual context.",
+      validationTitle: "Keyboard path and destinations",
+      validation: "Visit every link with the keyboard, verify each target, and read link text in isolation. No label should depend on “here,” an icon alone, or a fake destination."
+    }
+  },
+  "04": {
+    fr: {
+      section: "Choisir l'expérience de remplacement",
+      context: "Un média peut informer, illustrer ou décorer. Sa fonction détermine l'alternative textuelle, la légende, les contrôles et la stratégie de chargement à fournir.",
+      decisionTitle: "Décision média",
+      decision: "Décris l'information que la personne perdrait sans le média. Si aucune information n'est perdue, rends la décoration silencieuse au lieu de répéter une description inutile.",
+      validationTitle: "Contrôle sans image ni son",
+      validation: "Teste la page sans charger les images puis sans écouter l'audio. Le sens, les commandes et les informations importantes doivent rester disponibles."
+    },
+    en: {
+      section: "Choose the replacement experience",
+      context: "Media can inform, illustrate, or decorate. Its purpose determines the text alternative, caption, controls, and loading strategy it needs.",
+      decisionTitle: "Media decision",
+      decision: "Describe the information someone would lose without the media. If no information is lost, make the decoration silent instead of repeating a useless description.",
+      validationTitle: "Check without images or sound",
+      validation: "Test the page without loading images and then without listening to audio. Meaning, controls, and important information must remain available."
+    }
+  },
+  "05": {
+    fr: {
+      section: "Exprimer la relation entre les données",
+      context: "Le choix entre liste, liste de descriptions et tableau dépend de la relation entre les valeurs, pas de l'apparence souhaitée.",
+      decisionTitle: "Décision de modélisation",
+      decision: "Utilise une liste pour une collection, une liste ordonnée pour une séquence, une liste de descriptions pour des couples terme-définition et un tableau pour des données croisées.",
+      validationTitle: "Lecture linéaire et relations",
+      validation: "Lis la structure dans l'ordre du DOM et vérifie les en-têtes. Une personne doit comprendre le sens de chaque valeur sans se fier uniquement à son alignement visuel."
+    },
+    en: {
+      section: "Express relationships between data",
+      context: "The choice between a list, description list, and table depends on the relationship between values, not on the desired appearance.",
+      decisionTitle: "Data-modeling decision",
+      decision: "Use a list for a collection, an ordered list for a sequence, a description list for term-definition pairs, and a table for intersecting data.",
+      validationTitle: "Linear reading and relationships",
+      validation: "Read the structure in DOM order and verify headers. People must understand the meaning of each value without relying only on visual alignment."
+    }
+  },
+  "06": {
+    fr: {
+      section: "Construire une saisie exploitable",
+      context: "Un formulaire fiable indique ce qui est attendu, transmet des données nommées et utilise les capacités natives du navigateur avant d'ajouter du JavaScript.",
+      decisionTitle: "Décision de saisie",
+      decision: "Choisis le contrôle selon la donnée, relie toujours son libellé visible et donne un name aux valeurs qui doivent être envoyées.",
+      validationTitle: "Test de saisie et d'envoi",
+      validation: "Utilise le formulaire au clavier, soumets des valeurs valides et invalides, puis vérifie que la requête contient des noms et valeurs compréhensibles."
+    },
+    en: {
+      section: "Build usable data entry",
+      context: "A reliable form explains what is expected, submits named data, and uses native browser capabilities before adding JavaScript.",
+      decisionTitle: "Input decision",
+      decision: "Choose the control according to the data, always connect its visible label, and give a name to every value that must be submitted.",
+      validationTitle: "Input and submission test",
+      validation: "Use the form with the keyboard, submit valid and invalid values, then verify that the request contains understandable names and values."
+    }
+  },
+  "07": {
+    fr: {
+      section: "Rendre les états perceptibles",
+      context: "L'aide, l'erreur, le chargement et la réussite ne doivent pas être communiqués uniquement par la couleur ou la position. Ils doivent être reliés au bon contrôle et annoncés au bon moment.",
+      decisionTitle: "Décision de feedback",
+      decision: "Utilise d'abord un texte visible et une relation explicite. Réserve les régions live aux changements dynamiques et choisis leur niveau d'urgence selon l'action attendue.",
+      validationTitle: "Test avec technologie d'assistance",
+      validation: "Déclenche chaque état dans l'ordre réel d'utilisation. Vérifie le focus, la relation avec le champ et l'absence d'annonces répétées ou prématurées."
+    },
+    en: {
+      section: "Make states perceivable",
+      context: "Help, errors, loading, and success must not be communicated only by color or position. They must be connected to the correct control and announced at the right time.",
+      decisionTitle: "Feedback decision",
+      decision: "Start with visible text and an explicit relationship. Reserve live regions for dynamic changes and choose urgency according to the action required.",
+      validationTitle: "Assistive-technology test",
+      validation: "Trigger every state in the real usage order. Check focus, the relationship with the field, and the absence of repeated or premature announcements."
+    }
+  },
+  "08": {
+    fr: {
+      section: "Décrire la page hors de son interface",
+      context: "Une page publiée est aussi lue dans un onglet, un moteur de recherche, une carte sociale et parfois par un robot de données structurées.",
+      decisionTitle: "Décision de publication",
+      decision: "Écris des métadonnées spécifiques, cohérentes avec le contenu visible et fondées sur des URL absolues stables lorsque le protocole l'exige.",
+      validationTitle: "Aperçu de diffusion",
+      validation: "Compare le title, la description, l'URL canonique et les données de partage au contenu réel. Chaque aperçu doit identifier PulsaConf sans texte générique."
+    },
+    en: {
+      section: "Describe the page outside its interface",
+      context: "A published page is also read in a browser tab, search engine, social card, and sometimes by a structured-data crawler.",
+      decisionTitle: "Publishing decision",
+      decision: "Write metadata that is specific, consistent with visible content, and based on stable absolute URLs when the protocol requires them.",
+      validationTitle: "Distribution preview",
+      validation: "Compare the title, description, canonical URL, and sharing data with the real content. Every preview must identify PulsaConf without generic copy."
+    }
+  },
+  "09": {
+    fr: {
+      section: "Passer d'exercices isolés à un produit cohérent",
+      context: "Le projet final vérifie les interactions entre les décisions précédentes. Une correction locale ne doit pas casser le plan, une cible, un nom accessible ou une donnée de publication.",
+      decisionTitle: "Décision de livraison",
+      decision: "Assemble d'abord la carte du document, puis les composants de contenu, et termine par un audit transversal plutôt que par une accumulation de balises.",
+      validationTitle: "Revue avant publication",
+      validation: "Effectue une lecture humaine, un parcours clavier, une inspection du DOM et les tests automatiques. Une réussite n'est valide que si ces preuves racontent la même chose."
+    },
+    en: {
+      section: "Move from isolated exercises to a coherent product",
+      context: "The final project checks how previous decisions interact. A local fix must not break the outline, a target, an accessible name, or publishing data.",
+      decisionTitle: "Delivery decision",
+      decision: "Assemble the document map first, then content components, and finish with a cross-cutting audit instead of accumulating tags.",
+      validationTitle: "Pre-publication review",
+      validation: "Perform a human reading, keyboard journey, DOM inspection, and automated tests. Success is valid only when all evidence tells the same story."
+    }
+  }
+};
+
+function narrativeFor(id) {
+  const moduleId = id.match(/^html-(\d{2})-/)?.[1];
+  return moduleNarratives[moduleId] || moduleNarratives["09"];
+}
+
 const q = (id, type, prompt, choices, answer, explanation) => ({
   id,
   type,
@@ -191,33 +379,34 @@ const q = (id, type, prompt, choices, answer, explanation) => ({
   requiresRationale: false
 });
 
-function courseForStep(id, title, focus, example, vocabulary) {
+function courseForStep(id, title, focus, example, vocabulary, brief) {
   const custom = customNarratives[id];
+  const narrative = narrativeFor(id);
   return {
     fr: {
-      introduction: custom?.fr?.intro || `Dans PulsaConf, « ${title.fr} » transforme ${focus.fr} en structure HTML vérifiable. Tu ne poses pas une balise au hasard : tu crées une preuve que le document reste lisible, accessible et maintenable.`,
+      introduction: custom?.fr?.intro || `${brief?.fr || `Tu travailles sur « ${title.fr} ».`} Cette étape rend ${focus.fr} vérifiable dans le projet PulsaConf.`,
       sections: [
         {
-          title: custom?.fr?.section || "Pourquoi cette étape existe",
+          title: custom?.fr?.section || narrative.fr.section,
           paragraphs: [
-            `${focus.fr} doit être compréhensible par un navigateur, un moteur de recherche et une technologie d'assistance, même sans CSS.`,
-            "Un bon HTML commence par le rôle du contenu, puis seulement par le texte exact à afficher."
+            narrative.fr.context,
+            `« ${title.fr} » sert ici à rendre ${focus.fr} explicite dans le document.`
           ],
           example
         },
         {
-          title: "Piège fréquent",
+          title: narrative.fr.decisionTitle,
           paragraphs: [
-            custom?.fr?.trap || `Le piège consiste à traiter ${focus.fr} comme un simple bloc visuel. Cela produit souvent des div, des liens vagues ou des relations absentes.`,
-            "Les tests cherchent donc des éléments natifs, des attributs reliés et des textes suffisamment explicites."
+            narrative.fr.decision,
+            custom?.fr?.trap || `Évite de traiter ${focus.fr} comme un simple détail visuel : le choix doit rester compréhensible dans le DOM et justifiable en revue de code.`
           ],
           example: "<div>Bloc visuel sans rôle clair</div>"
         },
         {
-          title: "Méthode de validation",
+          title: narrative.fr.validationTitle,
           paragraphs: [
-            "Ajoute une seule capacité, relis la structure comme un plan, puis lance les tests avant de continuer.",
-            `Si un test échoue dans ${id}, corrige d'abord l'élément ou l'attribut cité par ce test.`
+            narrative.fr.validation,
+            `Pour ${id}, commence par le premier test en échec et relie son message à l'élément, l'attribut ou la relation concernée.`
           ],
           example: "<section aria-labelledby=\"section-title\">\n  <h2 id=\"section-title\">Titre</h2>\n</section>"
         }
@@ -230,29 +419,29 @@ function courseForStep(id, title, focus, example, vocabulary) {
       ]
     },
     en: {
-      introduction: custom?.en?.intro || `In PulsaConf, “${title.en}” turns ${focus.en} into verifiable HTML structure. You are not dropping a random tag: you create evidence that the document stays readable, accessible, and maintainable.`,
+      introduction: custom?.en?.intro || `${brief?.en || `You are working on “${title.en}.”`} This step makes ${focus.en} verifiable in the PulsaConf project.`,
       sections: [
         {
-          title: custom?.en?.section || "Why this step exists",
+          title: custom?.en?.section || narrative.en.section,
           paragraphs: [
-            `${focus.en} must be understandable by browsers, search engines, and assistive technology, even without CSS.`,
-            "Good HTML starts with the role of the content, then with the exact text to display."
+            narrative.en.context,
+            `“${title.en}” makes ${focus.en} explicit in the document.`
           ],
           example
         },
         {
-          title: "Common trap",
+          title: narrative.en.decisionTitle,
           paragraphs: [
-            custom?.en?.trap || `The trap is treating ${focus.en} as a visual block only. That often creates generic divs, vague links, or missing relationships.`,
-            "The tests therefore look for native elements, connected attributes, and explicit text."
+            narrative.en.decision,
+            custom?.en?.trap || `Do not treat ${focus.en} as a visual detail: the choice must remain understandable in the DOM and defensible in code review.`
           ],
           example: "<div>Visual block with no clear role</div>"
         },
         {
-          title: "Validation method",
+          title: narrative.en.validationTitle,
           paragraphs: [
-            "Add one capability, reread the structure as an outline, then run the tests before moving on.",
-            `If a test fails in ${id}, first fix the element or attribute named by that test.`
+            narrative.en.validation,
+            `For ${id}, start with the first failing test and connect its message to the relevant element, attribute, or relationship.`
           ],
           example: "<section aria-labelledby=\"section-title\">\n  <h2 id=\"section-title\">Title</h2>\n</section>"
         }
@@ -391,7 +580,7 @@ const quizProfiles = {
 };
 
 function enrich(item, stepNumber, buildsOn, focus, example, vocabulary) {
-  const course = courseForStep(item.id, item.title, focus, example, vocabulary);
+  const course = courseForStep(item.id, item.title, focus, example, vocabulary, item.brief);
   const guide = guideForStep(item.id, item.title, focus);
   const enriched = {
     ...item,
