@@ -79,6 +79,19 @@ describe("API security boundaries", () => {
     expect(response.body.error.code).toBe("CORS_ORIGIN_DENIED");
   });
 
+  test("allows cache-bypass headers for an approved browser origin", async () => {
+    const response = await request(app)
+      .options("/api/catalog")
+      .set("Origin", "http://127.0.0.1:5190")
+      .set("Access-Control-Request-Method", "GET")
+      .set("Access-Control-Request-Headers", "cache-control,pragma")
+      .expect(204);
+
+    expect(response.headers["access-control-allow-origin"]).toBe("http://127.0.0.1:5190");
+    expect(response.headers["access-control-allow-headers"]).toContain("Cache-Control");
+    expect(response.headers["access-control-allow-headers"]).toContain("Pragma");
+  });
+
   test("requires an identity for private learner reads", async () => {
     const response = await request(app).get("/api/progress/user-a").expect(401);
     expect(response.body.error.code).toBe("AUTH_REQUIRED");
