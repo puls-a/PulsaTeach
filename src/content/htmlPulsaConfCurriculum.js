@@ -76,7 +76,7 @@ const customNarratives = {
     en: {
       intro: "DevTools show what the browser actually understood. This is where you distinguish the code written in the editor from the DOM built after interpretation.",
       section: "See the page as the browser does",
-      trap: "Reading only the visual preview hides structural mistakes. The inspector reveals éléments, attributes, and relationships."
+      trap: "Reading only the visual preview hides structural mistakes. The inspector reveals elements, attributes, and relationships."
     }
   },
   "html-00-read-tests": {
@@ -88,7 +88,7 @@ const customNarratives = {
     en: {
       intro: "PulsaTeach does not ask you to guess: tests describe the expected evidence. Learning HTML with tests means learning to turn a human instruction into observable structure.",
       section: "Tests as a delivery contract",
-      trap: "Copying the solution without reading tests gives fragile success. Real progress comes when you know which élément satisfies which requirement."
+      trap: "Copying the solution without reading tests gives fragile success. Real progress comes when you know which element satisfies which requirement."
     }
   },
   "html-01-doctype-standard-mode": {
@@ -131,22 +131,22 @@ const customNarratives = {
     fr: {
       intro: "Le champ email est le premier endroit où PulsaConf peut éviter une erreur coûteuse : une invitation envoyée au mauvais format. Le navigateur sait déjà vérifier ce cas si tu choisis le bon type et une contrainte claire.",
       section: "Validation native avant JavaScript",
-      trap: "Un input texte avec un placeholder 'email' ressemble au bon champ, mais il ne donne ni validation native, ni intention claire aux outils."
+      trap: "Un input de type texte avec le placeholder « email » peut sembler correct, mais il n'apporte ni validation native de l'adresse ni signal sémantique fiable."
     },
     en: {
       intro: "The email field is the first place where PulsaConf can avoid a costly mistake: sending an invitation to an invalid format. The browser already knows how to check this if you choose the right type and a clear constraint.",
       section: "Native validation before JavaScript",
-      trap: "A text input with an 'email' placeholder looks like the right field, but gives no native validation and no clear intent to tools."
+      trap: "A text input with an 'email' placeholder may look correct, but it provides neither native email validation nor a reliable semantic signal."
     }
   },
   "html-08-open-graph": {
     fr: {
       intro: "PulsaConf sera partagé avant d'être lu. Cette étape prépare la carte que les réseaux affichent : titre, résumé et image ne sont pas décoratifs, ils décident si quelqu'un comprend le lien.",
       section: "La page hors de ton site",
-      trap: "Se contenter du title de l'onglet laisse souvent les réseaux inventer une preview pauvre ou incohérente."
+      trap: "Se contenter du title de l'onglet laisse souvent les réseaux inventer un aperçu pauvre ou incohérent."
     },
     en: {
-      intro: "PulsaConf will be shared before it is read. This step prepares the card social networks display: title, summary, and image are not decorative, they decide whether someone understands the link.",
+      intro: "PulsaConf will be shared before it is read. This step prepares the card social networks display: title, summary, and image are not merely decorative: they determine whether someone understands the link.",
       section: "The page outside your site",
       trap: "Relying only on the tab title often lets social networks invent a poor or inconsistent preview."
     }
@@ -160,7 +160,7 @@ const customNarratives = {
     en: {
       intro: "The final project is not a paste-up of previous corrections. You must ship a coherent PulsaConf page: every region has a reason, every link leads somewhere, every form explains what it expects, and the head makes the page publishable.",
       section: "A deliverable, not a checklist",
-      trap: "Stacking every requested élément without coherence may satisfy some selectors, but fails as soon as the page is read like a user would."
+      trap: "Stacking every requested element without coherence may satisfy some selectors, but fails as soon as the page is read like a user would."
     }
   }
 };
@@ -170,7 +170,7 @@ const customGuides = {
     fr: {
       objectives: ["Livrer une page événementielle complète, pas une collection d'extraits.", "Prouver navigation, médias, tableau, formulaire, feedback et SEO dans un même document.", "Justifier chaque correction avec un impact utilisateur ou publication."],
       steps: ["Commence par les landmarks et la navigation afin de fixer la carte de la page.", "Ajoute ensuite contenu, tableau, médias et formulaire en gardant les id stables.", "Termine par le head SEO/social, puis relis les tests comme un audit de livraison."],
-      mistakes: ["Assembler les blocs dans le désordre sans vérifier les ciblées de liens.", "Ajouter des attributs ARIA sans texte visible ni relation fonctionnelle.", "Valider le projet sans relire la page comme une personne qui découvre PulsaConf."]
+      mistakes: ["Assembler les blocs dans le désordre sans vérifier les cibles des liens.", "Ajouter des attributs ARIA sans texte visible ni relation fonctionnelle.", "Valider le projet sans relire la page comme une personne qui découvre PulsaConf."]
     },
     en: {
       objectives: ["Ship a complete event page, not a collection of fragments.", "Prove navigation, media, table, form, feedback, and SEO in one document.", "Justify every correction with a user or publishing impact."],
@@ -244,7 +244,7 @@ function courseForStep(id, title, focus, example, vocabulary) {
           title: "Common trap",
           paragraphs: [
             custom?.en?.trap || `The trap is treating ${focus.en} as a visual block only. That often creates generic divs, vague links, or missing relationships.`,
-            "The tests therefore look for native éléments, connected attributes, and explicit text."
+            "The tests therefore look for native elements, connected attributes, and explicit text."
           ],
           example: "<div>Visual block with no clear role</div>"
         },
@@ -252,7 +252,7 @@ function courseForStep(id, title, focus, example, vocabulary) {
           title: "Validation method",
           paragraphs: [
             "Add one capability, reread the structure as an outline, then run the tests before moving on.",
-            `If a test fails in ${id}, first fix the élément or attribute named by that test.`
+            `If a test fails in ${id}, first fix the element or attribute named by that test.`
           ],
           example: "<section aria-labelledby=\"section-title\">\n  <h2 id=\"section-title\">Title</h2>\n</section>"
         }
@@ -294,24 +294,24 @@ function guideForStep(id, title, focus) {
     },
     en: {
       objectives: custom?.en?.objectives || [
-        `Build ${focus.en} with an appropriate HTML élément.`,
+        `Build ${focus.en} with an appropriate HTML element.`,
         "Add attributes that make the structure testable.",
         "Explain the user impact of the decision."
       ],
       prerequisites: [
         "Recognize opening and closing tags.",
-        "Understand that attributes refine an élément's role or relationship.",
+        "Understand that attributes refine an element's role or relationship.",
         "Read tests as a list of requirements."
       ],
       steps: custom?.en?.steps || [
         `Find where ${focus.en} belongs in PulsaConf.`,
-        "Write the required native élément before filling in the text.",
+        "Write the required native element before filling in the text.",
         "Add connected attributes, then run tests from the simplest to the most specific."
       ],
       mistakes: custom?.en?.mistakes || [
         `For ${id}, replacing “${title.en}” with a generic block that has no testable relationship.`,
         "Copying a full solution without knowing which test each line satisfies.",
-        "Adding ARIA when a native HTML élément was enough."
+        "Adding ARIA when a native HTML element was enough."
       ]
     }
   };
@@ -334,7 +334,7 @@ const quizProfiles = {
   },
   "html-02-semantics-quiz": {
     snippet: "<main><h1>PulsaConf</h1><h1>Programme</h1><div>Atelier HTML</div></main>",
-    issue: P("La page a deux h1 et un bloc générique pour une session autonome.", "The page has two h1 éléments and a generic block for a standalone session."),
+    issue: P("La page a deux h1 et un bloc générique pour une session autonome.", "The page has two h1 elements and a generic block for a standalone session."),
     best: ["outline", "Garder un h1, puis h2 pour Programme et article/h3 pour la session", "Keep one h1, then h2 for Program and article/h3 for the session"],
     wrong: ["visual", "Garder deux h1 parce qu'ils sont plus visibles", "Keep two h1s because they are more visible"],
     proof: P("La preuve est un h1 unique, une section nommée et un article autonome.", "The proof is one h1, a named section, and a standalone article.")
@@ -357,8 +357,8 @@ const quizProfiles = {
     snippet: "<p>09:30 - HTML - Salle A</p><p>10:30 - Formulaires - Salle B</p>",
     issue: P("Le planning est une donnée tabulaire écrite comme deux paragraphes.", "The schedule is tabular data written as two paragraphs."),
     best: ["table", "Utiliser table, caption, thead, tbody et th scope", "Use table, caption, thead, tbody, and th scope"],
-    wrong: ["br", "Ajouter des br pour aligner visuellement", "Add br éléments to align visually"],
-    proof: P("Un tableau accessible expose un caption et des th avec scope.", "An accessible table exposes a caption and th éléments with scope.")
+    wrong: ["br", "Ajouter des br pour aligner visuellement", "Add br elements to align visually"],
+    proof: P("Un tableau accessible expose un caption et des th avec scope.", "An accessible table exposes a caption and th elements with scope.")
   },
   "html-06-forms-quiz": {
     snippet: "<form><input placeholder=\"Email\"><button>OK</button></form>",
@@ -431,7 +431,7 @@ function makeLesson(def, stepNumber, buildsOn) {
     starterCode: def.starter,
     solution: def.solution,
     tests: def.tests,
-    hint: P("Cherche l'élément ou l'attribut nommé dans le premier test qui échoue.", "Look for the élément or attribute named by the first failing test."),
+    hint: P("Cherche l'élément ou l'attribut nommé dans le premier test qui échoue.", "Look for the element or attribute named by the first failing test."),
     xp: def.xp || 30
   }), stepNumber, buildsOn, def.focus, def.solution.slice(0, 260), def.vocabulary);
 }
