@@ -3,7 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -32,7 +34,7 @@ jobs:
   supabase-e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: ${{ vars.RUN_SUPABASE_E2E == 'true' }}
+    if: ${{ github.event_name != 'pull_request' || vars.RUN_SUPABASE_E2E == 'true' }}
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
