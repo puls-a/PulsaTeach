@@ -58,7 +58,7 @@ export function useLearningTracks({ remoteCatalog = false, mode = "summary" } = 
           setError(null);
           return;
         }
-        return getCatalog()
+        return getCatalog({ fresh: true })
           .then((catalog) => {
             if (!active) return;
             const remoteTracks = Array.isArray(catalog?.tracks) ? catalog.tracks : [];
