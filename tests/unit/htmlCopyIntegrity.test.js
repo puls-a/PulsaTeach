@@ -28,4 +28,15 @@ describe("HTML curriculum copy integrity", () => {
     expect(source).toContain("le navigateur a vraiment compris");
     expect(source).toContain("PulsaTeach ne te demande pas de deviner");
   });
+
+  test("uses module-specific pedagogy instead of the legacy universal boilerplate", async () => {
+    const source = await readFile(curriculumPath, "utf8");
+
+    expect(source).not.toContain("doit être compréhensible par un navigateur, un moteur de recherche");
+    expect(source).not.toContain("must be understandable by browsers, search engines");
+    expect(source).toContain("Construire une méthode de travail fiable");
+    expect(source).toContain("Transformer le contenu en plan lisible");
+    expect(source).toContain("Construire une saisie exploitable");
+    expect(source).toContain("Passer d'exercices isolés à un produit cohérent");
+  });
 });
