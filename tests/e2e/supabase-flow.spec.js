@@ -18,6 +18,11 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
   let authUserId;
   let localUserId;
   let courseId;
+  const browserErrors = [];
+  page.on("pageerror", (error) => browserErrors.push(`pageerror: ${error.message}`));
+  page.on("console", (message) => {
+    if (message.type() === "error") browserErrors.push(`console: ${message.text()}`);
+  });
 
   try {
     const { data: created, error: createError } = await admin.auth.admin.createUser({
@@ -110,6 +115,7 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
     const expectedCatalogTitle = await page.evaluate(() =>
       document.documentElement.lang === "en" ? "Dynamic CI course" : "Formation CI dynamique"
     );
+    expect(browserErrors).toEqual([]);
     await expect(page.getByRole("heading", { name: /Formations disponibles|Available courses/ })).toBeVisible();
     await expect.poll(
       () => page.locator("body").innerText(),
