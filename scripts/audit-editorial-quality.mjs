@@ -18,6 +18,7 @@ const warnings = [];
 for (const track of learningTracks) {
   const lessons = track.modules.flatMap((module) => module.lessons.map((lesson) => ({ module, lesson })));
   const introductions = new Map();
+  const paragraphCounts = new Map();
 
   for (const { module, lesson } of lessons) {
     const label = `${track.id}/${module.id}/${lesson.id}`;
@@ -32,6 +33,10 @@ for (const track of learningTracks) {
 
     const sections = lesson.course?.fr?.sections || [];
     const paragraphs = sections.flatMap((section) => section.paragraphs || []);
+    for (const paragraph of paragraphs) {
+      const normalized = String(paragraph).replace(/\s+/g, " ").trim();
+      if (normalized.length >= 60) paragraphCounts.set(normalized, (paragraphCounts.get(normalized) || 0) + 1);
+    }
     const paragraphWords = paragraphs.join(" ").trim().split(/\s+/).filter(Boolean).length;
     if (lesson.type !== "quiz" && paragraphWords < 55) {
       warnings.push(`${label}: cours trop court (${paragraphWords} mots dans les paragraphes).`);
@@ -53,6 +58,13 @@ for (const track of learningTracks) {
   const repeatedIntroductions = [...introductions.entries()].filter(([, count]) => count > 1);
   for (const [intro, count] of repeatedIntroductions.slice(0, 5)) {
     warnings.push(`${track.id}: introduction répétée ${count} fois: "${intro.slice(0, 90)}"`);
+  }
+
+  if (track.id === "html") {
+    const overusedParagraphs = [...paragraphCounts.entries()].filter(([, count]) => count > 8);
+    for (const [paragraph, count] of overusedParagraphs) {
+      failures.push(`${track.id}: paragraphe pédagogique dupliqué ${count} fois: "${paragraph.slice(0, 100)}"`);
+    }
   }
 }
 
