@@ -95,9 +95,9 @@ function terminalLesson(id, title, brief, solution, requirements, vocabulary, sk
     type: "terminal",
     title,
     brief,
-    starterCode: "# Écris les commandes dans l’ordre\n",
-    solution,
-    tests: requirements.map((value) => ({ type: "contains", label: `La commande « ${value} » est présente`, value })),
+    starterCode: { fr: "# Écris les commandes dans l’ordre\n", en: "# Write the commands in order\n" },
+    solution: { fr: solution, en: englishGitArtifact(solution) },
+    tests: requirements.map((value) => ({ type: "contains", label: { fr: `La commande « ${value} » est présente`, en: `Command “${value}” is present` }, value })),
     vocabulary,
     skills,
     durationMin: 25,
@@ -114,9 +114,9 @@ function terminalProject(id, title, brief, solution, requirements, vocabulary, s
       runtime: "terminal",
       title,
       brief,
-      starterCode: "# Documente ici les commandes et décisions du projet\n",
-      solution,
-      tests: requirements.map((value) => ({ type: "contains", label: `La preuve « ${value} » est présente`, value })),
+      starterCode: { fr: "# Documente ici les commandes et décisions du projet\n", en: "# Document the project's commands and decisions here\n" },
+      solution: { fr: solution, en: englishGitArtifact(solution) },
+      tests: requirements.map((value) => ({ type: "contains", label: { fr: `La preuve « ${value} » est présente`, en: `Evidence “${value}” is present` }, value })),
       vocabulary,
       skills,
       durationMin: finalProject ? 180 : 100,
@@ -138,7 +138,7 @@ function gitQuiz(id, title, questions) {
     brief: ["Vérifie ta compréhension avant de continuer.", "Check your understanding before continuing."],
     starterCode: "",
     solution: "",
-    tests: [{ type: "quiz", label: "Score requis", value: "70" }],
+    tests: [{ type: "quiz", label: { fr: "Score requis", en: "Required score" }, value: "70" }],
     vocabulary: [sharedVocabulary.repository, sharedVocabulary.commit, sharedVocabulary.branch],
     skills: questions.flatMap((question) => question.skills),
     durationMin: 20,
@@ -216,7 +216,7 @@ function richLesson(spec) {
             fr ? `La consigne demande : ${brief}` : `The task asks: ${brief}`,
             fr ? scenario.example.fr : scenario.example.en
           ],
-          example: spec.solution
+           example: solutionFor(spec.solution, locale)
         },
         {
           title: fr ? "Vérifier avant de poursuivre" : "Verify before continuing",
@@ -243,7 +243,7 @@ function richLesson(spec) {
       prerequisites: fr ? ["Savoir ouvrir un terminal.", "Travailler dans un dossier de test.", "Lire une commande avant de l’exécuter."] : ["Know how to open a terminal.", "Work in a test folder.", "Read a command before running it."],
       vocabulary: localizedVocabulary[locale],
       comparison: {
-        good: { title: fr ? "Commande ciblée et vérifiée" : "Focused, verified command", code: `${spec.solution}\ngit status --short`, explanation: fr ? "La commande répond à une intention puis son résultat est contrôlé." : "The command serves an intent and its result is checked." },
+       good: { title: fr ? "Commande ciblée et vérifiée" : "Focused, verified command", code: `${solutionFor(spec.solution, locale)}\ngit status --short`, explanation: fr ? "La commande répond à une intention puis son résultat est contrôlé." : "The command serves an intent and its result is checked." },
         bad: { title: fr ? "Suite aveugle de commandes" : "Blind command sequence", code: "git add .\ngit commit -m update\ngit push --force", explanation: fr ? "Le périmètre, le message et le risque ne sont pas maîtrisés." : "Scope, message, and risk are uncontrolled." }
       },
       guided: fr ? ["Lis l’état initial avec git status.", "Exécute une commande à la fois.", "Contrôle le résultat avec status, diff ou log."] : ["Read the initial state with git status.", "Run one command at a time.", "Check the result with status, diff, or log."],
@@ -281,4 +281,14 @@ function richLesson(spec) {
     hint: { fr: pedagogyLocale("fr").hints[0], en: pedagogyLocale("en").hints[0] },
     xp: spec.xp
   };
+}
+
+function solutionFor(value, locale) {
+  return value && typeof value === "object" ? value[locale] : value;
+}
+
+function englishGitArtifact(value) {
+  return value
+    .replace("# corrige les marqueurs dans header.html", "# resolve the conflict markers in header.html")
+    .replace("# crée .github/workflows/ci.yml", "# create .github/workflows/ci.yml");
 }

@@ -13,9 +13,9 @@ const extraFinalChecks = ["validateTask", "render", "persist", "state", "tasks",
 
 export const javascriptHardeningModules = [
   module("js-validation-hardening", "Validation robuste et données sûres", "Robust validation and safe data", [
-    jsLesson("js-hardening-validate-profile", ["Valider un profil apprenant", "Validate a learner profile"], "Crée validateProfile(profile) : nom non vide, email avec @, XP numérique positif et erreurs explicites.", starter("validateProfile"), dense.validation, 55),
-    jsLesson("js-hardening-normalize-course", ["Normaliser une carte de cours", "Normalize a course card"], "Crée normalizeCourse(course) qui nettoie title, slug, level et retourne un objet stable.", starter("normalizeCourse"), dense.validation, 55),
-    jsLesson("js-hardening-score-boundaries", ["Scoring aux limites", "Boundary scoring"], "Crée computeQuizResult(correct, total) avec garde-fous, pourcentage arrondi et passed dès 70%.", starter("computeQuizResult"), dense.validation, 60),
+    jsLesson("js-hardening-validate-profile", ["Valider un profil apprenant", "Validate a learner profile"], ["Crée validateProfile(profile) : nom non vide, email avec @, XP numérique positif et erreurs explicites.", "Build validateProfile(profile): require a non-empty name, an email containing @, non-negative numeric XP, and explicit errors."], starter("validateProfile"), dense.validation, 55),
+    jsLesson("js-hardening-normalize-course", ["Normaliser une carte de cours", "Normalize a course card"], ["Crée normalizeCourse(course) qui nettoie title, slug, level et retourne un objet stable.", "Build normalizeCourse(course) to clean title, slug, and level and return a stable object."], starter("normalizeCourse"), dense.validation, 55),
+    jsLesson("js-hardening-score-boundaries", ["Scoring aux limites", "Boundary scoring"], ["Crée computeQuizResult(correct, total) avec garde-fous, pourcentage arrondi et passed dès 70%.", "Build computeQuizResult(correct, total) with guards, a rounded percentage, and passing from 70%."], starter("computeQuizResult"), dense.validation, 60),
     projectLesson({
       id: "js-hardening-validation-lab",
       title: ["Lab : moteur de validation PulsaTeach", "Lab: PulsaTeach validation engine"],
@@ -28,9 +28,9 @@ export const javascriptHardeningModules = [
     quiz("js-hardening-validation-quiz", "Validation robuste", "Robust validation", "Pourquoi lever une erreur explicite sur une donnée invalide ?", "Why throw an explicit error for invalid data?", "Pour empêcher un état incohérent de continuer silencieusement", "To stop inconsistent state from continuing silently")
   ]),
   module("js-async-resilience", "Async, API et résilience", "Async, APIs, and resilience", [
-    jsLesson("js-hardening-fetch-timeout", ["Fetch avec timeout", "Fetch with timeout"], "Crée fetchWithTimeout(url, ms) avec AbortController, erreur HTTP et cleanup.", starter("fetchWithTimeout"), dense.async, 60),
-    jsLesson("js-hardening-load-catalog-state", ["État réseau complet", "Complete network state"], "Crée loadCatalog() qui retourne loading/data/error et distingue 200, 404, 500 et offline.", starter("loadCatalog"), dense.async, 60),
-    jsLesson("js-hardening-parallel-dashboard", ["Dashboard parallèle", "Parallel dashboard"], "Charge profil, progression et recommandations avec Promise.all puis normalise les erreurs.", starter("loadDashboard"), dense.async, 65),
+    jsLesson("js-hardening-fetch-timeout", ["Fetch avec timeout", "Fetch with timeout"], ["Crée fetchWithTimeout(url, ms) avec AbortController, erreur HTTP et cleanup.", "Build fetchWithTimeout(url, ms) with AbortController, HTTP failure handling, and timer cleanup."], starter("fetchWithTimeout"), dense.async, 60),
+    jsLesson("js-hardening-load-catalog-state", ["État réseau complet", "Complete network state"], ["Crée loadCatalog() qui retourne loading/data/error et distingue 200, 404, 500 et offline.", "Build loadCatalog() returning loading/data/error while distinguishing 200, 404, 500, and offline states."], starter("loadCatalog"), dense.async, 60),
+    jsLesson("js-hardening-parallel-dashboard", ["Dashboard parallèle", "Parallel dashboard"], ["Charge profil, progression et recommandations avec Promise.all puis normalise les erreurs.", "Load profile, progress, and recommendations with Promise.all, then normalize failures."], starter("loadDashboard"), dense.async, 65),
     projectLesson({
       id: "js-hardening-api-lab",
       title: ["Lab : client API résilient", "Lab: resilient API client"],
@@ -43,9 +43,9 @@ export const javascriptHardeningModules = [
     quiz("js-hardening-async-quiz", "Résilience async", "Async resilience", "Pourquoi utiliser finally dans un chargement réseau ?", "Why use finally in network loading?", "Pour remettre l’état loading à false même en cas d’erreur", "To set loading back to false even when an error happens")
   ]),
   module("js-dom-production", "DOM production, accessibilité et debug", "Production DOM, accessibility, and debug", [
-    domLesson("js-hardening-accessible-modal", ["Modale accessible", "Accessible modal"], "Crée une modale ouvrable/fermable au clavier avec focus, aria-live et Escape.", "<button id=\"open\">Ouvrir</button><section id=\"modal\" hidden><button id=\"close\">Fermer</button><p role=\"status\" aria-live=\"polite\"></p></section><script>\n// Ajoute le JS de modale\n</script>", dense.dom, 65),
-    domLesson("js-hardening-task-renderer", ["Renderer de tâches", "Task renderer"], "Rends une liste de tâches avec createElement, dataset, délégation, statut et stockage.", "<form id=\"task-form\"><input name=\"title\" /><button>Ajouter</button></form><ul id=\"tasks\"></ul><p role=\"status\" aria-live=\"polite\"></p><script>\n// Ajoute state, render, add, toggle et persist\n</script>", dense.dom, 70),
-    jsLesson("js-hardening-debug-trace", ["Trace de debug", "Debug trace"], "Crée traceScenario(name, callback) avec performance.mark, group, table, stack et retour sécurisé.", starter("traceScenario"), dense.debug, 55),
+    domLesson("js-hardening-accessible-modal", ["Modale accessible", "Accessible modal"], ["Crée une modale ouvrable/fermable au clavier avec focus, aria-live et Escape.", "Build a modal that opens and closes by keyboard, manages focus, announces status, and handles Escape."], "<button id=\"open\">Ouvrir</button><section id=\"modal\" hidden><button id=\"close\">Fermer</button><p role=\"status\" aria-live=\"polite\"></p></section><script>\n// Ajoute le JS de modale\n</script>", dense.dom, 65),
+    domLesson("js-hardening-task-renderer", ["Renderer de tâches", "Task renderer"], ["Rends une liste de tâches avec createElement, dataset, délégation, statut et stockage.", "Render tasks with createElement, dataset identifiers, event delegation, an announced status, and storage."], "<form id=\"task-form\"><input name=\"title\" /><button>Ajouter</button></form><ul id=\"tasks\"></ul><p role=\"status\" aria-live=\"polite\"></p><script>\n// Ajoute state, render, add, toggle et persist\n</script>", dense.dom, 70),
+    jsLesson("js-hardening-debug-trace", ["Trace de debug", "Debug trace"], ["Crée traceScenario(name, callback) avec performance.mark, group, table, stack et retour sécurisé.", "Build traceScenario(name, callback) with performance marks, grouped tables, stack capture, and a safe return value."], starter("traceScenario"), dense.debug, 55),
     projectLesson({
       id: "js-hardening-final-lab",
       title: ["Lab final : mini-dashboard JS fiable", "Final lab: reliable JS mini-dashboard"],
@@ -86,8 +86,8 @@ function projectLesson({ id, title, brief, starterCode, solution, tests, xp }) {
 
 function hardLesson(id, type, title, brief, starterCode, solution, checks, xp) {
   const titleObject = { fr: title[0], en: title[1] };
-  const briefObject = { fr: brief, en: title[1] };
-  const course = createCourse(id, title, brief, solution, checks);
+  const briefObject = { fr: brief[0], en: brief[1] };
+  const course = createCourse(id, title, briefObject, solution, checks);
   const guide = createGuide(id, checks);
   return {
     id,
@@ -103,10 +103,23 @@ function hardLesson(id, type, title, brief, starterCode, solution, checks, xp) {
     durationMin: type === "project" ? 140 : 45,
     starterCode,
     solution,
-    tests: checks.map((check) => test("contains", check, check)),
+    tests: [...checks.map((check) => test("contains", check, check)), ...behaviorTestsFor(id)],
     hint: { fr: "Traite d’abord le cas nominal, puis ajoute chaque garde-fou.", en: "Handle the happy path first, then add each guardrail." },
     xp
   };
+}
+
+function behaviorTestsFor(id) {
+  const expressions = {
+    "js-hardening-validate-profile": "const valid = validateProfile({ name: ' Maya ', email: 'm@p.dev', xp: '4', tags: ['js'] }); const invalid = validateProfile({ name: '', email: 'bad', xp: 'x' }); return valid.ok && valid.name === 'Maya' && invalid.ok === false;",
+    "js-hardening-normalize-course": "const valid = normalizeCourse({ title: ' JS ', duration: '30', modules: [] }); const invalid = normalizeCourse({ title: ' ', duration: 'x' }); return valid.ok && valid.title === 'JS' && invalid.ok === false;",
+    "js-hardening-score-boundaries": "return computeQuizResult(7, 10).passed === true && computeQuizResult(6, 10).passed === false && computeQuizResult(1, 0).ok === false;",
+    "js-hardening-fetch-timeout": "return fetchWithTimeout('/ok', 50).then((state) => state.loading === false && state.data?.ok === true);",
+    "js-hardening-load-catalog-state": "return loadCatalog().then((state) => state.loading === false && Array.isArray(state.data));",
+    "js-hardening-parallel-dashboard": "return loadDashboard().then((state) => state.loading === false && (state.data !== null || state.error !== null));",
+    "js-hardening-debug-trace": "return traceScenario('registration', () => ({ ok: true })).ok === true;"
+  };
+  return expressions[id] ? [test("jsExpression", "Le cas nominal et le cas d'échec produisent des résultats observables", expressions[id])] : [];
 }
 
 function solutionFor(id, starterCode, checks) {
@@ -117,18 +130,19 @@ function solutionFor(id, starterCode, checks) {
     "js-hardening-fetch-timeout": "async function fetchWithTimeout(url, ms = 4000) {\n  const controller = new AbortController();\n  const timer = setTimeout(() => controller.abort(), ms);\n  const state = { loading: true, data: null, error: null };\n  try {\n    const response = await fetch(url, { signal: controller.signal });\n    if (!response.ok) throw new Error(`HTTP ${response.status}`);\n    state.data = await response.json();\n    return state;\n  } catch (error) {\n    state.error = error.message;\n    return state;\n  } finally {\n    clearTimeout(timer);\n    state.loading = false;\n  }\n}\nasync function loadAll(urls) { return Promise.all(urls.map(fetchWithTimeout).filter(Boolean)); }",
     "js-hardening-load-catalog-state": "async function loadCatalog() {\n  const controller = new AbortController();\n  const timer = setTimeout(() => controller.abort(), 4000);\n  const state = { loading: true, data: null, error: null };\n  try {\n    const response = await fetch('/api/catalog', { signal: controller.signal });\n    if (!response.ok) throw new Error(`HTTP ${response.status}`);\n    const data = await response.json();\n    state.data = Array.isArray(data.items) ? data.items.filter(Boolean).map((item) => item.title) : [];\n    return state;\n  } catch (error) { state.error = error.message; return state; }\n  finally { clearTimeout(timer); state.loading = false; }\n}\nasync function preload() { return Promise.all(['/api/catalog'].map(fetch)); }",
     "js-hardening-parallel-dashboard": "async function loadDashboard() {\n  const controller = new AbortController();\n  const timer = setTimeout(() => controller.abort(), 4000);\n  const state = { loading: true, data: null, error: null };\n  try {\n    const urls = ['/api/profile', '/api/progress', '/api/recommendations'];\n    const responses = await Promise.all(urls.map((url) => fetch(url, { signal: controller.signal })));\n    responses.forEach((response) => { if (!response.ok) throw new Error(`HTTP ${response.status}`); });\n    const data = await Promise.all(responses.map((response) => response.json()));\n    state.data = data.filter(Boolean);\n    return state;\n  } catch (error) { state.error = error.message; return state; }\n  finally { clearTimeout(timer); state.loading = false; }\n}",
-    "js-hardening-debug-trace": "function traceScenario(name, callback) {\n  console.group(name);\n  performance.mark(`${name}:start`);\n  try {\n    debugger;\n    const cloned = structuredClone({ name, input: Array.from([name]) });\n    const frozen = Object.freeze(cloned);\n    const result = callback?.(frozen) ?? null;\n    console.table([{ name, type: typeof result, object: result instanceof Object }]);\n    return JSON.parse(JSON.stringify(result));\n  } catch (error) {\n    const wrapped = new Error(error.message);\n    console.table([{ stack: wrapped.stack }]);\n    return null;\n  } finally {\n    performance.mark(`${name}:end`);\n    performance.measure(name, `${name}:start`, `${name}:end`);\n    console.groupEnd();\n  }\n}"
+    "js-hardening-debug-trace": "function traceScenario(name, callback) {\n  console.group?.(name);\n  performance.mark?.(`${name}:start`);\n  try {\n    debugger;\n    const cloned = structuredClone({ name, input: Array.from([name]) });\n    const frozen = Object.freeze(cloned);\n    const result = callback?.(frozen) ?? null;\n    console.table?.([{ name, type: typeof result, object: result instanceof Object }]);\n    return JSON.parse(JSON.stringify(result));\n  } catch (error) {\n    const wrapped = new Error(error.message);\n    console.table?.([{ stack: wrapped.stack }]);\n    return null;\n  } finally {\n    performance.mark?.(`${name}:end`);\n    performance.measure?.(name, `${name}:start`, `${name}:end`);\n    console.groupEnd?.();\n  }\n}"
   };
   const checklist = `\nconst practiceChecklist = ${JSON.stringify(checks)};\n`;
   return implementations[id] ? `${implementations[id]}${checklist}` : `${starterCode}${checklist}`;
 }
 
 function createCourse(id, title, brief, solution, checks) {
+  const localizedBrief = typeof brief === "string" ? { fr: brief, en: title[1] } : brief;
   const vocabulary = [["Garde-fou", "Condition qui empêche un état fragile."], ["Cas limite", "Entrée rare mais importante à tester."], ["Feedback", "Information donnée pour comprendre le résultat."]];
   const enVocabulary = [["Guardrail", "Condition that prevents fragile state."], ["Edge case", "Rare but important input to test."], ["Feedback", "Information explaining the result."]];
   return {
     fr: {
-      introduction: `${id} : ${brief}`,
+      introduction: `${title[0]} : ${localizedBrief.fr}`,
       sections: [
         { title: "Contrat", paragraphs: [`L’activité ${title[0]} commence par définir les entrées, la sortie et l’erreur attendue.`, "Le code doit rester lisible avant d’être optimisé."], example: solution.slice(0, 260) },
         { title: "Cas limites", paragraphs: ["Teste les valeurs vides, les types inattendus et les seuils.", `Les critères prioritaires sont : ${checks.slice(0, 4).join(", ")}.`], example: checks.slice(0, 6).join("\n") },
@@ -138,7 +152,7 @@ function createCourse(id, title, brief, solution, checks) {
       check: checks.slice(0, 8).map((check) => `Le code prouve ${check}.`)
     },
     en: {
-      introduction: `${id}: ${title[1]} hardens one realistic JavaScript behavior.`,
+      introduction: `${title[1]}: ${localizedBrief.en}`,
       sections: [
         { title: "Contract", paragraphs: ["Start by defining input, output, and expected failure.", "Code must remain readable before it is optimized."], example: solution.slice(0, 260) },
         { title: "Edge cases", paragraphs: ["Test empty values, unexpected types, and thresholds.", `Priority criteria: ${checks.slice(0, 4).join(", ")}.`], example: checks.slice(0, 6).join("\n") },
@@ -168,7 +182,11 @@ function createGuide(id, checks) {
 }
 
 function quiz(id, frTitle, enTitle, frQuestion, enQuestion, frAnswer, enAnswer) {
-  const moduleId = id.replace("-quiz", "");
+  const moduleId = {
+    "js-hardening-validation-quiz": "js-validation-hardening",
+    "js-hardening-async-quiz": "js-async-resilience",
+    "js-hardening-production-quiz": "js-dom-production"
+  }[id];
   const profile = jsModuleProfile(moduleId, [frTitle, enTitle]);
   const explanation = { fr: `La bonne décision prouve que ${profile.proof[0]}.`, en: `The right decision proves that ${profile.proof[1]}.` };
   const choices = [
@@ -196,11 +214,11 @@ function quiz(id, frTitle, enTitle, frQuestion, enQuestion, frAnswer, enAnswer) 
     guide,
     questions: [
       { id: `${id}-single`, type: "single", prompt, choices, answer: "correct", explanation },
-      { id: `${id}-multiple`, type: "multiple", prompt: { fr: "Quelles stratégies protègent l'application ?", en: "Which strategies protect the application?" }, choices: [{ id: "fail-fast", label: { fr: "Échouer tôt avec une erreur explicite", en: "Fail fast with an explicit error" } }, { id: "pure", label: { fr: "Fonctions pures sans effet de bord", en: "Pure functions without side effects" } }, { id: "ignore", label: { fr: "Ignorer les cas limites", en: "Ignore edge cases" } }], answer: ["fail-fast", "pure"], explanation },
-      { id: `${id}-tf`, type: "true-false", prompt: { fr: `Vrai ou faux : ${profile.risk[0]} est acceptable en production.`, en: `True or false: ${profile.risk[1]} is acceptable in production.` }, choices: [{ id: "true", label: { fr: "Vrai", en: "True" } }, { id: "false", label: { fr: "Faux", en: "False" } }], answer: "false", explanation },
-      { id: `${id}-order`, type: "ordering", prompt: { fr: "Classe la méthode de sécurisation du code.", en: "Order the code hardening method." }, choices: [{ id: "read", label: { fr: "Identifier les entrées", en: "Identify inputs" } }, { id: "guard", label: { fr: "Ajouter des garde-fous (type, limites)", en: "Add guardrails (type, bounds)" } }, { id: "logic", label: { fr: "Exécuter la logique métier", en: "Execute business logic" } }, { id: "test", label: { fr: "Prouver avec un cas limite", en: "Prove with an edge case" } }], answer: ["read", "guard", "logic", "test"], explanation },
-      { id: `${id}-code`, type: "code-reading", prompt: { fr: "Lis ce code qui omet les validations. Quel est le risque ?", en: "Read this code that omits validations. What is the risk?" }, choices: [{ id: "risk", label: { fr: profile.risk[0], en: profile.risk[1] } }, { id: "perf", label: { fr: "Il est trop lent", en: "It is too slow" } }, { id: "ok", label: { fr: "Il est parfait", en: "It is perfect" } }], answer: "risk", explanation },
-      { id: `${id}-open`, type: "short-open", prompt: { fr: "Quelle preuve de robustesse citerais-tu ?", en: "What proof of robustness would you cite?" }, choices: [], answer: ["erreur", "test", "limite", "try", "catch"], explanation }
+      { id: `${id}-multiple`, type: "multiple", prompt: { fr: `Quelles stratégies protègent ${frTitle} ?`, en: `Which strategies protect ${enTitle}?` }, choices: [{ id: "fail-fast", label: { fr: "Échouer tôt avec une erreur explicite", en: "Fail fast with an explicit error" } }, { id: "pure", label: { fr: "Isoler la transformation testable", en: "Isolate the testable transformation" } }, { id: "ignore", label: { fr: "Ignorer les cas limites", en: "Ignore edge cases" } }], answer: ["fail-fast", "pure"], explanation },
+      { id: `${id}-tf`, type: "true-false", prompt: { fr: `Pour ${frTitle}, vrai ou faux : ${profile.risk[0]} est acceptable en production.`, en: `For ${enTitle}, true or false: ${profile.risk[1]} is acceptable in production.` }, choices: [{ id: "true", label: { fr: "Vrai", en: "True" } }, { id: "false", label: { fr: "Faux", en: "False" } }], answer: "false", explanation },
+      { id: `${id}-order`, type: "ordering", prompt: { fr: `Classe la sécurisation de ${frTitle}.`, en: `Order the hardening of ${enTitle}.` }, choices: [{ id: "read", label: { fr: "Identifier les entrées", en: "Identify inputs" } }, { id: "guard", label: { fr: "Ajouter des garde-fous (type, limites)", en: "Add guardrails (type, bounds)" } }, { id: "logic", label: { fr: "Exécuter la logique métier", en: "Execute business logic" } }, { id: "test", label: { fr: "Prouver avec un cas limite", en: "Prove with an edge case" } }], answer: ["read", "guard", "logic", "test"], explanation },
+      { id: `${id}-code`, type: "code-reading", prompt: { fr: `Dans ${frTitle}, quel risque crée l'absence de validation ?`, en: `In ${enTitle}, what risk does missing validation create?` }, choices: [{ id: "risk", label: { fr: profile.risk[0], en: profile.risk[1] } }, { id: "perf", label: { fr: "Un détail cosmétique", en: "A cosmetic detail" } }, { id: "ok", label: { fr: "Aucun risque", en: "No risk" } }], answer: "risk", explanation },
+      { id: `${id}-open`, type: "short-open", prompt: { fr: `Quelle preuve de robustesse citerais-tu pour ${frTitle} ?`, en: `What robustness evidence would you cite for ${enTitle}?` }, choices: [], answer: ["erreur", "test", "limite", "try", "catch"], explanation }
     ],
     pedagogy: getPedagogy(id, { course, guide, title, brief: item.brief, solution: frAnswer, type: "quiz" }),
     passingScore: 75,

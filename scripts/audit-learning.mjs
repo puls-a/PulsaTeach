@@ -1,5 +1,9 @@
 import { learningTracks } from "../src/content/allTrackRegistry.js";
 import { normalizeQuizLesson } from "../src/features/quizzes/quizEngine.js";
+import { JSDOM } from "jsdom";
+import { HTML_TEST_TYPES, validateLesson } from "../src/lessonRuntime.js";
+
+globalThis.DOMParser = new JSDOM("").window.DOMParser;
 
 const requiredPedagogy = [
   "why",
@@ -84,6 +88,18 @@ const jsTrack = learningTracks.find((item) => item.id === "javascript");
 for (const lesson of jsTrack.modules.flatMap((module) => module.lessons).filter((item) => item.type !== "quiz")) {
   for (const test of lesson.tests) {
     if (!passesJavaScriptTest(lesson.solution, test)) failures.push(`${lesson.id}: solution fails "${test.label}"`);
+  }
+}
+
+const htmlTrack = learningTracks.find((item) => item.id === "html");
+for (const lesson of htmlTrack.modules.flatMap((module) => module.lessons).filter((item) => item.type !== "quiz")) {
+  const unsupported = lesson.tests.filter((test) => !HTML_TEST_TYPES.has(test.type));
+  for (const test of unsupported) failures.push(`${lesson.id}: unsupported HTML test type "${test.type}"`);
+  if (unsupported.length) continue;
+
+  const results = await validateLesson(lesson, lesson.solution);
+  for (const result of results) {
+    if (!result.pass) failures.push(`${lesson.id}: solution fails "${result.label}"`);
   }
 }
 

@@ -28,8 +28,8 @@ export const reactTrack = createProfessionalTrack({
     ...reactModules,
     {
       id: "react-components",
-      title: ["Composants et composition", "Components and composition"],
-      description: ["Découper une interface selon ses responsabilités, ses données et ses variations.", "Split an interface according to responsibilities, data, and variations."],
+      title: ["Studio : architecture de composants", "Studio: component architecture"],
+      description: ["Transformer les acquis JSX et composition en API de design system accessible et révisable.", "Turn JSX and composition skills into an accessible, reviewable design-system API."],
       vocabulary: [v.component, v.jsx, v.prop],
       lessons: [
         reactLesson("react-01-component", ["Créer un composant sémantique", "Create a semantic component"], ["Écris une carte de cours avec article, titre et lien explicite.", "Write a course card with an article, heading, and explicit link."], "export function CourseCard({ title, summary, href }) {\n  return (\n    <article>\n      <h2>{title}</h2>\n      <p>{summary}</p>\n      <a href={href}>Ouvrir la formation {title}</a>\n    </article>\n  );\n}", ["function CourseCard", "<article>", "<h2>", "href={href}", "{title}"], ["react-components", "semantic-html"], [v.component, v.jsx, v.prop]),
@@ -45,8 +45,8 @@ export const reactTrack = createProfessionalTrack({
     },
     {
       id: "react-state",
-      title: ["État, événements et formulaires", "State, events, and forms"],
-      description: ["Faire évoluer l’interface avec des transitions prévisibles et des formulaires accessibles.", "Evolve the interface through predictable transitions and accessible forms."],
+      title: ["Studio : workflows transactionnels", "Studio: transactional workflows"],
+      description: ["Assembler état minimal, transitions asynchrones et récupération accessible dans un workflow métier.", "Combine minimal state, asynchronous transitions, and accessible recovery in a business workflow."],
       vocabulary: [v.state, ["événement", "event", "Objet décrivant une interaction utilisateur ou navigateur.", "An object describing a user or browser interaction."], ["contrôlé", "controlled", "Champ dont la valeur est pilotée par l’état React.", "A field whose value is driven by React state."]],
       lessons: [
         reactLesson("react-02-state", ["Modéliser un état minimal", "Model minimal state"], ["Stocke la source de vérité et dérive le nombre de tâches visibles.", "Store the source of truth and derive the visible task count."], "function TaskSummary({ initialTasks }) {\n  const [tasks, setTasks] = useState(initialTasks);\n  const openTasks = tasks.filter((task) => !task.done);\n  return <p>{openTasks.length} tâches ouvertes</p>;\n}", ["useState", "setTasks", "tasks.filter", "openTasks.length"], ["react-state", "derived-state"], [v.state, ["état dérivé", "derived state", "Valeur calculée depuis une source de vérité existante.", "A value calculated from an existing source of truth."]]),
@@ -62,8 +62,8 @@ export const reactTrack = createProfessionalTrack({
     },
     {
       id: "react-hooks-data",
-      title: ["Hooks, effets et données", "Hooks, effects, and data"],
-      description: ["Synchroniser uniquement les systèmes externes et isoler la logique réutilisable.", "Synchronize only external systems and isolate reusable logic."],
+      title: ["Studio : intégration de données résiliente", "Studio: resilient data integration"],
+      description: ["Concevoir annulation, cache, retry et observabilité comme un contrat cohérent de données.", "Design cancellation, caching, retry, and observability as one coherent data contract."],
       vocabulary: [v.hook, v.effect, v.context],
       lessons: [
         reactLesson("react-03-effect", ["Utiliser un effet pour synchroniser", "Use an effect for synchronization"], ["Synchronise le titre du document et restaure sa valeur au démontage.", "Synchronize the document title and restore it on unmount."], "function PageTitle({ title }) {\n  useEffect(() => {\n    const previous = document.title;\n    document.title = `${title} | PulsaTeach`;\n    return () => { document.title = previous; };\n  }, [title]);\n  return null;\n}", ["useEffect", "document.title", "return () =>", "[title]"], ["react-effects", "effect-cleanup"], [v.effect, v.hook]),
@@ -79,7 +79,7 @@ export const reactTrack = createProfessionalTrack({
     },
     {
       id: "react-production",
-      title: ["Routing, qualité et performance", "Routing, quality, and performance"],
+      title: ["Livraison d’une application React", "Shipping a React application"],
       description: ["Assembler des écrans navigables, accessibles, testés et mesurés avant optimisation.", "Assemble navigable, accessible, tested screens measured before optimization."],
       vocabulary: [v.route, v.suspense, v.memo],
       lessons: [

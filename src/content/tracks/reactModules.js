@@ -37,7 +37,7 @@ const blueprints = [
     vocabulary: [t.prop, t.component, ["children", "children", "Contenu passé entre deux balises de composant.", "Content passed between a component's tags."]],
     lessons: [
       ["props-minimal", "Concevoir un contrat de props minimal", "Ne garde que les données utiles au rendu et évite les options ambiguës.", "TrackCard", "title", "href"],
-      ["default-props", "Prévoir des valeurs par défaut sûres", "Utilise des valeurs par défaut pour les variantes non critiques.", "LevelPill", "level = 'Débutant'", "data-level"],
+      ["default-props", "Prévoir des valeurs par défaut sûres", "Utilise des valeurs par défaut pour les variantes non critiques.", "LevelPill", "level = 'beginner'", "data-level"],
       ["array-props", "Recevoir une liste typée", "Affiche des objectifs en conservant une clé stable.", "OutcomeList", "map", "key"],
       ["children-slot", "Composer avec children", "Crée un panneau réutilisable sans imposer son contenu.", "Panel", "children", "section"],
       ["compound", "Créer des sous-composants cohérents", "Découpe une carte riche en Header, Body et Actions.", "RichCard", "RichCardHeader", "RichCardActions"],
@@ -73,7 +73,7 @@ const blueprints = [
       ["submit", "Valider au submit", "Empêche l'envoi vide et affiche une correction actionnable.", "SignupForm", "preventDefault", "setErrors"],
       ["fieldset", "Regrouper des choix", "Utilise fieldset et legend pour un groupe radio.", "LevelChoice", "fieldset", "legend"],
       ["focus-error", "Replacer le focus après erreur", "Envoie le focus vers le premier champ invalide.", "CourseRequest", "ref", "focus"],
-      ["status", "Annoncer la réussite", "Affiche un message de confirmation non intrusif.", "SubmitStatus", "role=\"status\"", "Merci"]
+      ["status", "Annoncer la réussite", "Affiche un message de confirmation non intrusif.", "SubmitStatus", "role=\"status\"", "Thank you"]
     ],
     project: ["react-form-project", "Mini-projet : inscription à une cohorte", "Crée un formulaire complet avec labels, erreurs reliées, focus et confirmation.", "CohortForm", ["form", "aria-describedby", "fieldset", "role=\"status\""]],
     quiz: ["react-forms-quiz", "Quiz : formulaires React", "accessible-forms"]
@@ -102,7 +102,7 @@ const blueprints = [
     lessons: [
       ["loading-error", "Modéliser loading/success/error", "Affiche un statut clair pour chaque état réseau.", "ResourceState", "status", "role=\"alert\""],
       ["abort-fetch", "Annuler une requête obsolète", "Utilise AbortController au changement de paramètre.", "ProjectLoader", "AbortController", "controller.abort"],
-      ["empty-state", "Traiter le résultat vide", "Différencie vide réel et chargement en cours.", "SearchResults", "items.length", "Aucun résultat"],
+      ["empty-state", "Traiter le résultat vide", "Différencie vide réel et chargement en cours.", "SearchResults", "items.length", "No results"],
       ["retry", "Prévoir une action de retry", "Expose un bouton de nouvelle tentative sans recharger la page.", "RetryPanel", "onRetry", "button"],
       ["route-param", "Lire un paramètre d'URL", "Charge un détail depuis un identifiant de route.", "ProjectRoute", "useParams", "projectId"],
       ["route-focus", "Rendre la navigation perceptible", "Déplace le focus vers le h1 après changement d'écran.", "RouteHeading", "tabIndex={-1}", "focus"]
@@ -144,7 +144,154 @@ const blueprints = [
   }
 ];
 
-export const reactModules = blueprints.map((module) => ({
+export let reactModules;
+
+function lesson(module, [slug, title, brief, component, first, second], index) {
+  const english = reactLessonEnglish[slug];
+  const id = `${module.id}-${slug}`;
+  return {
+    id,
+    type: "react",
+    title: [title, english?.title || title],
+    brief: [brief, english?.brief || brief],
+    solution: `export function ${component}() {\n  const items = [{ id: "${slug}", label: "${english?.title || component}" }];\n  return (\n    <section aria-label="${english?.title || component}">\n      <h2>${english?.title || component}</h2>\n      <ul>{items.map((item) => <li key={item.id}>{item.label}</li>)}</ul>\n    </section>\n  );\n}`,
+    requirements: [component, first, second, "key={item.id}", "<section", "aria-label", "<h2>", "<ul>", "items.map"],
+    skills: [module.quiz[2], `react-${index + 1}`],
+    vocabulary: module.vocabulary,
+    durationMin: 28 + (index % 3) * 4,
+    xp: 36
+  };
+}
+
+function project([id, title, brief, component, requirements, finalProject = false], module) {
+  const english = reactProjectEnglish[id];
+  const proofRequirements = [...new Set([...requirements, component, "<main>", "<h1>", "<section", "aria-label"])];
+  return {
+    id,
+    project: true,
+    exerciseType: "react",
+    title: [title, english.title],
+    brief: [brief, english.brief],
+    solution: `export function ${component}() {\n  return (\n    <main>\n      <h1>${english.title}</h1>\n      <section aria-label="Evidence"><p>Document keyboard flow, states, data, and tests.</p></section>\n    </main>\n  );\n}`,
+    requirements: proofRequirements,
+    skills: [module.quiz[2], "react-project", finalProject ? "capstone" : "module-project"],
+    vocabulary: module.vocabulary,
+    durationMin: finalProject ? 240 : 130,
+    xp: finalProject ? 180 : 100
+  };
+}
+
+function quiz([id, title, skill]) {
+  const scenarios = reactQuizScenarios[skill];
+  return {
+    id,
+    type: "quiz",
+    title: [title, `Quiz: ${scenarios.topic}`],
+    brief: ["Réponds comme en revue de code : priorité au contrat utilisateur, à la preuve et à la maintenabilité.", "Answer like in code review: prioritize user contract, evidence, and maintainability."],
+    purpose: "module-review",
+    passingScore: 75,
+    questions: [
+      ...scenarios.questions.map((question, index) => q(`${id}-${index + 1}`, question, skill))
+    ]
+  };
+}
+
+function q(id, [promptFr, promptEn, answerFr, answerEn, ...distractors], skill) {
+  const choices = [[answerFr, answerEn], ...distractors].map((label) => ({ id: label[0], label }));
+  return {
+    id,
+    type: "single",
+    prompt: [promptFr, promptEn],
+    choices,
+    answer: answerFr,
+    explanation: ["La réponse conserve le contrat observable propre à ce module.", "The answer preserves this module's observable contract."],
+    points: 1,
+    skills: [skill],
+    glossaryTerms: []
+  };
+}
+
+const reactLessonEnglish = {
+  "element-jsx": { title: "Describe a course card with JSX", brief: "Build a course card with a heading, summary, and descriptive link." },
+  fragment: { title: "Return sibling regions without a wrapper div", brief: "Group the header and content in a fragment while preserving clean landmarks." },
+  "class-name": { title: "Name styles without losing meaning", brief: "Add explicit classes while retaining semantic elements and a readable variant." },
+  "self-closing": { title: "Use self-closing elements", brief: "Create an icon with an optional title and a safe decorative fallback." },
+  comments: { title: "Document a JSX decision", brief: "Explain one non-obvious pricing branch without narrating the syntax." },
+  "semantic-contract": { title: "Make semantics testable", brief: "Expose landmarks and headings that assistive technology and tests can locate." },
+  "props-minimal": { title: "Design a minimal prop contract", brief: "Keep only rendering inputs and remove ambiguous configuration flags." },
+  "default-props": { title: "Choose safe defaults", brief: "Default a non-critical variant while keeping exceptional states explicit." },
+  "array-props": { title: "Render a typed collection", brief: "Display outcomes with stable business keys." },
+  "children-slot": { title: "Compose through children", brief: "Create a reusable panel that does not dictate its content." },
+  compound: { title: "Build coherent compound components", brief: "Split a rich card into header, body, and action responsibilities." },
+  "callback-prop": { title: "Lift a user intention", brief: "Name the callback after the user action rather than an implementation detail." },
+  "minimal-state": { title: "Keep one source of truth", brief: "Store raw tasks and derive visible counters during rendering." },
+  "functional-update": { title: "Update state without mutation", brief: "Append a task with a functional update that remains correct under batching." },
+  toggle: { title: "Toggle disclosure state", brief: "Open and close help while preserving the trigger's focus and expanded state." },
+  counter: { title: "Build a bounded counter", brief: "Prevent negative practice counts and announce the updated value." },
+  conditional: { title: "Render the meaningful branch", brief: "Distinguish empty, completed, and next-action states without duplicated markup." },
+  "list-keys": { title: "Preserve list identity", brief: "Use a domain identifier rather than the visible array position." },
+  "controlled-input": { title: "Control an input", brief: "Connect value, change handling, label, and id without relying on a placeholder." },
+  "field-error": { title: "Connect an error to its field", brief: "Expose invalid state and descriptive help when the value is rejected." },
+  submit: { title: "Validate on submission", brief: "Block an empty submission and offer a correction the learner can act on." },
+  fieldset: { title: "Group related choices", brief: "Give a radio group its programmatic name with fieldset and legend." },
+  "focus-error": { title: "Focus the first invalid field", brief: "Move focus only after a failed submission so the correction starts in context." },
+  status: { title: "Announce successful submission", brief: "Publish confirmation through a polite status without stealing focus." },
+  "document-title": { title: "Synchronize the document title", brief: "Update the external document title and restore its previous value on cleanup." },
+  "timer-cleanup": { title: "Clean up a timer", brief: "Start one interval and stop that exact interval when the component unmounts." },
+  "outside-click": { title: "Manage an outside interaction", brief: "Register and remove a global listener with the same function reference." },
+  "use-previous": { title: "Build usePrevious", brief: "Retain the previous committed value without triggering an extra render." },
+  "local-storage": { title: "Build usePersistentState", brief: "Read storage lazily and serialize only when the key or value changes." },
+  "effect-deps": { title: "Reason about effect dependencies", brief: "Justify each dependency from the external synchronization contract." },
+  "loading-error": { title: "Model request states", brief: "Render distinct loading, success, empty, and failure outcomes." },
+  "abort-fetch": { title: "Cancel a stale request", brief: "Abort the previous fetch when the route parameter changes." },
+  "empty-state": { title: "Distinguish empty from pending", brief: "Show no-results content only after a successful empty response." },
+  retry: { title: "Offer a retry action", brief: "Let the user repeat the failed request without reloading the page." },
+  "route-param": { title: "Read a route parameter", brief: "Load a detail view from the URL's project identifier." },
+  "route-focus": { title: "Make navigation perceptible", brief: "Focus the new page heading after a client-side route transition." },
+  "local-first": { title: "Start with local state", brief: "Keep filters near their only consumer until sharing is demonstrated." },
+  "reducer-actions": { title: "Name reducer actions by intent", brief: "Represent each transition with an explicit action and payload." },
+  "no-mutation": { title: "Preserve reducer immutability", brief: "Return new objects only along the branch that changed." },
+  "context-provider": { title: "Distribute a stable dependency", brief: "Expose a provider for preferences needed across one subtree." },
+  selector: { title: "Derive state through a selector", brief: "Centralize a meaningful read without duplicating derived state." },
+  "external-store": { title: "Recognize the boundary for an external store", brief: "Choose a store only when ownership, update rate, and consumers require it." },
+  "user-test": { title: "Test observable behavior", brief: "Drive the interface through roles and user actions rather than component internals." },
+  "form-test": { title: "Test a form correction", brief: "Verify the message, invalid relationship, and successful correction path." },
+  "mock-api": { title: "Control API scenarios", brief: "Exercise success, failure, and retry with deterministic network handlers." },
+  "memo-measure": { title: "Measure before memoizing", brief: "Add memo only after profiling identifies an expensive repeated render." },
+  "lazy-route": { title: "Split code at a route boundary", brief: "Load a heavy page lazily behind an accessible pending state." },
+  "release-check": { title: "Run a release review", brief: "Check keyboard flow, console errors, bundle cost, and field metrics before shipping." }
+};
+
+const reactProjectEnglish = {
+  "react-component-library": { title: "Mini-project: semantic UI library", brief: "Deliver Header, CourseCard, Badge, and EmptyState with explicit props and stable semantics." },
+  "react-composition-project": { title: "Mini-project: composed learning dashboard", brief: "Assemble filters, compound cards, keyboard actions, and a documented component API." },
+  "react-state-project": { title: "Mini-project: study planner", brief: "Build task creation, toggling, filtering, and an announced empty state without duplicated state." },
+  "react-form-project": { title: "Mini-project: cohort enrollment", brief: "Deliver labels, connected validation, error focus, grouped choices, and confirmation." },
+  "react-hooks-project": { title: "Mini-project: persistent preferences", brief: "Synchronize theme and language with storage while proving initialization and cleanup." },
+  "react-routing-project": { title: "Mini-project: course explorer", brief: "Combine search, routed details, canceled requests, retry, and navigation focus." },
+  "react-store-project": { title: "Mini-project: progress store", brief: "Model progress and favorites with reducer actions, context ownership, and tested selectors." },
+  "react-final-capstone": { title: "Final project: learning tracker", brief: "Ship catalog, progress, forms, routing, cache, user tests, and a measured performance budget." }
+};
+
+const sharedDistractors = [["Une convention visuelle sans comportement", "A visual convention with no behavior"], ["Un état global ajouté par défaut", "Global state added by default"], ["Une assertion sur un détail interne", "An assertion on an internal detail"]];
+const reactQuizScenarios = Object.fromEntries([
+  ["component-contracts", "JSX and components", "Quel contrat permet de retrouver une carte sans connaître ses classes ?", "Which contract locates a card without knowing its classes?", "Un article nommé par son titre", "An article named by its heading"],
+  ["composition", "props and composition", "Comment éviter des combinaisons de props incohérentes ?", "How do you prevent inconsistent prop combinations?", "Composer des sous-composants aux rôles explicites", "Compose subcomponents with explicit roles"],
+  ["react-state", "state transitions", "Quelle valeur doit rester dérivée de la liste de tâches ?", "Which value should remain derived from the task list?", "Le nombre de tâches visibles", "The visible task count"],
+  ["accessible-forms", "accessible forms", "Que faire après un submit contenant deux champs invalides ?", "What should happen after submitting two invalid fields?", "Relier les erreurs puis focaliser le premier champ invalide", "Connect errors, then focus the first invalid field"],
+  ["react-effects", "effects and cleanup", "Quand l'effet du timer doit-il retourner un cleanup ?", "When should the timer effect return cleanup?", "Dès qu'il démarre une ressource à arrêter", "Whenever it starts a resource that must be stopped"],
+  ["react-routing", "data and routing", "Une recherche change avant la réponse réseau : quelle protection appliquer ?", "Search changes before the response arrives: what protection is needed?", "Annuler la requête précédente", "Abort the previous request"],
+  ["state-management", "shared state", "Quand déplacer des filtres locaux vers un contexte ?", "When should local filters move into context?", "Quand plusieurs descendants ont démontré ce besoin", "When multiple descendants demonstrably need them"],
+  ["react-quality", "quality and delivery", "Quel signal justifie memo autour d'une liste ?", "What signal justifies memo around a list?", "Un profilage montre des rendus coûteux avec props stables", "Profiling shows expensive renders with stable props"]
+].map(([skill, topic, fr, en, answerFr, answerEn]) => [skill, { topic, questions: [
+  [fr, en, answerFr, answerEn, ...sharedDistractors],
+  [`Quelle preuve valide « ${answerFr} » ?`, `Which evidence validates “${answerEn}”?`, "Un test du comportement observable", "A test of observable behavior", ...sharedDistractors],
+  [`Quel risque ${topic} ce module réduit-il en priorité ?`, `Which ${topic} risk does this module primarily reduce?`, `Un contrat ${topic} ambigu ou non vérifié`, `An ambiguous or unverified ${topic} contract`, ...sharedDistractors],
+  [`Quelle revue demander avant d'intégrer ce travail ${topic} ?`, `Which review should happen before integrating this ${topic} work?`, "Expliquer le choix et reproduire sa preuve", "Explain the choice and reproduce its evidence", ...sharedDistractors],
+  [`Quel contrat ${topic} conserver lors d'un refactoring ?`, `Which ${topic} contract must survive a refactor?`, "Le comportement perçu par l'utilisateur", "The behavior perceived by the user", ...sharedDistractors]
+] }]));
+
+reactModules = blueprints.map((module) => ({
   id: module.id,
   title: module.title,
   description: module.description,
@@ -155,69 +302,3 @@ export const reactModules = blueprints.map((module) => ({
     quiz(module.quiz, module)
   ]
 }));
-
-function lesson(module, [slug, title, brief, component, first, second], index) {
-  const id = `${module.id}-${slug}`;
-  return {
-    id,
-    type: "react",
-    title: [title, title.replace("É", "E")],
-    brief: [brief, `Practice: ${brief}`],
-    solution: `export function ${component}() {\n  const items = [{ id: "${slug}", label: "${title}" }];\n  return (\n    <section aria-label="${title}">\n      <h2>${title}</h2>\n      <ul>{items.map((item) => <li key={item.id}>{item.label}</li>)}</ul>\n    </section>\n  );\n}`,
-    requirements: [component, first, second, "key={item.id}", "<section", "aria-label", "<h2>", "<ul>", "items.map"],
-    skills: [module.quiz[2], `react-${index + 1}`],
-    vocabulary: module.vocabulary,
-    durationMin: 28 + (index % 3) * 4,
-    xp: 36
-  };
-}
-
-function project([id, title, brief, component, requirements, finalProject = false], module) {
-  const proofRequirements = [...new Set([...requirements, component, "<main>", "<h1>", "<section", "aria-label"])];
-  return {
-    id,
-    project: true,
-    exerciseType: "react",
-    title: [title, title.replace("Mini-projet", "Mini-project").replace("Projet final", "Final project")],
-    brief: [brief, `Build and review: ${brief}`],
-    solution: `export function ${component}() {\n  return (\n    <main>\n      <h1>${title}</h1>\n      <section aria-label="Preuves"><p>Parcours clavier, états, données et tests documentés.</p></section>\n    </main>\n  );\n}`,
-    requirements: proofRequirements,
-    skills: [module.quiz[2], "react-project", finalProject ? "capstone" : "module-project"],
-    vocabulary: module.vocabulary,
-    durationMin: finalProject ? 240 : 130,
-    xp: finalProject ? 180 : 100
-  };
-}
-
-function quiz([id, title, skill]) {
-  return {
-    id,
-    type: "quiz",
-    title: [title, title.replace("Quiz :", "Quiz:")],
-    brief: ["Réponds comme en revue de code : priorité au contrat utilisateur, à la preuve et à la maintenabilité.", "Answer like in code review: prioritize user contract, evidence, and maintainability."],
-    purpose: "module-review",
-    passingScore: 75,
-    questions: [
-      q(`${id}-1`, "Quelle décision protège le mieux l'utilisateur ?", "Un comportement vérifiable avec nom, rôle et état explicites", ["Un style ajouté sans test", "Une variable globale partagée", "Un rendu copié dans trois composants"], skill),
-      q(`${id}-2`, "Quand faut-il extraire une abstraction ?", "Quand deux usages partagent une intention stable, pas seulement du code ressemblant", ["Dès qu'une ligne se répète", "Avant d'avoir un second usage", "Pour cacher une erreur de conception"], skill),
-      q(`${id}-3`, "Quelle preuve est la plus solide avant livraison ?", "Un test utilisateur complété par une vérification clavier et console", ["Une capture d'écran seule", "Un nom de fonction agréable", "Un commentaire TODO"], skill),
-      q(`${id}-4`, "Quel signal indique une sur-ingénierie ?", "La solution ajoute plus d'états et de chemins que le besoin réel", ["Le composant a un titre", "Le code utilise une balise sémantique", "Le test lit un rôle accessible"], skill),
-      q(`${id}-5`, "Que doit contenir une correction durable ?", "La cause, le changement, la preuve et la limite connue", ["Seulement le code final", "Seulement une explication orale", "Seulement une optimisation memo"], skill)
-    ]
-  };
-}
-
-function q(id, promptFr, answerFr, distractorsFr, skill) {
-  const choices = [answerFr, ...distractorsFr].map((label) => ({ id: label, label: [label, label] }));
-  return {
-    id,
-    type: "single",
-    prompt: [promptFr, promptFr],
-    choices,
-    answer: answerFr,
-    explanation: ["La bonne réponse relie intention, accessibilité, preuve et maintenance.", "The correct answer connects intent, accessibility, evidence, and maintenance."],
-    points: 1,
-    skills: [skill],
-    glossaryTerms: []
-  };
-}

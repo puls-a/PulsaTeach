@@ -119,15 +119,14 @@ export const nodeApiModules = modules.map((module) => ({
 }));
 
 function lesson(module, [slug, title, brief, symbol, requirements], index) {
-  const proof = nodeEvidence(module.id, slug);
-  const solution = `export function ${symbol}(input = {}) {\n  const requestId = input.requestId || crypto.randomUUID?.() || "local-request";\n  const status = input.valid === false ? 400 : 200;\n  const headers = { "x-request-id": requestId, "content-type": "application/json" };\n  const body = { ok: status < 400, requestId, contract: "${slug}", module: "${module.id}" };\n  return { status, headers, body };\n}\n\n// PulsaTeach API evidence: ${proof.join(" ")}`;
+  const solution = nodeScenario(module.id, slug, symbol);
   return {
     id: `${module.id}-${slug}`,
     type: "node",
-    title: [title, title],
-    brief: [brief, `Practice: ${brief}`],
+    title: [title, `Implement ${humanize(slug)}`],
+    brief: [brief, `Implement and verify the ${humanize(slug)} contract in a realistic backend scenario.`],
     solution,
-    requirements: evidence([...requirements, symbol], solution, proof),
+    requirements: evidence([...requirements, symbol], solution),
     skills: [module.quiz[2], `node-${index + 1}`],
     vocabulary: module.vocabulary,
     durationMin: 32,
@@ -136,16 +135,15 @@ function lesson(module, [slug, title, brief, symbol, requirements], index) {
 }
 
 function project([id, title, brief, symbol, requirements, finalProject = false], module) {
-  const proof = nodeEvidence(module.id, id);
-  const solution = `export function create${symbol}({ repository, logger, authorize }) {\n  return {\n    async handle(request) {\n      const requestId = request.id || crypto.randomUUID();\n      const auth = await authorize(request);\n      if (!auth.ok) return { status: 401, body: { error: "UNAUTHORIZED", requestId } };\n      logger.info({ requestId, route: "${id}", statusCode: 200, durationMs: 0 });\n      const result = await repository.listForUser(auth.userId);\n      return { status: 200, headers: { "x-request-id": requestId }, body: { items: result, requestId } };\n    }\n  };\n}\n\n// PulsaTeach API evidence: ${proof.join(" ")}`;
+  const solution = nodeProjectScenario(module.id, symbol);
   return {
     id,
     project: true,
     exerciseType: "node",
-    title: [title, title],
-    brief: [brief, `Build and prove: ${brief}`],
+    title: [title, `Backend project: ${humanize(id)}`],
+    brief: [brief, `Build the scenario and prove its success, invalid-input, unauthenticated, and forbidden outcomes.`],
     solution,
-    requirements: evidence([...requirements, symbol, `create${symbol}`], solution, proof),
+    requirements: evidence([...requirements, symbol, `create${symbol}`], solution),
     skills: [module.quiz[2], "node-project", finalProject ? "capstone" : "module-project"],
     vocabulary: module.vocabulary,
     durationMin: finalProject ? 240 : 130,
@@ -153,20 +151,7 @@ function project([id, title, brief, symbol, requirements, finalProject = false],
   };
 }
 
-function nodeEvidence(moduleId, slug) {
-  const common = ["requestId", "status", "headers", "body", "JSON", "contract", "no-secret"];
-  const byModule = {
-    "node-runtime-npm": ["process.env", "node:fs/promises", "crypto.randomUUID", "package.json", "npm-script", "module-boundary"],
-    "node-http-express": ["express", "app.get", "status(201)", "status(404)", "express.json", "asyncHandler"],
-    "node-validation-errors": ["safeParse", "VALIDATION_ERROR", "DomainError", "errorHandler", "issues", "requestId"],
-    "node-auth-isolation-foundations": ["Authorization", "Bearer", "status(401)", "status(403)", "ownerId", "cross-user"],
-    "node-data-testing": ["request(app)", "expect(200)", "expect(400)", "expect(403)", "beforeEach", "fixtures"],
-    "node-production-ops": ["helmet", "cors", "rateLimit", "durationMs", "statusCode", "rollback"]
-  };
-  return [...common, ...(byModule[moduleId] || []), slug];
-}
-
-function evidence(requirements, solution, proof) {
+function evidence(requirements, solution) {
   const candidates = [
     "export function",
     "async handle",
@@ -188,9 +173,35 @@ function evidence(requirements, solution, proof) {
   ];
   return [...new Set([
     ...requirements,
-    ...proof,
     ...candidates.filter((candidate) => solution.includes(candidate))
   ])];
+}
+
+function humanize(value) {
+  return value.replace(/^node-/, "").replaceAll("-", " ");
+}
+
+function nodeScenario(moduleId, slug, symbol) {
+  if (moduleId === "node-runtime-npm") {
+    return `export async function ${symbol}(input, dependencies) {\n  if (!input) throw new TypeError("input is required");\n  const requestId = dependencies.randomUUID();\n  const result = await dependencies.execute(input);\n  return { requestId, result, operation: "${slug}" };\n}`;
+  }
+  if (moduleId === "node-http-express") {
+    return `export function ${symbol}(app, service) {\n  app.post("/api/projects", asyncHandler(async (request, response) => {\n    const project = await service.create(request.body);\n    response.location(\`/api/projects/\${project.id}\`).status(201).json({ project });\n  }));\n  app.use((request, response) => response.status(404).json({ error: { code: "NOT_FOUND" } }));\n  return app;\n}`;
+  }
+  if (moduleId === "node-validation-errors") {
+    return `export function ${symbol}(schema) {\n  return (request, response, next) => {\n    const parsed = schema.safeParse(request.body);\n    if (!parsed.success) return response.status(400).json({ error: { code: "VALIDATION_ERROR", issues: parsed.error.issues }, requestId: request.id });\n    request.body = parsed.data;\n    next();\n  };\n}`;
+  }
+  if (moduleId === "node-auth-isolation-foundations") {
+    return `export async function ${symbol}(request, response, next) {\n  if (!request.auth) return response.status(401).json({ error: { code: "AUTH_REQUIRED" } });\n  const project = await request.repositories.projects.findById(request.params.projectId);\n  if (!project) return response.status(404).json({ error: { code: "PROJECT_NOT_FOUND" } });\n  if (project.ownerId !== request.auth.userId) return response.status(403).json({ error: { code: "PROJECT_ACCESS_DENIED" } });\n  request.project = project;\n  next();\n}`;
+  }
+  if (moduleId === "node-data-testing") {
+    return `export function ${symbol}({ app, request, bearer }) {\n  return Promise.all([\n    request(app).get("/api/projects/p1").expect(401),\n    request(app).get("/api/projects/p1").set("Authorization", bearer("user-b")).expect(403),\n    request(app).get("/api/projects/p1").set("Authorization", bearer("user-a")).expect(200)\n  ]);\n}`;
+  }
+  return `export function ${symbol}(app, { logger, allowedOrigins }) {\n  app.disable("x-powered-by");\n  app.use(helmet());\n  app.use(cors({ origin: allowedOrigins }));\n  app.use((request, response, next) => {\n    request.id ||= crypto.randomUUID();\n    response.setHeader("X-Request-Id", request.id);\n    response.on("finish", () => logger.info({ requestId: request.id, statusCode: response.statusCode }));\n    next();\n  });\n  return app;\n}`;
+}
+
+function nodeProjectScenario(moduleId, symbol) {
+  return `export function create${symbol}({ repository, authorize, logger }) {\n  return async function handle(request) {\n    const requestId = request.id || crypto.randomUUID();\n    const identity = await authorize(request);\n    if (!identity) return { status: 401, body: { error: { code: "AUTH_REQUIRED" }, requestId } };\n    const items = await repository.listForUser(identity.userId);\n    logger.info({ requestId, actorId: identity.userId, operation: "${moduleId}", statusCode: 200 });\n    return { status: 200, headers: { "x-request-id": requestId }, body: { items, requestId } };\n  };\n}`;
 }
 
 function quiz([id, title, skill]) {

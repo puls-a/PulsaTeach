@@ -3,9 +3,9 @@ export const publicTrackCatalog = [
     id: "tools",
     label: "TOOLS",
     title: { fr: "Poste de travail", en: "Workstation Setup" },
-    summary: { fr: "Installe VS Code, Cursor, PHP, PostgreSQL et prépare ton PC pour coder.", en: "Install VS Code, Cursor, PHP, PostgreSQL and prep your PC." },
+    summary: { fr: "Prépare un environnement de travail vérifiable sur Windows, macOS, Linux ou dans le lab intégré.", en: "Prepare a verifiable workstation on Windows, macOS, Linux, or in the built-in lab." },
     modules: 1,
-    lessons: 3,
+    lessons: 6,
     firstHref: "/learn/tools/tools-setup/tools-01-vscode"
   },
   {
@@ -15,7 +15,7 @@ export const publicTrackCatalog = [
     summary: { fr: "Structure, sémantique, formulaires, accessibilité et SEO avec tests DOM.", en: "Structure, semantics, forms, accessibility, and SEO with DOM tests." },
     modules: 10,
     lessons: 79,
-    firstHref: "/learn/html/html-foundations/html-01-document-skeleton"
+    firstHref: "/learn/html/html-getting-started/html-00-what-html-does"
   },
   {
     id: "css",

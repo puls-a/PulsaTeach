@@ -25,7 +25,6 @@ export const nodeApiTrack = createProfessionalTrack({
   capstone: ["Livrer une API de gestion de projets avec validation, architecture en couches, contrôle d’accès, logs structurés, tests et documentation d’exploitation.", "Ship a project-management API with validation, layered architecture, access control, structured logs, tests, and operations documentation."],
   certification: [["Valider chaque module", "Pass every module"], ["Livrer quatre projets backend", "Ship four backend projects"], ["Réussir l’examen final", "Pass the final exam"], ["Faire approuver les tests de sécurité inter-utilisateurs", "Get cross-user security tests approved"]],
   modules: [
-    ...nodeApiModules,
     {
       id: "node-runtime",
       title: ["Runtime, modules et asynchronisme", "Runtime, modules, and async"],
@@ -43,6 +42,7 @@ export const nodeApiTrack = createProfessionalTrack({
         ])
       ]
     },
+    ...nodeApiModules.slice(0, 1),
     {
       id: "node-http",
       title: ["Express, routing et validation", "Express, routing, and validation"],
@@ -60,6 +60,7 @@ export const nodeApiTrack = createProfessionalTrack({
         ])
       ]
     },
+    ...nodeApiModules.slice(1, 3),
     {
       id: "node-architecture-auth",
       title: ["Architecture, auth et autorisation", "Architecture, auth, and authorization"],
@@ -77,6 +78,7 @@ export const nodeApiTrack = createProfessionalTrack({
         ])
       ]
     },
+    ...nodeApiModules.slice(3, 5),
     {
       id: "node-production",
       title: ["Tests, sécurité HTTP et exploitation", "Testing, HTTP security, and operations"],
@@ -99,7 +101,8 @@ export const nodeApiTrack = createProfessionalTrack({
           q("x5", ["Quel ensemble décrit une API exploitable ?", "Which set describes an operable API?"], [["Validation, erreurs sûres, logs, tests et limites", "Validation, safe errors, logs, tests, and limits"], ["Routes uniquement", "Routes only"], ["Console.log du body", "Console.log of the body"]], "Validation, erreurs sûres, logs, tests et limites", ["La production exige prévention, preuve et diagnostic.", "Production requires prevention, proof, and diagnosis."], ["observability"])
         ], "exam", 80)
       ]
-    }
+    },
+    ...nodeApiModules.slice(5)
   ]
 });
 

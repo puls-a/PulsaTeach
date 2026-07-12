@@ -46,10 +46,10 @@ Le produit combine une expérience apprenant publique, un catalogue pédagogique
 | Indicateur | État actuel |
 | --- | --- |
 | Parcours | 14 formations web et outillage |
-| Leçons publiques | 871 leçons pré-rendues et indexées |
-| URLs publiques | 897 URLs dans le sitemap |
+| Leçons publiques | 874 leçons pré-rendues et indexées |
+| URLs publiques | 900 URLs dans le sitemap |
 | Tests automatisés | Vitest, Supertest, Playwright, Supabase E2E, Lighthouse |
-| Glossaire | 577 termes bilingues reliés au catalogue |
+| Glossaire | 599 termes bilingues reliés au catalogue |
 | Qualité | `npm run validate` bloque lint, tests, audits, build, SEO et bundle |
 
 ## Expérience Produit

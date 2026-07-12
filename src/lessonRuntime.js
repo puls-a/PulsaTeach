@@ -1,7 +1,8 @@
 import { runJavaScriptConsoleSandbox, runJavaScriptExpressionSandbox } from "./jsSandboxClient.js";
 import { createPreviewCspMeta } from "./security/sandboxPolicy.js";
+import { resolveLocaleValue } from "./localeValue.js";
 
-export function createPreview(lesson, code) {
+export function createPreview(lesson, code, locale = "fr") {
   const kind = getPreviewKind(lesson);
 
   if (kind === "css") {
@@ -14,7 +15,7 @@ export function createPreview(lesson, code) {
       .gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 20px; }
       .gallery span { display: block; min-height: 70px; border-radius: 10px; border: 1px solid #cbd5e1; background: #e0e7ff; }
       ${code}
-    </style></head><body>${lesson.previewHtml || defaultCssPreview()}</body></html>`;
+    </style></head><body>${resolveLocaleValue(lesson.previewHtml, locale) || defaultCssPreview(locale)}</body></html>`;
   }
 
   if (kind === "dom") {
@@ -25,7 +26,7 @@ export function createPreview(lesson, code) {
     </style></head><body>${code}</body></html>`;
   }
 
-  if (kind === "html") return createHtmlPreview(code);
+  if (kind === "html") return createHtmlPreview(code, locale);
 
   return createJavaScriptPreview();
 }
@@ -44,7 +45,7 @@ export function getPreviewKind(lesson) {
   return "html";
 }
 
-function createHtmlPreview(code) {
+function createHtmlPreview(code, locale) {
   const hasBody = /<body[\s>]/i.test(code);
   const bodyMatch = code.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
   const bodyIsEmpty = hasBody && !bodyMatch?.[1]?.trim();
@@ -54,7 +55,9 @@ function createHtmlPreview(code) {
     .pulsateach-empty-preview { min-height: 100vh; display: grid; place-items: center; padding: 24px; box-sizing: border-box; background: #f8fafc; color: #64748b; text-align: center; }
     .pulsateach-empty-preview strong { display: block; margin-bottom: 8px; color: #172033; }
   </style>`;
-  const emptyState = `<div class="pulsateach-empty-preview"><p><strong>Body vide</strong>Ajoute un élément visible dans &lt;body&gt; pour le voir ici.</p></div>`;
+  const emptyState = locale === "fr"
+    ? `<div class="pulsateach-empty-preview"><p><strong>Body vide</strong>Ajoute un élément visible dans &lt;body&gt; pour le voir ici.</p></div>`
+    : `<div class="pulsateach-empty-preview"><p><strong>Empty body</strong>Add a visible element inside &lt;body&gt; to see it here.</p></div>`;
 
   let preview = code.trim() || "<!doctype html><html><head></head><body></body></html>";
   preview = /<\/head>/i.test(preview) ? preview.replace(/<\/head>/i, `${helper}</head>`) : `${helper}${preview}`;
@@ -63,14 +66,15 @@ function createHtmlPreview(code) {
   return preview;
 }
 
-function defaultCssPreview() {
+function defaultCssPreview(locale) {
+  const actions = locale === "fr" ? ["Exécuter", "Indice", "Publier"] : ["Run", "Hint", "Ship"];
   return `<main class="demo-surface">
     <section class="panel">
       <article class="card course-card">HTML Quest</article>
       <article class="card course-card">CSS Lab</article>
       <article class="card course-card">JS Arena</article>
     </section>
-    <div class="toolbar"><button>Run</button><button>Hint</button><button>Ship</button></div>
+    <div class="toolbar"><button>${actions[0]}</button><button>${actions[1]}</button><button>${actions[2]}</button></div>
     <div class="gallery"><span></span><span></span><span></span><span></span></div>
   </main>`;
 }
@@ -79,10 +83,11 @@ function createJavaScriptPreview() {
   return `<!doctype html><html><head>${createPreviewCspMeta()}</head><body></body></html>`;
 }
 
-export async function validateLesson(lesson, code) {
+export async function validateLesson(lesson, code, locale = "fr") {
   const activeCode = stripCodeComments(code);
   const results = [];
-  for (const item of lesson.tests) {
+  for (const sourceItem of lesson.tests) {
+    const item = resolveLocaleValue(sourceItem, locale);
     let pass = false;
     if (item.type === "contains" || item.type === "doctype") {
       pass = normalize(activeCode).includes(normalize(item.value));
@@ -98,6 +103,15 @@ export async function validateLesson(lesson, code) {
     }
     if (item.type === "attributeEquals") {
       pass = checkAttributeEquals(code, item.value.selector, item.value.attribute, item.value.expected);
+    }
+    if (item.type === "containsAny") {
+      pass = asValues(item.value).some((value) => normalize(activeCode).includes(normalize(value)));
+    }
+    if (item.type === "notContainsAny") {
+      pass = asValues(item.value).every((value) => !normalize(activeCode).includes(normalize(value)));
+    }
+    if (["referenceExists", "nonEmptyAttribute", "attributeIncludes", "domOrder", "labelForControl", "allMatch", "noneMatch"].includes(item.type)) {
+      pass = checkHtmlSemanticAssertion(code, item);
     }
     if (item.type === "jsExpression") {
       pass = await runJavaScriptExpression(code, item.value);
@@ -143,7 +157,9 @@ export function testFailureHelp(check, locale) {
 }
 
 export function displayTestLabel(check, locale) {
-  if (locale !== "fr") return check.label;
+  const localized = resolveLocaleValue(check, locale);
+  if (locale !== "fr") return localized.label;
+  check = localized;
   if (check.type === "cssDeclaration") return `La propriété « ${check.value.property} » est déclarée sur « ${check.value.selector} »`;
   if (check.type === "attributeEquals") return `L’attribut « ${check.value.attribute} » de « ${check.value.selector} » vaut « ${check.value.expected} »`;
   if (check.type === "exactSelector") return `Exactement ${check.amount || 1} élément(s) correspondent à « ${check.value} »`;
@@ -190,6 +206,86 @@ function checkAttributeEquals(code, selector, attribute, expected) {
   }
 }
 
+export const HTML_TEST_TYPES = new Set([
+  "contains", "containsAny", "doctype", "notContains", "notContainsAny", "selector", "minSelector", "exactSelector",
+  "attributeEquals", "referenceExists", "nonEmptyAttribute", "attributeIncludes",
+  "domOrder", "labelForControl", "allMatch", "noneMatch"
+]);
+
+function checkHtmlSemanticAssertion(code, test) {
+  try {
+    const doc = new DOMParser().parseFromString(code, "text/html");
+    const value = test.value || {};
+
+    if (test.type === "domOrder") {
+      const selectors = Array.isArray(value) ? value : value.selectors;
+      if (!Array.isArray(selectors) || selectors.length < 2) return false;
+      const elements = selectors.map((selector) => doc.querySelector(selector));
+      return elements.every(Boolean) && elements.every((element, index) => index === 0 || Boolean(elements[index - 1].compareDocumentPosition(element) & 4));
+    }
+
+    const elements = [...doc.querySelectorAll(value.selector)];
+    if (!elements.length) return false;
+
+    if (test.type === "nonEmptyAttribute") {
+      return elements.every((element) => element.hasAttribute(value.attribute) && element.getAttribute(value.attribute).trim() !== "");
+    }
+    if (test.type === "attributeIncludes") {
+      const expected = Array.isArray(value.expected) ? value.expected.map(String) : [String(value.expected)];
+      return expected.length > 0 && elements.every((element) => {
+        const tokens = (element.getAttribute(value.attribute) || "").split(/\s+/).filter(Boolean);
+        return expected.every((token) => tokens.includes(token));
+      });
+    }
+    if (test.type === "allMatch" || test.type === "noneMatch") {
+      if (typeof value.matches !== "string" || !value.matches) return false;
+      return test.type === "allMatch"
+        ? elements.every((element) => element.matches(value.matches))
+        : elements.every((element) => !element.matches(value.matches));
+    }
+    if (test.type === "referenceExists") {
+      return elements.every((element) => referencedIds(element, value.attribute).every((id) => hasUniqueId(doc, id)) && referencedIds(element, value.attribute).length > 0);
+    }
+    if (test.type === "labelForControl") {
+      return elements.every((label) => {
+        const id = label.getAttribute("for")?.trim();
+        const control = id && getUniqueElementById(doc, id);
+        return Boolean(control?.matches("button, input:not([type=hidden]), meter, output, progress, select, textarea"));
+      });
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function referencedIds(element, attribute) {
+  const raw = element.getAttribute(attribute)?.trim();
+  if (!raw) return [];
+  if (attribute === "href") {
+    if (!raw.startsWith("#") || raw === "#") return [];
+    try {
+      return [decodeURIComponent(raw.slice(1))];
+    } catch {
+      return [];
+    }
+  }
+  return raw.split(/\s+/).filter(Boolean);
+}
+
+function getUniqueElementById(doc, id) {
+  const matches = [...doc.querySelectorAll("[id]")].filter((element) => element.id === id);
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function hasUniqueId(doc, id) {
+  return Boolean(getUniqueElementById(doc, id));
+}
+
 function normalize(value) {
   return String(value).toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function asValues(value) {
+  return Array.isArray(value) ? value : [value];
 }

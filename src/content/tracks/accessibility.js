@@ -103,15 +103,15 @@ export const accessibilityTrack = createProfessionalTrack({
 });
 
 function htmlLesson(id, title, brief, solution, requirements, vocabulary, skills) {
-  return { id, type: "html", title, brief, solution, starterCode: "<main>\n  <!-- Corrige la structure ici -->\n</main>", requirements, vocabulary, skills };
+  return { id, type: "html", title, brief, solution: artifact(solution), starterCode: artifact("<main>\n  <!-- Corrige la structure ici -->\n</main>"), requirements: localizedRequirements(requirements), vocabulary, skills };
 }
 
 function cssLesson(id, title, brief, solution, requirements, vocabulary, skills) {
-  return { id, type: "css", title, brief, solution, starterCode: "/* Corrige le style ici */", requirements, vocabulary, skills };
+  return { id, type: "css", title, brief, solution, starterCode: artifact("/* Corrige le style ici */"), requirements, vocabulary, skills };
 }
 
 function textLesson(id, title, brief, requirements, skills, vocabulary = [vocab.accessibility, vocab.audit]) {
-  return { id, type: "text", title, brief, solution: requirements.map((item) => `- ${item}`).join("\n"), requirements, vocabulary, skills };
+  return { id, type: "text", title, brief, solution: artifact(requirements.map((item) => `- ${item}`).join("\n")), starterCode: artifact("# Décris ton audit, tes corrections et tes preuves"), requirements: localizedRequirements(requirements), vocabulary, skills };
 }
 
 function project(id, title, brief, solution, requirements, vocabulary, skills, finalProject = false) {
@@ -121,9 +121,9 @@ function project(id, title, brief, solution, requirements, vocabulary, skills, f
     exerciseType: solution.trim().startsWith("<") ? "html" : "text",
     title,
     brief,
-    solution,
-    starterCode: solution.trim().startsWith("<") ? "<main>\n  <!-- Livre la version accessible -->\n</main>" : "# Audit et plan de correction",
-    requirements,
+    solution: artifact(solution),
+    starterCode: artifact(solution.trim().startsWith("<") ? "<main>\n  <!-- Livre la version accessible -->\n</main>" : "# Audit et plan de correction"),
+    requirements: localizedRequirements(requirements),
     vocabulary,
     skills,
     durationMin: finalProject ? 180 : 110,
@@ -148,4 +148,39 @@ function question(id, prompt, options, answerFr, explanation, skills) {
     skills,
     glossaryTerms: []
   };
+}
+
+function artifact(value) {
+  return { fr: value, en: translateArtifact(value), toString() { return this.fr; } };
+}
+
+function localizedRequirements(requirements) {
+  return requirements.map((value) => {
+    const translated = translateArtifact(value);
+    if (translated === value) return value;
+    return { type: "contains", label: artifact(`Présence de ${value}`), value: artifact(value) };
+  });
+}
+
+function translateArtifact(value) {
+  const replacements = [
+    ['lang="fr"', 'lang="en"'], ["Corrige la structure ici", "Fix the structure here"], ["Corrige le style ici", "Fix the styles here"],
+    ["Décris ton audit, tes corrections et tes preuves", "Describe your audit, fixes, and evidence"],
+    ["Livre la version accessible", "Ship the accessible version"], ["Audit et plan de correction", "Audit and remediation plan"],
+    ["Navigation principale", "Main navigation"], ["Tableau de bord", "Dashboard"], ["Paramètres du compte", "Account settings"],
+    ["Paramètres", "Settings"], ["Compte", "Account"], ["Profil", "Profile"], ["Sécurité", "Security"],
+    ["Ouvrir les préférences", "Open preferences"], ["Aller au contenu", "Skip to content"], ["Accueil", "Home"],
+    ["Contenu", "Content"], ["Principale", "Main"], ["Menu", "Menu"], ["Catalogue", "Catalog"],
+    ["Adresse email", "Email address"], ["Mot de passe", "Password"], ["caractères minimum", "characters minimum"],
+    ["Ajoute deux caractères", "Add two characters"], ["Les inscriptions progressent de 20 % en juin", "Registrations increased by 20% in June"], ["Les inscriptions", "Registrations"], ["Les registrations progressent de 20 % en juin", "Registrations increased by 20% in June"],
+    ["Évolution mensuelle", "Monthly trend"], ["Nom public", "Public name"], ["Le nom est requis", "Name is required"],
+    ["Enregistrer", "Save"], ["Profil enregistré", "Profile saved"], ["Afficher les détails", "Show details"],
+    ["Contenu détaillé", "Detailed content"], ["Audit WCAG 2.2 AA", "WCAG 2.2 AA audit"],
+    ["Critique", "Critical"], ["Navigation clavier et focus", "Keyboard navigation and focus"],
+    ["Noms accessibles des champs", "Accessible field names"], ["Correction", "Remediation"],
+    ["HTML sémantique", "Semantic HTML"], ["Focus visible", "Visible focus"], ["Messages reliés", "Connected messages"],
+    ["Preuves", "Evidence"], ["Parcours clavier", "Keyboard journey"], ["sans violation critique", "with no critical violation"],
+    ["Contrastes vérifiés", "Verified contrast"], ["Présence de", "Presence of"]
+  ];
+  return replacements.reduce((text, [fr, en]) => text.replaceAll(fr, en), value);
 }

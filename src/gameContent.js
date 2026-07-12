@@ -10,7 +10,7 @@ export const assetPaths = {
 export const worldZones = [
   {
     id: "html-forge",
-    href: "/learn/html/html-foundations/html-01-document-skeleton",
+    href: "/learn/html/html-getting-started/html-00-what-html-does",
     tone: "bg-orangePop",
     badge: "Markup Smith",
     levels: 15,

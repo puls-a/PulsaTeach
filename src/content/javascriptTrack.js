@@ -16,11 +16,11 @@ function jsManualQuiz(id, title, risk, proof) {
     ...base,
     questions: [
       { id: `${id}-q1`, type: "single", prompt, choices, answer: "proof", explanation },
-      { id: `${id}-q2`, type: "multiple", prompt: { fr: "Quelles preuves sont utiles ?", en: "Which evidence is useful?" }, choices: [{ id: "test", label: { fr: "Tests", en: "Tests" } }, { id: "console", label: { fr: "Console", en: "Console" } }, { id: "none", label: { fr: "Aucune", en: "None" } }], answer: ["test", "console"], explanation },
+      { id: `${id}-q2`, type: "multiple", prompt: { fr: `Quelles preuves valident ${title[0]} ?`, en: `Which evidence validates ${title[1]}?` }, choices: [{ id: "test", label: { fr: "Un test du résultat", en: "An output test" } }, { id: "console", label: { fr: "Une valeur observée dans la console", en: "A value observed in the console" } }, { id: "none", label: { fr: "Aucune exécution", en: "No execution" } }], answer: ["test", "console"], explanation },
       { id: `${id}-q3`, type: "true-false", prompt: { fr: `Vrai ou faux : ${risk[0]} est sans importance.`, en: `True or false: ${risk[1]} does not matter.` }, choices: [{ id: "true", label: { fr: "Vrai", en: "True" } }, { id: "false", label: { fr: "Faux", en: "False" } }], answer: "false", explanation },
-      { id: `${id}-q4`, type: "ordering", prompt: { fr: "Classe la méthode JS.", en: "Order the JS method." }, choices: [{ id: "read", label: { fr: "Lire", en: "Read" } }, { id: "risk", label: { fr: "Nommer", en: "Name" } }, { id: "fix", label: { fr: "Corriger", en: "Fix" } }, { id: "prove", label: { fr: "Prouver", en: "Prove" } }], answer: ["read", "risk", "fix", "prove"], explanation },
-      { id: `${id}-q5`, type: "code-reading", prompt: { fr: "Que préviens-tu ici ?", en: "What are you preventing here?" }, choices: [{ id: "risk", label: { fr: risk[0], en: risk[1] } }, { id: "ok", label: { fr: "Rien", en: "Nothing" } }, { id: "delete", label: { fr: "Supprimer", en: "Delete" } }], answer: "risk", explanation },
-      { id: `${id}-q6`, type: "short-open", prompt: { fr: "Quelle preuve citerais-tu ?", en: "What evidence would you cite?" }, choices: [], answer: ["console", "test", "log", "erreur"], explanation }
+      { id: `${id}-q4`, type: "ordering", prompt: { fr: `Ordonne le diagnostic de ${title[0]}.`, en: `Order the diagnosis of ${title[1]}.` }, choices: [{ id: "read", label: { fr: "Lire le contrat", en: "Read the contract" } }, { id: "risk", label: { fr: "Nommer le risque", en: "Name the risk" } }, { id: "fix", label: { fr: "Corriger une cause", en: "Fix one cause" } }, { id: "prove", label: { fr: "Exécuter la preuve", en: "Run the evidence" } }], answer: ["read", "risk", "fix", "prove"], explanation },
+      { id: `${id}-q5`, type: "code-reading", prompt: { fr: `Quel risque doit révéler la revue de ${title[0]} ?`, en: `Which risk should the ${title[1]} review expose?` }, choices: [{ id: "risk", label: { fr: risk[0], en: risk[1] } }, { id: "ok", label: { fr: "Aucun risque sans exécuter", en: "No risk without running it" } }, { id: "delete", label: { fr: "Supprimer le scénario", en: "Delete the scenario" } }], answer: "risk", explanation },
+      { id: `${id}-q6`, type: "short-open", prompt: { fr: `Quelle assertion prouverait ${proof[0]} ?`, en: `Which assertion would prove that ${proof[1]}?` }, choices: [], answer: ["console", "test", "entrée", "sortie", "input", "output"], explanation }
     ],
     passingScore: 75,
     randomizeQuestions: false
@@ -52,8 +52,9 @@ export const javascriptTrack = {
     en: ["Pass every JavaScript lesson and quiz", "Explain the data, actions, and rendering flow", "Ship the interactive counter", "Ship a persistent dashboard with error handling"]
   },
   modules: [
-    ...javascriptModules,
-    ...javascriptHardeningModules,
+    ...orderJavascriptModules([
+      ...javascriptModules,
+      ...javascriptHardeningModules,
     module("js-basics", "Bases du langage", "Language basics", [
       jsLesson("js-01-variables", ["Variables et calcul", "Variables and calculation"], "Crée une constante price, une constante quantity et une constante total.", "const price = 12;\n// ajoute quantity et total", ["const quantity", "const total", "price * quantity"], 25),
       jsLesson("js-01-conditionals", ["Conditions", "Conditionals"], "Crée une fonction canStart(age) qui retourne true si age est au moins 13.", "function canStart(age) {\n  // retourne true ou false\n}", ["function canStart", "return", "age >= 13"], 30),
@@ -90,8 +91,21 @@ export const javascriptTrack = {
       jsManualQuiz("js-05-async-quiz", ["Quiz Async", "Async quiz"], ["une promesse non gérée", "an unhandled promise"], ["utiliser await et try/catch", "use await and try/catch"]),
       projectLesson({ id: "js-05-final-project", title: ["Projet final : Load & Save", "Final project: Load & Save"], brief: ["Charge des données depuis localStorage, sinon depuis l'API.", "Load data from localStorage, otherwise from the API."], starterCode: "async function init() {\n}\n", solution: "async function init() {\n  let data = localStorage.getItem('data');\n  if (!data) {\n    const res = await fetch('/api/data');\n    data = await res.json();\n    localStorage.setItem('data', JSON.stringify(data));\n  }\n  return data;\n}", tests: [test("contains", "getItem", "localStorage.getItem"), test("contains", "fetch", "await fetch")], xp: 120 })
     ])
+    ])
   ]
 };
+
+function orderJavascriptModules(modules) {
+  const progression = [
+    "js-variables-strings", "js-basics", "js-booleans-numbers",
+    "js-functions-scope", "js-functions", "js-collections-loops", "js-arrays",
+    "js-strings-regex-errors", "js-validation-hardening", "js-dom-forms",
+    "js-dom-events", "js-storage-state", "js-async-fetch", "js-storage-async",
+    "js-async-resilience", "js-debugging", "js-dom-production", "js-capstone"
+  ];
+  const byId = new Map(modules.map((item) => [item.id, item]));
+  return progression.map((id) => byId.get(id));
+}
 
 const manualLessonContexts = {
   "js-01-basics-project": ["Assembler un ticket de caisse force à relier valeur source, calcul et message observable.", "Afficher un total sans garder les valeurs sources rend le calcul impossible à vérifier."],

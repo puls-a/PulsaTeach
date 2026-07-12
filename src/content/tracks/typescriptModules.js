@@ -20,7 +20,7 @@ const modules = [
       ["public-function", "Annoter une fonction publique", "Rends le contrat d'entrée et de sortie visible pour l'équipe.", "export function formatXp(xp: number): string { return `${xp} XP`; }", ["xp: number", "): string"]],
       ["object-model", "Créer un modèle lisible", "Décris une formation sans any ni propriétés ambiguës.", "type Track = { id: string; title: string; lessons: number; free: boolean };", ["type Track", "free: boolean"]],
       ["readonly-list", "Protéger une liste", "Accepte une liste en lecture seule dans les fonctions de calcul.", "function count(items: readonly Track[]): number { return items.length; }", ["readonly Track[]", "number"]],
-      ["literal-union", "Limiter les variantes", "Remplace string libre par une union métier.", "type Level = 'débutant' | 'intermédiaire' | 'avancé';", ["type Level", "'avancé'"]],
+      ["literal-union", "Limiter les variantes", "Remplace string libre par une union métier.", "type Level = 'beginner' | 'intermediate' | 'advanced';", ["type Level", "'advanced'"]],
       ["utility-pick", "Dériver un résumé", "Crée un type de carte depuis le modèle canonique.", "type TrackCard = Pick<Track, 'id' | 'title' | 'lessons'>;", ["Pick<Track", "'lessons'"]]
     ],
     project: ["ts-profile-project", "Mini-projet : profil apprenant typé", "Modélise profil, objectifs, préférences et carte publique sans duplication.", "LearnerProfile", ["type LearnerProfile", "readonly", "Pick<", "Level"]],
@@ -118,11 +118,12 @@ export const typescriptModules = modules.map((module) => ({
 
 function lesson(module, [slug, title, brief, solution, requirements], index) {
   const provenSolution = `${solution}\n\n// PulsaTeach evidence: ${module.quiz[2]} compiler-proof no-any runtime-proof review-ready`;
+  const englishTitle = englishLessonTitle(slug);
   return {
     id: `${module.id}-${slug}`,
     type: "typescript",
-    title: [title, title],
-    brief: [brief, `Practice: ${brief}`],
+    title: [title, englishTitle],
+    brief: [brief, `Apply ${englishTitle.toLowerCase()} to ${module.description[1].replace(/\.$/, "").toLowerCase()}, then explain the compiler evidence.`],
     solution: provenSolution,
     requirements: evidence([...requirements, "PulsaTeach evidence", module.quiz[2], "compiler-proof", "no-any", "review-ready"], provenSolution),
     skills: [module.quiz[2], `ts-${index + 1}`],
@@ -138,8 +139,8 @@ function project([id, title, brief, symbol, requirements, finalProject = false],
     id,
     project: true,
     exerciseType: "typescript",
-    title: [title, title],
-    brief: [brief, `Build and prove: ${brief}`],
+    title: [title, englishProjectTitle(id)],
+    brief: [brief, `Deliver the ${module.title[1].toLowerCase()} artifact and document its strict compilation and runtime checks.`],
     solution,
     requirements: evidence([...requirements, symbol, `validate${symbol}`, "PulsaTeach evidence", module.quiz[2], "compiler-proof", "no-any", "review-ready"], solution),
     skills: [module.quiz[2], "typescript-project", finalProject ? "capstone" : "module-project"],
@@ -181,15 +182,42 @@ function evidence(requirements, solution) {
 }
 
 function quiz([id, title, skill]) {
-  return { id, type: "quiz", title: [title, title], brief: ["Réponds avec l'œil d'une revue TypeScript stricte : moins de magie, plus de preuves.", "Answer with a strict TypeScript review mindset: less magic, more evidence."], purpose: "module-review", passingScore: 75, questions: [
-    q(`${id}-1`, "Quelle décision améliore vraiment la sûreté ?", "Garder l'extérieur en unknown puis prouver sa forme", ["Ajouter any", "Caster avec as partout", "Désactiver strict"], skill),
-    q(`${id}-2`, "Quel type évite le mieux un état impossible ?", "Une union discriminée reliée aux données valides", ["Un objet avec tout optionnel", "Un string libre", "Un commentaire"], skill),
-    q(`${id}-3`, "Quand utiliser un générique ?", "Quand il conserve une relation utile entre valeurs", ["Pour faire plus professionnel", "Pour remplacer une validation runtime", "Pour cacher une erreur"], skill),
-    q(`${id}-4`, "Quelle preuve accompagne une migration saine ?", "Compilation stricte, tests ciblés et dette documentée", ["Un renommage massif seul", "Une capture d'écran", "Une promesse orale"], skill),
-    q(`${id}-5`, "Pourquoi limiter les assertions as ?", "Elles contournent le compilateur sans preuve runtime", ["Elles ralentissent toujours l'app", "Elles changent le HTML", "Elles empêchent les imports"], skill)
+  const scenario = quizScenario(skill);
+  return { id, type: "quiz", title: [title, scenario.title], brief: ["Réponds avec l'œil d'une revue TypeScript stricte : moins de magie, plus de preuves.", "Answer with a strict TypeScript review mindset: less magic, more evidence."], purpose: "module-review", passingScore: 75, questions: [
+    q(`${id}-1`, scenario.prompt, scenario.answer, scenario.distractors, skill),
+    q(`${id}-2`, [`Quelle preuve compiler pour ${scenario.subject} ?`, `Which compiler evidence is required for ${scenario.subject}?`], ["Une compilation stricte sans contournement", "A strict build with no workaround"], [["Un renommage de fichier", "A file rename"], ["Une capture d'écran", "A screenshot"], ["Un commentaire sans test", "An untested comment"]], skill),
+    q(`${id}-3`, [`Quel test négatif renforce ${scenario.subject} ?`, `Which negative test strengthens ${scenario.subject}?`], ["Faire échouer une entrée hors contrat", "Reject an input outside the contract"], [["Tester seulement le cas heureux", "Test only the happy path"], ["Désactiver strict", "Disable strict mode"], ["Ajouter any", "Add any"]], skill),
+    q(`${id}-4`, [`Que vérifier en revue pour ${scenario.subject} ?`, `What should review verify for ${scenario.subject}?`], ["La relation entre modèle statique et preuve runtime", "The relationship between the static model and runtime evidence"], [["Le nombre de types", "The number of types"], ["La longueur des noms", "The length of names"], ["La couleur de l'éditeur", "The editor color"]], skill),
+    q(`${id}-5`, [`Quel résultat doit survivre au refactoring de ${scenario.subject} ?`, `What must survive refactoring of ${scenario.subject}?`], ["Le contrat public vérifié", "The verified public contract"], [["Chaque type privé", "Every private type"], ["L'ordre des fonctions", "Function order"], ["Les assertions as", "The as assertions"]], skill)
   ] };
 }
 
 function q(id, prompt, answer, distractors, skill) {
-  return { id, type: "single", prompt: [prompt, prompt], choices: [answer, ...distractors].map((label) => ({ id: label, label: [label, label] })), answer, explanation: ["La réponse durable garde le contrat statique aligné avec les preuves runtime.", "A durable answer keeps the static contract aligned with runtime evidence."], points: 1, skills: [skill], glossaryTerms: [] };
+  return { id, type: "single", prompt, choices: [answer, ...distractors].map((label) => ({ id: label[0], label })), answer: answer[0], explanation: ["La réponse durable garde le contrat statique aligné avec les preuves runtime.", "A durable answer keeps the static contract aligned with runtime evidence."], points: 1, skills: [skill], glossaryTerms: [] };
+}
+
+function englishLessonTitle(slug) {
+  return ({
+    "infer-const": "Let constants infer narrow types", "public-function": "Annotate a public function", "object-model": "Design a readable object model", "readonly-list": "Protect a collection from mutation", "literal-union": "Constrain domain variants", "utility-pick": "Derive a card projection",
+    "load-state": "Model a loading workflow", exhaustive: "Enforce exhaustive handling", "form-state": "Separate draft and submitted form states", "error-code": "Encode expected failures", "narrow-if": "Narrow through control flow", "state-render": "Render from a discriminated state",
+    mapper: "Type a mapping function", constraint: "Constrain an identifiable value", tuple: "Return a stable tuple", predicate: "Turn a predicate into type evidence", record: "Model a keyed record", partial: "Constrain update patches",
+    "dom-check": "Verify a DOM element", "json-unknown": "Parse JSON as unknown", "type-guard": "Write a runtime type guard", "api-result": "Return an explicit result", "safe-fetch": "Type a guarded fetch client", "error-narrow": "Narrow caught errors",
+    strict: "Enable strict mode", "no-unchecked": "Handle unchecked indexed access", module: "Align module resolution", paths: "Document path aliases", declarations: "Maintain an ambient declaration", "lint-type": "Block unsafe any usage",
+    inventory: "Inventory migration risk", "js-check": "Use checkJs as a temporary gate", "convert-one": "Convert a high-value boundary", "replace-any": "Replace any with evidence", "contract-tests": "Add a behavioral contract test", "migration-note": "Record remaining migration debt"
+  })[slug];
+}
+
+function englishProjectTitle(id) {
+  return ({ "ts-profile-project": "Mini-project: typed learner profile", "ts-workflow-project": "Mini-project: publication workflow", "ts-toolkit-project": "Mini-project: typed collection toolkit", "ts-api-client-project": "Mini-project: validated API client", "ts-config-project": "Mini-project: production tsconfig", "ts-final-capstone": "Final project: migrate a learning tracker" })[id];
+}
+
+function quizScenario(skill) {
+  return ({
+    "typescript-foundations": ["TypeScript contracts", "un contrat de données lisible", "a readable data contract", "Quelle annotation apporte une information absente de l'inférence ?", "Which annotation adds information inference cannot provide?", "Le type de retour d'une API publique", "A public API return type"],
+    "typescript-unions": ["closed state models", "un workflow fermé", "a closed workflow", "Comment empêcher un état publié sans date ?", "How do you prevent a published state with no date?", "Relier la date à la variante published", "Attach the date to the published variant"],
+    "typescript-generics": ["generic relationships", "un helper de collection générique", "a generic collection helper", "Quand le paramètre de type est-il utile ?", "When is the type parameter useful?", "Quand il relie l'élément au résultat", "When it connects the item to the result"],
+    "typescript-boundaries": ["runtime boundaries", "une réponse JSON externe", "an external JSON response", "Quel type reçoit le payload avant validation ?", "Which type receives the payload before validation?", "unknown", "unknown"],
+    "typescript-config": ["compiler configuration", "la configuration de compilation", "compiler configuration", "Quelle option révèle une clé potentiellement absente ?", "Which option reveals a potentially missing key?", "noUncheckedIndexedAccess", "noUncheckedIndexedAccess"],
+    "typescript-migration": ["strict migration", "une migration progressive", "a progressive migration", "Quelle première étape rend le risque mesurable ?", "Which first step makes risk measurable?", "Inventorier frontières, any et erreurs strictes", "Inventory boundaries, any usage, and strict errors"]
+  }[skill] || []).reduce((result, value, index, values) => ({ title: values[0], subject: values[2], prompt: [values[3], values[4]], answer: [values[5], values[6]], distractors: [["Ajouter any", "Add any"], ["Forcer avec as", "Force it with as"], ["Désactiver strict", "Disable strict mode"]] }), {});
 }

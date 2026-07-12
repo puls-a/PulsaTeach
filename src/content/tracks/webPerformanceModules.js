@@ -64,16 +64,25 @@ export const webPerformanceModules = [
 
 function code(id, title, brief, solution, requirements, skills, vocabulary) {
   const type = solution.trim().startsWith("<") ? "html" : solution.includes("select ") || solution.includes("create index") ? "sql" : solution.includes("function ") || solution.includes("import ") || solution.includes("self.addEventListener") ? "node" : "text";
-  return { id, type, title, brief, solution, requirements, skills, vocabulary };
+  return practice({ id, type, title, brief, solution, requirements, skills, vocabulary });
 }
 
 function text(id, title, brief, requirements, skills, vocabulary) {
-  return { id, type: "text", title, brief, solution: requirements.map((item) => `- ${item}`).join("\n"), requirements, skills, vocabulary };
+  return practice({ id, type: "text", title, brief, solution: requirements.map((item) => `- ${item}`).join("\n"), requirements, skills, vocabulary });
 }
 
 function project(id, title, brief, solution, requirements, skills, vocabulary, finalProject = false) {
   const exerciseType = solution.trim().startsWith("#") ? "text" : solution.trim().startsWith("<") ? "html" : "node";
-  return { id, project: true, exerciseType, title, brief, solution, requirements, skills, vocabulary, durationMin: finalProject ? 220 : 120, xp: finalProject ? 155 : 95 };
+  return { ...practice({ id, title, brief, solution, requirements, skills, vocabulary }), project: true, exerciseType, durationMin: finalProject ? 220 : 120, xp: finalProject ? 155 : 95 };
+}
+
+function practice(spec) {
+  const enRequirements = spec.requirements.map((item, index) => frenchOnly(item) ? `evidence: ${spec.skills[index % spec.skills.length]}` : item);
+  return { ...spec, starterCode: { fr: "# Décris le diagnostic et la preuve", en: "# Describe the diagnosis and evidence" }, solution: { fr: spec.solution, en: frenchOnly(spec.solution) ? `# ${spec.title[1]}\n\n${spec.brief[1]}\n\n## Evidence\n${enRequirements.map((item) => `- ${item}`).join("\n")}` : spec.solution }, requirements: spec.requirements.map((item, index) => ({ type: "contains", label: { fr: `La preuve « ${item} » est présente`, en: `Evidence “${enRequirements[index]}” is present` }, value: frenchOnly(item) ? { fr: item, en: enRequirements[index] } : item })) };
+}
+
+function frenchOnly(value) {
+  return /[àâçéèêëîïôùûüœ]|\b(?:testée|sauvegardée|requêtes|problème|preuve|apprendre|parcours|dernier déploiement)\b/i.test(String(value));
 }
 
 function quiz(id, title, questions, purpose = "module-review", passingScore = 75) {

@@ -36,10 +36,10 @@ test("private dashboard route stays noindex", async ({ page }) => {
 });
 
 test("lesson routes expose unique course metadata", async ({ page }) => {
-  await gotoRoute(page, "/learn/html/html-a11y-final/html-10-accessibility-quiz");
-  await expect(page).toHaveTitle(/Quiz accessibilité — HTML interactif gratuit \| PulsaTeach/i);
-  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /formulaire accessible|accessible form/i);
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://pulsateach.vercel.app/learn/html/html-a11y-final/html-10-accessibility-quiz");
+  await gotoRoute(page, "/learn/html/html-final-audit/html-09-final-exam");
+  await expect(page).toHaveTitle(/Examen final HTML — HTML interactif gratuit \| PulsaTeach/i);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /livrable final|final deliverable/i);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://pulsateach.vercel.app/learn/html/html-final-audit/html-09-final-exam");
   const schema = JSON.parse(await page.locator("#pulsateach-route-schema").textContent());
   expect(schema["@graph"]).toEqual(expect.arrayContaining([
     expect.objectContaining({ "@type": "Course", isAccessibleForFree: true }),
@@ -49,9 +49,9 @@ test("lesson routes expose unique course metadata", async ({ page }) => {
 
 test("tools formation links to a valid first lesson", async ({ page }) => {
   await page.goto("/formations/tools", { waitUntil: "domcontentloaded" });
-  await expect(page.getByText(/Poste de travail|Workstation Setup/).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Premiers outils de développement|First development tools/ })).toBeVisible();
   await expect(page.locator('a[href*="undefined"]')).toHaveCount(0);
-  await expect(page.getByRole("link", { name: /Environnement de développement|Development environment/ }).first()).toHaveAttribute("href", /\/learn\/tools\/tools-setup\/tools-01-vscode$/);
+  await expect(page.getByRole("link", { name: /Démarrer avec des outils fiables|Start with reliable tools/ }).first()).toHaveAttribute("href", /\/learn\/tools\/tools-setup\/tools-01-vscode$/);
 });
 
 test("unknown formation returns an explicit catalog 404", async ({ page }) => {

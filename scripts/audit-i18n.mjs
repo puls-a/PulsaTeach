@@ -27,6 +27,7 @@ for (const track of learningTracks) {
       rejectUntranslatedPair(lesson.pedagogy, `${path}.pedagogy`);
       if (lesson.guide) requireLocalized(lesson.guide, `${path}.guide`);
       if (lesson.rubric) requireLocalized(lesson.rubric, `${path}.rubric`, true);
+      inspectLearnerArtifacts(lesson, path);
 
       for (const question of lesson.questions || []) {
         requireLocalized(question.prompt, `${path}/${question.id}.prompt`);
@@ -71,4 +72,34 @@ function rejectUntranslatedPair(value, path) {
 
 function normalize(value) {
   return String(value || "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function inspectLearnerArtifacts(lesson, path) {
+  for (const field of ["starterCode", "solution", "previewHtml"]) {
+    const value = lesson[field];
+    if (value && typeof value === "object" && !Array.isArray(value)) requireLocalized(value, `${path}.${field}`);
+  }
+
+  for (const [index, test] of (lesson.tests || []).entries()) {
+    for (const field of ["label", "value"]) validateTestLocale(test[field], `${path}.tests[${index}].${field}`);
+  }
+}
+
+function validateTestLocale(value, path) {
+  if (!value || typeof value !== "object") return;
+  if (!Array.isArray(value) && ("fr" in value || "en" in value)) {
+    requireLocalized(value, path);
+    if (typeof value.fr === "string" && typeof value.en === "string" && looksNaturalLanguage(value.fr) && normalize(value.fr) === normalize(value.en)) {
+      failures.push(`${path}: French-only natural-language validation in a bilingual test`);
+    }
+    return;
+  }
+  for (const [key, nested] of Object.entries(value)) validateTestLocale(nested, `${path}.${key}`);
+}
+
+function looksNaturalLanguage(value) {
+  const text = String(value).trim();
+  if (text.length < 4 || /[<>{}=#[\]();:/\\]/.test(text)) return false;
+  if (/^(aria-|data-|role\b|class\b|id\b|href\b|https?\b|[\w.-]+\.(html|css|js|ts|svg))/.test(text)) return false;
+  return /\p{L}{3,}\s+\p{L}{3,}/u.test(text);
 }

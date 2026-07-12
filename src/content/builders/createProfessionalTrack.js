@@ -61,8 +61,8 @@ function createPracticeLesson(track, module, lesson) {
     course,
     pedagogy,
     theory: {
-      fr: { points: course.fr.rules, example: solution },
-      en: { points: course.en.rules, example: solution }
+      fr: { points: course.fr.rules, example: resolveLocaleValue(solution, "fr") },
+      en: { points: course.en.rules, example: resolveLocaleValue(solution, "en") }
     },
     guide: {
       fr: { objectives: course.fr.objectives, steps: pedagogy.fr.guided, mistakes: [`${title.fr} : appliquer une règle sans vérifier son effet.`, "Confondre conformité automatique et usage réel.", "Corriger sans conserver de preuve."] },
@@ -75,7 +75,7 @@ function createPracticeLesson(track, module, lesson) {
     solution,
     previewHtml: lesson.previewHtml,
     tests: requirements.map((requirement) => typeof requirement === "string"
-      ? { type: "contains", label: `${requirement} is present`, value: requirement }
+      ? { type: "contains", label: { fr: `${requirement} est présent`, en: `${requirement} is present` }, value: requirement }
       : requirement),
     rubric: lesson.project ? localizedList(lesson.rubric || [
       ["Le résultat répond au brief.", "The result meets the brief."],
@@ -162,8 +162,8 @@ function courseLocale(track, module, lesson, vocabulary, locale) {
     vocabulary: vocabulary.map((entry) => [entry[index], entry[index + 2]]),
     sections: [
       { title: locale === "fr" ? "Le problème à résoudre" : "The problem to solve", paragraphs: [module.description[index], brief, professionalContext], example: lesson.badExample || "" },
-      { title: locale === "fr" ? "Le contrat de la solution" : "The solution contract", paragraphs: [implementation, reviewChecklist], example: lesson.solution || lesson.example || "" },
-      { title: locale === "fr" ? "La preuve attendue" : "Expected evidence", paragraphs: [verification, requirements.length ? (locale === "fr" ? `Contrôles ciblés : ${requirements.join(" · ")}.` : `Targeted checks: ${requirements.join(" · ")}.`) : "", productionTransfer].filter(Boolean), example: lesson.verificationExample || "" }
+      { title: locale === "fr" ? "Le contrat de la solution" : "The solution contract", paragraphs: [implementation, reviewChecklist], example: resolveLocaleValue(lesson.solution || lesson.example || "", locale) },
+      { title: locale === "fr" ? "La preuve attendue" : "Expected evidence", paragraphs: [verification, requirements.length ? (locale === "fr" ? `Contrôles ciblés : ${requirements.join(" · ")}.` : `Targeted checks: ${requirements.join(" · ")}.`) : "", productionTransfer].filter(Boolean), example: resolveLocaleValue(lesson.verificationExample || "", locale) }
     ],
     rules: requirements.slice(0, 3).length ? requirements.slice(0, 3) : [brief, verification],
     check: locale === "fr"
@@ -177,7 +177,7 @@ function courseLocale(track, module, lesson, vocabulary, locale) {
 function pedagogyLocale(track, lesson, vocabulary, locale) {
   const index = locale === "fr" ? 0 : 1;
   const title = lesson.title[index];
-  const solution = lesson.solution || lesson.example || "";
+  const solution = resolveLocaleValue(lesson.solution || lesson.example || "", locale);
   const requirements = readableRequirements(lesson.requirements || [], locale);
   const primaryCheck = requirements[0] || (locale === "fr" ? "le résultat visible" : "the visible result");
   return {
@@ -211,8 +211,8 @@ function pedagogyLocale(track, lesson, vocabulary, locale) {
 function readableRequirements(requirements, locale) {
   return requirements.map((requirement) => {
     if (typeof requirement === "string") return requirement.replaceAll(/[{};"']/g, "").trim();
-    return requirement?.label || requirement?.value?.property || requirement?.value || "";
-  }).filter(Boolean).map((value) => locale === "fr" ? String(value) : String(value));
+    return resolveLocaleValue(requirement?.label || requirement?.value?.property || requirement?.value || "", locale);
+  }).filter(Boolean).map(String);
 }
 
 function firstVocabulary(vocabulary, index) {
@@ -274,3 +274,4 @@ function localizedList(value) {
   }
   return { fr: value, en: value };
 }
+import { resolveLocaleValue } from "../../localeValue.js";

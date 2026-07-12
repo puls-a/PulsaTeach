@@ -14,6 +14,9 @@ const perFileBudgets = {
   ".js": 250 * KB,
   ".css": 60 * KB
 };
+const dataChunkBudgets = {
+  "content-html-": { raw: 350 * KB, gzip: 110 * KB }
+};
 const aggregateBudgets = {
   rawJs: budgetFromEnv("BUNDLE_BUDGET_RAW_JS_MB", 2.25 * MB),
   rawCss: budgetFromEnv("BUNDLE_BUDGET_RAW_CSS_KB", 70 * KB),
@@ -37,9 +40,13 @@ for (const absolutePath of files) {
   };
   metrics.set(relativePath, metric);
 
-  const perFileBudget = perFileBudgets[extension];
+  const dataBudget = Object.entries(dataChunkBudgets).find(([prefix]) => path.basename(relativePath).startsWith(prefix))?.[1];
+  const perFileBudget = dataBudget?.raw || perFileBudgets[extension];
   if (perFileBudget && size > perFileBudget) {
     failures.push(`${relativePath}: ${formatBytes(size)} raw exceeds ${formatBytes(perFileBudget)}`);
+  }
+  if (dataBudget?.gzip && metric.gzip > dataBudget.gzip) {
+    failures.push(`${relativePath}: ${formatBytes(metric.gzip)} gzip exceeds ${formatBytes(dataBudget.gzip)}`);
   }
 }
 

@@ -93,7 +93,7 @@ export default function LandingPage({ locale = "fr" }) {
               <a href="/catalog" className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-white px-6 text-base font-black text-indigoPop shadow-2xl shadow-indigo-950/30 transition hover:-translate-y-0.5 hover:bg-indigo-50">
                 {fr ? "Choisir une formation" : "Choose a course"} <ArrowRight className="size-5" />
               </a>
-              <a href="/learn/html/html-foundations/html-01-document-skeleton" className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 text-base font-black text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/15">
+              <a href="/learn/html/html-getting-started/html-00-what-html-does" className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 text-base font-black text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/15">
                 <PlayCircle className="size-5" /> {fr ? "Démarrer en HTML" : "Start with HTML"}
               </a>
             </div>

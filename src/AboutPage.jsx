@@ -62,7 +62,7 @@ export default function AboutPage({ locale = "fr" }) {
             </p>
             <div className="relative mt-7 flex flex-col gap-3 sm:flex-row">
               <a href="/catalog" className="primary-button">{fr ? "Explorer les formations" : "Explore courses"}</a>
-              <a href="/learn/html/html-foundations/html-01-document-skeleton" className="secondary-button">{fr ? "Commencer par HTML" : "Start with HTML"}</a>
+              <a href="/learn/html/html-getting-started/html-00-what-html-does" className="secondary-button">{fr ? "Commencer par HTML" : "Start with HTML"}</a>
             </div>
           </article>
 

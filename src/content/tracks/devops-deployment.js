@@ -104,19 +104,28 @@ export const devopsDeploymentTrack = createProfessionalTrack({
 });
 
 function terminal(id, title, brief, solution, requirements, skills, vocabulary) {
-  return { id, type: "terminal", title, brief, solution, requirements, skills, vocabulary };
+  return practice({ id, type: "terminal", title, brief, solution, requirements, skills, vocabulary });
 }
 
 function code(id, title, brief, solution, requirements, skills, vocabulary) {
-  return { id, type: "node", title, brief, solution, requirements, skills, vocabulary };
+  return practice({ id, type: "node", title, brief, solution, requirements, skills, vocabulary });
 }
 
 function text(id, title, brief, requirements, skills, vocabulary) {
-  return { id, type: "text", title, brief, solution: requirements.map((item) => `- ${item}`).join("\n"), requirements, skills, vocabulary };
+  return practice({ id, type: "text", title, brief, solution: requirements.map((item) => `- ${item}`).join("\n"), requirements, skills, vocabulary });
 }
 
 function project(id, title, brief, solution, requirements, skills, vocabulary, finalProject = false) {
-  return { id, project: true, exerciseType: "text", title, brief, solution, requirements, skills, vocabulary, durationMin: finalProject ? 240 : 120, xp: finalProject ? 160 : 95 };
+  return { ...practice({ id, title, brief, solution, requirements, skills, vocabulary }), project: true, exerciseType: "text", durationMin: finalProject ? 240 : 120, xp: finalProject ? 160 : 95 };
+}
+
+function practice(spec) {
+  const enRequirements = spec.requirements.map((item, index) => frenchOnly(item) ? `evidence: ${spec.skills[index % spec.skills.length]}` : item);
+  return { ...spec, starterCode: { fr: "# Documente les commandes et les preuves", en: "# Document commands and evidence" }, solution: { fr: spec.solution, en: frenchOnly(spec.solution) ? `# ${spec.title[1]}\n\n${spec.brief[1]}\n\n## Evidence\n${enRequirements.map((item) => `- ${item}`).join("\n")}` : spec.solution }, requirements: spec.requirements.map((item, index) => ({ type: "contains", label: { fr: `La preuve « ${item} » est présente`, en: `Evidence “${enRequirements[index]}” is present` }, value: frenchOnly(item) ? { fr: item, en: enRequirements[index] } : item })) };
+}
+
+function frenchOnly(value) {
+  return /[àâçéèêëîïôùûüœ]|\b(?:données|serveur uniquement|artefact|déploiement|sauvegarde|disponibilité|requêtes|alertes|environnements)\b/i.test(String(value));
 }
 
 function quiz(id, title, questions, purpose = "module-review", passingScore = 70) {

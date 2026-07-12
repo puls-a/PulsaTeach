@@ -24,7 +24,7 @@ describe("HTML curriculum copy integrity", () => {
     const source = await readFile(curriculumPath, "utf8");
 
     expect(source).toContain("chaque morceau de texte a une intention lisible");
-    expect(source).toContain("chaque outil a une responsabilité claire");
+    expect(source).toContain("Un manifeste plutôt qu'une installation simulée");
     expect(source).toContain("le navigateur a vraiment compris");
     expect(source).toContain("PulsaTeach ne te demande pas de deviner");
   });

@@ -28,8 +28,8 @@ export const typescriptTrack = createProfessionalTrack({
     ...typescriptModules,
     {
       id: "typescript-foundations",
-      title: ["Fondations et modèles", "Foundations and models"],
-      description: ["Utiliser l’inférence, les objets et les unions pour représenter uniquement des états valides.", "Use inference, objects, and unions to represent only valid states."],
+      title: ["Studio : modélisation d’un domaine", "Studio: domain modeling"],
+      description: ["Appliquer inférence, immutabilité et unions à un domaine de commande soumis à revue.", "Apply inference, immutability, and unions to an order domain under review."],
       vocabulary: [v.type, v.inference, v.union],
       lessons: [
         ts("ts-01-inference", ["Inférence et annotations utiles", "Inference and useful annotations"], ["Laisse TypeScript inférer les constantes et annote les frontières publiques.", "Let TypeScript infer constants and annotate public boundaries."], "const taxRate = 0.2;\n\nexport function total(price: number, quantity: number): number {\n  return price * quantity * (1 + taxRate);\n}", ["const taxRate", "price: number", "quantity: number", "): number"], ["type-inference", "function-types"], [v.type, v.inference]),
@@ -45,8 +45,8 @@ export const typescriptTrack = createProfessionalTrack({
     },
     {
       id: "typescript-functions",
-      title: ["Fonctions, interfaces et génériques", "Functions, interfaces, and generics"],
-      description: ["Exprimer des contrats réutilisables sans perdre la relation entre entrées et sorties.", "Express reusable contracts without losing the relationship between inputs and outputs."],
+      title: ["Studio : API de bibliothèque typée", "Studio: typed library API"],
+      description: ["Concevoir une API publique où composition, génériques et types dérivés conservent les relations utiles.", "Design a public API where composition, generics, and derived types preserve useful relationships."],
       vocabulary: [v.interface, v.generic, v.utility],
       lessons: [
         ts("ts-02-functions", ["Signatures et callbacks", "Signatures and callbacks"], ["Type une transformation et son callback sans dupliquer la forme des données.", "Type a transformation and its callback without duplicating data shapes."], "type Mapper<Input, Output> = (value: Input, index: number) => Output;\n\nfunction mapValues<Input, Output>(values: readonly Input[], mapper: Mapper<Input, Output>): Output[] {\n  return values.map(mapper);\n}", ["type Mapper", "<Input, Output>", "readonly Input[]", "Output[]"], ["function-types", "generics"], [v.type, v.generic]),
@@ -62,8 +62,8 @@ export const typescriptTrack = createProfessionalTrack({
     },
     {
       id: "typescript-boundaries",
-      title: ["DOM, API et données externes", "DOM, APIs, and external data"],
-      description: ["Traiter le DOM, les réponses réseau et les erreurs comme des frontières à vérifier.", "Treat the DOM, network responses, and errors as boundaries to verify."],
+      title: ["Studio : frontières runtime", "Studio: runtime boundaries"],
+      description: ["Produire les preuves runtime qui relient DOM, HTTP, JSON inconnu et erreurs métier au modèle statique.", "Produce runtime evidence connecting DOM, HTTP, unknown JSON, and domain errors to the static model."],
       vocabulary: [v.unknown, v.guard, ["promesse", "promise", "Valeur représentant un résultat asynchrone futur.", "A value representing a future asynchronous result."]],
       lessons: [
         ts("ts-03-dom", ["Typer le DOM sans assertion aveugle", "Type the DOM without blind assertions"], ["Vérifie l’existence et la classe de l’élément avant de l’utiliser.", "Check element existence and class before using it."], "const form = document.querySelector('#profile-form');\nif (!(form instanceof HTMLFormElement)) {\n  throw new Error('Profile form is missing');\n}\nform.addEventListener('submit', (event: SubmitEvent) => event.preventDefault());", ["querySelector", "instanceof HTMLFormElement", "throw new Error", "SubmitEvent"], ["dom-types", "narrowing"], [v.narrowing, v.guard]),
@@ -79,7 +79,7 @@ export const typescriptTrack = createProfessionalTrack({
     },
     {
       id: "typescript-production",
-      title: ["Strict, migration et production", "Strict mode, migration, and production"],
+      title: ["Livraison et gouvernance TypeScript", "TypeScript delivery and governance"],
       description: ["Configurer le compilateur, supprimer les mensonges de type et migrer progressivement une application réelle.", "Configure the compiler, remove type lies, and progressively migrate a real application."],
       vocabulary: [v.migration, ["strict", "strict", "Ensemble d’options renforçant les garanties du compilateur.", "A set of options strengthening compiler guarantees."], ["exhaustivité", "exhaustiveness", "Preuve que tous les cas d’une union ont été traités.", "Proof that every union case has been handled."]],
       lessons: [

@@ -46,7 +46,7 @@ const track = {
       text("a11y-prioritize", ["Prioriser les corrections", "Prioritize fixes"], ["Classe les défauts par blocage, fréquence, effort et risque de régression.", "Rank defects by blocking severity, frequency, effort, and regression risk."], ["bloquant", "fréquent", "faible effort", "risque sécurité", "régression probable", "propriétaire nommé"], ["a11y-prioritization", "risk-assessment"]),
       text("a11y-evidence-pack", ["Constituer un pack de preuve", "Build an evidence pack"], ["Regroupe axe, clavier, lecteur d'écran, contraste et captures avant/après.", "Group axe, keyboard, screen reader, contrast, and before/after screenshots."], ["axe report", "parcours clavier", "lecteur d'écran", "contraste mesuré", "captures avant/après", "URL et commit"], ["evidence-pack", "audit-documentation"]),
       project("a11y-final-audit", ["Projet : audit WCAG reproductible", "Project: reproducible WCAG audit"], ["Livre une matrice complète exigence → preuve pour une page critique.", "Ship a complete requirement → evidence matrix for a critical page."], "# Audit WCAG reproductible\n\n| Défaut | Critère | Impact | Preuve | Correction | Retest |\n| --- | --- | --- | --- | --- | --- |\n| bouton sans nom | 4.1.2 | lecteur d'écran bloqué | arbre accessible | aria-label | VoiceOver OK |\n| focus invisible | 2.4.7 | clavier bloqué | parcours Tab | :focus-visible | Playwright OK |\n| contraste faible | 1.4.3 | lecture difficile | ratio mesuré | couleur corrigée | ratio 4.5:1 |\n\n## Pack\n- axe report\n- captures mobile/desktop\n- script lecteur d'écran\n- commit et URL de retest", ["Audit WCAG reproductible", "Critère", "Impact", "Preuve", "Correction", "Retest", "4.1.2", "2.4.7", "1.4.3", "aria-label", "focus-visible", "4.5:1", "axe report", "script lecteur d'écran", "URL de retest", "VoiceOver OK", "Playwright OK", "captures mobile/desktop", "commit"], ["wcag-audit", "evidence-pack"]),
-      quiz("a11y-final-exam", ["Examen : audit accessibilité v9", "Exam: accessibility audit v9"], [["Une preuve reproductible contient…", "Reproducible evidence contains…", "étapes, environnement, attendu et observé", "un avis rapide", "une couleur de priorité", "étapes, environnement, attendu et observé"], ["Un défaut bloquant clavier doit être…", "A keyboard-blocking defect should be…", "prioritaire", "ignoré si joli", "corrigé après SEO uniquement", "prioritaire"], ["Un audit complet combine…", "A complete audit combines…", "outils automatiques et tests humains", "axe seulement", "CSS seulement", "outils automatiques et tests humains"]], "exam", 80)
+      quiz("a11y-remediation-final-exam", ["Examen : audit accessibilité v9", "Exam: accessibility audit v9"], [["Une preuve reproductible contient…", "Reproducible evidence contains…", "étapes, environnement, attendu et observé", "un avis rapide", "une couleur de priorité", "étapes, environnement, attendu et observé"], ["Un défaut bloquant clavier doit être…", "A keyboard-blocking defect should be…", "prioritaire", "ignoré si joli", "corrigé après SEO uniquement", "prioritaire"], ["Un audit complet combine…", "A complete audit combines…", "outils automatiques et tests humains", "axe seulement", "CSS seulement", "outils automatiques et tests humains"]], "exam", 80)
     ])
   ]
 };
@@ -58,19 +58,19 @@ function mod(id, title, vocabulary, lessons) {
 }
 
 function html(id, title, brief, solution, requirements, skills) {
-  return { id, type: "html", title, brief, solution, requirements, skills, vocabulary: [v.name, v.tree, v.assistive], starterCode: "<main>\n  <!-- Corrige le composant accessible ici -->\n</main>" };
+  return { id, type: "html", title, brief, solution: artifact(solution), requirements: localizedRequirements(requirements), skills, vocabulary: [v.name, v.tree, v.assistive], starterCode: artifact("<main>\n  <!-- Corrige le composant accessible ici -->\n</main>") };
 }
 
 function css(id, title, brief, solution, requirements, skills) {
-  return { id, type: "css", title, brief, solution, requirements, skills, vocabulary: [v.target, v.motion, v.wcag], starterCode: "/* Corrige le comportement accessible ici */" };
+  return { id, type: "css", title, brief, solution, requirements, skills, vocabulary: [v.target, v.motion, v.wcag], starterCode: artifact("/* Corrige le comportement accessible ici */") };
 }
 
 function text(id, title, brief, requirements, skills) {
-  return { id, type: "text", title, brief, solution: requirements.map((item) => `- ${item}`).join("\n"), requirements, skills, vocabulary: [v.wcag, v.assistive, v.tree] };
+  return { id, type: "text", title, brief, solution: artifact(requirements.map((item) => `- ${item}`).join("\n")), starterCode: artifact("# Décris ton audit, tes corrections et tes preuves"), requirements: localizedRequirements(requirements), skills, vocabulary: [v.wcag, v.assistive, v.tree] };
 }
 
 function project(id, title, brief, solution, requirements, skills) {
-  return { id, project: true, exerciseType: solution.trim().startsWith("<") ? "html" : "text", title, brief, solution, requirements, skills, vocabulary: [v.wcag, v.assistive, v.tree], durationMin: 120, xp: 95 };
+  return { id, project: true, exerciseType: solution.trim().startsWith("<") ? "html" : "text", title, brief, solution: artifact(solution), starterCode: artifact(solution.trim().startsWith("<") ? "<main>\n  <!-- Livre la version accessible ici -->\n</main>" : "# Audit et plan de correction"), requirements: localizedRequirements(requirements), skills, vocabulary: [v.wcag, v.assistive, v.tree], durationMin: 120, xp: 95 };
 }
 
 function quiz(id, title, rows, purpose = "module-review", passingScore = 75) {
@@ -78,5 +78,59 @@ function quiz(id, title, rows, purpose = "module-review", passingScore = 75) {
 }
 
 function q(id, prompt, options, answer) {
-  return { id, type: "single", prompt: { fr: prompt[0], en: prompt[1] }, choices: options.map((option) => ({ id: option, label: { fr: option, en: option } })), answer, explanation: { fr: "La bonne réponse s'appuie sur une preuve d'usage : clavier, annonce, contraste, focus ou capacité à terminer la tâche.", en: "The correct answer relies on usage evidence: keyboard, announcement, contrast, focus, or ability to complete the task." }, skills: ["accessibility-audit"], requiresRationale: false };
+  return { id, type: "single", prompt: { fr: prompt[0], en: prompt[1] }, choices: options.map((option) => ({ id: option, label: artifact(option) })), answer, explanation: { fr: "La bonne réponse s'appuie sur une preuve d'usage : clavier, annonce, contraste, focus ou capacité à terminer la tâche.", en: "The correct answer relies on usage evidence: keyboard, announcement, contrast, focus, or ability to complete the task." }, skills: ["accessibility-audit"], requiresRationale: false };
+}
+
+function artifact(value) {
+  return { fr: value, en: translateArtifact(value), toString() { return this.fr; } };
+}
+
+function localizedRequirements(requirements) {
+  return requirements.map((value) => {
+    const translated = translateArtifact(value);
+    if (translated === value) return value;
+    return { type: "contains", label: artifact(`Présence de ${value}`), value: artifact(value) };
+  });
+}
+
+function translateArtifact(value) {
+  const replacements = [
+    ["Corrige le composant accessible ici", "Fix the accessible component here"], ["Corrige le comportement accessible ici", "Fix the accessible behavior here"],
+    ["Décris ton audit, tes corrections et tes preuves", "Describe your audit, fixes, and evidence"], ["Livre la version accessible ici", "Ship the accessible version here"],
+    ["Audit et plan de correction", "Audit and remediation plan"],
+    ["Sauvegarder la leçon", "Save the lesson"], ["Sauvegarder", "Save"], ["Parcours", "Learning path"],
+    ["Catalogue", "Catalog"], ["NVDA ou VoiceOver", "NVDA or VoiceOver"], ["parcourir par titres", "navigate by headings"],
+    ["liste des repères", "landmark list"], ["nom rôle état", "name role state"], ["ordre d'annonce", "announcement order"],
+    ["écart attendu/observé", "expected/observed difference"], ["Matrice arbre accessible", "Accessibility tree matrix"],
+    ["Élément", "Element"], ["Nom", "Name"], ["Rôle", "Role"], ["État", "State"], ["Preuve", "Evidence"],
+    ["Bouton sauvegarder", "Save button"], ["lecteur d'écran", "screen reader"], ["annonce le nom", "announces the name"],
+    ["Onglet Coder", "Code tab"], ["Coder", "Code"], ["navigation clavier", "keyboard navigation"],
+    ["Menu langue", "Language menu"], ["Passer en anglais", "Switch to English"], ["titres parcourables", "navigable headings"],
+    ["noms accessibles stables", "stable accessible names"], ["SVG décoratifs", "decorative SVGs"], ["sur navigation", "on navigation"],
+    ["Quiz accessibilité", "Accessibility quiz"], ["Fermer le quiz", "Close quiz"],
+    ["Réponse enregistrée", "Answer saved"], ["Choisis au moins une option", "Choose at least one option"], ["Choisis", "Choose"],
+    ["Mode focus", "Focus mode"], ["Éditeur", "Editor"], ["Contrat composant", "Component contract"],
+    ["Clavier", "Keyboard"], ["Tab reste dans la modale", "Tab stays in the modal"], ["Escape ferme et restitue le focus", "Escape closes and restores focus"],
+    ["flèches changent d'onglet si tablist", "arrow keys change tabs in a tablist"], ["Arbre accessible", "Accessibility tree"],
+    ["Annonces", "Announcements"], ["pour sauvegarde", "for saved changes"], ["pour erreur bloquante", "for a blocking error"],
+    ["Tests", "Tests"], ["sans violation critique", "with no critical violation"], ["vérification", "check"],
+    ["Une modale accessible doit", "An accessible modal should"], ["gérer rôle, nom, focus et fermeture", "manage role, name, focus, and closing"],
+    ["seulement être centrée", "only be centered"], ["cacher le bouton fermer", "hide the close button"],
+    ["Un message d'erreur bloquant utilise plutôt", "A blocking error message should use"], ["un placeholder", "a placeholder"],
+    ["Un onglet sélectionné expose", "A selected tab exposes"], ["alt vide", "empty alt"],
+    ["critère WCAG", "WCAG criterion"], ["impact utilisateur", "user impact"], ["étapes de reproduction", "reproduction steps"],
+    ["preuve automatisée", "automated evidence"], ["preuve manuelle", "manual evidence"], ["correction proposée", "proposed fix"],
+    ["bloquant", "blocking"], ["fréquent", "frequent"], ["faible effort", "low effort"], ["risque sécurité", "security risk"],
+    ["régression probable", "likely regression"], ["propriétaire nommé", "named owner"], ["parcours clavier", "keyboard journey"],
+    ["contraste mesuré", "measured contrast"], ["captures avant/après", "before/after screenshots"], ["URL et commit", "URL and commit"],
+    ["Audit WCAG reproductible", "Reproducible WCAG audit"], ["Défaut", "Defect"], ["Critère", "Criterion"],
+    ["Impact", "Impact"], ["Correction", "Fix"], ["bouton sans nom", "unnamed button"], ["focus invisible", "invisible focus"],
+    ["contraste faible", "low contrast"], ["bloqué", "blocked"], ["lecture difficile", "difficult reading"],
+    ["couleur corrigée", "corrected color"], ["captures mobile/desktop", "mobile/desktop screenshots"], ["script lecteur d'écran", "screen reader script"],
+    ["étapes, environnement, attendu et observé", "steps, environment, expected and observed results"], ["un avis rapide", "a quick opinion"],
+    ["une couleur de priorité", "a priority color"], ["prioritaire", "high priority"], ["ignoré si joli", "ignored if attractive"],
+    ["corrigé après SEO uniquement", "fixed only after SEO"], ["outils automatiques et tests humains", "automated tools and human tests"],
+    ["axe seulement", "axe only"], ["CSS seulement", "CSS only"]
+  ];
+  return replacements.reduce((text, [fr, en]) => text.replaceAll(fr, en), value);
 }

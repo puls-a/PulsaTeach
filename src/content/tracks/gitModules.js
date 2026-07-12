@@ -60,11 +60,21 @@ function mod(id, title, vocabulary, lessons) {
 }
 
 function term(id, title, brief, solution, requirements, skills) {
-  return { id, type: "text", runtime: "terminal", title, brief, solution, requirements, skills, vocabulary: [v.reflog, v.stash, v.provenance], durationMin: 35, xp: 40, starterCode: "# Écris les commandes Git et leurs preuves\n" };
+  return practice({ id, type: "text", runtime: "terminal", title, brief, solution, requirements, skills, vocabulary: [v.reflog, v.stash, v.provenance], durationMin: 35, xp: 40 });
 }
 
 function project(id, title, brief, solution, requirements, skills) {
-  return { id, project: true, exerciseType: "terminal", title, brief, solution, requirements, skills, vocabulary: [v.pr, v.provenance, v.tag], durationMin: 120, xp: 95 };
+  return { ...practice({ id, title, brief, solution, requirements, skills, vocabulary: [v.pr, v.provenance, v.tag] }), project: true, exerciseType: "terminal", durationMin: 120, xp: 95 };
+}
+
+function practice(spec) {
+  const enRequirements = spec.requirements.map((item, index) => frenchOnly(item) ? `evidence: ${spec.skills[index % spec.skills.length]}` : item);
+  const needsEnglishArtifact = frenchOnly(spec.solution) || spec.requirements.some(frenchOnly);
+  return { ...spec, starterCode: { fr: "# Écris les commandes Git et leurs preuves\n", en: "# Write the Git commands and their evidence\n" }, solution: { fr: spec.solution, en: needsEnglishArtifact ? `# ${spec.title[1]}\n\n${spec.brief[1]}\n\n## Evidence\n${enRequirements.map((item) => `- ${item}`).join("\n")}` : spec.solution }, requirements: spec.requirements.map((item, index) => ({ type: "contains", label: { fr: `La preuve « ${item} » est présente`, en: `Evidence “${enRequirements[index]}” is present` }, value: frenchOnly(item) ? { fr: item, en: enRequirements[index] } : item })) };
+}
+
+function frenchOnly(value) {
+  return /[àâçéèêëîïôùûüœ]|\b(?:branche|preuve|restaure|correctif|isolé|régression|contexte|problème|risques|ajouté|validé|comportement)\b/i.test(String(value));
 }
 
 function quiz(id, title, rows, purpose = "module-review", passingScore = 75) {

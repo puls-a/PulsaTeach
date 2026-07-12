@@ -3,12 +3,15 @@ import { Bookmark, BookmarkCheck, BookOpen, CheckCircle2, Code2, Copy, Eye, File
 import { recordAttempt, recordLearningEvent } from "../../apiClient.js";
 import { createPreview, displayTestLabel, getPreviewKind, runJavaScriptWithConsole, testFailureHelp, validateLesson } from "../../lessonRuntime.js";
 import { PREVIEW_IFRAME_SANDBOX } from "../../security/sandboxPolicy.js";
+import { resolveLocaleValue } from "../../localeValue.js";
 import { copyLessonLink } from "./learningState.js";
 import { ActionButton, CompletionBanner, difficultyLabel, NotesPanel, SkillChips } from "./LearningShared.jsx";
 import { CourseChapter, ExplainedCorrection, LessonGuide, PedagogyWorkshop, ProgressiveHints, ProjectRubric } from "./LearningPedagogy.jsx";
 
 export default function LessonWorkspace({ QuizComponent, activeTrack, activeModule, lesson, locale, isCompleted, isBookmarked, onToggleBookmark, onComplete, onQuizResult, onCloseQuiz, onNext, hasNext }) {
-  const [code, setCode] = useState(lesson.starterCode);
+  const starterCode = resolveLocaleValue(lesson.starterCode, locale) || "";
+  const solution = resolveLocaleValue(lesson.solution, locale) || "";
+  const [code, setCode] = useState(starterCode);
   const [result, setResult] = useState(null);
   const [hintLevel, setHintLevel] = useState(0);
   const [showCorrection, setShowCorrection] = useState(false);
@@ -21,7 +24,8 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
   const editorRef = useRef(null);
 
   useEffect(() => {
-    setCode(localStorage.getItem(`pulsateach-code-${lesson.id}`) || lesson.starterCode);
+    const legacyCode = locale === "fr" ? localStorage.getItem(`pulsateach-code-${lesson.id}`) : null;
+    setCode(localStorage.getItem(`pulsateach-code-${lesson.id}-${locale}`) || legacyCode || starterCode);
     setResult(null);
     setHintLevel(0);
     setShowCorrection(false);
@@ -30,19 +34,19 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
     setFocusPanel("learn");
     setWorkspacePanel("code");
     setSaveState("saved");
-  }, [lesson]);
+  }, [lesson, locale, starterCode]);
 
   useEffect(() => {
     if (lesson.type === "quiz") return undefined;
     setSaveState("saving");
     const timeout = window.setTimeout(() => {
-      localStorage.setItem(`pulsateach-code-${lesson.id}`, code);
+      localStorage.setItem(`pulsateach-code-${lesson.id}-${locale}`, code);
       setSaveState("saved");
     }, 450);
     return () => window.clearTimeout(timeout);
-  }, [code, lesson.id, lesson.type]);
+  }, [code, lesson.id, lesson.type, locale]);
 
-  const preview = useMemo(() => createPreview(lesson, code), [code, lesson]);
+  const preview = useMemo(() => createPreview(lesson, code, locale), [code, lesson, locale]);
   const previewKind = getPreviewKind(lesson);
   const localizedHints = lesson.pedagogy?.[locale]?.hints || lesson.pedagogy?.fr?.hints || [];
   const hintsCount = Math.max(1, localizedHints.length);
@@ -51,13 +55,13 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
   const allPassed = Boolean(result?.length) && result.every((check) => check.pass);
 
   const saveCode = () => {
-    localStorage.setItem(`pulsateach-code-${lesson.id}`, code);
+    localStorage.setItem(`pulsateach-code-${lesson.id}-${locale}`, code);
     setSaveState("saved");
   };
 
   const runTests = async () => {
     recordLearningEvent({ eventType: "tests_run", lessonId: lesson.id, trackId: activeTrack.id, payload: { testCount: lesson.tests.length } }).catch(() => {});
-    const checks = await validateLesson(lesson, code);
+    const checks = await validateLesson(lesson, code, locale);
     setResult(checks);
     setWorkspacePanel("tests");
     recordAttempt({ lessonId: lesson.id, trackId: activeTrack.id, moduleId: activeModule.id, passed: checks.filter((check) => check.pass).length, total: checks.length }).catch(() => {});
@@ -72,7 +76,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
   };
 
   const resetCode = () => {
-    setCode(lesson.starterCode);
+    setCode(starterCode);
     setResult(null);
     setConsoleOutput("");
     editorRef.current?.focus();
@@ -177,7 +181,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
         lesson={lesson}
       />
 
-      {(showCorrection || allPassed) && <ExplainedCorrection lesson={lesson} locale={locale} onLoadSolution={() => setCode(lesson.solution)} />}
+      {(showCorrection || allPassed) && <ExplainedCorrection lesson={lesson} locale={locale} onLoadSolution={() => setCode(solution)} />}
     </section>
   );
 }

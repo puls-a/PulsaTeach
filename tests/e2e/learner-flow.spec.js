@@ -22,7 +22,7 @@ test("account, onboarding, lesson and progress dashboard", async ({ page }) => {
     globalThis.localStorage.setItem("pulsateach-learning-progress", JSON.stringify({
       xp: 25,
       completed: {
-        "html-01-document-skeleton": {
+        "html-00-what-html-does": {
           passedAt: new Date().toISOString(),
           xp: 25,
           passedTests: 5
@@ -34,8 +34,8 @@ test("account, onboarding, lesson and progress dashboard", async ({ page }) => {
   await page.reload();
   await expect(page.getByText("25", { exact: true }).first()).toBeVisible();
 
-  await page.goto("/learn/html/html-foundations/html-01-document-skeleton");
-  await expect(page.getByText(/Le squelette d'une page|Document skeleton/).first()).toBeVisible();
+  await page.goto("/learn/html/html-getting-started/html-00-what-html-does");
+  await expect(page.getByText(/Ce que HTML fait vraiment|What HTML really does/).first()).toBeVisible();
   await expect(page.getByText(/Aperçu live|Live preview/).first()).toBeVisible();
 });
 
@@ -85,19 +85,15 @@ test("tools lesson opens without guide rendering errors", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
   await page.goto("/learn/tools/tools-setup/tools-01-vscode");
   await acceptPrivacy(page);
-  await expect(page.getByRole("heading", { name: /Éditeur : VS Code & Cursor|Editor: VS Code & Cursor/ }).first()).toBeVisible();
-  await expect(page.getByText(/Installer l'outil sans étape cachée|Install the tool without hidden steps/)).toBeVisible();
-  await expect(page.getByRole("img", { name: "VS Code Logo" })).toBeVisible();
-  await expect(page.getByRole("img", { name: "VS Code Logo" })).toHaveAttribute("src", /\/assets\/tool-vscode\.svg$/);
-  await expect(page.getByRole("link", { name: "cursor.sh" })).toHaveAttribute("href", "https://cursor.sh");
-  await expect(page.getByRole("link", { name: "cursor.sh" })).toHaveAttribute("rel", /noopener noreferrer/);
+  await expect(page.getByRole("heading", { name: /Choisir son espace de travail|Choose your workspace/ }).first()).toBeVisible();
+  await expect(page.getByText(/Un éditeur sert à lire|An editor reads/)).toBeVisible();
   await expect(page.getByText("<img", { exact: false })).toHaveCount(0);
   await page.getByRole("button", { name: /Indice 1|Next hint/ }).click();
   await page.getByRole("button", { name: /Indice 2|Next hint/ }).click();
   const hints = page.getByRole("heading", { name: /Indices débloqués progressivement|Progressive hints/ }).locator("xpath=ancestor::section[1]");
   await expect(hints.locator("li")).toHaveCount(2);
-  await expect(hints).toContainText(/Ouvre le lien|Click link/);
-  await expect(hints).toContainText(/Suis l'installateur|Install/);
+  await expect(hints).toContainText(/classe ou l'identifiant|class or identifier/i);
+  await expect(hints).toContainText(/fichier observé|observed file/i);
   expect(pageErrors).toEqual([]);
 });
 

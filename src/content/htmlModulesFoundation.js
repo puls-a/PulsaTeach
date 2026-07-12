@@ -86,14 +86,20 @@ export const htmlFoundationModules = [module("html-foundations", "Fondations", "
               check: ["I can explain head versus body.", "I understand lang, charset, and title.", "I can distinguish title from h1.", "I can identify tags and attributes."]
             }
           },
-          starterCode: `<html>
+          starterCode: { fr: `<html>
   <head>
     <title></title>
   </head>
   <body>
   </body>
-</html>`,
-          solution: `<!doctype html>
+</html>`, en: `<html>
+  <head>
+    <title></title>
+  </head>
+  <body>
+  </body>
+</html>` },
+          solution: { fr: `<!doctype html>
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
@@ -102,12 +108,21 @@ export const htmlFoundationModules = [module("html-foundations", "Fondations", "
   <body>
     <h1>Bienvenue sur PulsaTeach</h1>
   </body>
-</html>`,
+</html>`, en: `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>PulsaTeach Home</title>
+  </head>
+  <body>
+    <h1>Welcome to PulsaTeach</h1>
+  </body>
+</html>` },
           tests: [
             test("doctype", "<!doctype html>", "<!doctype html>"),
             test("contains", "html lang", "lang="),
             test("contains", "charset", "charset=\"UTF-8\""),
-            test("contains", "title", "<title>Accueil PulsaTeach</title>"),
+            test("contains", { fr: "titre de page", en: "page title" }, { fr: "<title>Accueil PulsaTeach</title>", en: "<title>PulsaTeach Home</title>" }),
             test("selector", "h1", "h1")
           ],
           hint: ["Le doctype se place tout en haut.", "The doctype goes at the very top."],
@@ -184,7 +199,7 @@ export const htmlFoundationModules = [module("html-foundations", "Fondations", "
     <section id="contact">
       <h2>Contact</h2>
     </section>`),
-          tests: [test("selector", "internal link", "a[href=\"#contact\"]"), test("selector", "external link", "a[href^=\"https://\"]"), test("notContains", "avoid vague text", "clique ici")],
+          tests: [test("selector", "internal link", "a[href=\"#contact\"]"), test("selector", "external link", "a[href^=\"https://\"]"), test("notContainsAny", { fr: "éviter un lien vague", en: "avoid vague link text" }, { fr: ["clique ici"], en: ["click here"] })],
           hint: ["Un lien interne utilise # puis l'id de la section.", "An internal link uses # followed by the section id."],
           xp: 20
         }),

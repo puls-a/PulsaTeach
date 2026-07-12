@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import { learningTracks } from "../../src/content/allTrackRegistry.js";
+import { publicTrackCatalog } from "../../src/content/publicTrackCatalog.js";
 
 const expectedTrackIds = [
   "tools",
@@ -22,7 +23,21 @@ const expectedTrackIds = [
 describe("catalog consistency", () => {
   test("published registry exposes every public course", () => {
     expect(learningTracks.map((track) => track.id)).toEqual(expectedTrackIds);
-    expect(learningTracks.reduce((total, track) => total + track.modules.reduce((sum, module) => sum + module.lessons.length, 0), 0)).toBe(871);
+    expect(learningTracks.reduce((total, track) => total + track.modules.reduce((sum, module) => sum + module.lessons.length, 0), 0)).toBe(874);
+  });
+
+  test("every catalog first lesson route resolves in the published registry", () => {
+    for (const entry of publicTrackCatalog) {
+      const match = entry.firstHref.match(/^\/learn\/([^/]+)\/([^/]+)\/([^/]+)$/);
+      expect(match, `${entry.id} should use the public lesson route convention`).not.toBeNull();
+
+      const [, trackId, moduleId, lessonId] = match;
+      const track = learningTracks.find((item) => item.id === trackId);
+      const module = track?.modules.find((item) => item.id === moduleId);
+      expect(track, `${entry.firstHref} should reference an active track`).toBeDefined();
+      expect(module, `${entry.firstHref} should reference an active module`).toBeDefined();
+      expect(module?.lessons.some((lesson) => lesson.id === lessonId), `${entry.firstHref} should reference an active lesson`).toBe(true);
+    }
   });
 
   test("authoring, sandbox, catalog and missions are not limited to HTML/CSS/JS", () => {

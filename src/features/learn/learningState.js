@@ -28,7 +28,7 @@ export function getPreviousLesson(track, moduleId, lessonId) {
 }
 
 export function readLessonRoute() {
-  const fallbackSegments = publicTrackCatalog[0]?.firstHref?.split("/").filter(Boolean) || ["learn", "html", "html-foundations", "html-01-document-skeleton"];
+  const fallbackSegments = publicTrackCatalog[0]?.firstHref?.split("/").filter(Boolean) || ["learn", "html", "html-getting-started", "html-00-what-html-does"];
   const fallback = { trackId: fallbackSegments[1], moduleId: fallbackSegments[2], lessonId: fallbackSegments[3] };
   const cleanMatch = window.location.pathname.match(/^\/learn\/([^/]+)\/([^/]+)\/([^/]+)\/?$/);
   const hashMatch = window.location.hash.match(/^#\/?learn\/([^/]+)\/([^/]+)\/([^/]+)$/);

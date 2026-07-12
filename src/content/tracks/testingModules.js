@@ -63,15 +63,32 @@ export const testingModules = [
 ];
 
 function code(id, title, brief, solution, requirements, skills, vocabulary) {
-  return { id, type: "text", title, brief, solution, requirements, skills, vocabulary };
+  return practice({ id, type: "text", title, brief, solution, requirements, skills, vocabulary });
 }
 
 function text(id, title, brief, requirements, skills, vocabulary) {
-  return { id, type: "text", title, brief, solution: requirements.map((item) => `- ${item}`).join("\n"), requirements, skills, vocabulary };
+  return practice({ id, type: "text", title, brief, solution: requirements.map((item) => `- ${item}`).join("\n"), requirements, skills, vocabulary });
 }
 
 function project(id, title, brief, solution, requirements, skills, vocabulary) {
-  return { id, project: true, exerciseType: "text", title, brief, solution, requirements, skills, vocabulary, durationMin: 120, xp: 95 };
+  return { ...practice({ id, title, brief, solution, requirements, skills, vocabulary }), project: true, exerciseType: "text", durationMin: 120, xp: 95 };
+}
+
+function practice(spec) {
+  const englishRequirements = spec.requirements.map((requirement, index) => frenchOnly(requirement) ? `evidence: ${spec.skills[index % spec.skills.length]}` : requirement);
+  const englishSolution = frenchOnly(spec.solution)
+    ? `# ${spec.title[1]}\n\n${spec.brief[1]}\n\n## Evidence\n${englishRequirements.map((item) => `- ${item}`).join("\n")}`
+    : spec.solution;
+  return {
+    ...spec,
+    starterCode: { fr: "# Décris la preuve attendue", en: "# Describe the expected evidence" },
+    solution: { fr: spec.solution, en: englishSolution },
+    requirements: spec.requirements.map((requirement, index) => ({ type: "contains", label: { fr: `La preuve « ${requirement} » est présente`, en: `Evidence “${englishRequirements[index]}” is present` }, value: frenchOnly(requirement) ? { fr: requirement, en: englishRequirements[index] } : requirement }))
+  };
+}
+
+function frenchOnly(value) {
+  return /[àâçéèêëîïôùûüœ]|\b(?:contrats|erreur|sauvegarde|risques|preuve|centrée|certificat|masquer|désactivées)\b/i.test(String(value));
 }
 
 function quiz(id, title, questions, purpose = "module-review", passingScore = 75) {

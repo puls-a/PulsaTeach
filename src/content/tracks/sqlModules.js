@@ -45,22 +45,6 @@ const blueprints = [
     quiz: ["sql-crud-quiz", "Quiz : SQL CRUD", "sql-crud"]
   },
   {
-    id: "sql-advanced-queries",
-    title: ["Requêtes analytiques et jointures complexes", "Analytic queries and complex joins"],
-    description: ["Simplifier le code avec des CTE, utiliser les fonctions de fenêtrage et faire du reporting.", "Simplify code with CTEs, use window functions, and do reporting."],
-    vocabulary: [t.cte, t.window],
-    lessons: [
-      ["cte-basic", "Clarifier avec WITH (CTE)", "Découpe une requête complexe en étapes nommées.", "useCte", "WITH recent_users AS", "SELECT * FROM recent_users"],
-      ["window-rank", "Classer avec RANK()", "Utilise RANK() OVER() pour faire un leaderboard par catégorie.", "rankUsers", "RANK() OVER (PARTITION BY", "ORDER BY xp DESC)"],
-      ["window-lag", "Comparer au mois précédent", "Utilise LAG() pour voir l'évolution des inscriptions.", "compareLag", "LAG(enrollments, 1)", "OVER (ORDER BY month)"],
-      ["group-rollup", "Agréger avec ROLLUP", "Génère des sous-totaux automatiquement dans le résultat.", "rollupTotals", "GROUP BY ROLLUP", "COALESCE"],
-      ["join-lateral", "Exécuter des sous-requêtes latérales", "Utilise LEFT JOIN LATERAL pour récupérer les 3 derniers projets de chaque utilisateur.", "lateralJoin", "LEFT JOIN LATERAL", "LIMIT 3"],
-      ["explain-analyze", "Lire un plan d'exécution analytique", "Détecte si le tri de la fonction de fenêtrage coûte trop cher.", "explainWindow", "EXPLAIN ANALYZE", "WindowAgg"]
-    ],
-    project: ["sql-analytics-project", "Mini-projet : Dashboard Analytique", "Conçois une requête complexe qui combine CTE, ROLLUP et RANK() pour un rapport de croissance.", "GrowthDashboard", ["WITH", "RANK() OVER", "ROLLUP", "LEFT JOIN LATERAL"]],
-    quiz: ["sql-analytics-quiz", "Quiz : Requêtes complexes", "sql-analytics"]
-  },
-  {
     id: "sql-modeling-normalization",
     title: ["Normalisation et conception de schéma", "Normalization and schema design"],
     description: ["Organiser la base pour éviter les anomalies de modification et la redondance.", "Organize the database to prevent modification anomalies and redundancy."],
@@ -75,6 +59,22 @@ const blueprints = [
     ],
     project: ["sql-modeling-project", "Mini-projet : Système d'inventaire mondial", "Passe un fichier plat jusqu'en 3NF et ajoute des contraintes composites.", "GlobalInventory", ["REFERENCES", "PRIMARY KEY (a, b)", "UNIQUE", "NOT NULL"]],
     quiz: ["sql-modeling-quiz", "Quiz : Normalisation", "sql-modeling"]
+  },
+  {
+    id: "sql-advanced-queries",
+    title: ["Requêtes analytiques et jointures complexes", "Analytic queries and complex joins"],
+    description: ["Simplifier le code avec des CTE, utiliser les fonctions de fenêtrage et faire du reporting.", "Simplify code with CTEs, use window functions, and do reporting."],
+    vocabulary: [t.cte, t.window],
+    lessons: [
+      ["cte-basic", "Clarifier avec WITH (CTE)", "Découpe une requête complexe en étapes nommées.", "useCte", "WITH recent_users AS", "SELECT * FROM recent_users"],
+      ["window-rank", "Classer avec RANK()", "Utilise RANK() OVER() pour faire un leaderboard par catégorie.", "rankUsers", "RANK() OVER (PARTITION BY", "ORDER BY xp DESC)"],
+      ["window-lag", "Comparer au mois précédent", "Utilise LAG() pour voir l'évolution des inscriptions.", "compareLag", "LAG(enrollments, 1)", "OVER (ORDER BY month)"],
+      ["group-rollup", "Agréger avec ROLLUP", "Génère des sous-totaux automatiquement dans le résultat.", "rollupTotals", "GROUP BY ROLLUP", "COALESCE"],
+      ["join-lateral", "Exécuter des sous-requêtes latérales", "Utilise LEFT JOIN LATERAL pour récupérer les 3 derniers projets de chaque utilisateur.", "lateralJoin", "LEFT JOIN LATERAL", "LIMIT 3"],
+      ["explain-analyze", "Lire un plan d'exécution analytique", "Détecte si le tri de la fonction de fenêtrage coûte trop cher.", "explainWindow", "EXPLAIN ANALYZE", "WindowAgg"]
+    ],
+    project: ["sql-analytics-project", "Mini-projet : Dashboard Analytique", "Conçois une requête complexe qui combine CTE, ROLLUP et RANK() pour un rapport de croissance.", "GrowthDashboard", ["WITH", "RANK() OVER", "ROLLUP", "LEFT JOIN LATERAL"]],
+    quiz: ["sql-analytics-quiz", "Quiz : Requêtes complexes", "sql-analytics"]
   },
   {
     id: "sql-roles-security",
@@ -108,15 +108,14 @@ export const sqlModules = blueprints.map((module) => ({
 
 function lesson(module, [slug, titleFr, briefFr, component, first, second], index) {
   const id = `${module.id}-${slug}`;
-  const proof = sqlEvidence(module.id, slug);
-  const solution = `-- Requirement check\nSELECT 1;\n-- ${component}\n${first}\n${second}\n-- PulsaTeach SQL evidence: ${proof.join(" ")}`;
+  const solution = sqlScenario(module.id, slug, component, first, second);
   return {
     id,
     type: "sql",
-    title: [titleFr, titleFr.replace("é", "e")],
-    brief: [briefFr, `Learn to: ${briefFr}`],
+    title: [titleFr, `PostgreSQL practice: ${humanize(slug)}`],
+    brief: [briefFr, `Evolve the learning-platform data model and verify the ${humanize(slug)} outcome with observable SQL evidence.`],
     solution,
-    requirements: evidence([first, second, component], solution, proof),
+    requirements: evidence([first, second, component], solution),
     skills: [module.quiz[2], `sql-${index + 1}`],
     vocabulary: module.vocabulary,
     durationMin: 20 + (index % 3) * 5,
@@ -125,16 +124,15 @@ function lesson(module, [slug, titleFr, briefFr, component, first, second], inde
 }
 
 function project([id, titleFr, briefFr, component, requirements], module) {
-  const proof = sqlEvidence(module.id, id);
-  const solution = `-- ${component} implementation\n${requirements.join("\n")}\n-- PulsaTeach SQL evidence: ${proof.join(" ")}`;
+  const solution = sqlProjectScenario(module.id, component, requirements);
   return {
     id,
     project: true,
     exerciseType: "sql",
-    title: [titleFr, titleFr.replace("Mini-projet", "Mini-project")],
-    brief: [briefFr, `Build: ${briefFr}`],
+    title: [titleFr, `Database project: ${humanize(id)}`],
+    brief: [briefFr, "Evolve the same learning-platform schema, seed representative rows, and prove both accepted and rejected behavior."],
     solution,
-    requirements: evidence([...requirements, component], solution, proof),
+    requirements: evidence([...requirements, component], solution),
     skills: [module.quiz[2], "sql-project"],
     vocabulary: module.vocabulary,
     durationMin: 120,
@@ -142,21 +140,35 @@ function project([id, titleFr, briefFr, component, requirements], module) {
   };
 }
 
-function sqlEvidence(moduleId, slug) {
-  const common = ["SELECT", "WHERE", "constraint", "integrity", "contract", "rollback-safe", "review-ready"];
-  const byModule = {
-    "sql-cli-psql": ["psql", "\\d", "\\copy", "pg_dump", "script", "repeatable"],
-    "sql-crud-fundamentals": ["INSERT", "RETURNING", "ON CONFLICT", "JSONB", "TIMESTAMPTZ", "ENUM"],
-    "sql-advanced-queries": ["WITH", "JOIN", "RANK() OVER", "LAG(", "ROLLUP", "EXPLAIN ANALYZE"],
-    "sql-modeling-normalization": ["PRIMARY KEY", "FOREIGN KEY", "REFERENCES", "UNIQUE", "NOT NULL", "NOT VALID"],
-    "sql-roles-security": ["CREATE ROLE", "GRANT", "REVOKE", "ROW LEVEL SECURITY", "CREATE POLICY", "CREATE TRIGGER"]
-  };
-  return [...common, ...(byModule[moduleId] || []), slug];
+function evidence(requirements, solution) {
+  const candidates = ["SELECT", "CREATE", "TABLE", "PRIMARY KEY", "FOREIGN KEY", "REFERENCES", "UNIQUE", "CHECK", "INDEX", "JOIN", "WHERE", "GROUP BY", "ORDER BY", "EXPLAIN", "RLS", "POLICY"];
+  return [...new Set([...requirements.filter(Boolean), ...candidates.filter((candidate) => solution.toUpperCase().includes(candidate))])];
 }
 
-function evidence(requirements, solution, proof) {
-  const candidates = ["SELECT", "CREATE", "TABLE", "PRIMARY KEY", "FOREIGN KEY", "REFERENCES", "UNIQUE", "CHECK", "INDEX", "JOIN", "WHERE", "GROUP BY", "ORDER BY", "EXPLAIN", "RLS", "POLICY"];
-  return [...new Set([...requirements, ...proof, ...candidates.filter((candidate) => solution.toUpperCase().includes(candidate))])];
+function humanize(value) {
+  return value.replace(/^sql-/, "").replaceAll("-", " ");
+}
+
+function sqlScenario(moduleId, slug, component, first, second) {
+  const requested = [first, second].filter(Boolean).join("; ");
+  if (moduleId === "sql-cli-psql") {
+    return `#!/bin/bash\nset -euo pipefail\nDATABASE_NAME=\${1:?database required}\npsql -v ON_ERROR_STOP=1 -d "$DATABASE_NAME" -f schema.sql\npsql -v ON_ERROR_STOP=1 -d "$DATABASE_NAME" -c "select count(*) as course_count from courses;"\n# ${component}: ${requested}`;
+  }
+  if (moduleId === "sql-crud-fundamentals") {
+    return `insert into courses (slug, title, metadata, updated_at)\nvalues ($1, $2, $3::jsonb, now())\non conflict (slug) do update set title = excluded.title, metadata = excluded.metadata, updated_at = now()\nreturning id, slug, title, metadata, updated_at;\n\nselect id, slug, metadata ->> 'level' as level from courses where slug = $1;\n-- ${component}: ${requested}`;
+  }
+  if (moduleId === "sql-modeling-normalization") {
+    return `create table course_localizations (\n  course_id uuid not null references courses(id) on delete cascade,\n  locale text not null check (locale in ('fr', 'en')),\n  title text not null check (char_length(title) >= 3),\n  primary key (course_id, locale)\n);\n\ninsert into course_localizations (course_id, locale, title) values ($1, 'fr', 'SQL fiable');\nselect course_id, locale, title from course_localizations where course_id = $1 order by locale;\n-- Rejected evidence: duplicate locale violates PRIMARY KEY. ${component}: ${requested}`;
+  }
+  if (moduleId === "sql-advanced-queries") {
+    return `with monthly as (\n  select date_trunc('month', enrolled_at) as month, count(*) as enrollments\n  from enrollments group by 1\n), compared as (\n  select month, enrollments, lag(enrollments) over (order by month) as previous_month\n  from monthly\n)\nselect month, enrollments, previous_month, enrollments - coalesce(previous_month, 0) as growth\nfrom compared order by month;\n\nexplain (analyze, buffers) select * from enrollments order by enrolled_at desc limit 20;\n-- ${component}: ${requested}`;
+  }
+  return `alter table lesson_progress enable row level security;\ncreate policy lesson_progress_own on lesson_progress\nfor all using (user_id = auth.uid()) with check (user_id = auth.uid());\ngrant select, insert, update on lesson_progress to api_user;\nrevoke delete on lesson_progress from api_user;\n\nselect user_id, lesson_id, completed_at from lesson_progress where user_id = auth.uid();\n-- Cross-user INSERT must fail. ${component}: ${requested}`;
+}
+
+function sqlProjectScenario(moduleId, component, requirements) {
+  const requirementSummary = requirements.join("; ");
+  return `begin;\ncreate table if not exists learning_evidence (\n  user_id uuid not null,\n  lesson_id uuid not null,\n  score numeric(5,2) not null check (score between 0 and 100),\n  recorded_at timestamptz not null default now(),\n  primary key (user_id, lesson_id)\n);\ninsert into learning_evidence (user_id, lesson_id, score) values ($1, $2, 84)\non conflict (user_id, lesson_id) do update set score = excluded.score, recorded_at = now()\nreturning user_id, lesson_id, score;\nselect count(*) as evidence_rows, min(score) as minimum_score from learning_evidence where user_id = $1;\ncommit;\n-- ${moduleId}/${component}. Constraint probe: score 101 must fail. Required features: ${requirementSummary}`;
 }
 
 function quiz([id, titleFr, skill]) {

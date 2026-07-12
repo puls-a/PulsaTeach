@@ -103,16 +103,42 @@ export const testingTrack = createProfessionalTrack({
 });
 
 function lesson(id, title, brief, requirements, skills, vocabulary, solution) {
+  const artifacts = localizedArtifacts(title, brief, solution || requirements.map((item) => `- ${item}`).join("\n"), requirements, skills);
   return {
     id,
     type: "text",
     title,
     brief,
-    solution: solution || requirements.map((item) => `- ${item}`).join("\n"),
-    requirements,
+    starterCode: artifacts.starterCode,
+    solution: artifacts.solution,
+    requirements: artifacts.requirements,
     skills,
     vocabulary
   };
+}
+
+function localizedArtifacts(title, brief, frenchSolution, requirements, skills) {
+  const englishRequirements = requirements.map((requirement, index) => frenchOnly(requirement)
+    ? `evidence: ${skills[index % skills.length] || "verified-result"}`
+    : requirement);
+  return {
+    starterCode: { fr: "# Décris la preuve attendue", en: "# Describe the expected evidence" },
+    solution: {
+      fr: frenchSolution,
+      en: frenchOnly(frenchSolution)
+        ? `# ${title[1]}\n\n${brief[1]}\n\n## Evidence\n${englishRequirements.map((item) => `- ${item}`).join("\n")}`
+        : frenchSolution
+    },
+    requirements: requirements.map((requirement, index) => ({
+      type: "contains",
+      label: { fr: `La preuve « ${requirement} » est présente`, en: `Evidence “${englishRequirements[index]}” is present` },
+      value: frenchOnly(requirement) ? { fr: requirement, en: englishRequirements[index] } : requirement
+    }))
+  };
+}
+
+function frenchOnly(value) {
+  return /[àâçéèêëîïôùûüœ]|\b(?:attendu|chargement|enregistrer|envoyer|seuil|limite|entrée|unitaire|intégration|accessibilité|matrice|risques)\b/i.test(String(value));
 }
 
 function project(id, title, brief, requirements, skills, vocabulary, finalProject = false) {

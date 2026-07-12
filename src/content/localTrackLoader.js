@@ -1,10 +1,9 @@
 import { publicTrackCatalog } from "./publicTrackCatalog.js";
 import { cssFoundationModuleIds, cssResponsiveModuleIds, getCssNextDeferredGroup, orderCssModules, resolveCssGroup } from "./cssTrackMetadata.js";
-import { htmlAdvancedModuleIds, htmlFoundationModuleIds, htmlHardeningModuleIds, htmlTrackMetadata, htmlWorkshopModuleIds } from "./htmlTrackMetadata.js";
 
 const trackLoaders = {
   tools: () => import("./toolsTrack.js").then((module) => module.toolsTrack),
-  html: () => loadFullHtmlTrack(),
+  html: () => import("./htmlTrack.js").then((module) => module.htmlTrack),
   css: () => loadFullCssTrack(),
   javascript: () => import("./javascriptTrack.js").then((module) => module.javascriptTrack),
   git: () => import("./tracks/git.js").then((module) => module.gitTrack),
@@ -17,13 +16,6 @@ const trackLoaders = {
   "web-security": () => import("./tracks/web-security.js").then((module) => module.webSecurityTrack),
   "web-performance": () => import("./tracks/web-performance.js").then((module) => module.webPerformanceTrack),
   "devops-deployment": () => import("./tracks/devops-deployment.js").then((module) => module.devopsDeploymentTrack)
-};
-
-const htmlModuleLoaders = {
-  foundation: () => import("./htmlModulesFoundation.js").then((module) => ({ ...htmlTrackMetadata, modules: module.htmlFoundationModules, loadedGroups: ["foundation"], isPartialTrack: true })),
-  advanced: () => import("./htmlModulesAdvanced.js").then((module) => ({ ...htmlTrackMetadata, modules: module.htmlAdvancedModules, loadedGroups: ["advanced"], isPartialTrack: true })),
-  workshop: () => import("./htmlModulesWorkshop.js").then((module) => ({ ...htmlTrackMetadata, modules: module.htmlWorkshopModules, loadedGroups: ["workshop"], isPartialTrack: true })),
-  hardening: () => import("./htmlModulesHardening.js").then((module) => ({ ...htmlTrackMetadata, modules: module.htmlProductionHardeningModules, loadedGroups: ["hardening"], isPartialTrack: true }))
 };
 
 const cssModuleLoaders = {
@@ -55,23 +47,8 @@ export async function loadLocalTrack(trackId, options = {}) {
   return load();
 }
 
-async function loadHtmlTrack(options = {}) {
-  if (!options.moduleId) return loadFullHtmlTrack();
-  if (htmlFoundationModuleIds.includes(options.moduleId)) return htmlModuleLoaders.foundation();
-  if (htmlAdvancedModuleIds.includes(options.moduleId)) return htmlModuleLoaders.advanced();
-  if (htmlWorkshopModuleIds.includes(options.moduleId)) return htmlModuleLoaders.workshop();
-  if (htmlHardeningModuleIds.includes(options.moduleId)) return htmlModuleLoaders.hardening();
-  return htmlModuleLoaders.foundation();
-}
-
-async function loadFullHtmlTrack() {
-  const tracks = await Promise.all([
-    htmlModuleLoaders.foundation(),
-    htmlModuleLoaders.advanced(),
-    htmlModuleLoaders.workshop(),
-    htmlModuleLoaders.hardening()
-  ]);
-  return tracks.reduce((merged, track) => mergeLoadedTrack(merged, track), null);
+async function loadHtmlTrack() {
+  return trackLoaders.html();
 }
 
 export async function loadAllLocalTracks() {

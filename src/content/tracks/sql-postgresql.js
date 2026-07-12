@@ -26,7 +26,7 @@ export const sqlPostgresqlTrack = createProfessionalTrack({
   capstone: ["Concevoir la base d’une plateforme pédagogique avec utilisateurs, parcours, progression, quiz, projets, certificats, analytics et politiques RLS.", "Design the database for a learning platform with users, tracks, progress, quizzes, projects, certificates, analytics, and RLS policies."],
   certification: [["Valider les quiz SQL", "Pass SQL quizzes"], ["Livrer quatre modèles progressifs", "Ship four progressive models"], ["Réussir l’examen final", "Pass the final exam"], ["Faire approuver contraintes et politiques RLS", "Get constraints and RLS policies approved"]],
   modules: [
-    ...sqlModules,
+    ...sqlModules.slice(0, 2),
     {
       id: "sql-foundations",
       title: ["Tables et requêtes fondamentales", "Tables and fundamental queries"],
@@ -44,6 +44,7 @@ export const sqlPostgresqlTrack = createProfessionalTrack({
         ])
       ]
     },
+    ...sqlModules.slice(2, 3),
     {
       id: "sql-relations",
       title: ["Relations, jointures et index", "Relations, joins, and indexes"],
@@ -61,6 +62,7 @@ export const sqlPostgresqlTrack = createProfessionalTrack({
         ])
       ]
     },
+    ...sqlModules.slice(3, 4),
     {
       id: "sql-transactions-security",
       title: ["Transactions, migrations et RLS", "Transactions, migrations, and RLS"],
@@ -78,6 +80,7 @@ export const sqlPostgresqlTrack = createProfessionalTrack({
         ])
       ]
     },
+    ...sqlModules.slice(4, 5),
     {
       id: "sql-production",
       title: ["Plans, concurrence et projet final", "Plans, concurrency, and final project"],
@@ -105,22 +108,18 @@ export const sqlPostgresqlTrack = createProfessionalTrack({
 });
 
 function sql(id, title, brief, solution, requirements, skills, vocabulary) {
-  const proof = sqlProof(id, solution);
-  const provenSolution = `${solution}\n\n-- PulsaTeach SQL evidence: ${proof.join(" ")}`;
-  return { id, type: "sql", title, brief, solution: provenSolution, requirements: evidence(requirements, provenSolution, proof), skills, vocabulary };
+  return { id, type: "sql", title, brief, solution, requirements: evidence(requirements, solution), skills, vocabulary };
 }
 
 function project(id, title, brief, solution, requirements, skills, vocabulary, finalProject = false) {
-  const proof = sqlProof(id, solution);
-  const provenSolution = `${solution}\n\n-- PulsaTeach SQL evidence: ${proof.join(" ")}`;
   return {
     id,
     project: true,
     exerciseType: "sql",
     title,
     brief,
-    solution: provenSolution,
-    requirements: evidence(requirements, provenSolution, proof),
+    solution,
+    requirements: evidence(requirements, solution),
     skills,
     vocabulary,
     durationMin: finalProject ? 240 : 120,
@@ -128,34 +127,7 @@ function project(id, title, brief, solution, requirements, skills, vocabulary, f
   };
 }
 
-function sqlProof(id, solution) {
-  const text = solution.toLowerCase();
-  const detected = [
-    ["create table", "create-table"],
-    ["primary key", "primary-key"],
-    ["references", "foreign-key"],
-    ["check", "check-constraint"],
-    ["unique", "unique-constraint"],
-    ["create index", "index"],
-    ["left join", "left-join"],
-    ["join", "join"],
-    ["group by", "group-by"],
-    ["order by", "order-by"],
-    ["begin;", "transaction"],
-    ["commit;", "commit"],
-    ["for update", "row-lock"],
-    ["on conflict", "idempotency"],
-    ["explain", "query-plan"],
-    ["enable row level security", "rls"],
-    ["create policy", "policy"],
-    ["auth.uid()", "tenant-isolation"],
-    ["jsonb", "jsonb"],
-    ["timestamptz", "timestamptz"]
-  ].filter(([needle]) => text.includes(needle)).map(([, label]) => label);
-  return [...new Set(["sql-contract", "integrity", "production-proof", id, ...detected])];
-}
-
-function evidence(requirements, solution, _proof) {
+function evidence(requirements, solution) {
   const candidates = ["create table", "primary key", "references", "check", "unique", "create index", "join", "where", "group by", "order by", "begin;", "commit;", "explain", "row level security", "create policy", "auth.uid()"];
   const text = solution.toLowerCase();
   return [...new Set([...requirements, ...candidates.filter((candidate) => text.includes(candidate))])];

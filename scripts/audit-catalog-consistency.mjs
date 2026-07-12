@@ -31,7 +31,7 @@ if (actualTrackIds.length !== expectedTrackIds.length) failures.push(`expected $
 for (const id of expectedTrackIds) {
   if (!actualTrackIds.includes(id)) failures.push(`missing track in allTrackRegistry: ${id}`);
 }
-if (lessonCount !== 871) failures.push(`expected 871 lessons, found ${lessonCount}`);
+if (lessonCount !== 874) failures.push(`expected 874 lessons, found ${lessonCount}`);
 if (publicLessonCount !== lessonCount) failures.push(`public catalog counts ${publicLessonCount} lessons, registry has ${lessonCount}`);
 for (const track of learningTracks) {
   const publicTrack = publicTrackCatalog.find((item) => item.id === track.id);
@@ -58,8 +58,8 @@ if (!learningLayout.includes("projectMissions = learningTracks.map")) failures.p
 if (learningLayout.includes('trackId: "html"') && learningLayout.includes('trackId: "css"') && learningLayout.includes('trackId: "javascript"')) failures.push("MissionBoard still contains the old three-track mission set.");
 
 const roadmapEvidence = await read("docs/ROADMAP_EVIDENCE.md");
-if (!roadmapEvidence.includes("14 parcours, 871 leçons")) failures.push("ROADMAP_EVIDENCE must state 14 parcours, 871 lessons.");
-if (!roadmapEvidence.includes("577 termes")) failures.push("ROADMAP_EVIDENCE must state 577 linked terms.");
+if (!roadmapEvidence.includes("14 parcours, 874 leçons")) failures.push("ROADMAP_EVIDENCE must state 14 parcours, 874 lessons.");
+if (!roadmapEvidence.includes("599 termes")) failures.push("ROADMAP_EVIDENCE must state 599 linked terms.");
 if (roadmapEvidence.includes("272 leçons") || roadmapEvidence.includes("357 termes")) failures.push("ROADMAP_EVIDENCE still contains obsolete curriculum numbers.");
 
 const legalPages = await read("src/LegalPages.jsx");
