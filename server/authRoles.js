@@ -10,7 +10,8 @@ export function rolesFromUser(user = {}) {
 
   return Array.from(new Set(
     roles
-      .map((role) => String(role).trim())
+      .filter((role) => typeof role === "string")
+      .map((role) => role.trim())
       .filter(Boolean)
   ));
 }
