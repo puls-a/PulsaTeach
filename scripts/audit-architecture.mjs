@@ -22,6 +22,7 @@ for (const directory of sourceRoots) {
 
 const requiredModules = [
   "server/authService.js",
+  "server/routeContexts.js",
   "server/routes/system.js",
   "server/routes/courses.js",
   "server/routes/accounts.js",
@@ -36,6 +37,15 @@ for (const modulePath of requiredModules) {
     await readFile(new URL(`../${modulePath}`, import.meta.url), "utf8");
   } catch {
     failures.push(`${modulePath}: required architecture module is missing`);
+  }
+}
+
+for (const routeFile of requiredModules.filter((modulePath) => modulePath.startsWith("server/routes/"))) {
+  const source = await readFile(new URL(`../${routeFile}`, import.meta.url), "utf8");
+  const contextBlock = source.match(/const \{([\s\S]*?)\} = context;/)?.[1] || "";
+  const dependencyCount = contextBlock.split(",").map((item) => item.trim()).filter(Boolean).length;
+  if (dependencyCount > 40) {
+    failures.push(`${routeFile}: receives ${dependencyCount} dependencies; split or scope the route context`);
   }
 }
 
@@ -57,7 +67,7 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("Architecture audit passed: domain modules are present, authentication is isolated, and source files stay within 500 lines except declared curriculum data files.");
+console.log("Architecture audit passed: domain modules are present, authentication and route dependencies are isolated, and source files stay within 500 lines except declared curriculum data files.");
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
