@@ -44,6 +44,7 @@ import { registerAuthoringRoutes } from "./routes/authoring.js";
 import { registerLearningRoutes } from "./routes/learning.js";
 import { rolesFromUser } from "./authRoles.js";
 import { createAuthService } from "./authService.js";
+import { createRouteContexts } from "./routeContexts.js";
 
 const app = express();
 const productionRuntime = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
@@ -168,12 +169,14 @@ const routeContext = {
   createHash
 };
 
-registerSystemRoutes(app, routeContext);
-registerCoursesRoutes(app, routeContext);
-registerAdministrationRoutes(app, routeContext);
-registerAccountsRoutes(app, routeContext);
-registerAuthoringRoutes(app, routeContext);
-registerLearningRoutes(app, routeContext);
+const routeContexts = createRouteContexts(routeContext);
+
+registerSystemRoutes(app, routeContexts.system);
+registerCoursesRoutes(app, routeContexts.courses);
+registerAdministrationRoutes(app, routeContexts.administration);
+registerAccountsRoutes(app, routeContexts.accounts);
+registerAuthoringRoutes(app, routeContexts.authoring);
+registerLearningRoutes(app, routeContexts.learning);
 
 app.use((error, request, response, _next) => {
   const status = Number(error?.status) >= 400 && Number(error?.status) < 600 ? Number(error.status) : 500;
