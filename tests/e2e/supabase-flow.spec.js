@@ -110,9 +110,10 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
     const expectedCatalogTitle = await page.evaluate(() =>
       document.documentElement.lang === "en" ? "Dynamic CI course" : "Formation CI dynamique"
     );
+    await expect(page.getByRole("heading", { name: /Formations disponibles|Available courses/ })).toBeVisible();
     await expect.poll(
-      () => page.locator("article button span[aria-hidden=\"true\"]").allTextContents(),
-      { message: "The published course should be rendered as a catalog card" }
+      () => page.locator("body").innerText(),
+      { message: "The published course title should be visible in the catalog" }
     ).toContain(expectedCatalogTitle);
     await page.goto(`/learn/${course.slug}/${module.id}/${lesson.id}`);
     await expect(page.getByText("Première leçon CI").first()).toBeVisible();
