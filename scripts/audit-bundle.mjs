@@ -133,7 +133,7 @@ function formatBytes(bytes) {
 function printReport() {
   const brotliJs = sum(jsMetrics, "brotli");
   console.log([
-    `Bundle budget passed for ${metrics.size} JS/CSS assets.`,
+    `Bundle metrics for ${metrics.size} JS/CSS assets.`,
     `JavaScript: ${formatBytes(rawJs)} raw, ${formatBytes(gzipJs)} gzip, ${formatBytes(brotliJs)} brotli.`,
     `CSS: ${formatBytes(rawCss)} raw.`,
     `Initial entry: ${formatBytes(initialGzip)} gzip.`,
