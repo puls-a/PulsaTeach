@@ -99,7 +99,14 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
       timeout: 15_000
     }).toBe(true);
 
+    const browserCatalogResponse = page.waitForResponse((response) =>
+      response.url().includes("/api/catalog") && response.request().resourceType() === "fetch"
+    );
     await page.goto("/catalog");
+    const catalogResponse = await browserCatalogResponse;
+    expect(catalogResponse.ok()).toBeTruthy();
+    const browserCatalog = await catalogResponse.json();
+    expect(browserCatalog.tracks.some((track) => track.id === course.slug)).toBe(true);
     await expect(page.locator("span", { hasText: /^(Formation CI dynamique|Dynamic CI course)$/ })).toBeVisible();
     await page.goto(`/learn/${course.slug}/${module.id}/${lesson.id}`);
     await expect(page.getByText("Première leçon CI").first()).toBeVisible();
