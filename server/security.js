@@ -60,7 +60,7 @@ export function applySecurity(app) {
       callback(Object.assign(new Error("Origin not allowed by CORS."), { status: 403, code: "CORS_ORIGIN_DENIED" }));
     },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Authorization", "Content-Type", "X-Request-Id", "X-PulsaTeach-Admin-Key", "X-PulsaTeach-User-Id"],
+    allowedHeaders: ["Authorization", "Cache-Control", "Content-Type", "Pragma", "X-Request-Id", "X-PulsaTeach-Admin-Key", "X-PulsaTeach-User-Id"],
     maxAge: 86400
   }));
 
