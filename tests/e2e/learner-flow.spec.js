@@ -97,6 +97,17 @@ test("tools lesson opens without guide rendering errors", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("browser history navigation synchronizes the active lesson", async ({ page }) => {
+  await page.goto("/learn/tools/tools-setup/tools-01-vscode");
+  await acceptPrivacy(page);
+  await expect(page.getByRole("heading", { name: /Choisir son espace de travail|Choose your workspace/ }).first()).toBeVisible();
+  await page.evaluate(() => {
+    window.history.pushState(null, "", "/learn/html/html-getting-started/html-00-what-html-does");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  });
+  await expect(page.getByRole("heading", { name: /Ce que HTML fait vraiment|What HTML really does/ }).first()).toBeVisible();
+});
+
 async function acceptPrivacy(page) {
   const button = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await button.isVisible()) await button.click();

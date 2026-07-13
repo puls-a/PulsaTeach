@@ -26,6 +26,7 @@ import {
 import { CompletionBanner, difficultyLabel, NotesPanel, SkillChips } from "./features/learn/LearningShared.jsx";
 import { CourseChapter } from "./features/learn/LearningPedagogy.jsx";
 import { FocusedLearningLayout } from "./features/learn/LearningLayout.jsx";
+import { useLessonRouteSync } from "./features/learn/useLessonRouteSync.js";
 import { updatePageMetadata } from "./appMetadata.js";
 
 const progressKey = "pulsateach-learning-progress";
@@ -42,6 +43,7 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
   const [statusFilter, setStatusFilter] = useState("all");
   const [syncState, setSyncState] = useState("local");
   const [trackLoadError, setTrackLoadError] = useState("");
+  useLessonRouteSync({ locale, onRequireTrack, requestedRoute, setActiveTrackId, setActiveModuleId, setActiveLessonId, setTrackLoadError });
 
   const selectedTrack = tracks.find((track) => track.id === activeTrackId);
   const trackLoading = Boolean(selectedTrack?.isSummary);
