@@ -27,6 +27,11 @@ export function NotesPanel({ lessonId, locale, note, setNote }) {
 
 export function difficultyLabel(difficulty, locale) {
   const labels = {
+    easy: { fr: "Facile", en: "Easy" },
+    medium: { fr: "Intermédiaire", en: "Medium" },
+    hard: { fr: "Difficile", en: "Hard" },
+    intermediate: { fr: "Intermédiaire", en: "Intermediate" },
+    quiz: { fr: "Évaluation", en: "Quiz" },
     quick: { fr: "Rapide", en: "Quick" },
     starter: { fr: "Départ", en: "Starter" },
     core: { fr: "Essentiel", en: "Core" },

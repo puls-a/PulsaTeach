@@ -1,16 +1,23 @@
 import { chromium } from "@playwright/test";
+import { mkdir } from "node:fs/promises";
+import path from "node:path";
+import { loadAllLocalTracks } from "../src/content/localTrackLoader.js";
 
 const baseUrl = String(process.env.PULSATEACH_PRODUCTION_URL || "https://pulsateach.vercel.app").replace(/\/$/, "");
-const routes = [
+const captureDir = process.env.PULSATEACH_CAPTURE_DIR ? path.resolve(process.env.PULSATEACH_CAPTURE_DIR) : null;
+const coreRoutes = [
   "/",
   "/catalog",
   "/glossary",
   "/review",
   "/projects",
   "/certification",
-  "/studio",
-  "/learn/html/html-foundations/html-01-document-skeleton"
+  "/studio"
 ];
+const learningTracks = await loadAllLocalTracks();
+const lessonRoutes = learningTracks.flatMap((track) => representativeLessonRoutes(track));
+const routes = [...coreRoutes, ...lessonRoutes.map(({ route }) => route)];
+if (captureDir) await mkdir(captureDir, { recursive: true });
 
 const home = await fetch(baseUrl);
 assert(home.ok, `Homepage returned ${home.status}`);
@@ -44,12 +51,43 @@ try {
     });
     page.on("pageerror", (error) => failures.push(`${viewport.width}px ${currentRoute} page: ${error.message}`));
 
+    const initialResponse = await page.goto(baseUrl, { waitUntil: "networkidle" });
+    if (!initialResponse?.ok()) failures.push(`${viewport.width}px /: HTTP ${initialResponse?.status() || "unknown"}`);
+
     for (const route of routes) {
       currentRoute = route;
-      const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "networkidle" });
-      if (!response?.ok()) failures.push(`${viewport.width}px ${route}: HTTP ${response?.status() || "unknown"}`);
-      const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
-      if (overflow) failures.push(`${viewport.width}px ${route}: horizontal overflow`);
+      if (route !== "/") {
+        await page.evaluate((nextRoute) => {
+          window.history.pushState(null, "", nextRoute);
+          window.dispatchEvent(new PopStateEvent("popstate"));
+        }, route);
+        await page.waitForFunction((nextRoute) => window.location.pathname === nextRoute, route);
+      }
+      await page.waitForTimeout(250);
+      const pageState = await page.evaluate(() => ({
+        bodyText: document.body?.innerText?.trim() || "",
+        overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
+      }));
+      if (pageState.overflow) failures.push(`${viewport.width}px ${route}: horizontal overflow`);
+      if (pageState.bodyText.length < 40) failures.push(`${viewport.width}px ${route}: page content is unexpectedly empty`);
+      if (pageState.bodyText.includes("[object Object]")) failures.push(`${viewport.width}px ${route}: unresolved localized object`);
+
+      const lesson = lessonRoutes.find((item) => item.route === route);
+      if (lesson) {
+        try {
+          await page.getByText(lesson.title).first().waitFor({ state: "visible", timeout: 10_000 });
+        } catch {
+          failures.push(`${viewport.width}px ${route}: lesson title is not visible`);
+        }
+        const breadcrumbListStyle = await page.locator('nav[aria-label="Fil d\'Ariane"] ol').evaluate((element) => getComputedStyle(element).listStyleType).catch(() => "missing");
+        if (breadcrumbListStyle !== "none") failures.push(`${viewport.width}px ${route}: breadcrumb list markers are visible`);
+        if (/\b(?:easy|medium|hard|intermediate)\s*·/i.test(pageState.bodyText)) {
+          failures.push(`${viewport.width}px ${route}: difficulty label is not localized`);
+        }
+      }
+      if (captureDir && lesson?.capture) {
+        await page.screenshot({ path: path.join(captureDir, `${viewport.width}-${lesson.trackId}.png`), fullPage: false });
+      }
     }
     await page.close();
   }
@@ -58,7 +96,7 @@ try {
 }
 
 if (failures.length) throw new Error(`Production smoke failed:\n${failures.join("\n")}`);
-console.log(`Production smoke passed: ${routes.length} routes at 375px and 1440px, strict storage, security headers, CORS, and anonymous write protection.`);
+console.log(`Production smoke passed: ${coreRoutes.length} core routes and ${lessonRoutes.length} lessons across ${learningTracks.length} tracks at 375px and 1440px.`);
 
 async function json(path) {
   const response = await fetch(`${baseUrl}${path}`);
@@ -68,4 +106,15 @@ async function json(path) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function representativeLessonRoutes(track) {
+  const lessons = track.modules.flatMap((module) => module.lessons.map((lesson) => ({ module, lesson }))).filter(({ lesson }) => lesson.type !== "quiz");
+  const selected = [lessons[0], lessons.at(-1)].filter(Boolean);
+  return selected.map(({ module, lesson }, index) => ({
+    capture: index === 0,
+    route: `/learn/${track.id}/${module.id}/${lesson.id}`,
+    title: lesson.title.fr,
+    trackId: track.id
+  }));
 }

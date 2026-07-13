@@ -60,10 +60,11 @@ function createHtmlPreview(code, locale) {
     : `<div class="pulsateach-empty-preview"><p><strong>Empty body</strong>Add a visible element inside &lt;body&gt; to see it here.</p></div>`;
 
   let preview = code.trim() || "<!doctype html><html><head></head><body></body></html>";
-  preview = /<\/head>/i.test(preview) ? preview.replace(/<\/head>/i, `${helper}</head>`) : `${helper}${preview}`;
   if (bodyIsEmpty) preview = preview.replace(/<body([^>]*)>\s*<\/body>/i, `<body$1>${emptyState}</body>`);
-  if (!hasBody) preview = `${helper}<body>${preview}</body>`;
-  return preview;
+  if (!/<html[\s>]/i.test(preview)) return `<!doctype html><html><head>${helper}</head><body>${preview}</body></html>`;
+  if (/<\/head>/i.test(preview)) return preview.replace(/<\/head>/i, `${helper}</head>`);
+  if (/<head[\s>]/i.test(preview)) return preview.replace(/<head([^>]*)>/i, `<head$1>${helper}`);
+  return preview.replace(/<html([^>]*)>/i, `<html$1><head>${helper}</head>`);
 }
 
 function defaultCssPreview(locale) {

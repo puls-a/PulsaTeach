@@ -70,4 +70,12 @@ describe("HTML semantic lesson validation", () => {
     expect(createPreview({ id: "html-empty", type: "html" }, "<html><body></body></html>", "en")).toContain("Empty body");
     expect(createPreview({ id: "html-empty", type: "html" }, "<html><body></body></html>", "fr")).toContain("Body vide");
   });
+
+  test("keeps the preview CSP inside the document head", () => {
+    const fragment = createPreview({ id: "html-fragment", type: "html" }, "<main>Hello</main>", "en");
+    const document = createPreview({ id: "html-document", type: "html" }, "<!doctype html><html><head><title>Demo</title></head><body>Hello</body></html>", "en");
+    expect(fragment).toMatch(/<head>[\s\S]*Content-Security-Policy[\s\S]*<\/head><body>/i);
+    expect(document).toMatch(/<head>[\s\S]*Content-Security-Policy[\s\S]*<\/head>/i);
+    expect(document.indexOf("Content-Security-Policy")).toBeLessThan(document.indexOf("</head>"));
+  });
 });
