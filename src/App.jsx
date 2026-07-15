@@ -38,6 +38,7 @@ import { updatePageMetadata } from "./appMetadata.js";
 import { knownRoutes } from "./appRoutes.js";
 
 const GlossaryPage = lazy(() => import("./features/glossary/GlossaryPage.jsx"));
+const NotFoundPage = lazy(() => import("./NotFoundPage.jsx"));
 const ReviewPage = lazy(() => import("./features/review/ReviewPage.jsx"));
 const CourseStudio = lazy(() => import("./CourseStudio.jsx"));
 const CurriculumHub = lazy(() => import("./CurriculumHub.jsx"));
@@ -434,27 +435,6 @@ function AuthorGate({ locale, children }) {
   const { user } = useSupabaseSession();
   if (canManageContent(user)) return children;
   return <NotFoundPage locale={locale} restricted />;
-}
-
-function NotFoundPage({ locale, restricted = false }) {
-  return (
-    <section className="app-page grid min-h-screen place-items-center bg-slate-50">
-      <div className="surface max-w-xl text-center">
-        <p className="eyebrow">404</p>
-        <h1 className="mt-3 font-display text-3xl font-black text-ink">
-          {restricted
-            ? (locale === "fr" ? "Espace réservé aux auteurs" : "Author area")
-            : (locale === "fr" ? "Page introuvable" : "Page not found")}
-        </h1>
-        <p className="mt-3 leading-7 text-slate-600">
-          {restricted
-            ? (locale === "fr" ? "Cette zone est masquée aux comptes apprenants pour garder l’expérience claire." : "This area is hidden from learner accounts to keep the experience focused.")
-            : (locale === "fr" ? "La page demandée n’existe pas ou a été déplacée." : "The requested page does not exist or has moved.")}
-        </p>
-        <a href="/catalog" className="primary-button mt-6">{locale === "fr" ? "Retour aux formations" : "Back to courses"}</a>
-      </div>
-    </section>
-  );
 }
 
 export default App;
