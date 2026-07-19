@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const widths = [375, 768, 1024, 1440];
-const routes = ["/", "/catalog", "/signup", "/glossary", "/review", "/projects", "/certification", "/studio", "/privacy", "/cookies", "/terms", "/legal", "/learn/tools/tools-setup/tools-01-vscode", "/formations/tools", "/learn/html/html-getting-started/html-00-what-html-does", "/learn/html/html-final-audit/html-09-final-exam", "/learn/git/git-foundations/git-01-terminal", "/learn/accessibility/a11y-foundations/a11y-01-semantics", "/learn/testing/testing-strategy/testing-01-vitest", "/learn/typescript/typescript-foundations/ts-01-unions", "/learn/react/react-components/react-01-component", "/learn/node-api/node-http/node-02-validation", "/learn/sql-postgresql/sql-foundations/sql-01-tables", "/learn/web-security/security-threats-input/sec-01-validation", "/learn/web-performance/performance-javascript-react/perf-02-splitting", "/learn/devops-deployment/ops-foundations/ops-01-build", "/playground"];
+const routes = ["/", "/catalog", "/dashboard", "/signup", "/glossary", "/review", "/projects", "/certification", "/studio", "/privacy", "/cookies", "/terms", "/legal", "/learn/tools/tools-setup/tools-01-vscode", "/formations/tools", "/learn/html/html-getting-started/html-00-what-html-does", "/learn/html/html-final-audit/html-09-final-exam", "/learn/git/git-foundations/git-01-terminal", "/learn/accessibility/a11y-foundations/a11y-01-semantics", "/learn/testing/testing-strategy/testing-01-vitest", "/learn/typescript/typescript-foundations/ts-01-unions", "/learn/react/react-components/react-01-component", "/learn/node-api/node-http/node-02-validation", "/learn/sql-postgresql/sql-foundations/sql-01-tables", "/learn/web-security/security-threats-input/sec-01-validation", "/learn/web-performance/performance-javascript-react/perf-02-splitting", "/learn/devops-deployment/ops-foundations/ops-01-build", "/playground"];
 
 test.describe("responsive layout", () => {
   for (const width of widths) {
@@ -87,6 +87,30 @@ test("homepage and footer stay composed at 390px", async ({ page }, testInfo) =>
   await expect(page.getByRole("navigation", { name: /Réseaux sociaux PulsaTeach|PulsaTeach social media/ })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("homepage-390.png"), fullPage: true });
   await testInfo.attach("homepage-390", { path: testInfo.outputPath("homepage-390.png"), contentType: "image/png" });
+});
+
+test("learner dashboard stays actionable at 390px and uses the reward accent", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() => {
+    const now = new Date().toISOString();
+    localStorage.setItem("pulsateach-learning-progress", JSON.stringify({
+      xp: 25,
+      completed: { "html-00-what-html-does": { passedAt: now, xp: 25 } },
+      activity: [{ id: "html-00-what-html-does", title: { fr: "Ce que HTML fait vraiment", en: "What HTML really does" }, xp: 25, at: now }],
+      streak: { count: 1, longest: 1, totalActiveDays: 1, recentDates: [now.slice(0, 10)] }
+    }));
+  });
+  await page.goto("/dashboard");
+  const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
+  if (await consent.isVisible()) await consent.click();
+
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Continuer à apprendre|Continue learning/ })).toBeVisible();
+  const dimensions = await page.evaluate(() => ({ clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+  const rewardColor = await page.getByText("+25 XP", { exact: true }).evaluate((element) => getComputedStyle(element).color);
+  expect(rewardColor).toBe("rgb(110, 231, 183)");
 });
 
 test("tools lesson rich content stays inside mobile viewport", async ({ page }, testInfo) => {

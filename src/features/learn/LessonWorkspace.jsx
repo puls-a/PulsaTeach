@@ -115,7 +115,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold uppercase text-indigoPop">{lesson.type}</span>
             {lesson.stepNumber && <span className="rounded-full bg-violet-100 px-3 py-1.5 text-xs font-black uppercase tracking-[.12em] text-violet-700">{locale === "fr" ? `Atelier étape ${lesson.stepNumber}` : `Workshop step ${lesson.stepNumber}`}</span>}
-            <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">{lesson.xp} XP</span>
+            <span className="rounded-full bg-slate-950 px-3 py-1.5 text-xs font-bold text-emerald-300">{lesson.xp} XP</span>
             <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600">{difficultyLabel(lesson.difficulty, locale)} · {lesson.durationMin} min</span>
             {isCompleted && <span className="rounded-full bg-green-100 px-3 py-1.5 text-xs font-bold text-green-700">{locale === "fr" ? "Validé" : "Passed"}</span>}
           </div>
