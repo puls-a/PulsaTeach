@@ -9,49 +9,56 @@ const socialLinks = [
 ];
 
 export default function AppFooter({ locale }) {
+  const fr = locale === "fr";
   const legalLinks = [
-    { href: "/privacy", label: locale === "fr" ? "Confidentialit\u00e9" : "Privacy" },
-    { href: "/about", label: locale === "fr" ? "\u00c0 propos" : "About" },
+    { href: "/privacy", label: fr ? "Confidentialit\u00e9" : "Privacy" },
+    { href: "/about", label: fr ? "\u00c0 propos" : "About" },
     { href: "/cookies", label: "Cookies" },
-    { href: "/terms", label: locale === "fr" ? "Conditions" : "Terms" },
-    { href: "/legal", label: locale === "fr" ? "Mentions l\u00e9gales" : "Legal notice" }
+    { href: "/terms", label: fr ? "Conditions" : "Terms" },
+    { href: "/legal", label: fr ? "Mentions l\u00e9gales" : "Legal notice" }
   ];
 
   return (
-    <footer className="border-t border-slate-200 bg-white px-5 py-10">
-      <div className="mx-auto flex max-w-7xl flex-col gap-7 text-sm text-slate-500">
-        <div className="grid gap-7 lg:grid-cols-[minmax(260px,420px)_1fr] lg:items-start">
-          <div className="flex flex-col items-start gap-4">
-            <a href="/catalog" className="brand-logo-link brand-logo-link--footer inline-flex items-center rounded-2xl hover:bg-slate-50" aria-label="PulsaTeach">
-              <img src="/assets/logo_horizontale_optimized.webp" alt="PulsaTeach" className="brand-logo-image" width="380" height="96" loading="lazy" />
+    <footer className="border-t border-white/10 bg-slate-950 px-4 py-10 text-white sm:px-6 sm:py-12 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-8 text-sm text-slate-400">
+        <div className="grid gap-8 border-b border-white/10 pb-8 lg:grid-cols-2 lg:items-end">
+          <div className="flex max-w-lg flex-col items-start gap-4">
+            <a href="/" className="inline-flex rounded-xl focus-visible:outline-white" aria-label={fr ? "Accueil PulsaTeach" : "PulsaTeach home"}>
+              <img src="/assets/logo-wordmark.webp" alt="PulsaTeach" className="h-10 w-auto brightness-0 invert" width="198" height="48" loading="lazy" />
             </a>
-            <SocialLinks />
+            <p className="max-w-md text-base font-semibold leading-7 text-slate-300">
+              {fr
+                ? "Apprends le d\u00e9veloppement web en construisant des projets que tu peux expliquer, publier et montrer."
+                : "Learn web development by building projects you can explain, publish, and show."}
+            </p>
+            <SocialLinks locale={locale} />
           </div>
 
-          <div className="flex flex-col gap-4 lg:items-end lg:text-right">
-            <a href="mailto:pulsateach@gmail.com" className="inline-flex w-fit rounded-full border border-slate-200 bg-slate-50 px-4 py-2 font-bold text-slate-700 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigoPop lg:self-end">
-              pulsateach@gmail.com
-            </a>
-            <nav className="flex flex-wrap gap-x-5 gap-y-3 font-semibold text-slate-600 lg:justify-end" aria-label={locale === "fr" ? "Liens du pied de page" : "Footer links"}>
+          <div className="flex flex-col gap-5 lg:items-end lg:text-right">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[.16em] text-emerald-300">{fr ? "Une question ?" : "Have a question?"}</p>
+              <a href="mailto:pulsateach@gmail.com" className="mt-2 inline-flex w-fit break-all text-base font-black text-white hover:text-indigo-300">
+                pulsateach@gmail.com
+              </a>
+            </div>
+            <nav className="flex max-w-xl flex-wrap gap-x-5 gap-y-3 font-semibold text-slate-300 lg:justify-end" aria-label={fr ? "Liens du pied de page" : "Footer links"}>
               {legalLinks.map((link) => (
-                <a key={link.href} href={link.href} className="hover:text-ink">
-                  {link.label}
-                </a>
+                <a key={link.href} href={link.href} className="hover:text-white">{link.label}</a>
               ))}
-              <button type="button" onClick={openPrivacySettings} className="font-semibold hover:text-ink">
-                {locale === "fr" ? "Stockages utilis\u00e9s" : "Storage used"}
+              <button type="button" onClick={openPrivacySettings} className="font-semibold text-slate-300 hover:text-white">
+                {fr ? "Stockages utilis\u00e9s" : "Storage used"}
               </button>
             </nav>
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
-          <p className="leading-relaxed">
-            {"\u00a9"} 2026 PulsaTeach {"\u00b7"} {locale === "fr" ? "Derni\u00e8re mise en ligne" : "Last deployment"} :{" "}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-2xl text-xs leading-5 text-slate-400 sm:text-sm">
+            {"\u00a9"} 2026 PulsaTeach {"\u00b7"} {fr ? "Derni\u00e8re mise en ligne" : "Last deployment"} :{" "}
             <time dateTime={deploymentInfo.isoDate}>{deploymentInfo.label[locale]}</time>
           </p>
-          <a href="https://pulsaflow.fr" target="_blank" rel="noopener noreferrer" className="pulsaflow-badge inline-flex w-fit items-center gap-1 self-start rounded-full border border-indigo-100 bg-indigo-50/70 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-[0.06em] text-indigoPop transition hover:-translate-y-0.5 hover:bg-indigo-100 sm:self-auto" aria-label="Powered by PulsaFlow">
-            <span className="pulsaflow-badge-dot size-1.5 rounded-full bg-indigoPop" aria-hidden="true" />
+          <a href="https://pulsaflow.fr" target="_blank" rel="noopener noreferrer" className="pulsaflow-badge inline-flex w-fit items-center gap-1 self-start rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[9px] font-extrabold uppercase tracking-[0.06em] text-slate-300 transition hover:-translate-y-0.5 hover:bg-white/10 hover:text-white sm:self-auto" aria-label="Powered by PulsaFlow">
+            <span className="pulsaflow-badge-dot size-1.5 rounded-full bg-emerald-300" aria-hidden="true" />
             Powered by PulsaFlow
           </a>
         </div>
@@ -60,11 +67,11 @@ export default function AppFooter({ locale }) {
   );
 }
 
-function SocialLinks() {
+function SocialLinks({ locale }) {
   return (
-    <nav className="grid w-full max-w-sm grid-cols-2 gap-2 sm:flex sm:max-w-none sm:flex-wrap" aria-label="R\u00e9seaux sociaux PulsaTeach">
+    <nav className="flex flex-wrap gap-2" aria-label={locale === "fr" ? "R\u00e9seaux sociaux PulsaTeach" : "PulsaTeach social media"}>
       {socialLinks.map((link) => (
-        <a key={link.id} href={link.href} target="_blank" rel="me noopener noreferrer" className="group inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-black uppercase tracking-[.08em] text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigoPop" aria-label={`${link.label} PulsaTeach`}>
+        <a key={link.id} href={link.href} target="_blank" rel="me noopener noreferrer" className="group inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 text-xs font-black uppercase tracking-[.08em] text-slate-300 transition hover:-translate-y-0.5 hover:bg-white/10 hover:text-white" aria-label={`${link.label} PulsaTeach`}>
           <SocialIcon id={link.id} />
           {link.id === "x" ? <span className="sr-only">X</span> : <span>{link.label}</span>}
         </a>

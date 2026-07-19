@@ -145,10 +145,10 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <a href="#main-content" className="skip-link">{locale === "fr" ? "Aller au contenu principal" : "Skip to main content"}</a>
       <Header locale={locale} route={route} onLanguageToggle={() => setLocale(locale === "fr" ? "en" : "fr")} />
-      <main id="main-content" tabIndex={-1}><Suspense fallback={<RouteFallback locale={locale} />}>{renderRoute(route, locale)}</Suspense></main>
+      <main id="main-content" className="flex-1" tabIndex={-1}><Suspense fallback={<RouteFallback locale={locale} />}>{renderRoute(route, locale)}</Suspense></main>
       <AppFooter locale={locale} />
       <CookieConsent locale={locale} />
     </div>
@@ -216,9 +216,9 @@ function Header({ locale, route, onLanguageToggle }) {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3" data-navigation-root>
-      <nav className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-4 rounded-2xl border border-slate-200/90 bg-white/95 px-3 shadow-lg shadow-slate-900/5 backdrop-blur-xl sm:px-4" aria-label="Navigation principale">
-        <a href="/catalog" className="brand-logo-link brand-logo-link--nav flex min-w-0 items-center rounded-xl hover:bg-slate-100" aria-label="PulsaTeach">
-          <img src="/assets/logo_horizontale_optimized.webp" alt="PulsaTeach" className="brand-logo-image" width="380" height="96" />
+      <nav className="relative z-0 mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white/95 px-4 shadow-lg shadow-slate-900/5 backdrop-blur-xl sm:h-[76px] sm:gap-4" aria-label={locale === "fr" ? "Navigation principale" : "Main navigation"}>
+        <a href="/" className="flex min-w-0 items-center rounded-xl py-2" aria-label={locale === "fr" ? "Accueil PulsaTeach" : "PulsaTeach home"}>
+          <img src="/assets/logo-wordmark.webp" alt="PulsaTeach" className="h-9 w-auto sm:h-10" width="198" height="48" />
         </a>
 
         <div className="hidden items-center gap-1 lg:flex">
@@ -230,7 +230,7 @@ function Header({ locale, route, onLanguageToggle }) {
         <div className="flex items-center gap-2">
           <button type="button" onClick={onLanguageToggle} className="nav-icon-button" aria-label={locale === "fr" ? "Passer en anglais" : "Switch to French"}><Languages className="size-4" /><span className="hidden sm:inline">{locale === "fr" ? "EN" : "FR"}</span></button>
           <AccountMenu user={user} locale={locale} route={route} open={activeMenu === "account"} onToggle={() => toggleMenu("account")} onClose={() => setActiveMenu(null)} />
-          <button type="button" onClick={() => setMobileOpen(!mobileOpen)} className="nav-icon-button lg:hidden" aria-expanded={mobileOpen} aria-controls="mobile-navigation" aria-label="Menu">
+          <button type="button" onClick={() => setMobileOpen(!mobileOpen)} className="nav-icon-button lg:hidden" aria-expanded={mobileOpen} aria-controls="mobile-navigation" aria-label={locale === "fr" ? "Menu" : "Menu"}>
             {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
         </div>
@@ -238,7 +238,7 @@ function Header({ locale, route, onLanguageToggle }) {
 
       {mobileOpen && (
         <>
-          <button type="button" className="fixed inset-0 -z-10 bg-slate-950/40 backdrop-blur-sm lg:hidden" aria-label={locale === "fr" ? "Fermer le menu" : "Close menu"} onClick={() => setMobileOpen(false)} />
+          <button type="button" className="fixed inset-0 z-10 bg-slate-950/50 backdrop-blur-sm lg:hidden" aria-label={locale === "fr" ? "Fermer le menu" : "Close menu"} onClick={() => setMobileOpen(false)} />
           <MobileNavigation panelRef={mobilePanelRef} locale={locale} user={user} route={route} groups={visibleNavGroups} onClose={() => setMobileOpen(false)} />
         </>
       )}
@@ -310,7 +310,7 @@ function MobileNavigation({ panelRef, locale, user, route, groups, onClose }) {
   const [openGroup, setOpenGroup] = useState(currentGroup);
 
   return (
-    <aside ref={panelRef} id="mobile-navigation" className="fixed inset-y-0 right-0 z-20 flex w-full max-w-sm flex-col border-l border-slate-200 bg-white shadow-2xl lg:hidden" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Menu mobile" : "Mobile menu"}>
+    <aside ref={panelRef} id="mobile-navigation" className="fixed inset-y-0 right-0 z-20 flex w-full flex-col bg-white shadow-2xl sm:max-w-sm sm:border-l sm:border-slate-200 lg:hidden" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Menu mobile" : "Mobile menu"}>
       <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
         <div className="min-w-0">
           <p className="truncate text-sm font-bold text-ink">{user?.email || (locale === "fr" ? "Bienvenue sur PulsaTeach" : "Welcome to PulsaTeach")}</p>
