@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("home route exposes canonical metadata", async ({ page }) => {
   test.setTimeout(60_000);
   await gotoRoute(page, "/");
-  await expect(page.getByRole("heading", { name: /sites que tu peux vraiment montrer/i })).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByRole("heading", { name: /apprends le web en construisant des preuves/i })).toBeVisible({ timeout: 45_000 });
   await expect(page).toHaveTitle(/PulsaTeach : Apprendre le Développement Web Gratuitement/);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://pulsateach.vercel.app/");
 });
