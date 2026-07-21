@@ -8,6 +8,7 @@ export function SkillChips({ skills = [] }) {
 
 export function NotesPanel({ lessonId, locale, note, setNote }) {
   const [saved, setSaved] = useState(false);
+  const fieldId = `lesson-note-${lessonId}`;
   return (
     <details className="rounded-xl border border-slate-200 bg-white p-4">
       <summary className="cursor-pointer font-display text-lg font-bold">{locale === "fr" ? "Notes personnelles" : "Personal notes"}</summary>
@@ -17,10 +18,12 @@ export function NotesPanel({ lessonId, locale, note, setNote }) {
           setSaved(true);
           window.setTimeout(() => setSaved(false), 1600);
         }} className="primary-button min-h-10 px-3 py-2 text-sm">
-          <Save className="size-4" />{saved ? (locale === "fr" ? "Sauvé" : "Saved") : (locale === "fr" ? "Sauver" : "Save")}
+          <Save className="size-4" />{saved ? (locale === "fr" ? "Sauvé" : "Saved") : (locale === "fr" ? "Sauvegarder la note" : "Save note")}
         </button>
       </div>
-      <textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder={locale === "fr" ? "Écris ce que tu veux retenir..." : "Write what you want to remember..."} className="mt-3 min-h-24 w-full resize-y rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm font-semibold text-ink outline-none focus:border-indigoPop" />
+      <label htmlFor={fieldId} className="mt-3 block text-sm font-bold text-slate-700">{locale === "fr" ? "Ce que je veux retenir" : "What I want to remember"}</label>
+      <textarea id={fieldId} value={note} onChange={(event) => setNote(event.target.value)} placeholder={locale === "fr" ? "Écris ce que tu veux retenir..." : "Write what you want to remember..."} className="mt-2 min-h-24 w-full resize-y rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm font-semibold text-ink outline-none focus:border-indigoPop" />
+      <span className="sr-only" role="status">{saved ? (locale === "fr" ? "Note sauvegardée" : "Note saved") : ""}</span>
     </details>
   );
 }

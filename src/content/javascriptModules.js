@@ -1,5 +1,6 @@
 import { jsModuleProfile } from "./jsModuleProfiles.js";
 import { getPedagogy } from "./pedagogy.js";
+import { javascriptFunctionsScopeModule } from "./javascriptFunctionsScopeModule.js";
 
 const moduleSpecs = [
   ["js-variables-strings", ["Variables, types et chaînes", "Variables, types, and strings"], "Nommer les données, produire des messages et observer l’exécution.", "Name data, produce messages, and observe execution.", [
@@ -106,7 +107,7 @@ const moduleSpecs = [
 
 const projectModuleIndexes = new Set([0, 1, 2, 3, 4, 6, 7, 9]);
 
-export const javascriptModules = moduleSpecs.map((spec, index) => makeModule(spec, index));
+export const javascriptModules = moduleSpecs.map((spec, index) => spec[0] === "js-functions-scope" ? javascriptFunctionsScopeModule : makeModule(spec, index));
 
 function makeModule([id, title, frSummary, enSummary, topics], moduleIndex) {
   const lessons = topics.map((topic, index) => makeLesson(id, title, topic, index + 1));

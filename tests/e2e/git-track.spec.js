@@ -8,9 +8,10 @@ test("Git track appears in the catalog and validates a terminal lesson", async (
 
   await page.goto("/learn/git/git-foundations/git-01-terminal", { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: /Se repérer dans le terminal|Navigate the terminal/ }).first()).toBeVisible();
+  await page.getByRole("tab", { name: /Coder|Code/ }).click();
   const editor = page.getByLabel(/Éditeur de code|Code editor/);
   await editor.fill("pwd\nls\nmkdir pulsa-git\ncd pulsa-git");
-  await page.getByRole("button", { name: /Lancer|Run/ }).click();
+  await page.getByRole("button", { name: /Lancer les tests|Run tests/ }).click();
   await expect(page.getByText(/C'est validé|Passed\. XP/)).toBeVisible();
-  await expect(page.getByText(/Terminal simulé|Simulated terminal/)).toBeVisible();
+  await expect(page.locator("#lesson-panel-results").getByText(/Terminal simulé|Simulated terminal/)).toBeVisible();
 });

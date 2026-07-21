@@ -168,7 +168,7 @@ export function PathPage({ locale }) {
             </div>
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               {nextLessons.length === 0 && (
-                <p className="rounded-2xl bg-cloud p-4 font-extrabold text-ink/60 clay-soft">
+                <p className="rounded-2xl bg-cloud p-4 font-extrabold text-ink/70 clay-soft">
                   {locale === "fr" ? "Tout est validé pour le moment." : "Everything is passed for now."}
                 </p>
               )}

@@ -3,6 +3,21 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    noDiscovery: true,
+    include: [
+      "@codemirror/commands",
+      "@codemirror/language",
+      "@codemirror/state",
+      "@codemirror/view",
+      "@lezer/highlight",
+      "@supabase/supabase-js",
+      "lucide-react",
+      "react",
+      "react-dom/client",
+      "react/jsx-dev-runtime"
+    ]
+  },
   server: {
     proxy: {
       "/api": "http://127.0.0.1:4174"
@@ -19,6 +34,8 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes("node_modules/@supabase/supabase-js")) return "supabase";
+          if (id.includes("node_modules/@codemirror/state") || id.includes("node_modules/@codemirror/view")) return "codemirror-core";
+          if (id.includes("node_modules/@codemirror/language") || id.includes("node_modules/@lezer/")) return "codemirror-language";
           if (id.includes("node_modules/react") || id.includes("node_modules/react-dom")) return "react";
           if (id.includes("htmlPedagogy.js") || id.includes("cssPedagogy.js") || id.includes("jsPedagogy.js")) return "pedagogy";
           if (id.includes("cssTrackSelectorsColorsChunk")) return "content-css-selectors";

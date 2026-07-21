@@ -10,11 +10,12 @@ test("accessibility track appears in the catalog and validates a semantic lesson
     waitUntil: "networkidle"
   });
   await expect(page.getByRole("heading", { name: /Choisir le HTML sémantique|Choose semantic HTML/ }).first()).toBeVisible();
+  await page.getByRole("tab", { name: /Coder|Code/ }).click();
 
   const editor = page.getByLabel(/Éditeur de code|Code editor/);
   await editor.fill(
     '<header></header>\n<nav aria-label="Navigation principale"></nav>\n<main><h1>Tableau de bord</h1></main>\n<footer></footer>'
   );
-  await page.getByRole("button", { name: /Lancer|Run/ }).click();
+  await page.getByRole("button", { name: /Lancer les tests|Run tests/ }).click();
   await expect(page.getByText(/C'est validé|Passed\. XP/)).toBeVisible();
 });

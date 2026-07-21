@@ -10,11 +10,12 @@ test("testing track exposes a practical lesson and validates its evidence", asyn
     waitUntil: "networkidle"
   });
   await expect(page.getByRole("heading", { name: /Écrire un test Vitest|Write a Vitest test/ }).first()).toBeVisible();
+  await page.getByRole("tab", { name: /Coder|Code/ }).click();
 
   const editor = page.getByLabel(/Éditeur de code|Code editor/);
   await editor.fill(
     "describe('total', () => { it('calcule', () => { expect(total()).toBe(25); }); });"
   );
-  await page.getByRole("button", { name: /Lancer|Run/ }).click();
+  await page.getByRole("button", { name: /Lancer les tests|Run tests/ }).click();
   await expect(page.getByText(/C'est validé|Passed\. XP/)).toBeVisible();
 });

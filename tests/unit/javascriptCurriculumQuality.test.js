@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { javascriptTrack } from "../../src/content/javascriptTrack.js";
+import { evaluateQuestion } from "../../src/features/quizzes/quizEngine.js";
 
 const modules = javascriptTrack.modules;
 const lessons = modules.flatMap((module) => module.lessons);
@@ -47,4 +48,37 @@ describe("active JavaScript curriculum quality", () => {
     expect(hardeningPractice).toHaveLength(7);
     expect(hardeningPractice.every((lesson) => lesson.tests.some((check) => check.type === "jsExpression"))).toBe(true);
   });
+
+  test("uses the functions pilot as executable pedagogy rather than source matching", () => {
+    const module = modules.find((item) => item.id === "js-functions-scope");
+    const practice = module.lessons.filter((lesson) => lesson.type === "js");
+    const project = module.lessons.find((lesson) => lesson.id === "js-functions-scope-lab");
+    const quiz = module.lessons.find((lesson) => lesson.id === "js-functions-scope-quiz");
+
+    expect(practice).toHaveLength(8);
+    for (const lesson of practice) {
+      expect(() => new Function(lesson.starterCode), lesson.id).not.toThrow();
+      expect(lesson.tests.length, lesson.id).toBeGreaterThanOrEqual(3);
+      expect(lesson.tests.every((check) => check.type === "jsExpression"), lesson.id).toBe(true);
+      expect(lesson.tests.some((check) => runExpression(lesson.starterCode, check.value) === false), lesson.id).toBe(true);
+      expect(lesson.tests.every((check) => runExpression(lesson.solution, check.value)), lesson.id).toBe(true);
+      expect(JSON.stringify(lesson.pedagogy), lesson.id).not.toContain("<div>Contenu</div>");
+    }
+
+    expect(project.tests).toHaveLength(9);
+    expect(project.tests.every((check) => runExpression(project.solution, check.value))).toBe(true);
+    expect(quiz.questions).toHaveLength(8);
+    expect(quiz.questions.every((question) => question.skills?.length > 0)).toBe(true);
+    const openQuestion = quiz.questions.find((question) => question.type === "short-open");
+    expect(evaluateQuestion(openQuestion, "Deux arguments prouvent que la fonction utilise son argument.").correct).toBe(true);
+    expect(evaluateQuestion(openQuestion, "Two arguments prove that the function uses its argument.").correct).toBe(true);
+  });
 });
+
+function runExpression(code, expression) {
+  try {
+    return Boolean(new Function(`${code}\n${expression}`)());
+  } catch {
+    return false;
+  }
+}

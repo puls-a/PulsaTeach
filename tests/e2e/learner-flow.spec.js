@@ -36,6 +36,9 @@ test("account, onboarding, lesson and progress dashboard", async ({ page }) => {
 
   await page.goto("/learn/html/html-getting-started/html-00-what-html-does");
   await expect(page.getByText(/Ce que HTML fait vraiment|What HTML really does/).first()).toBeVisible();
+  await expect(page.getByRole("tab", { name: /Comprendre|Learn/ })).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("tab", { name: /Coder|Code/ }).click();
+  await expect(page.getByLabel(/Éditeur de code|Code editor/)).toBeVisible();
   await expect(page.getByText(/Aperçu live|Live preview/).first()).toBeVisible();
 });
 

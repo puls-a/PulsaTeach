@@ -37,6 +37,19 @@ for (const entry of pages) {
   });
 }
 
+test("lesson code and result modes have no serious automated accessibility violation", async ({ page }) => {
+  await page.goto("/learn/javascript/js-functions-scope/js-functions-scope-declare-function");
+  await page.getByRole("tab", { name: /Coder|Code/ }).click();
+  await expect(page.getByRole("textbox", { name: /Éditeur de code PulsaTeach|PulsaTeach code editor/ })).toBeVisible();
+
+  for (const mode of ["code", "results"]) {
+    if (mode === "results") await page.getByRole("button", { name: /Lancer les tests|Run tests/ }).click();
+    const results = await new AxeBuilder({ page }).exclude("iframe").analyze();
+    const blocking = results.violations.filter((violation) => ["serious", "critical"].includes(violation.impact));
+    expect(blocking, blocking.map(formatViolation).join("\n\n")).toEqual([]);
+  }
+});
+
 function formatViolation(violation) {
   const targets = violation.nodes.flatMap((node) => node.target).join(", ");
   return `${violation.id}: ${violation.help}\n${targets}`;
