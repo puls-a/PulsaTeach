@@ -24,4 +24,13 @@ export function useLessonRouteSync({ locale, onRequireTrack, requestedRoute, set
       window.removeEventListener("popstate", syncFromLocation);
     };
   }, [locale, onRequireTrack, requestedRoute, setActiveLessonId, setActiveModuleId, setActiveTrackId, setTrackLoadError]);
+
+  return (trackId, moduleId, lessonId) => {
+    requestedRoute.current = { trackId, moduleId, lessonId };
+    setActiveTrackId(trackId);
+    setActiveModuleId(moduleId);
+    setActiveLessonId(lessonId);
+    const nextPath = `/learn/${trackId}/${moduleId}/${lessonId}`;
+    if (window.location.pathname !== nextPath) window.history.pushState(null, "", nextPath);
+  };
 }

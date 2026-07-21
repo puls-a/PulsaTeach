@@ -43,7 +43,7 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
   const [statusFilter, setStatusFilter] = useState("all");
   const [syncState, setSyncState] = useState("local");
   const [trackLoadError, setTrackLoadError] = useState("");
-  useLessonRouteSync({ locale, onRequireTrack, requestedRoute, setActiveTrackId, setActiveModuleId, setActiveLessonId, setTrackLoadError });
+  const selectLesson = useLessonRouteSync({ locale, onRequireTrack, requestedRoute, setActiveTrackId, setActiveModuleId, setActiveLessonId, setTrackLoadError });
 
   const selectedTrack = tracks.find((track) => track.id === activeTrackId);
   const trackLoading = Boolean(selectedTrack?.isSummary);
@@ -119,11 +119,10 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
 
   const handleTrackChange = async (track) => {
     setTrackLoadError("");
-    setActiveTrackId(track.id);
     try {
       const fullTrack = track.isSummary && onRequireTrack ? await onRequireTrack(track.id) : track;
-      setActiveModuleId(fullTrack.modules[0].id);
-      setActiveLessonId(fullTrack.modules[0].lessons[0].id);
+      const firstModule = fullTrack.modules[0];
+      selectLesson(fullTrack.id, firstModule.id, firstModule.lessons[0].id);
     } catch {
       setTrackLoadError(locale === "fr" ? "Impossible de charger cette formation." : "Unable to load this course.");
     }
@@ -132,13 +131,15 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
   const openLesson = async (moduleId, lessonId) => {
     setTrackLoadError("");
     if (!activeTrack) return;
+    const previousRoute = requestedRoute.current;
+    requestedRoute.current = { trackId: activeTrack.id, moduleId, lessonId };
     try {
       if (activeTrack.id === "css" && !activeTrack.modules.some((module) => module.id === moduleId) && onRequireTrack) {
         await onRequireTrack(activeTrack.id, { moduleId });
       }
-      setActiveModuleId(moduleId);
-      setActiveLessonId(lessonId);
+      selectLesson(activeTrack.id, moduleId, lessonId);
     } catch {
+      requestedRoute.current = previousRoute;
       setTrackLoadError(locale === "fr" ? "Impossible de charger cette lecon." : "Unable to load this lesson.");
     }
   };
@@ -154,8 +155,7 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
       }
     }
     if (next) {
-      setActiveModuleId(next.moduleId);
-      setActiveLessonId(next.lessonId);
+      selectLesson(activeTrack.id, next.moduleId, next.lessonId);
     }
   };
 
@@ -267,8 +267,7 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
       onCloseQuiz={() => {
         const previous = getPreviousLesson(activeTrack, activeModule.id, activeLesson.id);
         if (previous) {
-          setActiveModuleId(previous.moduleId);
-          setActiveLessonId(previous.lessonId);
+          selectLesson(activeTrack.id, previous.moduleId, previous.lessonId);
         } else {
           window.location.assign("/catalog");
         }

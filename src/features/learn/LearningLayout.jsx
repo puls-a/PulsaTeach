@@ -70,24 +70,36 @@ function CurriculumPanel({ locale, tracks, activeTrack, activeTrackId, activeLes
     </label>
     <div className="mt-2 flex gap-1 overflow-x-auto pb-1" aria-label={locale === "fr" ? "Raccourcis formations" : "Course shortcuts"}>
       {tracks.map((track) => (
-        <button key={track.id} type="button" onClick={() => onTrackChange(track)} title={track.title?.[locale] || track.label || track.id} className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-black ${activeTrackId === track.id ? "bg-indigoPop text-white" : "bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigoPop"}`}>
+        <a key={track.id} href={firstLessonHref(track)} onClick={(event) => handleNavigation(event, () => onTrackChange(track))} title={track.title?.[locale] || track.label || track.id} className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-black ${activeTrackId === track.id ? "bg-indigoPop text-white" : "bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigoPop"}`}>
           {track.label || track.id}
-        </button>
+        </a>
       ))}
     </div>
     <label className="relative mt-3 block"><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" /><input type="search" value={lessonQuery} onChange={(event) => onQueryChange(event.target.value)} placeholder={locale === "fr" ? "Chercher une leçon" : "Search lessons"} className="min-h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm font-semibold outline-none focus:border-indigoPop" /></label>
     <div className="mt-2 grid grid-cols-4 gap-1">{["all", "todo", "done", "saved"].map((filter) => <button type="button" key={filter} onClick={() => onFilterChange(filter)} className={`rounded-lg px-1 py-2 text-[11px] font-bold ${statusFilter === filter ? "bg-ink text-white" : "text-slate-500 hover:bg-slate-100"}`}>{filterLabel(filter, locale)}</button>)}</div>
-    <div className="mt-4 grid gap-4">{activeTrack.modules.map((module) => <ModuleLessons key={module.id} {...{ module, locale, activeLesson, progress, bookmarks, lessonQuery, statusFilter, onOpenLesson }} />)}</div>
+    <div className="mt-4 grid gap-4">{activeTrack.modules.map((module) => <ModuleLessons key={module.id} trackId={activeTrack.id} {...{ module, locale, activeLesson, progress, bookmarks, lessonQuery, statusFilter, onOpenLesson }} />)}</div>
   </>;
 }
 
-function ModuleLessons({ module, locale, activeLesson, progress, bookmarks, lessonQuery, statusFilter, onOpenLesson }) {
+function ModuleLessons({ trackId, module, locale, activeLesson, progress, bookmarks, lessonQuery, statusFilter, onOpenLesson }) {
   const visible = module.lessons.filter((lesson) => isVisibleLesson(lesson, progress, bookmarks, lessonQuery, statusFilter, locale));
   const practices = visible.filter((lesson) => lesson.type !== "quiz");
   const assessments = visible.filter((lesson) => lesson.type === "quiz");
   const [assessmentOpen, setAssessmentOpen] = useState(assessments.some((lesson) => lesson.id === activeLesson.id));
-  const renderButton = (lesson) => <button key={lesson.id} type="button" onClick={() => onOpenLesson(module.id, lesson.id)} className={`flex w-full items-start gap-2 rounded-lg px-2 py-2.5 text-left text-sm font-semibold ${lesson.id === activeLesson.id ? "bg-indigo-50 text-indigoPop" : "text-slate-600 hover:bg-slate-50 hover:text-ink"}`}>{progress.completed[lesson.id] ? <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-green-600" /> : <Code2 className="mt-0.5 size-4 shrink-0 text-slate-400" />}<span>{lesson.title[locale]}</span>{bookmarks.includes(lesson.id) && <BookmarkCheck className="ml-auto size-4 shrink-0" />}</button>;
+  const renderButton = (lesson) => <a key={lesson.id} href={`/learn/${trackId}/${module.id}/${lesson.id}`} aria-current={lesson.id === activeLesson.id ? "page" : undefined} onClick={(event) => handleNavigation(event, () => onOpenLesson(module.id, lesson.id))} className={`flex w-full items-start gap-2 rounded-lg px-2 py-2.5 text-left text-sm font-semibold ${lesson.id === activeLesson.id ? "bg-indigo-50 text-indigoPop" : "text-slate-600 hover:bg-slate-50 hover:text-ink"}`}>{progress.completed[lesson.id] ? <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-green-600" /> : <Code2 className="mt-0.5 size-4 shrink-0 text-slate-400" />}<span>{lesson.title[locale]}</span>{bookmarks.includes(lesson.id) && <BookmarkCheck className="ml-auto size-4 shrink-0" />}</a>;
   return <section><div className="mb-1 flex items-center justify-between px-2"><h2 className="text-xs font-bold uppercase tracking-[.1em] text-slate-600">{module.title[locale]}</h2><span className="text-xs text-slate-600">{practices.length}</span></div><div className="grid gap-1">{practices.map(renderButton)}</div>{assessments.length > 0 && <details className="mt-1" open={assessmentOpen} onToggle={(event) => setAssessmentOpen(event.currentTarget.open)}><summary className="cursor-pointer rounded-lg px-2 py-2 text-xs font-bold text-indigoPop hover:bg-indigo-50">{locale === "fr" ? `Bilan optionnel (${assessments.length})` : `Optional check (${assessments.length})`}</summary><div className="mt-1 grid gap-1">{assessments.map(renderButton)}</div></details>}</section>;
+}
+
+function firstLessonHref(track) {
+  const firstModule = track.modules?.[0];
+  const firstLesson = firstModule?.lessons?.[0];
+  return track.firstHref || (firstModule && firstLesson ? `/learn/${track.id}/${firstModule.id}/${firstLesson.id}` : `/formations/${track.id}`);
+}
+
+function handleNavigation(event, navigate) {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  navigate();
 }
 
 export function MissionBoard({ locale, progress, onOpenLesson }) {

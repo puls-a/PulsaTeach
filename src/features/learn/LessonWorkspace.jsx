@@ -20,8 +20,8 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
   const [consoleOutput, setConsoleOutput] = useState("");
   const [note, setNote] = useState("");
   const [copied, setCopied] = useState(false);
-  const [focusPanel, setFocusPanel] = useState("learn");
-  const [hasOpenedCode, setHasOpenedCode] = useState(false);
+  const [focusPanel, setFocusPanel] = useState("code");
+  const [hasOpenedCode, setHasOpenedCode] = useState(true);
   const [workspacePanel, setWorkspacePanel] = useState("code");
   const [saveState, setSaveState] = useState("saved");
   const editorRef = useRef(null);
@@ -34,8 +34,8 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
     setShowCorrection(false);
     setConsoleOutput("");
     setNote(localStorage.getItem(`pulsateach-note-${lesson.id}`) || "");
-    setFocusPanel("learn");
-    setHasOpenedCode(false);
+    setFocusPanel("code");
+    setHasOpenedCode(true);
     setWorkspacePanel("code");
     setSaveState("saved");
   }, [lesson, locale, starterCode]);
@@ -183,7 +183,6 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
 }
 
 function EditorWorkbench({ code, consoleOutput, documentKey, editorRef, fileName, languageKind, locale, onChange, onReset, onRunCode, onRunTests, onSave, preview, previewKind, saveState, selectedPanel, setSelectedPanel, showPreview, lesson }) {
-  const currentCode = () => editorRef.current?.state.doc.toString() ?? code;
   const panels = [
     ["code", locale === "fr" ? "Code" : "Code", FileCode2],
     ["preview", locale === "fr" ? "Aperçu" : "Preview", Eye, previewKind]
@@ -200,11 +199,11 @@ function EditorWorkbench({ code, consoleOutput, documentKey, editorRef, fileName
           <span className="hidden items-center gap-1 rounded-full bg-white/5 px-3 py-1 text-xs font-bold text-slate-300 sm:inline-flex"><Keyboard className="size-3.5" />Ctrl/⌘+Enter · Ctrl/⌘+S · Esc puis Tab</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {onRunCode && <WorkbenchButton onClick={() => onRunCode(currentCode())} icon={Terminal}>{locale === "fr" ? "Exécuter le code" : "Run code"}</WorkbenchButton>}
-          <WorkbenchButton onClick={() => onRunTests(currentCode())} icon={Play} primary>
+          {onRunCode && <WorkbenchButton onClick={() => onRunCode(code)} icon={Terminal}>{locale === "fr" ? "Exécuter le code" : "Run code"}</WorkbenchButton>}
+          <WorkbenchButton onClick={() => onRunTests(code)} icon={Play} primary>
             {locale === "fr" ? "Lancer les tests" : "Run tests"}
           </WorkbenchButton>
-          <WorkbenchButton onClick={() => onSave(currentCode())} icon={Save}>{locale === "fr" ? "Sauvegarder le code" : "Save code"}</WorkbenchButton>
+          <WorkbenchButton onClick={() => onSave(code)} icon={Save}>{locale === "fr" ? "Sauvegarder le code" : "Save code"}</WorkbenchButton>
           <WorkbenchButton onClick={onReset} icon={RotateCcw}>{locale === "fr" ? "Réinitialiser" : "Reset code"}</WorkbenchButton>
         </div>
       </div>

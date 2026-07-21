@@ -36,8 +36,7 @@ test("account, onboarding, lesson and progress dashboard", async ({ page }, test
 
   await page.goto("/learn/html/html-getting-started/html-00-what-html-does");
   await expect(page.getByText(/Ce que HTML fait vraiment|What HTML really does/).first()).toBeVisible();
-  await expect(page.getByRole("tab", { name: /Comprendre|Learn/ })).toHaveAttribute("aria-selected", "true");
-  await page.getByRole("tab", { name: /Coder|Code/ }).click();
+  await expect(page.getByRole("tab", { name: /Coder|Code/ })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByLabel(/Éditeur de code|Code editor/)).toBeVisible();
   if (testInfo.project.name === "mobile-chromium") await page.getByRole("button", { name: /Aperçu|Preview/ }).click();
   await expect(page.getByText(/Aperçu live|Live preview/).first()).toBeVisible();
@@ -90,6 +89,7 @@ test("tools lesson opens without guide rendering errors", async ({ page }) => {
   await page.goto("/learn/tools/tools-setup/tools-01-vscode");
   await acceptPrivacy(page);
   await expect(page.getByRole("heading", { name: /Choisir son espace de travail|Choose your workspace/ }).first()).toBeVisible();
+  await page.getByRole("tab", { name: /Comprendre|Learn/ }).click();
   await expect(page.getByText(/Un éditeur sert à lire|An editor reads/)).toBeVisible();
   await expect(page.getByText("<img", { exact: false })).toHaveCount(0);
   await page.getByRole("button", { name: /Indice 1|Next hint/ }).click();

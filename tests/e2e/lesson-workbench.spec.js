@@ -8,9 +8,12 @@ test("lesson modes and CodeMirror support keyboard work without trapping focus",
   const codeTab = page.getByRole("tab", { name: /Coder|Code/ });
   const resultsTab = page.getByRole("tab", { name: /Résultats|Results/ });
 
+  await expect(codeTab).toHaveAttribute("aria-selected", "true");
+  await expect(codeTab).toHaveAttribute("tabindex", "0");
+  await codeTab.focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(learnTab).toBeFocused();
   await expect(learnTab).toHaveAttribute("aria-selected", "true");
-  await expect(codeTab).toHaveAttribute("tabindex", "-1");
-  await learnTab.focus();
   await page.keyboard.press("ArrowRight");
   await expect(codeTab).toBeFocused();
   await expect(codeTab).toHaveAttribute("aria-selected", "true");
@@ -31,6 +34,23 @@ test("lesson modes and CodeMirror support keyboard work without trapping focus",
   await page.keyboard.press("Home");
   await expect(learnTab).toBeFocused();
   await expect(learnTab).toHaveAttribute("aria-selected", "true");
+});
+
+test("curriculum lesson links open the editor and preserve browser history", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium");
+  await page.goto("/learn/css/css-selectors-colors/css-selectors-colors-color", { waitUntil: "networkidle" });
+  await expect(page.getByRole("textbox", { name: /Éditeur de code PulsaTeach|PulsaTeach code editor/ })).toBeVisible();
+
+  const nextLesson = page.getByRole("link", { name: /2\. Distinguer la carte par son fond|2\. Distinguish the card with its background/ });
+  await expect(nextLesson).toHaveAttribute("href", "/learn/css/css-selectors-colors/css-selectors-colors-background");
+  await nextLesson.click();
+  await expect(page).toHaveURL(/css-selectors-colors-background$/);
+  await expect(page.getByRole("heading", { level: 1, name: /2\. Distinguer la carte par son fond|2\. Distinguish the card with its background/ })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: /Éditeur de code PulsaTeach|PulsaTeach code editor/ })).toBeVisible();
+
+  await page.goBack();
+  await expect(page).toHaveURL(/css-selectors-colors-color$/);
+  await expect(page.getByRole("heading", { level: 1, name: /1\. Choisir une couleur de texte lisible|1\. Choose a readable text color/ })).toBeVisible();
 });
 
 test("the functions pilot starts with a real failure and ends with behavioral proof", async ({ page }) => {
