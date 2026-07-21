@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("account, onboarding, lesson and progress dashboard", async ({ page }) => {
+test("account, onboarding, lesson and progress dashboard", async ({ page }, testInfo) => {
   await page.goto("/signup");
   await acceptPrivacy(page);
   await page.getByLabel(/Nom affiché|Display name/).fill("Learner E2E");
@@ -39,6 +39,7 @@ test("account, onboarding, lesson and progress dashboard", async ({ page }) => {
   await expect(page.getByRole("tab", { name: /Comprendre|Learn/ })).toHaveAttribute("aria-selected", "true");
   await page.getByRole("tab", { name: /Coder|Code/ }).click();
   await expect(page.getByLabel(/Éditeur de code|Code editor/)).toBeVisible();
+  if (testInfo.project.name === "mobile-chromium") await page.getByRole("button", { name: /Aperçu|Preview/ }).click();
   await expect(page.getByText(/Aperçu live|Live preview/).first()).toBeVisible();
 });
 
