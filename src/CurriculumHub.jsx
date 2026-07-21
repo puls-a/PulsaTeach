@@ -1,144 +1,98 @@
 import { useEffect, useMemo, useState } from "react";
-import { Accessibility, ArrowRight, BookOpen, Check, ChevronDown, Clock3, Code2, Database, Flag, Gauge, GitBranch, GraduationCap, Laptop, Plus, Server, ShieldCheck, Trophy } from "lucide-react";
+import { Accessibility, ArrowRight, BookOpen, Check, Code2, Database, Gauge, GitBranch, Laptop, Plus, Search, Server, ShieldCheck } from "lucide-react";
 import { useSupabaseSession } from "./authState.js";
 import { canManageContent } from "./authRoles.js";
+import { LearnerPageHero, MetricCard, ProgressMeter } from "./components/LearnerUI.jsx";
 import { useLearningTracks } from "./useLearningTracks.js";
 
 const trackPresentation = {
-  tools: { icon: Laptop, badge: "bg-slate-50 text-slate-700 border-slate-100" },
-  html: { icon: BookOpen, badge: "bg-orange-50 text-orange-700 border-orange-100" },
-  css: { icon: Code2, badge: "bg-sky-50 text-sky-700 border-sky-100" },
-  javascript: { icon: Code2, badge: "bg-amber-50 text-amber-700 border-amber-100" },
-  git: { icon: GitBranch, badge: "bg-rose-50 text-rose-700 border-rose-100" },
-  accessibility: { icon: Accessibility, badge: "bg-emerald-50 text-emerald-700 border-emerald-100" },
-  testing: { icon: Check, badge: "bg-lime-50 text-lime-700 border-lime-100" },
-  typescript: { icon: Code2, badge: "bg-blue-50 text-blue-700 border-blue-100" },
-  react: { icon: Code2, badge: "bg-cyan-50 text-cyan-700 border-cyan-100" },
-  "node-api": { icon: Server, badge: "bg-green-50 text-green-700 border-green-100" },
-  "sql-postgresql": { icon: Database, badge: "bg-indigo-50 text-indigo-700 border-indigo-100" },
-  "web-security": { icon: ShieldCheck, badge: "bg-red-50 text-red-700 border-red-100" },
-  "web-performance": { icon: Gauge, badge: "bg-violet-50 text-violet-700 border-violet-100" },
-  "devops-deployment": { icon: Server, badge: "bg-slate-100 text-slate-700 border-slate-200" }
+  tools: { icon: Laptop, tone: "bg-slate-100 text-slate-700" },
+  html: { icon: BookOpen, tone: "bg-orange-50 text-orange-700" },
+  css: { icon: Code2, tone: "bg-sky-50 text-sky-700" },
+  javascript: { icon: Code2, tone: "bg-amber-50 text-amber-800" },
+  git: { icon: GitBranch, tone: "bg-rose-50 text-rose-700" },
+  accessibility: { icon: Accessibility, tone: "bg-emerald-50 text-emerald-700" },
+  testing: { icon: Check, tone: "bg-lime-50 text-lime-800" },
+  typescript: { icon: Code2, tone: "bg-blue-50 text-blue-700" },
+  react: { icon: Code2, tone: "bg-cyan-50 text-cyan-700" },
+  "node-api": { icon: Server, tone: "bg-green-50 text-green-700" },
+  "sql-postgresql": { icon: Database, tone: "bg-indigo-50 text-indigo-700" },
+  "web-security": { icon: ShieldCheck, tone: "bg-red-50 text-red-700" },
+  "web-performance": { icon: Gauge, tone: "bg-violet-50 text-violet-700" },
+  "devops-deployment": { icon: Server, tone: "bg-slate-100 text-slate-700" }
 };
 
 export default function CurriculumHub({ locale = "fr" }) {
   const { user } = useSupabaseSession();
-  const { tracks, loading, error, loadTrack } = useLearningTracks({ remoteCatalog: true, mode: "summary", freshCatalog: Boolean(user) });
-  const [openTrack, setOpenTrack] = useState(null);
-  const [loadingTrackId, setLoadingTrackId] = useState("");
-  const progress = useMemo(readProgress, []);
+  const { tracks, loading, error } = useLearningTracks({ remoteCatalog: true, mode: "summary", freshCatalog: Boolean(user) });
+  const [query, setQuery] = useState("");
+  const [progress, setProgress] = useState(readProgress);
   const courseDrafts = useMemo(readCourseDrafts, []);
   const completedCount = Object.keys(progress.completed || {}).length;
   const totalLessons = tracks.reduce((total, track) => total + countLessons(track), 0);
   const canCreateCourses = canManageContent(user);
+  const filteredTracks = tracks.filter((track) => {
+    const haystack = `${localize(track.title, locale)} ${localize(track.summary, locale)} ${localize(track.level, locale)}`.toLocaleLowerCase(locale);
+    return haystack.includes(query.trim().toLocaleLowerCase(locale));
+  });
 
   useEffect(() => {
-    if (user && !openTrack && tracks[0]) setOpenTrack(tracks[0].id);
-  }, [openTrack, tracks, user]);
-
-  useEffect(() => {
-    if (!user) return;
-    const track = tracks.find((item) => item.id === openTrack);
-    if (!track?.isSummary) return;
-    let cancelled = false;
-    setLoadingTrackId(track.id);
-    loadTrack(track.id)
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setLoadingTrackId("");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [loadTrack, openTrack, tracks, user]);
+    const onSynced = (event) => setProgress(event.detail || readProgress());
+    window.addEventListener("pulsateach-progress-synced", onSynced);
+    return () => window.removeEventListener("pulsateach-progress-synced", onSynced);
+  }, []);
 
   return (
-    <section className="min-h-screen bg-[#f5f6fa] px-4 pb-20 pt-24 sm:px-6">
-      <div className="mx-auto max-w-4xl">
-        <header className="py-8 text-center sm:py-12">
-          <p className="text-sm font-bold uppercase tracking-[.18em] text-indigoPop">
-            {locale === "fr" ? "Catalogue PulsaTeach" : "PulsaTeach catalog"}
-          </p>
-          <h1 className="mt-4 font-display text-3xl font-bold tracking-tight text-ink sm:text-5xl">
-            {user
-              ? (locale === "fr" ? "Reprends là où tu t’es arrêté." : "Continue where you left off.")
-              : (locale === "fr" ? "Choisis une formation et commence à coder." : "Choose a course and start coding.")}
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-            {locale === "fr"
-              ? "Chaque formation contient des modules, des exercices interactifs, des projets et une certification."
-              : "Every course includes modules, interactive exercises, projects, and a certification."}
-          </p>
+    <section className="app-page bg-slate-50">
+      <div className="mx-auto max-w-7xl">
+        <LearnerPageHero
+          icon={BookOpen}
+          eyebrow={locale === "fr" ? "Catalogue PulsaTeach" : "PulsaTeach catalog"}
+          title={user ? (locale === "fr" ? "Reprends là où tu t’es arrêté." : "Continue where you left off.") : (locale === "fr" ? "Choisis une formation et commence à coder." : "Choose a course and start coding.")}
+          description={locale === "fr" ? "Des parcours complets, des exercices interactifs et des projets évalués pour passer de la théorie à une vraie réalisation." : "Complete paths, interactive exercises, and assessed projects that turn theory into real work."}
+          action={{ href: user ? "/dashboard" : "/signup", label: user ? (locale === "fr" ? "Voir mon cockpit" : "View my dashboard") : (locale === "fr" ? "Créer mon compte" : "Create my account") }}
+        >
+          <div className="grid grid-cols-2 gap-3 lg:max-w-2xl lg:grid-cols-3">
+            <MetricCard label={locale === "fr" ? "Formations" : "Courses"} value={tracks.length} />
+            <MetricCard label={locale === "fr" ? "Leçons" : "Lessons"} value={totalLessons} />
+            <MetricCard label={locale === "fr" ? "Validées" : "Completed"} value={completedCount} tone={completedCount ? "reward" : "default"} />
+          </div>
+        </LearnerPageHero>
 
-          {!user && (
-            <div className="mt-7 flex flex-wrap justify-center gap-3">
-              <a href="/signup" className="primary-button">
-                {locale === "fr" ? "Créer un compte gratuit" : "Create a free account"} <ArrowRight className="size-4" />
-              </a>
-              <a href="/auth" className="secondary-button">{locale === "fr" ? "Se connecter" : "Sign in"}</a>
-            </div>
-          )}
-        </header>
+        {user && (
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <ProgressMeter label={locale === "fr" ? "Progression globale" : "Overall progress"} value={totalLessons ? Math.round((completedCount / totalLessons) * 100) : 0} detail={`${completedCount}/${totalLessons} ${locale === "fr" ? "leçons validées" : "lessons passed"}`} />
+          </div>
+        )}
 
-        <div className="mb-8 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_auto] sm:items-center">
-          <div>
-            <div className="flex items-center justify-between gap-4 text-sm font-bold">
-              <span>{locale === "fr" ? "Progression globale" : "Overall progress"}</span>
-              <span>{completedCount}/{totalLessons}</span>
+        <section className="mt-10" aria-labelledby="catalog-title">
+          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="eyebrow">{locale === "fr" ? "Explorer" : "Explore"}</p>
+              <h2 id="catalog-title" className="mt-3 font-display text-3xl font-black sm:text-4xl">{locale === "fr" ? "Formations disponibles" : "Available courses"}</h2>
+              <p className="mt-2 text-slate-600">{filteredTracks.length} {locale === "fr" ? "parcours pour progresser à ton rythme" : "paths to learn at your pace"}</p>
             </div>
-            <div className="mt-3 h-2 rounded-full bg-slate-200">
-              <div className="h-full rounded-full bg-indigoPop" style={{ width: `${totalLessons ? (completedCount / totalLessons) * 100 : 0}%` }} />
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <label className="relative block">
+                <span className="sr-only">{locale === "fr" ? "Rechercher une formation" : "Search courses"}</span>
+                <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
+                <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={locale === "fr" ? "Rechercher une formation" : "Search courses"} className="form-control min-w-64 pl-12" />
+              </label>
+              {canCreateCourses && <a href="/studio" className="secondary-button"><Plus className="size-4" />{locale === "fr" ? "Créer" : "Create"}</a>}
             </div>
           </div>
-          <a href={user ? "/dashboard" : "/signup"} className="secondary-button min-h-10 py-2 text-sm">
-            <Trophy className="size-4" />{locale === "fr" ? "Voir ma progression" : "View progress"}
-          </a>
-        </div>
 
-        <div className="mb-4 flex items-end justify-between gap-4">
-          <div>
-            <h2 className="font-display text-2xl font-bold">{locale === "fr" ? "Formations disponibles" : "Available courses"}</h2>
-            <p className="mt-1 text-sm text-slate-600">{tracks.length} {locale === "fr" ? "formations disponibles" : "available courses"}</p>
+          {loading && <p className="empty-state mt-6" role="status">{locale === "fr" ? "Chargement du catalogue..." : "Loading catalog..."}</p>}
+          {error && <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900" role="status">{locale === "fr" ? "Le catalogue distant est indisponible. Les formations intégrées restent accessibles." : "Remote catalog unavailable. Built-in courses remain accessible."}</p>}
+          <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {filteredTracks.map((track) => <CourseCard key={track.id} track={track} locale={locale} />)}
           </div>
-          {canCreateCourses && (
-            <a href="/studio" className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-ink hover:border-indigoPop hover:text-indigoPop">
-              <Plus className="size-4" />{locale === "fr" ? "Créer une formation" : "Create a course"}
-            </a>
-          )}
-        </div>
-
-        <div className="grid gap-3">
-          {loading && <p className="empty-state">{locale === "fr" ? "Chargement du catalogue..." : "Loading catalog..."}</p>}
-          {error && <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">{locale === "fr" ? "Le catalogue distant est indisponible. Les formations intégrées restent accessibles." : "Remote catalog unavailable. Built-in courses remain accessible."}</p>}
-          {tracks.map((track) => (
-            <TrackCard
-              key={track.id}
-              track={track}
-              locale={locale}
-              progress={progress}
-              signedIn={Boolean(user)}
-              loading={loadingTrackId === track.id}
-              open={openTrack === track.id}
-              onToggle={() => setOpenTrack(openTrack === track.id ? null : track.id)}
-            />
-          ))}
-        </div>
+          {!loading && filteredTracks.length === 0 && <p className="empty-state mt-6">{locale === "fr" ? "Aucune formation ne correspond à cette recherche." : "No course matches this search."}</p>}
+        </section>
 
         {canCreateCourses && courseDrafts.length > 0 && (
-          <section className="mt-10">
-            <div className="mb-4 flex items-end justify-between gap-4">
-              <div><h2 className="font-display text-2xl font-bold">{locale === "fr" ? "Formations en préparation" : "Courses in preparation"}</h2><p className="mt-1 text-sm text-slate-500">{locale === "fr" ? "Ajoute des modules et des leçons avant publication." : "Add modules and lessons before publishing."}</p></div>
-              <a href="/studio" className="text-sm font-bold text-indigoPop">{locale === "fr" ? "Ouvrir le Studio" : "Open Studio"}</a>
-            </div>
-            <div className="grid gap-3">
-              {courseDrafts.map((draft) => (
-                <a href="/studio" key={draft.id} className="flex items-center gap-4 border border-dashed border-slate-300 bg-white p-4 hover:border-indigoPop">
-                  <span className="grid size-11 place-items-center bg-amber-50 text-amber-700"><BookOpen className="size-5" /></span>
-                  <span className="min-w-0 flex-1"><span className="block font-bold">{draft.title}</span><span className="mt-1 block text-sm text-slate-500">{draft.description || draft.level}</span></span>
-                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">draft</span>
-                </a>
-              ))}
-            </div>
+          <section className="mt-12 rounded-3xl border border-dashed border-slate-300 bg-white p-5 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-display text-2xl font-black">{locale === "fr" ? "Formations en préparation" : "Courses in preparation"}</h2><p className="mt-1 text-sm text-slate-500">{locale === "fr" ? "Espace réservé à l’équipe éditoriale." : "Editorial team workspace."}</p></div><a href="/studio" className="secondary-button">{locale === "fr" ? "Ouvrir le Studio" : "Open Studio"}</a></div>
           </section>
         )}
       </div>
@@ -146,127 +100,38 @@ export default function CurriculumHub({ locale = "fr" }) {
   );
 }
 
-function TrackCard({ track, locale, progress, signedIn, loading, open, onToggle }) {
-  const presentation = trackPresentation[track.id] || { icon: BookOpen, badge: "bg-slate-100 text-ink border-slate-300" };
+function CourseCard({ track, locale }) {
+  const presentation = trackPresentation[track.id] || { icon: BookOpen, tone: "bg-slate-100 text-slate-700" };
   const Icon = presentation.icon;
+  const modules = Array.isArray(track.modules) ? track.modules.length : Number(track.modules || 0);
   const lessons = countLessons(track);
-  const completed = track.isSummary ? null : track.modules.flatMap((module) => module.lessons).filter((lesson) => progress.completed?.[lesson.id]).length;
-  const percent = completed !== null && lessons ? Math.round((completed / lessons) * 100) : null;
-  const firstModule = track.isSummary ? null : track.modules[0];
-  const firstLesson = firstModule?.lessons?.[0] || null;
-  const totalMinutes = track.isSummary ? null : track.modules.reduce((sum, module) => sum + module.totalMinutes, 0);
-  const projects = track.isSummary ? null : track.modules.flatMap((module) => module.lessons).filter((lesson) => lesson.type === "project").length;
-  const moduleCount = Array.isArray(track.modules) ? track.modules.length : Number(track.modules || 0);
-  const startHref = firstModule && firstLesson ? `/learn/${track.id}/${firstModule.id}/${firstLesson.id}` : track.firstHref || "/catalog";
-
   return (
-    <article className="overflow-hidden border border-slate-300 bg-white">
-      <div className="relative">
-        <h3 className="sr-only">{track.title[locale]}</h3>
-        <button type="button" onClick={onToggle} className="flex w-full cursor-pointer items-center gap-4 p-4 text-left hover:bg-slate-50 sm:p-5" aria-expanded={open}>
-          <span className={`grid size-12 shrink-0 place-items-center border ${presentation.badge}`}><Icon className="size-6" /></span>
-          <span className="min-w-0 flex-1">
-            <span className="block font-display text-lg font-bold sm:text-xl" aria-hidden="true">{track.title[locale]}</span>
-            <span className="mt-1 block text-sm text-slate-500">{track.level?.[locale]} · {moduleCount} modules · {lessons} {locale === "fr" ? "leçons" : "lessons"}{completed !== null ? ` · ${completed} ${locale === "fr" ? "terminées" : "completed"}` : ""}</span>
-            {percent !== null && <span className="mt-3 block h-1.5 rounded-full bg-slate-200"><span className="block h-full rounded-full bg-indigoPop" style={{ width: `${percent}%` }} /></span>}
-          </span>
-          <span className="text-sm font-bold text-slate-500">{percent !== null ? `${percent}%` : loading ? "..." : ""}</span>
-          <ChevronDown className={`size-5 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
-        </button>
+    <article className="group flex min-h-full flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-indigo-200 hover:shadow-xl sm:p-6">
+      <div className="flex items-start justify-between gap-4">
+        <span className={`grid size-12 place-items-center rounded-2xl ${presentation.tone}`}><Icon className="size-6" /></span>
+        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">{localize(track.level, locale)}</span>
       </div>
-
-      {open && (
-        <div className="border-t border-slate-200 bg-slate-50 p-4 sm:p-5">
-          {track.isSummary && (
-            <div className="mb-5 rounded-xl border border-indigo-100 bg-white p-4 text-sm font-semibold text-slate-600" role="status">
-              {loading
-                ? (locale === "fr" ? "Chargement du detail de la formation..." : "Loading course details...")
-                : (locale === "fr" ? "Le detail complet sera charge a l'ouverture de cette formation." : "Full course details will load when this course is opened.")}
-            </div>
-          )}
-          <p className="mb-5 max-w-2xl leading-7 text-slate-600">{track.summary[locale]}</p>
-          {!track.isSummary && track.profession?.[locale] && <p className="mb-5 rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-sm leading-6 text-indigo-950">{track.profession[locale]}</p>}
-          {!track.isSummary && (
-            <>
-              <div className="mb-5 grid gap-3 sm:grid-cols-3">
-                <CourseFact icon={Clock3} value={`${Math.ceil(totalMinutes / 60)} h`} label={locale === "fr" ? "de pratique guidée" : "guided practice"} />
-                <CourseFact icon={Code2} value={lessons} label={locale === "fr" ? "leçons interactives" : "interactive lessons"} />
-                <CourseFact icon={Flag} value={projects} label={locale === "fr" ? "projets évalués" : "assessed projects"} />
-              </div>
-              <div className="mb-5 grid gap-4 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-2">
-                <div>
-                  <h3 className="flex items-center gap-2 text-sm font-bold text-ink"><GraduationCap className="size-4 text-indigoPop" />{locale === "fr" ? "À la fin, tu sauras" : "By the end, you will"}</h3>
-                  <ul className="mt-3 grid gap-2 text-sm text-slate-600">
-                    {localizedList(track.outcomes, locale).map((item) => <li className="flex gap-2" key={item}><Check className="mt-0.5 size-4 shrink-0 text-green-600" />{item}</li>)}
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-ink">{locale === "fr" ? "Projet final" : "Capstone project"}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{track.capstone?.[locale]}</p>
-                  <h3 className="mt-4 text-sm font-bold text-ink">{locale === "fr" ? "Prérequis" : "Prerequisites"}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{localizedList(track.prerequisites, locale).join(" · ")}</p>
-                  {localizedList(track.certification, locale).length > 0 && (
-                    <>
-                      <h3 className="mt-4 text-sm font-bold text-ink">{locale === "fr" ? "Critères de certification" : "Certification criteria"}</h3>
-                      <ul className="mt-2 grid gap-1 text-sm leading-6 text-slate-600">{localizedList(track.certification, locale).map((item) => <li key={item}>• {item}</li>)}</ul>
-                    </>
-                  )}
-                </div>
-              </div>
-              <div className="grid gap-2">
-                {track.modules.map((module, index) => {
-                  const moduleCompleted = module.lessons.filter((lesson) => progress.completed?.[lesson.id]).length;
-                  const first = module.lessons[0];
-                  return (
-                    <a key={module.id} href={`/learn/${track.id}/${module.id}/${first.id}`} className="flex items-center gap-3 border border-slate-200 bg-white p-3 hover:border-indigoPop">
-                      <span className={`grid size-8 shrink-0 place-items-center rounded-full text-sm font-bold ${moduleCompleted === module.lessons.length ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"}`}>
-                        {moduleCompleted === module.lessons.length ? <Check className="size-4" /> : index + 1}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-bold">{module.title[locale]}</span>
-                        <span className="mt-1 block text-xs leading-5 text-slate-500">{module.description?.[locale]}</span>
-                        <span className="mt-1 block text-xs font-semibold text-indigoPop">{locale === "fr" ? "Livrable :" : "Deliverable:"} {module.deliverable?.[locale]}</span>
-                        {localizedList(module.mastery, locale).length > 0 && <span className="mt-1 block text-xs text-slate-500">{locale === "fr" ? "Maîtrise :" : "Mastery:"} {localizedList(module.mastery, locale).join(" · ")}</span>}
-                      </span>
-                      <span className="text-xs font-semibold text-slate-500">{module.totalMinutes} min · {moduleCompleted}/{module.lessons.length}</span>
-                    </a>
-                  );
-                })}
-              </div>
-            </>
-          )}
-          <a href={signedIn ? startHref : `/formations/${track.id}`} className="primary-button mt-5">
-            {signedIn && completed ? (locale === "fr" ? "Continuer la formation" : "Continue course") : (locale === "fr" ? "Voir la formation" : "View course")}
-            <ArrowRight className="size-4" />
-          </a>
-        </div>
-      )}
+      <h3 className="mt-5 font-display text-2xl font-black text-slate-950">{localize(track.title, locale)}</h3>
+      <p className="mt-3 flex-1 leading-7 text-slate-600">{localize(track.summary, locale)}</p>
+      <dl className="mt-5 grid grid-cols-2 gap-3 border-y border-slate-100 py-4 text-sm">
+        <div><dt className="text-slate-500">{locale === "fr" ? "Modules" : "Modules"}</dt><dd className="mt-1 font-black text-slate-900">{modules}</dd></div>
+        <div><dt className="text-slate-500">{locale === "fr" ? "Leçons" : "Lessons"}</dt><dd className="mt-1 font-black text-slate-900">{lessons}</dd></div>
+      </dl>
+      <a href={`/formations/${track.id}`} className="mt-5 inline-flex min-h-12 items-center justify-between rounded-xl bg-slate-950 px-4 py-3 font-bold text-white transition group-hover:bg-indigo-700">
+        {locale === "fr" ? "Découvrir la formation" : "Explore course"}<ArrowRight className="size-4" />
+      </a>
     </article>
   );
 }
 
-function CourseFact({ icon: Icon, value, label }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-      <Icon className="size-4 text-indigoPop" />
-      <p className="mt-2 font-display text-xl font-bold text-ink">{value}</p>
-      <p className="mt-1 text-xs font-semibold text-slate-500">{label}</p>
-    </div>
-  );
-}
-
-function localizedList(value, locale) {
-  const localized = value && typeof value === "object" && !Array.isArray(value)
-    ? value[locale] ?? value.fr ?? value.en
-    : value;
-  if (Array.isArray(localized)) return localized.filter(Boolean);
-  if (localized === undefined || localized === null || localized === "") return [];
-  return [String(localized)];
+function localize(value, locale) {
+  if (value && typeof value === "object" && !Array.isArray(value)) return value[locale] || value.fr || value.en || "";
+  return String(value || "");
 }
 
 function countLessons(track) {
   if (track.isSummary) return Number(track.lessons || 0);
-  return track.modules.reduce((total, module) => total + module.lessons.length, 0);
+  return (track.modules || []).reduce((total, module) => total + (module.lessons?.length || 0), 0);
 }
 
 function readProgress() {

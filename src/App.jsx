@@ -119,10 +119,10 @@ function App() {
   }, [copy.metaTitle, locale, route]);
 
   useEffect(() => {
-    const handleNavigation = () => {
+    const handleNavigation = (event) => {
       migrateLegacyHashRoute();
       setRoute(getPageRoute());
-      window.scrollTo({ top: 0, behavior: "instant" });
+      if (event?.type !== "hashchange") window.scrollTo({ top: 0, behavior: "instant" });
     };
     const handleInternalLink = (event) => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -130,6 +130,7 @@ function App() {
       if (!anchor || anchor.target || anchor.hasAttribute("download")) return;
       const url = new URL(anchor.href, window.location.href);
       if (url.origin !== window.location.origin || !url.pathname.startsWith("/")) return;
+      if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) return;
       event.preventDefault();
       window.history.pushState(null, "", `${url.pathname}${url.search}${url.hash}`);
       window.dispatchEvent(new PopStateEvent("popstate"));

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const widths = [375, 768, 1024, 1440];
-const routes = ["/", "/catalog", "/dashboard", "/signup", "/glossary", "/review", "/projects", "/certification", "/studio", "/privacy", "/cookies", "/terms", "/legal", "/learn/tools/tools-setup/tools-01-vscode", "/formations/tools", "/learn/html/html-getting-started/html-00-what-html-does", "/learn/html/html-final-audit/html-09-final-exam", "/learn/git/git-foundations/git-01-terminal", "/learn/accessibility/a11y-foundations/a11y-01-semantics", "/learn/testing/testing-strategy/testing-01-vitest", "/learn/typescript/typescript-foundations/ts-01-unions", "/learn/react/react-components/react-01-component", "/learn/node-api/node-http/node-02-validation", "/learn/sql-postgresql/sql-foundations/sql-01-tables", "/learn/web-security/security-threats-input/sec-01-validation", "/learn/web-performance/performance-javascript-react/perf-02-splitting", "/learn/devops-deployment/ops-foundations/ops-01-build", "/playground"];
+const routes = ["/", "/catalog", "/dashboard", "/path", "/profile", "/signup", "/glossary", "/review", "/projects", "/certification", "/studio", "/privacy", "/cookies", "/terms", "/legal", "/learn/tools/tools-setup/tools-01-vscode", "/formations/tools", "/learn/html/html-getting-started/html-00-what-html-does", "/learn/html/html-final-audit/html-09-final-exam", "/learn/git/git-foundations/git-01-terminal", "/learn/accessibility/a11y-foundations/a11y-01-semantics", "/learn/testing/testing-strategy/testing-01-vitest", "/learn/typescript/typescript-foundations/ts-01-unions", "/learn/react/react-components/react-01-component", "/learn/node-api/node-http/node-02-validation", "/learn/sql-postgresql/sql-foundations/sql-01-tables", "/learn/web-security/security-threats-input/sec-01-validation", "/learn/web-performance/performance-javascript-react/perf-02-splitting", "/learn/devops-deployment/ops-foundations/ops-01-build", "/playground"];
 
 test.describe("responsive layout", () => {
   for (const width of widths) {
@@ -111,6 +111,37 @@ test("learner dashboard stays actionable at 390px and uses the reward accent", a
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
   const rewardColor = await page.getByText("+25 XP", { exact: true }).evaluate((element) => getComputedStyle(element).color);
   expect(rewardColor).toBe("rgb(110, 231, 183)");
+});
+
+test("learner tools share the premium mobile frame", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium");
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const route of ["/catalog", "/path", "/profile", "/review", "/projects", "/certification"]) {
+    await page.goto(route);
+    const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
+    if (await consent.isVisible()) await consent.click();
+    const heading = page.getByRole("heading", { level: 1 });
+    await heading.waitFor({ state: "visible", timeout: 8_000 }).catch(() => page.reload());
+    await expect(heading).toBeVisible({ timeout: 20_000 });
+    const heroColor = await heading.evaluate((element) => getComputedStyle(element.closest("header")).backgroundColor);
+    expect(heroColor, `${route} should use the shared learner hero`).toBe("rgb(2, 6, 23)");
+    const dimensions = await page.evaluate(() => ({ clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));
+    expect(dimensions.scrollWidth, `${route} overflows at 390px`).toBeLessThanOrEqual(dimensions.clientWidth);
+  }
+});
+
+test("learner hero actions reach their in-page target", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/projects");
+  const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
+  if (await consent.isVisible()) await consent.click();
+
+  await page.getByRole("link", { name: /Soumettre un projet|Submit a project/ }).click();
+  await expect(page).toHaveURL(/#nouvelle-soumission$/);
+  const top = await page.locator("#nouvelle-soumission").evaluate((element) => element.getBoundingClientRect().top);
+  expect(top).toBeGreaterThanOrEqual(0);
+  expect(top).toBeLessThan(160);
 });
 
 test("tools lesson rich content stays inside mobile viewport", async ({ page }, testInfo) => {

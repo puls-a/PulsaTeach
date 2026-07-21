@@ -5,6 +5,8 @@ const pages = [
   { name: "homepage", path: "/" },
   { name: "catalog", path: "/catalog" },
   { name: "dashboard", path: "/dashboard" },
+  { name: "path", path: "/path" },
+  { name: "profile", path: "/profile" },
   { name: "signup", path: "/signup" },
   { name: "glossary", path: "/glossary" },
   { name: "review", path: "/review" },

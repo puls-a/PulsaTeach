@@ -1,13 +1,12 @@
 import { useEffect, useMemo } from "react";
 import { ArrowRight, Award, BookOpen, Check, Clock3, Code2, Flag, GraduationCap, ArrowLeft, LayoutTemplate, ShieldCheck, Sparkles } from "lucide-react";
 import { useSupabaseSession } from "../../authState.js";
-import { findPublicTrack } from "../../content/publicTrackCatalog.js";
 import { useLearningTracks } from "../../useLearningTracks.js";
 
 // Utility for reading progress from localStorage if offline or getting it from Supabase context
 function readProgress() {
   try {
-    return JSON.parse(localStorage.getItem("pulsateach-progress")) || { completed: {} };
+    return JSON.parse(localStorage.getItem("pulsateach-learning-progress")) || { completed: {} };
   } catch {
     return { completed: {} };
   }
@@ -15,23 +14,17 @@ function readProgress() {
 
 export function TrackLandingPage({ locale = "fr", trackId }) {
   const { user } = useSupabaseSession();
-  const { tracks, error, loadTrack } = useLearningTracks({ remoteCatalog: Boolean(user), mode: "summary" });
+  const { tracks, loading, error, loadTrack } = useLearningTracks({ remoteCatalog: Boolean(user), mode: "summary" });
   const progress = useMemo(readProgress, []);
-  const knownPublicTrack = findPublicTrack(trackId);
 
-  // Ensure full track is loaded
   useEffect(() => {
-    if (!trackId || !knownPublicTrack) return;
+    if (!trackId) return;
     loadTrack(trackId).catch(() => {});
-  }, [knownPublicTrack, trackId, loadTrack]);
-
-  if (!knownPublicTrack) {
-    return <UnknownTrack locale={locale} trackId={trackId} />;
-  }
+  }, [trackId, loadTrack]);
 
   const track = tracks.find(t => t.id === trackId);
 
-  if (error) {
+  if (error && (!track || track.isSummary)) {
     return (
       <section className="app-page grid min-h-screen place-items-center bg-slate-50">
         <div className="surface max-w-xl text-center">
@@ -43,7 +36,7 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
     );
   }
 
-  if (!track || track.isSummary) {
+  if (loading || track?.isSummary) {
     return (
       <section className="app-page grid min-h-screen place-items-center bg-slate-50">
         <div className="text-center text-slate-500">
@@ -53,12 +46,13 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
     );
   }
 
+  if (!track) return <UnknownTrack locale={locale} trackId={trackId} />;
+
   const lessonsCount = track.modules.reduce((sum, m) => sum + (m.lessons?.length || 0), 0);
   const totalMinutes = track.modules.reduce((sum, m) => sum + (m.totalMinutes || 0), 0);
   const projects = track.modules.flatMap(m => m.lessons).filter(l => l.type === "project").length;
   const completed = track.modules.flatMap(m => m.lessons).filter(l => progress.completed?.[l.id]).length;
   const moduleCount = track.modules.length;
-  const firstModules = track.modules.slice(0, 4);
   const certification = track.certification?.[locale] || [];
   
   const firstModule = track.modules[0];
@@ -67,7 +61,7 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24 pt-20 sm:pt-24">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <nav className="mb-8" aria-label={locale === "fr" ? "Fil d'Ariane" : "Breadcrumb"}>
           <ol className="flex items-center gap-2 text-sm text-slate-500">
             <li><a href="/catalog" className="hover:text-indigoPop flex items-center gap-1 transition-colors"><ArrowLeft className="size-4" /> {locale === "fr" ? "Toutes les formations" : "All courses"}</a></li>
@@ -81,10 +75,10 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
               {locale === "fr" ? "Formation complète" : "Complete course"}
             </div>
             <h1 className="font-display text-4xl font-black tracking-tight text-ink sm:text-5xl lg:text-6xl">
-              {track.title[locale]}
+              {localize(track.title, locale)}
             </h1>
             <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-600 sm:text-xl">
-              {track.summary[locale]}
+              {localize(track.summary, locale)}
             </p>
             {track.profession?.[locale] && (
               <p className="mt-6 rounded-2xl border border-indigo-100 bg-indigo-50 p-5 text-sm font-semibold leading-7 text-indigo-950 sm:text-base">
@@ -163,9 +157,6 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
             </div>
             <p className="text-sm font-semibold text-slate-500">{moduleCount} {locale === "fr" ? "modules" : "modules"} · {lessonsCount} {locale === "fr" ? "leçons" : "lessons"}</p>
           </div>
-          <div className="mb-5 grid gap-3 md:grid-cols-4">
-            {firstModules.map((module, index) => <MiniModule key={module.id} index={index} module={module} locale={locale} />)}
-          </div>
           <div className="grid gap-3">
             {track.modules.map((module, index) => {
               const moduleCompleted = module.lessons.filter((lesson) => progress.completed?.[lesson.id]).length;
@@ -228,10 +219,6 @@ function InfoCard({ icon: Icon, title, text }) {
   return <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"><Icon className="size-6 text-indigoPop" /><h2 className="mt-4 text-lg font-black text-ink">{title}</h2><p className="mt-2 leading-7 text-slate-600">{text}</p></article>;
 }
 
-function MiniModule({ index, module, locale }) {
-  return <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-black uppercase tracking-wider text-indigoPop">{locale === "fr" ? "Étape" : "Step"} {index + 1}</p><h3 className="mt-2 font-bold text-ink">{module.title[locale]}</h3><p className="mt-2 text-xs font-semibold text-slate-500">{module.lessons.length} {locale === "fr" ? "leçons" : "lessons"} · {module.totalMinutes} min</p></article>;
-}
-
 function CourseFact({ icon: Icon, value, label }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
@@ -259,4 +246,9 @@ function UnknownTrack({ locale, trackId }) {
       </div>
     </section>
   );
+}
+
+function localize(value, locale) {
+  if (value && typeof value === "object" && !Array.isArray(value)) return value[locale] || value.fr || value.en || "";
+  return String(value || "");
 }

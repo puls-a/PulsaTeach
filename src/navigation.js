@@ -12,7 +12,7 @@ export function currentPathSegments() {
 export function migrateLegacyHashRoute() {
   const legacy = window.location.hash.match(/^#(\/.*)$/);
   if (!legacy) return false;
-  window.history.replaceState(null, "", `${legacy[1]}${window.location.search}`);
+  window.location.replace(`${legacy[1]}${window.location.search}`);
   return true;
 }
 
