@@ -10,7 +10,6 @@ test("testing track exposes a practical lesson and validates its evidence", asyn
     waitUntil: "networkidle"
   });
   await expect(page.getByRole("heading", { name: /Écrire un test Vitest|Write a Vitest test/ }).first()).toBeVisible();
-  await page.getByRole("tab", { name: /Coder|Code/ }).click();
 
   const editor = page.getByLabel(/Éditeur de code|Code editor/);
   await editor.fill(

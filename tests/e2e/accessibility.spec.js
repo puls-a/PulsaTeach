@@ -39,7 +39,6 @@ for (const entry of pages) {
 
 test("lesson code and result modes have no serious automated accessibility violation", async ({ page }) => {
   await page.goto("/learn/javascript/js-functions-scope/js-functions-scope-declare-function");
-  await page.getByRole("tab", { name: /Coder|Code/ }).click();
   await expect(page.getByRole("textbox", { name: /Éditeur de code PulsaTeach|PulsaTeach code editor/ })).toBeVisible();
 
   for (const mode of ["code", "results"]) {

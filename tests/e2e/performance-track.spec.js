@@ -10,7 +10,6 @@ test("performance track validates route-level code splitting", async ({ page }) 
     waitUntil: "networkidle"
   });
   await expect(page.getByRole("heading", { name: /Découper par route|Split by route/ }).first()).toBeVisible();
-  await page.getByRole("tab", { name: /Coder|Code/ }).click();
 
   await page.getByLabel(/Éditeur de code|Code editor/).fill(
     "const CourseStudio = lazy(() => import('./CourseStudio.jsx'));\nconst AnalyticsPage = lazy(() => import('./AnalyticsPage.jsx'));\nfunction RouteView() {\n return <Suspense fallback={<p role=\"status\">Chargement</p>}><CourseStudio /><AnalyticsPage /></Suspense>;\n}"

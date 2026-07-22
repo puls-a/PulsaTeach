@@ -10,13 +10,13 @@ test("TypeScript track loads on demand and validates a typed contract", async ({
     waitUntil: "networkidle"
   });
   await expect(page.getByRole("heading", { name: /Unions littérales et raffinement|Literal unions and narrowing/ }).first()).toBeVisible();
-  await page.getByRole("tab", { name: /Coder|Code/ }).click();
-  await expect(page.getByText(/ts-01-unions\.ts/)).toBeVisible();
+  await expect(page.getByText("script.ts", { exact: true })).toBeVisible();
 
   await page.getByLabel(/Éditeur de code|Code editor/).fill(
     "type LoadState = { status: 'success'; data: string[] } | { status: 'error'; message: string };\nfunction label(state: LoadState) {\n  if (state.status === 'success') return state.data.length;\n  return state.message;\n}"
   );
   await page.getByRole("button", { name: /Lancer les tests|Run tests/ }).click();
   await expect(page.getByText(/C'est validé|Passed\. XP/)).toBeVisible();
+  await page.getByRole("tab", { name: /Aperçu live|Live preview/ }).click();
   await expect(page.locator("#lesson-panel-results").getByText(/Contrat TypeScript|TypeScript contract/)).toBeVisible();
 });

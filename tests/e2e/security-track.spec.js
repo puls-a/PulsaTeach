@@ -10,7 +10,6 @@ test("security track validates strict untrusted input handling", async ({ page }
     waitUntil: "networkidle"
   });
   await expect(page.getByRole("heading", { name: /Valider une entrée non fiable|Validate untrusted input/ }).first()).toBeVisible();
-  await page.getByRole("tab", { name: /Coder|Code/ }).click();
 
   await page.getByLabel(/Éditeur de code|Code editor/).fill(
     "function isHttpUrl(value) { try { return ['https:', 'http:'].includes(new URL(value).protocol); } catch { return false; } }\nconst httpUrl = z.string().url().max(500).refine(isHttpUrl);\nconst schema = z.object({ projectId: z.string().uuid(), repositoryUrl: httpUrl, note: z.string().max(2000), visibility: z.enum(['private']) }).strict();\nconst result = schema.safeParse(request.body);\nif (!result.success) return response.status(400).json({ error: 'VALIDATION_ERROR' });\nrequest.body = result.data;"

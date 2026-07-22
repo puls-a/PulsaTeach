@@ -6,48 +6,38 @@ import LessonWorkspace from "./LessonWorkspace.jsx";
 // projectMissions = learningTracks.map(...) now relies on per-track lazy loading instead of an eager global registry.
 
 export function FocusedLearningLayout(props) {
-  const { QuizComponent, locale, activeTrack, activeModule, activeLesson, activeTrackCompleted, activeTrackTotal, progress, bookmarks, syncState, trackLoadError, onOpenLesson, onToggleBookmark, onComplete, onQuizResult, onCloseQuiz, onNext, hasNext } = props;
+  const { QuizComponent, locale, activeTrack, activeModule, activeLesson, activeTrackCompleted, activeTrackTotal, progress, bookmarks, trackLoadError, onOpenLesson, onToggleBookmark, onComplete, onQuizResult, onCloseQuiz, onNext, hasNext } = props;
   const [curriculumOpen, setCurriculumOpen] = useState(false);
   const openLesson = (moduleId, lessonId) => {
     onOpenLesson(moduleId, lessonId);
     setCurriculumOpen(false);
   };
   return (
-    <section id="learn" className="min-h-screen overflow-x-hidden bg-slate-100 px-3 pb-5 pt-20 sm:px-5 sm:pt-24">
-      <div className="mx-auto max-w-[1800px]">
-        <header className="mb-3 flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm lg:flex-row lg:items-center">
+    <section id="learn" className="min-h-screen overflow-x-hidden bg-[#10102b] pt-[4.5rem] text-white xl:h-screen xl:min-h-0 xl:overflow-hidden">
+      <div className="mx-auto flex h-full w-full max-w-[1920px] flex-col px-2 pb-2 sm:px-3">
+        <header className="mb-2 flex shrink-0 flex-col gap-2 border border-indigo-300/20 bg-[#1b1b3a] px-3 py-2 shadow-lg lg:min-h-[52px] lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
-            <nav aria-label={locale === "fr" ? "Fil d'Ariane" : "Breadcrumb"}>
-              <ol className="m-0 flex list-none flex-wrap items-center gap-x-2 gap-y-1 p-0 text-xs font-bold text-slate-500">
-                <li><a href="/catalog" className="hover:text-indigoPop transition-colors">{locale === "fr" ? "Formations" : "Courses"}</a></li>
-                <li className="inline-flex items-center gap-2"><span aria-hidden="true" className="text-slate-300">/</span><span className="text-slate-600">{activeTrack.title[locale]}</span></li>
-                <li className="inline-flex items-center gap-2"><span aria-hidden="true" className="text-slate-300">/</span><span className="font-medium text-slate-800">{activeModule.title[locale]}</span></li>
-              </ol>
-            </nav>
-            <h1 className="mt-1 font-display text-xl font-bold leading-tight text-ink sm:text-2xl">{activeLesson.title[locale]}</h1>
+            <p className="truncate text-[10px] font-black uppercase tracking-[.12em] text-indigo-200">{activeTrack.title[locale]} <span className="text-slate-500">/</span> {activeModule.title[locale]}</p>
+            <h1 className="mt-0.5 truncate font-display text-base font-bold leading-tight text-white sm:text-lg">{activeLesson.title[locale]}</h1>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <button type="button" onClick={() => setCurriculumOpen(true)} className="secondary-button min-h-10 px-3 py-2 xl:hidden"><Menu className="size-4" />{locale === "fr" ? "Programme" : "Curriculum"}</button>
-            <span className="rounded-lg bg-slate-100 px-3 py-2 font-bold text-slate-600">{activeTrackCompleted}/{activeTrackTotal} {locale === "fr" ? "activités" : "activities"}</span>
-            <span className="rounded-lg bg-indigo-50 px-3 py-2 font-bold text-indigoPop">{progress.xp} XP</span>
-            <span className="inline-flex items-center gap-1 rounded-lg bg-orange-50 px-3 py-2 font-bold text-orange-700"><Flame className="size-4" />{progress.streak?.count || 0}</span>
-            <span className={`rounded-lg px-3 py-2 font-bold ${syncState === "synced" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{syncState}</span>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <button type="button" onClick={() => setCurriculumOpen(true)} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-indigo-300/30 bg-indigo-500/15 px-3 font-bold text-indigo-100 hover:bg-indigo-500/25"><Menu className="size-4" />{locale === "fr" ? "Programme" : "Curriculum"}</button>
+            <div className="min-w-40 flex-1 lg:w-56 lg:flex-none"><div className="mb-1 flex justify-between font-bold text-slate-300"><span>{activeTrackCompleted}/{activeTrackTotal} {locale === "fr" ? "leçons" : "lessons"}</span><span>{activeTrackTotal ? Math.round((activeTrackCompleted / activeTrackTotal) * 100) : 0}%</span></div><div className="h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-indigo-400" style={{ width: `${activeTrackTotal ? (activeTrackCompleted / activeTrackTotal) * 100 : 0}%` }} /></div></div>
+            {progress.xp > 0 && <span className="rounded-md bg-indigo-500/15 px-2 py-1.5 font-bold text-indigo-200">{progress.xp} XP</span>}
+            {(progress.streak?.count || 0) > 0 && <span className="inline-flex items-center gap-1 rounded-md bg-orange-400/10 px-2 py-1.5 font-bold text-orange-300"><Flame className="size-3.5" />{progress.streak.count}</span>}
           </div>
         </header>
         {trackLoadError && <p className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-800" role="alert">{trackLoadError}</p>}
-        <div className="grid gap-3 xl:grid-cols-[300px_minmax(0,1fr)]">
-          <aside className="hidden min-w-0 max-h-[calc(100vh-7.5rem)] overflow-x-hidden overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-sm xl:sticky xl:top-24 xl:block"><CurriculumPanel {...props} onOpenLesson={openLesson} /></aside>
-          <LessonWorkspace QuizComponent={QuizComponent} activeTrack={activeTrack} activeModule={activeModule} lesson={activeLesson} locale={locale} isCompleted={Boolean(progress.completed[activeLesson.id])} isBookmarked={bookmarks.includes(activeLesson.id)} onToggleBookmark={onToggleBookmark} onComplete={onComplete} onQuizResult={onQuizResult} onCloseQuiz={onCloseQuiz} onNext={onNext} hasNext={hasNext} />
-        </div>
+        <LessonWorkspace QuizComponent={QuizComponent} activeTrack={activeTrack} activeModule={activeModule} lesson={activeLesson} locale={locale} isCompleted={Boolean(progress.completed[activeLesson.id])} isBookmarked={bookmarks.includes(activeLesson.id)} onToggleBookmark={onToggleBookmark} onComplete={onComplete} onQuizResult={onQuizResult} onCloseQuiz={onCloseQuiz} onNext={onNext} hasNext={hasNext} />
       </div>
-      {curriculumOpen && <MobileCurriculum {...props} onOpenLesson={openLesson} onClose={() => setCurriculumOpen(false)} />}
+      {curriculumOpen && <CurriculumDrawer {...props} onOpenLesson={openLesson} onClose={() => setCurriculumOpen(false)} />}
     </section>
   );
 }
 
-function MobileCurriculum(props) {
+function CurriculumDrawer(props) {
   const { locale, onClose } = props;
-  return <div className="fixed inset-0 z-[80] xl:hidden"><button type="button" className="absolute inset-0 bg-slate-950/45" onClick={onClose} aria-label={locale === "fr" ? "Fermer le programme" : "Close curriculum"} /><aside className="absolute inset-y-0 left-0 w-[min(92vw,24rem)] overflow-y-auto bg-white p-4 shadow-2xl"><div className="mb-3 flex items-center justify-between"><h2 className="font-display text-xl font-bold">{locale === "fr" ? "Programme" : "Curriculum"}</h2><button type="button" onClick={onClose} className="nav-icon-button" aria-label={locale === "fr" ? "Fermer" : "Close"}><X className="size-5" /></button></div><CurriculumPanel {...props} /></aside></div>;
+  return <div className="fixed inset-0 z-[80]"><button type="button" className="absolute inset-0 bg-slate-950/70" onClick={onClose} aria-label={locale === "fr" ? "Fermer le programme" : "Close curriculum"} /><aside className="absolute inset-y-0 left-0 w-[min(94vw,28rem)] overflow-y-auto bg-white p-4 text-ink shadow-2xl"><div className="mb-3 flex items-center justify-between border-b border-slate-200 pb-3"><div><p className="text-xs font-black uppercase tracking-[.14em] text-indigoPop">PulsaTeach</p><h2 className="font-display text-xl font-bold">{locale === "fr" ? "Programme" : "Curriculum"}</h2></div><button type="button" onClick={onClose} className="nav-icon-button" aria-label={locale === "fr" ? "Fermer" : "Close"}><X className="size-5" /></button></div><CurriculumPanel {...props} /></aside></div>;
 }
 
 function CurriculumPanel({ locale, tracks, activeTrack, activeTrackId, activeLesson, progress, bookmarks, lessonQuery, statusFilter, onTrackChange, onQueryChange, onFilterChange, onOpenLesson }) {

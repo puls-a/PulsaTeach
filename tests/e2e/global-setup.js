@@ -105,7 +105,6 @@ async function warmupBrowser(port) {
     });
     await retryWarmup(async () => {
       await page.goto(`http://127.0.0.1:${port}/learn/javascript/js-functions-scope/js-functions-scope-declare-function`);
-      await page.getByRole("tab", { name: /Coder|Code/ }).click();
       await page.getByRole("textbox", { name: /Éditeur de code PulsaTeach|PulsaTeach code editor/ }).waitFor({ timeout: 20_000 });
     });
   } finally {

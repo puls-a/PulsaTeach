@@ -6,7 +6,7 @@ import { EditorView, keymap, lineNumbers } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 
 const editorTheme = EditorView.theme({
-  "&": { height: "520px", minHeight: "520px", backgroundColor: "#020617", color: "#e0e7ff" },
+  "&": { height: "100%", minHeight: "480px", backgroundColor: "#020617", color: "#e0e7ff" },
   "&.cm-focused": { outline: "2px solid #818cf8", outlineOffset: "-2px" },
   ".cm-scroller": { overflow: "auto", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", lineHeight: "1.75" },
   ".cm-content": { minHeight: "100%", padding: "16px 0", caretColor: "#6ee7b7" },
@@ -131,11 +131,12 @@ export default function CodeMirrorEditor({ value, documentKey, languageKind, loc
     };
   }, [documentKey, languageKind]);
 
-  return <div ref={hostRef} className="min-h-[520px] overflow-hidden bg-slate-950" />;
+  return <div ref={hostRef} className="h-full min-h-[480px] overflow-hidden bg-slate-950" />;
 }
 
 async function loadLanguage(kind) {
   if (["html", "dom"].includes(kind)) return import("@codemirror/legacy-modes/mode/xml").then(({ xml }) => StreamLanguage.define(xml));
+  if (kind === "css") return import("@codemirror/legacy-modes/mode/css").then(({ css }) => StreamLanguage.define(css));
   if (kind === "typescript") return import("@codemirror/legacy-modes/mode/javascript").then(({ typescript }) => StreamLanguage.define(typescript));
   if (["javascript", "react", "node"].includes(kind)) return import("@codemirror/legacy-modes/mode/javascript").then(({ javascript }) => StreamLanguage.define(javascript));
   return [];
