@@ -99,35 +99,66 @@ export function readProgress() {
 }
 
 export function createEmptyProgress() {
-  return { xp: 0, completed: {}, activity: [], streak: { count: 0, longest: 0, lastDate: null, totalActiveDays: 0, recentDates: [] } };
+  return {
+    xp: 0,
+    completed: {},
+    activity: [],
+    streak: { count: 0, longest: 0, lastDate: null, totalActiveDays: 0, recentDates: [] },
+    lastOpenedLesson: null,
+    daily: { date: null, lessonMinutes: {} }
+  };
 }
 
 export function markLessonCompleted(progress, lesson, passedCount, now = new Date()) {
   const alreadyCompleted = Boolean(progress.completed?.[lesson.id]);
+  if (alreadyCompleted) return progress;
   const previousStreakDate = progress.streak?.lastDate || null;
   const streak = updateStreak(progress.streak, now);
-  const dailyBonus = !alreadyCompleted && previousStreakDate !== streak.lastDate ? 10 : 0;
+  const dailyBonus = previousStreakDate !== streak.lastDate ? 10 : 0;
   const completed = {
     ...(progress.completed || {}),
     [lesson.id]: { passedAt: now.toISOString(), xp: Number(lesson.xp || 0), passedTests: Number(passedCount || 0) }
   };
   return {
     ...progress,
-    xp: Number(progress.xp || 0) + (alreadyCompleted ? 0 : Number(lesson.xp || 0) + dailyBonus),
+    xp: Number(progress.xp || 0) + Number(lesson.xp || 0) + dailyBonus,
     completed,
-    activity: alreadyCompleted
-      ? progress.activity || []
-      : [{ id: lesson.id, title: lesson.title, type: lesson.type, xp: Number(lesson.xp || 0), bonusXp: dailyBonus, at: now.toISOString() }, ...(progress.activity || [])].slice(0, 8),
-    streak
+    activity: [{ id: lesson.id, title: lesson.title, type: lesson.type, xp: Number(lesson.xp || 0), bonusXp: dailyBonus, durationMin: Number(lesson.durationMin || 10), at: now.toISOString() }, ...(progress.activity || [])].slice(0, 8),
+    streak,
+    daily: updateDailyProgress(progress.daily, lesson, now)
+  };
+}
+
+export function markLessonOpened(progress, route, now = new Date()) {
+  return {
+    ...progress,
+    lastOpenedLesson: {
+      trackId: route.trackId,
+      moduleId: route.moduleId,
+      lessonId: route.lessonId,
+      openedAt: now.toISOString()
+    }
+  };
+}
+
+export function updateDailyProgress(current = {}, lesson, now = new Date()) {
+  const date = getLocalDateKey(now);
+  const lessonMinutes = current.date === date ? current.lessonMinutes || {} : {};
+  return {
+    date,
+    lessonMinutes: {
+      ...lessonMinutes,
+      [lesson.id]: Math.max(1, Number(lesson.durationMin || 10))
+    }
   };
 }
 
 export function updateStreak(current = createEmptyProgress().streak, now = new Date()) {
-  const today = localDateKey(now);
+  const today = getLocalDateKey(now);
   if (current.lastDate === today) return current;
   const yesterdayDate = new Date(now);
   yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-  const yesterday = localDateKey(yesterdayDate);
+  const yesterday = getLocalDateKey(yesterdayDate);
   const count = current.lastDate === yesterday ? Number(current.count || 0) + 1 : 1;
   const recentDates = [today, ...(current.recentDates || []).filter((date) => date !== today)].slice(0, 14);
   return {
@@ -141,11 +172,11 @@ export function updateStreak(current = createEmptyProgress().streak, now = new D
 
 export function streakStatus(streak = createEmptyProgress().streak, now = new Date()) {
   const normalized = { ...createEmptyProgress().streak, ...(streak || {}) };
-  const today = localDateKey(now);
+  const today = getLocalDateKey(now);
   const yesterdayDate = new Date(now);
   yesterdayDate.setDate(yesterdayDate.getDate() - 1);
   const activeToday = normalized.lastDate === today;
-  const atRisk = !activeToday && normalized.lastDate === localDateKey(yesterdayDate) && normalized.count > 0;
+  const atRisk = !activeToday && normalized.lastDate === getLocalDateKey(yesterdayDate) && normalized.count > 0;
   const milestones = [3, 7, 14, 30, 60, 100];
   return {
     ...normalized,
@@ -155,12 +186,12 @@ export function streakStatus(streak = createEmptyProgress().streak, now = new Da
   };
 }
 
-function localDateKey(date) {
+export function getLocalDateKey(date) {
   const parts = new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(date);
   return `${parts.find((part) => part.type === "year").value}-${parts.find((part) => part.type === "month").value}-${parts.find((part) => part.type === "day").value}`;
 }
 
-export function mergeProgress(local, remote) {
+export function mergeProgress(local = createEmptyProgress(), remote = createEmptyProgress()) {
   const completed = { ...local.completed, ...remote.completed };
   const activity = [...(remote.activity || []), ...(local.activity || [])]
     .filter((item, index, list) => list.findIndex((candidate) => candidate.id === item.id && candidate.at === item.at) === index)
@@ -182,6 +213,21 @@ export function mergeProgress(local, remote) {
       recentDates: [...new Set([...(local.streak?.recentDates || []), ...(remote.streak?.recentDates || [])])].sort().slice(-30)
     },
     review: { ...(local.review || {}), ...(remote.review || {}), items: { ...(local.review?.items || {}), ...(remote.review?.items || {}) } },
-    quizEvidence: { ...(local.quizEvidence || {}), ...(remote.quizEvidence || {}) }
+    quizEvidence: { ...(local.quizEvidence || {}), ...(remote.quizEvidence || {}) },
+    lastOpenedLesson: latestOpenedLesson(local.lastOpenedLesson, remote.lastOpenedLesson),
+    daily: mergeDailyProgress(local.daily, remote.daily)
   };
+}
+
+function mergeDailyProgress(local = {}, remote = {}) {
+  if (!local.date) return remote.date ? remote : createEmptyProgress().daily;
+  if (!remote.date) return local;
+  if (local.date !== remote.date) return local.date > remote.date ? local : remote;
+  return { date: local.date, lessonMinutes: { ...(remote.lessonMinutes || {}), ...(local.lessonMinutes || {}) } };
+}
+
+function latestOpenedLesson(local, remote) {
+  if (!local) return remote || null;
+  if (!remote) return local;
+  return Date.parse(local.openedAt || 0) >= Date.parse(remote.openedAt || 0) ? local : remote;
 }

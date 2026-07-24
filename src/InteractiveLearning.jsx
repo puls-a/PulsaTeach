@@ -11,18 +11,7 @@ import { getDeferredTrackGroupModuleId, hasDeferredTrackGroup } from "./content/
 import { createQuizDraft, evaluateQuestion, normalizeQuizLesson, scoreQuiz } from "./features/quizzes/quizEngine.js";
 import QuizModal from "./features/quizzes/QuizModal.jsx";
 import { scheduleQuizReview } from "./features/review/spacedRepetition.js";
-import {
-  getNextLesson,
-  getPreviousLesson,
-  hasResponse,
-  localize,
-  markLessonCompleted,
-  mergeProgress,
-  readBookmarks,
-  readLessonRoute,
-  readProgress,
-  readStoredJson
-} from "./features/learn/learningState.js";
+import { getNextLesson, getPreviousLesson, hasResponse, localize, markLessonCompleted, markLessonOpened, mergeProgress, readBookmarks, readLessonRoute, readProgress, readStoredJson } from "./features/learn/learningState.js";
 import { CompletionBanner, difficultyLabel, NotesPanel, SkillChips } from "./features/learn/LearningShared.jsx";
 import { CourseChapter } from "./features/learn/LearningPedagogy.jsx";
 import { FocusedLearningLayout } from "./features/learn/LearningLayout.jsx";
@@ -90,6 +79,11 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
     if (!activeTrack || !activeModule || !activeLesson || trackLoading) return;
     window.history.replaceState(null, "", `/learn/${activeTrackId}/${activeModuleId}/${activeLessonId}`);
     updatePageMetadata("learn", locale, "PulsaTeach", { trackName: localize(activeTrack.title, locale), moduleName: localize(activeModule.title, locale), lessonName: localize(activeLesson.title, locale), description: localize(activeLesson.brief, locale) || localize(activeTrack.summary, locale) });
+    setProgress((current) => {
+      const next = markLessonOpened(current, { trackId: activeTrackId, moduleId: activeModuleId, lessonId: activeLessonId });
+      localStorage.setItem(progressKey, JSON.stringify(next));
+      return next;
+    });
     recordLearningEvent({ eventType: "lesson_opened", lessonId: activeLessonId, trackId: activeTrackId }).catch(() => {});
   }, [activeLesson, activeLessonId, activeModule, activeModuleId, activeTrack, activeTrackId, locale, trackLoading]);
 

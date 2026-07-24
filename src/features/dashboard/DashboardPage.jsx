@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { Activity, ArrowRight, Award, BookOpenCheck, Brain, CheckCircle2, Clock3, Flame, FolderKanban, Sparkles, Trophy } from "lucide-react";
+import { Activity, ArrowRight, Award, BookOpenCheck, Brain, CheckCircle2, Clock3, Flame, FolderKanban, Sparkles, Target, Trophy } from "lucide-react";
 import AuthNotice from "../../components/AuthNotice.jsx";
 import { getProfile, getStudyPlan, loadRemoteProgress } from "../../apiClient.js";
 import { loadAllLocalTracks } from "../../content/localTrackLoader.js";
-import { streakStatus } from "../learn/learningState.js";
+import { mergeProgress, streakStatus } from "../learn/learningState.js";
 import { getReviewStats } from "../review/spacedRepetition.js";
 import { computeSkillProgress } from "../skills/skillIndex.js";
 import { useLearningTracks } from "../../useLearningTracks.js";
+import { buildDailyDashboard } from "./dashboardModel.js";
 
 const progressKey = "pulsateach-learning-progress";
 
@@ -16,7 +17,8 @@ export default function DashboardPage({ locale }) {
   const [progress, setProgress] = useState(readLocalProgress);
   const [skills, setSkills] = useState([]);
   const [skillsLoading, setSkillsLoading] = useState(true);
-  const [nextLesson, setNextLesson] = useState(null);
+  const [plannedLessons, setPlannedLessons] = useState([]);
+  const [lessons, setLessons] = useState([]);
   const [profile, setProfile] = useState(null);
   const [syncState, setSyncState] = useState("loading");
   const [knownLessonIds, setKnownLessonIds] = useState(null);
@@ -26,6 +28,12 @@ export default function DashboardPage({ locale }) {
   const progressPercent = total ? Math.min(100, Math.round((completed / total) * 100)) : 0;
   const streak = streakStatus(progress.streak);
   const reviewStats = useMemo(() => getReviewStats(progress.review?.items || {}), [progress]);
+  const dailyDashboard = useMemo(() => buildDailyDashboard({
+    progress,
+    profile: profile?.user,
+    plannedLessons,
+    lessons
+  }), [lessons, plannedLessons, profile, progress]);
 
   useEffect(() => {
     let active = true;
@@ -46,8 +54,8 @@ export default function DashboardPage({ locale }) {
       .catch(() => active && setSyncState("local"));
     getProfile().then((value) => active && setProfile(value)).catch(() => {});
     getStudyPlan().then((plan) => {
-      if (!active || !plan?.nextLessons?.[0]) return;
-      setNextLesson(normalizePlannedLesson(plan.nextLessons[0], locale));
+      if (!active) return;
+      setPlannedLessons((plan?.nextLessons || []).map((lesson) => normalizePlannedLesson(lesson, locale)));
     }).catch(() => {});
     const onSynced = (event) => {
       setProgress(event.detail);
@@ -67,9 +75,9 @@ export default function DashboardPage({ locale }) {
       .then((fullTracks) => {
         if (cancelled) return;
         const lessons = flattenLessons(fullTracks, locale);
+        setLessons(lessons);
         setKnownLessonIds(new Set(lessons.map((lesson) => lesson.id)));
         setSkills(computeSkillProgress(fullTracks, progress).slice(0, 6));
-        setNextLesson((current) => !current || progress.completed?.[current.id] ? lessons.find((lesson) => !progress.completed?.[lesson.id]) || null : current);
       })
       .catch(() => {
         if (!cancelled) setSkills([]);
@@ -92,30 +100,31 @@ export default function DashboardPage({ locale }) {
           <div className="grid gap-7 lg:grid-cols-2 lg:items-center">
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.16em] text-emerald-300">
-                <Sparkles className="size-4" />{fr ? "Ton espace d’apprentissage" : "Your learning space"}
+                <Sparkles className="size-4" />{fr ? "Ton plan du jour" : "Your plan for today"}
               </div>
               <h1 className="mt-4 max-w-2xl font-display text-3xl font-black leading-tight sm:text-5xl">
-                {fr ? "Une prochaine action claire. Des progrès qui se voient." : "One clear next action. Progress you can see."}
+                {dailyHeading(profile?.displayName, fr)}
               </h1>
               <p className="mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-300">
-                {fr ? "Continue ton parcours, consolide ce qui risque de s’oublier et transforme chaque étape en preuve concrète." : "Continue your path, reinforce what may fade, and turn every step into concrete proof."}
+                {fr ? "Reprends exactement où tu t’es arrêté, sécurise ta mémoire et atteins un objectif réaliste aujourd’hui." : "Resume exactly where you stopped, secure your memory, and reach a realistic goal today."}
               </p>
               <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-slate-300" role="status">
                 <span className={`size-2 rounded-full ${syncState === "synced" ? "bg-emerald-300" : "bg-slate-400"}`} />
                 {syncLabel(syncState, fr)}
               </p>
             </div>
-            <ContinueCard lesson={nextLesson} fr={fr} />
+            <ContinueCard lesson={dailyDashboard.primaryLesson} kind={dailyDashboard.primaryKind} fr={fr} />
           </div>
         </section>
 
         <div className="mt-6"><AuthNotice locale={locale} /></div>
 
-        <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" aria-label={fr ? "Résumé de progression" : "Progress summary"}>
+        <DailyPlan dailyGoal={dailyDashboard.dailyGoal} recommendedLesson={dailyDashboard.recommendedLesson} reviewStats={reviewStats} fr={fr} />
+
+        <section className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3" aria-label={fr ? "Résumé de progression" : "Progress summary"}>
           <MetricCard icon={Trophy} label="XP" value={progress.xp || 0} detail={fr ? "expérience gagnée" : "experience earned"} reward />
           <MetricCard icon={BookOpenCheck} label={fr ? "Progression" : "Progress"} value={`${progressPercent}%`} detail={`${completed}/${total} ${fr ? "leçons" : "lessons"}`} />
           <MetricCard icon={Flame} label={fr ? "Série" : "Streak"} value={fr ? `${streak.count} j` : `${streak.count}d`} detail={fr ? `record ${streak.longest} j` : `best ${streak.longest}d`} />
-          <MetricCard icon={Brain} label={fr ? "À réviser" : "Due reviews"} value={reviewStats.due} detail={`${reviewStats.mastered} ${fr ? "maîtrisées" : "mastered"}`} href="/review" />
         </section>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-3">
@@ -123,8 +132,7 @@ export default function DashboardPage({ locale }) {
           <StreakPanel streak={streak} locale={locale} />
         </div>
 
-        <section className="mt-6 grid gap-4 md:grid-cols-3" aria-label={fr ? "Prochaines actions" : "Next actions"}>
-          <ActionCard icon={Brain} eyebrow={fr ? "Mémoire" : "Memory"} title={reviewStats.due ? (fr ? `${reviewStats.due} révision${reviewStats.due > 1 ? "s" : ""} à faire` : `${reviewStats.due} review${reviewStats.due > 1 ? "s" : ""} due`) : (fr ? "Mémoire à jour" : "Memory up to date")} text={fr ? "Réactive les notions au moment où elles commencent à s’effacer." : "Recall concepts just as they begin to fade."} href="/review" cta={fr ? "Ouvrir les révisions" : "Open reviews"} />
+        <section className="mt-6 grid gap-4 md:grid-cols-2" aria-label={fr ? "Prochaines actions" : "Next actions"}>
           <ActionCard icon={FolderKanban} eyebrow={fr ? "Portfolio" : "Portfolio"} title={fr ? `${projectSummary.approvedProjects || 0} projet${projectSummary.approvedProjects > 1 ? "s" : ""} approuvé${projectSummary.approvedProjects > 1 ? "s" : ""}` : `${projectSummary.approvedProjects || 0} approved project${projectSummary.approvedProjects === 1 ? "" : "s"}`} text={fr ? `${projectSummary.submittedProjects || 0} soumission(s) suivie(s) dans ton espace.` : `${projectSummary.submittedProjects || 0} submission(s) tracked in your space.`} href="/projects" cta={fr ? "Voir mes projets" : "View projects"} />
           <ActionCard icon={Award} eyebrow={fr ? "Preuves" : "Credentials"} title={fr ? `${issuedCertificates} certificat${issuedCertificates > 1 ? "s" : ""} obtenu${issuedCertificates > 1 ? "s" : ""}` : `${issuedCertificates} certificate${issuedCertificates === 1 ? "" : "s"} earned`} text={fr ? "Suis les critères restants et prépare tes preuves partageables." : "Track remaining criteria and prepare shareable proof."} href="/certification" cta={fr ? "Voir les certificats" : "View certificates"} />
         </section>
@@ -135,10 +143,47 @@ export default function DashboardPage({ locale }) {
   );
 }
 
-function ContinueCard({ lesson, fr }) {
+function DailyPlan({ dailyGoal, recommendedLesson, reviewStats, fr }) {
+  const remainingMinutes = Math.max(0, dailyGoal.targetMinutes - dailyGoal.completedMinutes);
+  return (
+    <section className="mt-6 grid gap-4 lg:grid-cols-3" aria-label={fr ? "Plan d’apprentissage du jour" : "Today's learning plan"}>
+      <article className="surface border-indigo-100 bg-indigo-50/60">
+        <div className="flex items-start justify-between gap-4">
+          <div><p className="eyebrow">{fr ? "Objectif du jour" : "Daily goal"}</p><h2 className="mt-2 font-display text-2xl font-black">{dailyGoal.completedMinutes}/{dailyGoal.targetMinutes} min</h2></div>
+          <span className="grid size-11 place-items-center rounded-xl bg-indigoPop text-white"><Target className="size-5" /></span>
+        </div>
+        <div className="mt-5 h-3 overflow-hidden rounded-full bg-white" role="progressbar" aria-label={fr ? "Objectif quotidien" : "Daily goal"} aria-valuemin="0" aria-valuemax={dailyGoal.targetMinutes} aria-valuenow={Math.min(dailyGoal.completedMinutes, dailyGoal.targetMinutes)}>
+          <div className="h-full rounded-full bg-indigoPop" style={{ width: `${dailyGoal.percent}%` }} />
+        </div>
+        <p className="mt-3 text-sm font-semibold text-slate-600">{dailyGoal.complete ? (fr ? "Objectif atteint. Le reste est du bonus." : "Goal reached. Everything else is a bonus.") : (fr ? `Encore ${remainingMinutes} min pour sécuriser ta journée.` : `${remainingMinutes} min left to secure today.`)}</p>
+        <a href="/settings" className="mt-4 inline-flex text-sm font-black text-indigoPop hover:text-indigo-700">{fr ? "Ajuster mon rythme" : "Adjust my pace"}</a>
+      </article>
+
+      <article className="surface flex flex-col">
+        <span className="grid size-11 place-items-center rounded-xl bg-violet-100 text-violet-700"><Brain className="size-5" /></span>
+        <p className="mt-4 eyebrow">{fr ? "Mémoire" : "Memory"}</p>
+        <h2 className="mt-2 font-display text-2xl font-black">{reviewStats.due ? (fr ? `${reviewStats.due} à réviser` : `${reviewStats.due} due`) : (fr ? "Mémoire à jour" : "Memory up to date")}</h2>
+        <p className="mt-2 flex-1 text-sm font-semibold leading-6 text-slate-600">{reviewStats.due ? (fr ? "Commence par les notions qui risquent de s’effacer." : "Start with concepts most likely to fade.") : (fr ? "Aucune révision urgente. Avance dans ton parcours." : "No urgent review. Keep moving through your path.")}</p>
+        <a href="/review" className="mt-4 inline-flex items-center gap-2 text-sm font-black text-indigoPop hover:text-indigo-700">{fr ? "Ouvrir les révisions" : "Open reviews"}<ArrowRight className="size-4" /></a>
+      </article>
+
+      <article className="surface flex flex-col">
+        <span className="grid size-11 place-items-center rounded-xl bg-emerald-100 text-emerald-700"><BookOpenCheck className="size-5" /></span>
+        <p className="mt-4 eyebrow">{fr ? "Ensuite" : "Up next"}</p>
+        <h2 className="mt-2 font-display text-xl font-black">{recommendedLesson?.title || (fr ? "Ton parcours personnalisé" : "Your personalized path")}</h2>
+        <p className="mt-2 flex-1 text-sm font-semibold leading-6 text-slate-600">{recommendedLesson?.trackTitle || (fr ? "Consulte les prochaines étapes recommandées selon ta progression." : "Review the next steps recommended from your progress.")}</p>
+        <a href={recommendedLesson?.href || "/path"} className="mt-4 inline-flex items-center gap-2 text-sm font-black text-indigoPop hover:text-indigo-700">{recommendedLesson ? (fr ? "Voir la prochaine leçon" : "View next lesson") : (fr ? "Voir mon parcours" : "View my path")}<ArrowRight className="size-4" /></a>
+      </article>
+    </section>
+  );
+}
+
+function ContinueCard({ lesson, kind, fr }) {
+  const eyebrow = kind === "resume" ? (fr ? "À reprendre" : "Resume") : kind === "continue" ? (fr ? "Continuer le parcours" : "Continue your path") : (fr ? "Prochaine étape" : "Next step");
+  const cta = kind === "resume" ? (fr ? "Reprendre la leçon" : "Resume lesson") : lesson ? (fr ? "Continuer à apprendre" : "Continue learning") : (fr ? "Explorer les parcours" : "Explore paths");
   return (
     <div className="rounded-3xl bg-white p-5 text-ink shadow-xl">
-      <p className="text-xs font-black uppercase tracking-[.16em] text-indigoPop">{fr ? "Prochaine étape" : "Next step"}</p>
+      <p className="text-xs font-black uppercase tracking-[.16em] text-indigoPop">{eyebrow}</p>
       <h2 className="mt-3 font-display text-2xl font-black leading-tight">{lesson?.title || (fr ? "Choisis ton premier parcours" : "Choose your first path")}</h2>
       <p className="mt-2 text-sm font-semibold text-slate-500">{lesson?.trackTitle || (fr ? "14 parcours disponibles" : "14 paths available")}</p>
       {lesson && (
@@ -148,7 +193,7 @@ function ContinueCard({ lesson, fr }) {
         </div>
       )}
       <a href={lesson?.href || "/catalog"} className="primary-button mt-5 w-full">
-        {lesson ? (fr ? "Continuer à apprendre" : "Continue learning") : (fr ? "Explorer les parcours" : "Explore paths")}<ArrowRight className="size-5" />
+        {cta}<ArrowRight className="size-5" />
       </a>
     </div>
   );
@@ -262,6 +307,8 @@ function ActivityFeed({ activity, locale }) {
 function flattenLessons(tracks, locale) {
   return tracks.flatMap((track) => (track.modules || []).flatMap((module) => (module.lessons || []).map((lesson) => ({
     id: lesson.id,
+    trackId: track.id,
+    moduleId: module.id,
     title: lesson.title?.[locale] || lesson.id,
     trackTitle: track.title?.[locale] || track.label || track.id,
     durationMin: lesson.durationMin,
@@ -295,21 +342,12 @@ function readLocalProgress() {
 }
 
 export function mergeDashboardProgress(local, remote) {
-  return {
-    ...local,
-    ...remote,
-    xp: Math.max(Number(local?.xp) || 0, Number(remote?.xp) || 0),
-    completed: { ...(local?.completed || {}), ...(remote?.completed || {}) },
-    quizEvidence: { ...(local?.quizEvidence || {}), ...(remote?.quizEvidence || {}) },
-    review: { ...(local?.review || {}), ...(remote?.review || {}), items: { ...(local?.review?.items || {}), ...(remote?.review?.items || {}) } },
-    streak: {
-      ...(local?.streak || {}),
-      ...(remote?.streak || {}),
-      count: Math.max(Number(local?.streak?.count) || 0, Number(remote?.streak?.count) || 0),
-      longest: Math.max(Number(local?.streak?.longest) || 0, Number(remote?.streak?.longest) || 0),
-      totalActiveDays: Math.max(Number(local?.streak?.totalActiveDays) || 0, Number(remote?.streak?.totalActiveDays) || 0),
-      recentDates: [...new Set([...(local?.streak?.recentDates || []), ...(remote?.streak?.recentDates || [])])].sort().slice(-30)
-    },
-    activity: [...(remote?.activity || []), ...(local?.activity || [])].filter((item, index, items) => items.findIndex((candidate) => `${candidate.id}-${candidate.at}` === `${item.id}-${item.at}`) === index).slice(0, 100)
-  };
+  const merged = mergeProgress(local, remote);
+  return { ...merged, activity: merged.activity.slice(0, 100) };
+}
+
+function dailyHeading(displayName, fr) {
+  const firstName = String(displayName || "").trim().split(/\s+/)[0];
+  if (firstName) return fr ? `${firstName}, voici ta prochaine étape.` : `${firstName}, here is your next step.`;
+  return fr ? "Une prochaine action claire pour aujourd’hui." : "One clear next action for today.";
 }

@@ -111,7 +111,17 @@ export const progressSchema = z.object({
     items: z.record(z.string(), reviewItemSchema).refine((items) => Object.keys(items).length <= 5000, "Too many review items"),
     updatedAt: z.string().datetime().optional()
   }).strict().optional(),
-  quizEvidence: z.record(z.string(), quizEvidenceSchema).refine((items) => Object.keys(items).length <= 5000, "Too much quiz evidence").optional()
+  quizEvidence: z.record(z.string(), quizEvidenceSchema).refine((items) => Object.keys(items).length <= 5000, "Too much quiz evidence").optional(),
+  lastOpenedLesson: z.object({
+    trackId: z.string().trim().min(1).max(160),
+    moduleId: z.string().trim().min(1).max(160),
+    lessonId: z.string().trim().min(1).max(160),
+    openedAt: z.string().datetime()
+  }).strict().nullable().optional(),
+  daily: z.object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+    lessonMinutes: z.record(z.string(), z.coerce.number().int().min(1).max(1440)).refine((items) => Object.keys(items).length <= 500, "Too many daily lessons")
+  }).strict().optional()
 }).passthrough();
 
 export const progressMigrationSchema = z.object({
