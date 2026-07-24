@@ -123,14 +123,14 @@ function InstructionsPanel({ lesson, locale, hintLevel, hintsCount, note, setNot
     <div className="flex h-full min-h-0 flex-col bg-[#1b1b3a] text-white">
       <div className="min-h-0 flex-1 overflow-y-auto p-5">
         <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[.1em] text-indigo-200"><span>{lesson.type}</span><span aria-hidden="true">·</span><span>{difficultyLabel(lesson.difficulty, locale)}</span><span aria-hidden="true">·</span><span>{lesson.durationMin} min</span><span aria-hidden="true">·</span><span>{lesson.xp} XP</span>{isCompleted && <span className="text-emerald-300">{locale === "fr" ? "Validé" : "Passed"}</span>}</div>
-        <h2 className="mt-4 font-display text-xl font-bold">{lesson.stepNumber ? `${locale === "fr" ? "Étape" : "Step"} ${lesson.stepNumber}` : lesson.title[locale]}</h2>
+        <h2 className="mt-4 font-display text-xl font-bold">{lesson.stepNumber ? `${locale === "fr" ? "Étape" : "Step"} ${lesson.stepNumber}${lesson.stepCount ? `/${lesson.stepCount}` : ""}` : lesson.title[locale]}</h2>
         <p className="mt-4 text-base font-semibold leading-7 text-slate-100">{lesson.brief[locale]}</p>
         {course?.introduction && <InstructionText className="mt-5 leading-7 text-slate-200" value={course.introduction} />}
-        {lesson.projectThreadId && <p className="mt-5 border-l-4 border-indigo-400 bg-white/5 px-4 py-3 text-sm leading-6 text-indigo-100">{locale === "fr" ? "Chaque étape ajoute une pièce au projet PulsaConf." : "Each step adds one piece to the PulsaConf project."}</p>}
+        {lesson.projectThreadId && <p className="mt-5 border-l-4 border-indigo-400 bg-white/5 px-4 py-3 text-sm leading-6 text-indigo-100">{lesson.stepCount ? (locale === "fr" ? `Étape ${lesson.stepNumber} sur ${lesson.stepCount} du projet fil rouge. La preuve validée devient la base de l’étape suivante.` : `Step ${lesson.stepNumber} of ${lesson.stepCount} in the flagship project. Validated evidence becomes the next step’s foundation.`) : (locale === "fr" ? "Chaque étape ajoute une pièce au projet PulsaConf." : "Each step adds one piece to the PulsaConf project.")}</p>}
         <div className="mt-6 grid gap-6">
           {(course?.sections || []).map((section, index) => <section key={section.title}><h3 className="font-display text-base font-bold text-white">{index + 1}. {section.title}</h3><div className="mt-2 grid gap-3">{(section.paragraphs || []).map((paragraph) => <InstructionText key={paragraph} className="text-sm leading-6 text-slate-200" value={paragraph} />)}</div>{section.example && <pre tabIndex={0} className="mt-3 overflow-x-auto border border-white/15 bg-[#0a0a23] p-3 font-mono text-xs leading-6 text-indigo-100">{section.example}</pre>}</section>)}
         </div>
-        {guide && <details className="mt-6 border border-white/15 bg-white/5 p-4"><summary className="cursor-pointer font-bold">{locale === "fr" ? "Objectifs et méthode" : "Objectives and method"}</summary><InstructionList title={locale === "fr" ? "Objectifs" : "Objectives"} items={guide.objectives} /><InstructionList title={locale === "fr" ? "Étapes" : "Steps"} items={guide.steps} /></details>}
+        {guide && <details className="mt-6 border border-white/15 bg-white/5 p-4"><summary className="cursor-pointer font-bold">{locale === "fr" ? "Préparer l’exercice et éviter les pièges" : "Prepare the exercise and avoid traps"}</summary><div className="grid gap-5 md:grid-cols-2"><InstructionList title={locale === "fr" ? "Prérequis" : "Prerequisites"} items={guide.prerequisites || pedagogy?.prerequisites} /><InstructionList title={locale === "fr" ? "Objectifs" : "Objectives"} items={guide.objectives} /><InstructionList title={locale === "fr" ? "Méthode" : "Method"} items={guide.steps} /><InstructionList title={locale === "fr" ? "Erreurs fréquentes" : "Common mistakes"} items={guide.mistakes} /></div>{pedagogy?.comparison && <PracticeComparison comparison={pedagogy.comparison} locale={locale} />}{pedagogy?.autonomous && <div className="mt-5 border-l-4 border-indigo-400 bg-white/5 px-4 py-3"><h4 className="text-xs font-black uppercase tracking-[.1em] text-indigo-200">{locale === "fr" ? "Défi autonome" : "Independent challenge"}</h4><p className="mt-2 text-sm leading-6 text-slate-200">{pedagogy.autonomous}</p></div>}</details>}
         {pedagogy?.guided?.length > 0 && <section className="mt-6 border border-white/15 p-4"><h3 className="font-bold text-indigo-200">{locale === "fr" ? "Pratique guidée" : "Guided practice"}</h3><InstructionList items={pedagogy.guided} /></section>}
         <ProgressiveHints pedagogy={lesson.pedagogy} fallback={lesson.hint} level={hintLevel} locale={locale} />
         <div className="mt-6"><NotesPanel lessonId={lesson.id} locale={locale} note={note} setNote={setNote} /></div>
@@ -197,6 +197,14 @@ function InstructionText({ className, value }) {
 function InstructionList({ title, items = [] }) {
   if (!items.length) return null;
   return <div className="mt-4">{title && <h4 className="text-xs font-black uppercase tracking-[.1em] text-indigo-200">{title}</h4>}<ol className="mt-2 grid gap-2">{items.map((item, index) => <li className="flex gap-3 text-sm leading-6 text-slate-200" key={item}><span className="font-bold text-indigo-300">{index + 1}.</span><span>{item}</span></li>)}</ol></div>;
+}
+
+function PracticeComparison({ comparison, locale }) {
+  const cards = [
+    [comparison.good, locale === "fr" ? "Bon réflexe" : "Good practice"],
+    [comparison.bad, locale === "fr" ? "Piège fréquent" : "Common trap"]
+  ];
+  return <div className="mt-5 grid gap-3 md:grid-cols-2">{cards.map(([item, label]) => <article className="min-w-0 border border-white/15 bg-[#0a0a23] p-3" key={label}><h4 className="text-xs font-black uppercase tracking-[.1em] text-indigo-200">{label}</h4><p className="mt-2 text-sm font-bold text-white">{item.title}</p><pre tabIndex={0} className="mt-3 overflow-x-auto bg-white/5 p-3 font-mono text-xs leading-6 text-indigo-100">{resolveLocaleValue(item.code, locale) || ""}</pre><p className="mt-3 text-sm leading-6 text-slate-300">{item.explanation}</p></article>)}</div>;
 }
 
 function Preview({ lesson, locale, code, preview, previewKind, consoleOutput }) {

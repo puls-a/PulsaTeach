@@ -55,6 +55,18 @@ test("curriculum lesson links open the editor and preserve browser history", asy
   await expect(page.getByRole("heading", { level: 1, name: /1\. Choisir une couleur de texte lisible|1\. Choose a readable text color/ })).toBeVisible();
 });
 
+test("the JavaScript flagship exposes continuity and common traps", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium");
+  await page.goto(pilotRoute, { waitUntil: "networkidle" });
+  await expect(page.getByRole("heading", { name: /Étape 1\/10|Step 1\/10/ })).toBeVisible();
+  await expect(page.getByText(/Étape 1 sur 10 du projet fil rouge|Step 1 of 10 in the flagship project/)).toBeVisible();
+  await page.getByText(/Préparer l’exercice et éviter les pièges|Prepare the exercise and avoid traps/).click();
+  await expect(page.getByText(/Erreurs fréquentes|Common mistakes/)).toBeVisible();
+  await expect(page.getByText(/Bon réflexe|Good practice/)).toBeVisible();
+  await expect(page.getByText(/Piège fréquent|Common trap/)).toBeVisible();
+  await expect(page.getByText(/Défi autonome|Independent challenge/)).toBeVisible();
+});
+
 test("the functions pilot starts with a real failure and ends with behavioral proof", async ({ page }, testInfo) => {
   await page.goto(pilotRoute, { waitUntil: "networkidle" });
   const editor = page.getByRole("textbox", { name: /Éditeur de code PulsaTeach|PulsaTeach code editor/ });

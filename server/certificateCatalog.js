@@ -1,4 +1,5 @@
-export const projectLessonIds = ["html-12-final-project", "css-06-final-project", "js-07-final-project"];
+export const legacyProjectAliases = { "js-capstone-lab": ["js-07-final-project"] };
+export const projectLessonIds = ["html-12-final-project", "css-06-final-project", "js-capstone-lab"];
 export const certificates = [
   {
     id: "frontend-foundations",

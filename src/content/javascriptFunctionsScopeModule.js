@@ -189,6 +189,34 @@ const practices = [
   }
 ];
 
+const flagshipOutcomeIds = ["function-contract", "parameters-defaults", "control-flow", "local-scope", "functional-composition", "pure-functions"];
+const flagshipLessonIds = [...practices.map((lesson) => lesson.id), "js-functions-scope-quiz", "js-functions-scope-lab"];
+const practiceOutcomeIds = [
+  ["function-contract"],
+  ["function-contract", "parameters-defaults"],
+  ["parameters-defaults"],
+  ["control-flow"],
+  ["local-scope"],
+  ["functional-composition"],
+  ["functional-composition"],
+  ["pure-functions", "function-contract"]
+];
+
+export const functionsScopeFlagship = {
+  id: threadId,
+  title: { fr: "Moteur de devis PulsaConf", en: "PulsaConf quote engine" },
+  moduleId: "js-functions-scope",
+  lessonIds: flagshipLessonIds,
+  outcomeIds: flagshipOutcomeIds,
+  capstoneLessonId: "js-functions-scope-lab",
+  milestones: [
+    { id: "contracts", label: { fr: "Contrats et décisions", en: "Contracts and decisions" }, afterLessonId: "js-functions-scope-multi-return", evidenceLessonId: "js-functions-scope-multi-return", outcomeIds: ["function-contract", "parameters-defaults", "control-flow"] },
+    { id: "composition", label: { fr: "Composition sans état caché", en: "Composition without hidden state" }, afterLessonId: "js-functions-scope-pure-helper", evidenceLessonId: "js-functions-scope-pure-helper", outcomeIds: ["local-scope", "functional-composition", "pure-functions"] },
+    { id: "diagnosis", label: { fr: "Diagnostic autonome", en: "Independent diagnosis" }, afterLessonId: "js-functions-scope-quiz", evidenceLessonId: "js-functions-scope-quiz", outcomeIds: flagshipOutcomeIds },
+    { id: "capstone", label: { fr: "Devis testable livré", en: "Testable quote delivered" }, afterLessonId: "js-functions-scope-lab", evidenceLessonId: "js-functions-scope-lab", outcomeIds: flagshipOutcomeIds }
+  ]
+};
+
 export const javascriptFunctionsScopeModule = {
   id: "js-functions-scope",
   title: { fr: "Fonctions et portée", en: "Functions and scope" },
@@ -199,6 +227,7 @@ export const javascriptFunctionsScopeModule = {
   outcomes: { fr: ["Définir un contrat entrée-sortie", "Utiliser paramètres et valeurs par défaut", "Déboguer la portée", "Composer des fonctions pures"], en: ["Define an input-output contract", "Use parameters and defaults", "Debug scope", "Compose pure functions"] },
   vocabulary: ["fonction", "paramètre", "argument", "return", "portée", "callback", "pureté"],
   mastery: { fr: ["Chaque starter compile mais échoue avant correction", "Chaque règle est prouvée sur plusieurs scénarios", "Le projet compose quatre fonctions sans état caché"], en: ["Every starter compiles but fails before correction", "Every rule is proven through several scenarios", "The project composes four functions without hidden state"] },
+  flagship: functionsScopeFlagship,
   lessons: [...practices.map(makePractice), makeQuiz(), makeProject()],
   totalMinutes: 329
 };
@@ -235,7 +264,12 @@ function makePractice(config, index) {
     hint: { fr: config.hints[0][0], en: config.hints[1][0] },
     xp: config.xp,
     projectThreadId: threadId,
-    stepNumber: index + 1
+    stepNumber: index + 1,
+    stepCount: flagshipLessonIds.length,
+    buildsOn: index ? flagshipLessonIds[index - 1] : null,
+    prerequisiteLessonIds: index ? [flagshipLessonIds[index - 1]] : [],
+    outcomeIds: practiceOutcomeIds[index],
+    milestoneId: index === 3 ? "contracts" : index === 7 ? "composition" : undefined
   };
 }
 
@@ -297,8 +331,8 @@ function makeQuiz() {
     theory: { fr: { points: ["Prédire avant d’exécuter", "Justifier avec le contrat"] }, en: { points: ["Predict before running", "Justify from the contract"] } },
     guide: bilingualGuide("Rappeler les règles sans recopier", "Retrieve rules without copying"),
     skills: ["function-contract", "parameters-arguments", "default-parameters", "local-scope", "callbacks", "pure-functions"],
-    difficulty: "quiz", durationMin: 30, questions, passingScore: 80, randomizeQuestions: false, feedbackMode: "immediate",
-    starterCode: "", solution: "", tests: [{ type: "quiz", label: "80%", value: "80" }], hint: { fr: "Prédit le résultat avant de choisir.", en: "Predict the output before choosing." }, xp: 55, projectThreadId: threadId, stepNumber: 9
+    difficulty: "quiz", durationMin: 30, questions, passingScore: 80, randomizeQuestions: false, feedbackMode: "immediate", purpose: "exam",
+    starterCode: "", solution: "", tests: [{ type: "quiz", label: "80%", value: "80" }], hint: { fr: "Prédit le résultat avant de choisir.", en: "Predict the output before choosing." }, xp: 55, projectThreadId: threadId, stepNumber: 9, stepCount: flagshipLessonIds.length, buildsOn: flagshipLessonIds[7], prerequisiteLessonIds: [flagshipLessonIds[7]], outcomeIds: flagshipOutcomeIds, milestoneId: "diagnosis"
   };
 }
 
@@ -328,7 +362,7 @@ function makeProject() {
     difficulty: "project", durationMin: 105, starterCode: starter, solution, tests,
     rubric: { fr: ["Les quatre fonctions ont une responsabilité unique.", "Les entrées invalides sont normalisées à la frontière.", "Aucun état global n’influence les résultats.", "Les neuf scénarios passent sans modifier les tests.", "Les noms rendent le calcul lisible sans commentaire superflu."], en: ["All four functions have one responsibility.", "Invalid inputs are normalized at the boundary.", "No global state influences results.", "All nine scenarios pass without changing tests.", "Names make the calculation readable without redundant comments."] },
     hint: { fr: "Commence par normalizeQuantity, puis remonte vers createQuote.", en: "Start with normalizeQuantity, then work upward to createQuote." },
-    xp: 120, projectThreadId: threadId, stepNumber: 10
+    xp: 120, projectThreadId: threadId, stepNumber: 10, stepCount: flagshipLessonIds.length, buildsOn: "js-functions-scope-quiz", prerequisiteLessonIds: ["js-functions-scope-quiz"], outcomeIds: flagshipOutcomeIds, milestoneId: "capstone"
   };
 }
 

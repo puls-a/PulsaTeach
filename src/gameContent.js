@@ -70,7 +70,7 @@ export const worldZones = [
   },
   {
     id: "dom-tower",
-    href: "/learn/javascript/js-dom-events/js-04-dom-events",
+    href: "/learn/javascript/js-dom-events/js-04-events-manual",
     tone: "bg-indigoPop",
     badge: "DOM Climber",
     levels: 5,
@@ -82,7 +82,7 @@ export const worldZones = [
   },
   {
     id: "api-harbor",
-    href: "/learn/javascript/js-storage-async/js-06-fetch",
+    href: "/learn/javascript/js-storage-async/js-05-fetch-manual",
     tone: "bg-aquaPop",
     badge: "API Navigator",
     levels: 4,

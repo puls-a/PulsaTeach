@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { learningTracks } from "../src/content/allTrackRegistry.js";
-import { certificates } from "./certificateCatalog.js";
+import { certificates, legacyProjectAliases } from "./certificateCatalog.js";
 
 function isObject(value) {
   return value && typeof value === "object" && !Array.isArray(value);
@@ -123,7 +123,7 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
     certificates: certificates.map((certificate) => {
       const requiredLessons = getLessonsForTracks(certificate.requiredTracks);
       const approvedProjects = certificate.requiredProjects.filter((projectId) =>
-        userSubmissions.some((submission) => submission.projectId === projectId && submission.status === "approved" && (submission.score ?? 0) >= certificate.minProjectScore)
+        userSubmissions.some((submission) => matchesProjectId(projectId, submission.projectId) && submission.status === "approved" && (submission.score ?? 0) >= certificate.minProjectScore)
       );
       const completedRequiredLessons = requiredLessons.filter((lesson) => completedLessonIds.includes(lesson.id));
       const requiredExams = requiredLessons.filter((lesson) => lesson.purpose === "exam" || /final-exam|exam/i.test(lesson.id));
@@ -131,7 +131,7 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
       const demonstratedSkills = [...new Set(requiredLessons.flatMap((lesson) => lesson.skills || []))].sort();
       const projectEvidence = certificate.requiredProjects.map((projectId) => {
         const submission = userSubmissions
-          .filter((item) => item.projectId === projectId && item.status === "approved")
+          .filter((item) => matchesProjectId(projectId, item.projectId) && item.status === "approved")
           .sort((left, right) => Number(right.version || 1) - Number(left.version || 1))[0];
         return submission ? { projectId, submissionId: submission.id, version: submission.version || 1, score: submission.score } : { projectId, submissionId: null };
       });
@@ -175,6 +175,10 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
       };
     })
   };
+}
+
+function matchesProjectId(requiredId, submittedId) {
+  return requiredId === submittedId || (legacyProjectAliases[requiredId] || []).includes(submittedId);
 }
 
 function mergeProgress(remoteProgress, localProgress) {

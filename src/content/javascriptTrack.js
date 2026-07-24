@@ -1,6 +1,7 @@
 import { module, quizLesson, projectLesson, jsLesson, domLesson, test } from "./trackBuilders.js";
 import { javascriptHardeningModules } from "./javascriptHardeningModules.js";
 import { javascriptModules } from "./javascriptModules.js";
+import { functionsScopeFlagship } from "./javascriptFunctionsScopeModule.js";
 
 function jsManualQuiz(id, title, risk, proof) {
   const explanation = { fr: `La bonne réponse prouve que ${proof[0]}.`, en: `The right answer proves that ${proof[1]}.` };
@@ -51,6 +52,7 @@ export const javascriptTrack = {
     fr: ["Valider toutes les leçons et le quiz JavaScript", "Expliquer le flux données, actions et rendu", "Livrer le compteur interactif", "Livrer un dashboard persistant avec gestion des erreurs"],
     en: ["Pass every JavaScript lesson and quiz", "Explain the data, actions, and rendering flow", "Ship the interactive counter", "Ship a persistent dashboard with error handling"]
   },
+  flagshipPath: functionsScopeFlagship,
   modules: [
     ...orderJavascriptModules([
       ...javascriptModules,

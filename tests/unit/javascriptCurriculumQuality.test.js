@@ -1,6 +1,10 @@
 import { describe, expect, test } from "vitest";
 import { javascriptTrack } from "../../src/content/javascriptTrack.js";
+import { worldZones } from "../../src/gameContent.js";
 import { evaluateQuestion } from "../../src/features/quizzes/quizEngine.js";
+import { getNextLesson } from "../../src/features/learn/learningState.js";
+import { projectLessonIds } from "../../server/certificateCatalog.js";
+import { buildCertificatesForUser } from "../../server/domainHelpers.js";
 
 const modules = javascriptTrack.modules;
 const lessons = modules.flatMap((module) => module.lessons);
@@ -72,6 +76,52 @@ describe("active JavaScript curriculum quality", () => {
     const openQuestion = quiz.questions.find((question) => question.type === "short-open");
     expect(evaluateQuestion(openQuestion, "Deux arguments prouvent que la fonction utilise son argument.").correct).toBe(true);
     expect(evaluateQuestion(openQuestion, "Two arguments prove that the function uses its argument.").correct).toBe(true);
+  });
+
+  test("encodes the functions pilot as a continuous flagship path", () => {
+    const path = javascriptTrack.flagshipPath;
+    const module = modules.find((item) => item.id === path.moduleId);
+    expect(path.id).toBe("pulsaconf-ticket-quote");
+    expect(path.lessonIds).toEqual(module.lessons.map((lesson) => lesson.id));
+    expect(path.capstoneLessonId).toBe("js-functions-scope-lab");
+
+    module.lessons.forEach((lesson, index) => {
+      expect(lesson.projectThreadId, lesson.id).toBe(path.id);
+      expect(lesson.stepNumber, lesson.id).toBe(index + 1);
+      expect(lesson.stepCount, lesson.id).toBe(path.lessonIds.length);
+      expect(lesson.buildsOn, lesson.id).toBe(index ? path.lessonIds[index - 1] : null);
+      expect(lesson.prerequisiteLessonIds, lesson.id).toEqual(index ? [path.lessonIds[index - 1]] : []);
+      expect(lesson.outcomeIds?.length, lesson.id).toBeGreaterThan(0);
+    });
+
+    for (const milestone of path.milestones) {
+      const evidence = module.lessons.find((lesson) => lesson.id === milestone.evidenceLessonId);
+      expect(evidence, milestone.id).toBeTruthy();
+      expect(evidence.milestoneId, milestone.id).toBe(milestone.id);
+      expect(milestone.outcomeIds.every((id) => path.outcomeIds.includes(id)), milestone.id).toBe(true);
+    }
+    expect(module.lessons.find((lesson) => lesson.id === "js-functions-scope-quiz").purpose).toBe("exam");
+    expect(getNextLesson(javascriptTrack, module.id, "js-functions-scope-pure-helper")).toEqual({ moduleId: module.id, lessonId: "js-functions-scope-quiz" });
+  });
+
+  test("keeps JavaScript product links and certificate evidence on active lessons", () => {
+    const lessonIds = new Set(lessons.map((lesson) => lesson.id));
+    expect(projectLessonIds).toContain("js-capstone-lab");
+    expect(projectLessonIds).not.toContain("js-07-final-project");
+    for (const zone of worldZones.filter((item) => item.href.startsWith("/learn/javascript/"))) {
+      expect(lessonIds.has(zone.href.split("/").at(-1)), zone.id).toBe(true);
+    }
+  });
+
+  test("accepts legacy JavaScript project evidence for the canonical capstone", () => {
+    const submissions = [
+      { id: "html-proof", projectId: "html-12-final-project", status: "approved", score: 100 },
+      { id: "css-proof", projectId: "css-06-final-project", status: "approved", score: 100 },
+      { id: "js-proof", projectId: "js-07-final-project", status: "approved", score: 100 }
+    ];
+    const certificate = buildCertificatesForUser("legacy-learner", { completed: {} }, submissions).certificates.find((item) => item.id === "frontend-foundations");
+    expect(certificate.progress.projectPercent).toBe(100);
+    expect(certificate.evidence.projects.find((project) => project.projectId === "js-capstone-lab")).toMatchObject({ submissionId: "js-proof", score: 100 });
   });
 });
 
