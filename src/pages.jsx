@@ -374,6 +374,7 @@ export function AdminPage({ locale }) {
         score,
         feedback,
         expectedVersion: submission.version,
+        expectedReviewRevision: submission.reviewRevision ?? 0,
         rubric: {
           accessibility: status === "approved" ? 90 : 50,
           responsiveness: status === "approved" ? 86 : 58,
@@ -387,8 +388,11 @@ export function AdminPage({ locale }) {
       });
       setSubmissions((items) => items.map((item) => (item.id === updated.id ? updated : item)));
       setMessage(locale === "fr" ? "Revue enregistrée." : "Review saved.");
-    } catch {
-      setMessage(locale === "fr" ? "Impossible d'enregistrer la revue." : "Could not save review.");
+    } catch (error) {
+      if (error.code === "SUBMISSION_REVIEW_REVISION_CONFLICT") {
+        setSubmissions(await listAllSubmissions().catch(() => submissions));
+        setMessage(error.message);
+      } else setMessage(locale === "fr" ? "Impossible d'enregistrer la revue." : "Could not save review.");
     }
   };
 

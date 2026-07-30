@@ -103,6 +103,7 @@ export function validateCourseForPublication(course) {
       if (!lesson.brief?.fr?.trim()) errors.push(`${prefix} : consigne obligatoire.`);
       if (!lesson.course?.fr?.introduction?.trim()) errors.push(`${prefix} : cours introductif obligatoire.`);
       if (lesson.type === "quiz") {
+        if (lesson.purpose === "exam") errors.push(`${prefix} : les examens certifiants doivent être intégrés au catalogue serveur.`);
         if (!Array.isArray(lesson.questions) || lesson.questions.length < 2) errors.push(`${prefix} : ajoute au moins deux questions.`);
         for (const [questionIndex, question] of (lesson.questions || []).entries()) {
           if (!question.prompt?.fr?.trim()) errors.push(`${prefix}, question ${questionIndex + 1} : consigne française obligatoire.`);

@@ -11,6 +11,7 @@ export function registerSystemRoutes(app, context) {
     diffCourseVersions,
     restoreCourseVersion,
     productRoadmap,
+    projectPublicTrack,
     sendWelcomeEmail,
     transactionalEmailEnabled,
     sensitiveRateLimit,
@@ -168,8 +169,8 @@ export function registerSystemRoutes(app, context) {
       response.status(404).json({ error: "Track not found.", requestId: request.requestId });
       return;
     }
-    response.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=1800");
-    response.json({ track });
+    response.setHeader("Cache-Control", "no-store");
+    response.json({ track: projectPublicTrack(track) });
   });
 
   app.get("/api/glossary", (_request, response) => {

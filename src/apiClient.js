@@ -34,7 +34,7 @@ export async function getCatalog({ fresh = false } = {}) {
 }
 
 export async function getTrack(trackId) {
-  return request(`/api/catalog/${encodeURIComponent(trackId)}`);
+  return request(`/api/catalog/${encodeURIComponent(trackId)}?publicVersion=2`, { cache: "no-store" });
 }
 
 export async function getGlossary() {
@@ -120,6 +120,14 @@ export async function getQuizSession(quizId) {
 export async function saveQuizSession(quizId, payload) {
   return request(`/api/quizzes/${encodeURIComponent(quizId)}/session`, {
     method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function submitQuiz(quizId, payload) {
+  return request(`/api/quizzes/${encodeURIComponent(quizId)}/submit`, {
+    method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });

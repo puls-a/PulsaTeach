@@ -5,6 +5,7 @@ export const reviewRatings = ["again", "hard", "good", "easy"];
 export const reviewSessionSizes = [5, 10, 20];
 
 export function scheduleQuizReview(currentItems = {}, quiz, score, context = {}, now = new Date()) {
+  if (quiz.gradingMode === "server" || isProtectedExamId(quiz.id)) return sanitizeProtectedReviewItems(currentItems);
   const next = { ...currentItems };
   const questionById = new Map(quiz.questions.map((question) => [question.id, question]));
 
@@ -13,7 +14,6 @@ export function scheduleQuizReview(currentItems = {}, quiz, score, context = {},
     if (!question) continue;
     const id = reviewItemId(quiz.id, question.id);
     const existing = next[id];
-
     if (result.correct) {
       if (existing) next[id] = applyReviewRating(existing, "good", now);
       continue;
@@ -34,6 +34,8 @@ export function scheduleQuizReview(currentItems = {}, quiz, score, context = {},
       acceptedAnswers: question.acceptedAnswers || [],
       keywords: question.keywords || [],
       explanation: question.explanation,
+      gradingMode: "client",
+      questionSetVersion: undefined,
       questionType: question.type || "single",
       skills: question.skills || [],
       glossaryTerms: question.glossaryTerms || [],
@@ -48,7 +50,7 @@ export function scheduleQuizReview(currentItems = {}, quiz, score, context = {},
     };
   }
 
-  return next;
+  return sanitizeProtectedReviewItems(next);
 }
 
 export function applyReviewRating(item, rating, now = new Date()) {
@@ -157,3 +159,4 @@ function addDays(date, days) {
 function clamp(value, minimum, maximum) {
   return Math.min(maximum, Math.max(minimum, value));
 }
+import { isProtectedExamId, sanitizeProtectedReviewItems } from "../quizzes/examPolicy.js";

@@ -11,7 +11,7 @@ export const supportedQuestionTypes = [
   "short-open"
 ];
 
-export function normalizeQuizLesson(lesson) {
+export function normalizeQuizLesson(lesson, { expand = true } = {}) {
   const sourceQuestions = Array.isArray(lesson.questions) && lesson.questions.length
     ? lesson.questions
     : [{
@@ -26,11 +26,13 @@ export function normalizeQuizLesson(lesson) {
         requiresRationale: true
       }];
   const targetCount = lesson.purpose === "exam" ? 10 : 6;
-  const questions = expandQuizQuestions(sourceQuestions, targetCount);
+  const questions = expand ? expandQuizQuestions(sourceQuestions, targetCount) : sourceQuestions;
 
   return {
     id: lesson.id,
     title: lesson.title,
+    gradingMode: lesson.gradingMode || "client",
+    questionSetVersion: lesson.questionSetVersion || null,
     passingScore: Number(lesson.passingScore ?? 70),
     randomizeQuestions: Boolean(lesson.randomizeQuestions),
     feedbackMode: lesson.feedbackMode || "immediate",

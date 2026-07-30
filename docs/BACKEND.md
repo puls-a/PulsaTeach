@@ -146,6 +146,21 @@ Apply every file in `supabase/migrations/` before deploying code that consumes
 new columns. Never deploy the Course Studio workflow release against an older
 production schema.
 
+## Sensitive workflow concurrency
+
+Project submission creation and review use PostgreSQL RPC functions guarded by
+transaction-scoped advisory locks. Reviews carry both the immutable project
+`expectedVersion` and a mutable `expectedReviewRevision`; stale decisions fail
+with `409 SUBMISSION_REVIEW_REVISION_CONFLICT` instead of replacing another
+reviewer's journal entry.
+
+Certificate lookup, issuance, public verification, and revocation use targeted
+indexed Supabase operations. Issuance relies on the unique learner/certificate
+constraint for idempotency, while revocation updates only one non-revoked row.
+These sensitive writes fail closed if Supabase is unavailable and never retry
+against JSON after an ambiguous database response. JSON mode retains local
+mutexes for development and browser tests.
+
 ## Browser-test runtime
 
 Playwright starts Vite and the Express application from
@@ -156,7 +171,11 @@ identity; neither fallback is accepted by the production runtime.
 
 ## Content-loading contract
 
-The catalog endpoint does not expose full lesson theory, corrections, quiz
-answers, or project rubrics. The browser fetches a complete track only when the
-learner opens it. This keeps the initial bundle and API payload stable while the
-number of tracks grows.
+The catalog summary endpoint does not expose full lesson theory, corrections,
+quiz answers, or project rubrics. The browser fetches a complete track only when
+the learner opens it. Certificate-grade tracks come from the API, where exam
+lessons are reduced to prompts and choices before they cross the server boundary.
+Their grading keys and detailed results remain server-side, final attempts are
+serialized in Supabase, and retakes have a persisted 15-minute cooldown.
+Deferred loading keeps the initial bundle and API payload stable while the number
+of tracks grows.

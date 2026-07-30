@@ -1,4 +1,5 @@
 import { publicTrackCatalog } from "../../content/publicTrackCatalog.js";
+import { sanitizeProgressExamEvidence, sanitizeProtectedReviewItems } from "../quizzes/examPolicy.js";
 
 const progressKey = "pulsateach-learning-progress";
 const bookmarksKey = "pulsateach-learning-bookmarks";
@@ -92,7 +93,7 @@ export function readBookmarks() {
 
 export function readProgress() {
   try {
-    return { ...createEmptyProgress(), ...JSON.parse(localStorage.getItem(progressKey)) };
+    return sanitizeProgressExamEvidence({ ...createEmptyProgress(), ...JSON.parse(localStorage.getItem(progressKey)) });
   } catch {
     return createEmptyProgress();
   }
@@ -212,7 +213,7 @@ export function mergeProgress(local = createEmptyProgress(), remote = createEmpt
       totalActiveDays: Math.max(Number(local.streak?.totalActiveDays) || 0, Number(remote.streak?.totalActiveDays) || 0),
       recentDates: [...new Set([...(local.streak?.recentDates || []), ...(remote.streak?.recentDates || [])])].sort().slice(-30)
     },
-    review: { ...(local.review || {}), ...(remote.review || {}), items: { ...(local.review?.items || {}), ...(remote.review?.items || {}) } },
+    review: { ...(local.review || {}), ...(remote.review || {}), items: sanitizeProtectedReviewItems({ ...(local.review?.items || {}), ...(remote.review?.items || {}) }) },
     quizEvidence: { ...(local.quizEvidence || {}), ...(remote.quizEvidence || {}) },
     lastOpenedLesson: latestOpenedLesson(local.lastOpenedLesson, remote.lastOpenedLesson),
     daily: mergeDailyProgress(local.daily, remote.daily)

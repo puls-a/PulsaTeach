@@ -191,6 +191,7 @@ function fromSupabaseRow(table, row) {
       rootId: row.root_id || row.id,
       supersedesId: row.supersedes_id,
       version: row.version || 1,
+      reviewRevision: Number(row.review_revision || 0),
       userId: row.user_id,
       projectId: row.project_id,
       title: row.title,
@@ -312,6 +313,12 @@ function fromSupabaseRow(table, row) {
       rationales: row.payload?.rationales || {},
       status: row.status || "draft",
       score: row.score || null,
+      gradingVersion: row.payload?.gradingVersion || null,
+      gradedAt: row.payload?.gradedAt || null,
+      questionSetVersion: row.payload?.questionSetVersion || null,
+      bestScore: row.payload?.bestScore || null,
+      qualifiedAt: row.payload?.qualifiedAt || null,
+      qualifiedQuestionSetVersion: row.payload?.qualifiedQuestionSetVersion || null,
       updatedAt: row.updated_at
     };
   }
@@ -338,6 +345,7 @@ function toSupabaseRow(table, item) {
       root_id: item.rootId || item.id,
       supersedes_id: item.supersedesId || null,
       version: item.version || 1,
+      review_revision: Number(item.reviewRevision || 0),
       user_id: item.userId,
       project_id: item.projectId,
       title: item.title,
@@ -457,7 +465,13 @@ function toSupabaseRow(table, item) {
       payload: {
         currentIndex: item.currentIndex || 0,
         responses: item.responses || {},
-        rationales: item.rationales || {}
+        rationales: item.rationales || {},
+        gradingVersion: item.gradingVersion || null,
+        gradedAt: item.gradedAt || null,
+        questionSetVersion: item.questionSetVersion || null,
+        bestScore: item.bestScore || null,
+        qualifiedAt: item.qualifiedAt || null,
+        qualifiedQuestionSetVersion: item.qualifiedQuestionSetVersion || null
       },
       status: item.status || "draft",
       score: item.score || null,

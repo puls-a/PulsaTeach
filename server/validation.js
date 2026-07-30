@@ -30,10 +30,12 @@ const reviewItemSchema = z.object({
   prompt: localizedText,
   choices: z.array(z.unknown()).max(100),
   pairs: z.array(z.unknown()).max(100),
-  answer: z.unknown(),
-  acceptedAnswers: z.array(z.unknown()).max(100),
-  keywords: z.array(z.string().max(200)).max(100),
+  answer: z.unknown().optional(),
+  acceptedAnswers: z.array(z.unknown()).max(100).optional().default([]),
+  keywords: z.array(z.string().max(200)).max(100).optional().default([]),
   explanation: localizedText.optional(),
+  gradingMode: z.enum(["client", "server"]).optional().default("client"),
+  questionSetVersion: z.string().max(200).optional(),
   questionType: z.string().max(80),
   skills: z.array(z.string().max(160)).max(100),
   glossaryTerms: z.array(z.string().max(160)).max(100),
@@ -131,14 +133,13 @@ export const progressMigrationSchema = z.object({
 export const quizSessionSchema = z.object({
   currentIndex: z.coerce.number().int().min(0).max(1000).optional().default(0),
   responses: z.record(z.string(), z.unknown()).optional().default({}),
-  rationales: z.record(z.string(), z.string().max(4000)).optional().default({}),
-  status: z.enum(["draft", "completed"]).optional().default("draft"),
-  score: z.object({
-    earned: z.number().min(0),
-    available: z.number().min(0),
-    percent: z.number().min(0).max(100),
-    passed: z.boolean()
-  }).strict().nullable().optional()
+  rationales: z.record(z.string(), z.string().max(4000)).optional().default({})
+}).strict();
+
+export const quizSubmissionSchema = z.object({
+  questionSetVersion: z.string().trim().min(1).max(200).optional(),
+  responses: z.record(z.string(), z.unknown()).optional().default({}),
+  rationales: z.record(z.string(), z.string().max(4000)).optional().default({})
 }).strict();
 
 export const submissionSchema = z.object({
@@ -200,7 +201,8 @@ export const reviewSchema = z.object({
   score: z.coerce.number().min(0).max(100).nullable().optional(),
   rubric: z.record(z.string(), z.coerce.number().min(0).max(100)).optional().default({}),
   contextualComments: z.record(z.string(), z.string().max(2000)).optional().default({}),
-  expectedVersion: z.coerce.number().int().min(1).optional()
+  expectedVersion: z.coerce.number().int().min(1).optional(),
+  expectedReviewRevision: z.coerce.number().int().min(0)
 }).strict();
 
 export const roleUpdateSchema = z.object({

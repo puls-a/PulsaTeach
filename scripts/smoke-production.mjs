@@ -1,7 +1,7 @@
 import { chromium } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import { loadAllLocalTracks } from "../src/content/localTrackLoader.js";
+import { learningTracks } from "../src/content/allTrackRegistry.js";
 
 const baseUrl = String(process.env.PULSATEACH_PRODUCTION_URL || "https://pulsateach.vercel.app").replace(/\/$/, "");
 const captureDir = process.env.PULSATEACH_CAPTURE_DIR ? path.resolve(process.env.PULSATEACH_CAPTURE_DIR) : null;
@@ -14,7 +14,6 @@ const coreRoutes = [
   "/certification",
   "/studio"
 ];
-const learningTracks = await loadAllLocalTracks();
 const lessonRoutes = learningTracks.flatMap((track) => representativeLessonRoutes(track));
 const routes = [...coreRoutes, ...lessonRoutes.map(({ route }) => route)];
 if (captureDir) await mkdir(captureDir, { recursive: true });

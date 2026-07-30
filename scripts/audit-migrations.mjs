@@ -23,6 +23,14 @@ for (const requirement of [
   "alter table public.course_drafts",
   "alter table public.submissions",
   "alter table public.issued_certificates",
+  "review_revision",
+  "submissions_user_project_version_uidx",
+  "issued_certificates_user_issued_idx",
+  "create_submission_atomic",
+  "review_submission_atomic",
+  "save_quiz_draft_atomic",
+  "submit_quiz_session_atomic",
+  "pg_advisory_xact_lock",
   "enable row level security"
 ]) {
   if (!combined.includes(requirement)) failures.push(`Missing migration contract: ${requirement}`);

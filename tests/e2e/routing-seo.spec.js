@@ -38,7 +38,7 @@ test("private dashboard route stays noindex", async ({ page }) => {
 test("lesson routes expose unique course metadata", async ({ page }) => {
   await gotoRoute(page, "/learn/html/html-final-audit/html-09-final-exam");
   await expect(page).toHaveTitle(/Examen final HTML — HTML interactif gratuit \| PulsaTeach/i);
-  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /livrable final|final deliverable/i);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /Examen final HTML|Final HTML exam/i);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://pulsateach.vercel.app/learn/html/html-final-audit/html-09-final-exam");
   const schema = JSON.parse(await page.locator("#pulsateach-route-schema").textContent());
   expect(schema["@graph"]).toEqual(expect.arrayContaining([

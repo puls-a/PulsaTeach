@@ -4,6 +4,8 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createLessonDraft, createModuleDraft } from "../../src/courseSchema.js";
 import { learningTracks } from "../../src/content/allTrackRegistry.js";
+import { normalizeQuizLesson } from "../../src/features/quizzes/quizEngine.js";
+import { getQuestionSetVersion } from "../../src/features/quizzes/examPolicy.js";
 import { certificates } from "../../server/certificateCatalog.js";
 
 const testDataDir = path.join(process.cwd(), "test-results", "api-security-data");
@@ -35,6 +37,10 @@ describe("API security boundaries", () => {
     const fullTrack = await request(app).get("/api/catalog/git").expect(200);
     expect(fullTrack.body.track.id).toBe("git");
     expect(fullTrack.body.track.modules[0].lessons[0].course).toBeDefined();
+    const publicExam = fullTrack.body.track.modules.flatMap((module) => module.lessons).find((lesson) => lesson.id === "git-final-exam");
+    expect(publicExam).toMatchObject({ gradingMode: "server", questionSetVersion: "git-final-exam:1" });
+    expect(publicExam.questions[0]).not.toHaveProperty("answer");
+    expect(publicExam.questions[0]).not.toHaveProperty("explanation");
 
     await request(app).get("/api/catalog/unknown-track").expect(404);
   });
@@ -151,8 +157,22 @@ describe("API security boundaries", () => {
     await request(app)
       .put("/api/quizzes/html-quiz/session")
       .set("X-PulsaTeach-User-Id", "user-a")
-      .send({ currentIndex: 1, responses: { q1: "label" }, rationales: {}, status: "draft", score: null })
+      .send({ currentIndex: 1, responses: { q1: "label" }, rationales: {} })
       .expect(200);
+
+    const forgedScore = await request(app)
+      .put("/api/quizzes/html-quiz/session")
+      .set("X-PulsaTeach-User-Id", "user-a")
+      .send({ currentIndex: 1, responses: {}, rationales: {}, status: "completed", score: { passed: true } })
+      .expect(400);
+    expect(forgedScore.body.error.code).toBe("VALIDATION_ERROR");
+
+    const unknownQuiz = await request(app)
+      .post("/api/quizzes/unknown-quiz/submit")
+      .set("X-PulsaTeach-User-Id", "user-a")
+      .send({ responses: {}, rationales: {} })
+      .expect(404);
+    expect(unknownQuiz.body.error.code).toBe("QUIZ_NOT_FOUND");
 
     const own = await request(app)
       .get("/api/quizzes/html-quiz/session")
@@ -167,6 +187,74 @@ describe("API security boundaries", () => {
     expect(other.body).toBeNull();
 
     await request(app).get("/api/quizzes/html-quiz/session").expect(401);
+  });
+
+  test("returns only aggregate protected exam results", async () => {
+    const learner = { "X-PulsaTeach-User-Id": "protected-quiz-user" };
+    const lesson = learningTracks.flatMap((track) => track.modules.flatMap((module) => module.lessons))
+      .find((item) => item.id === "git-final-exam");
+    const question = normalizeQuizLesson(lesson, { expand: false }).questions[0];
+    const graded = await request(app)
+      .post(`/api/quizzes/${lesson.id}/submit`)
+      .set(learner)
+      .send({ questionSetVersion: getQuestionSetVersion(lesson), responses: { [question.id]: question.answer }, rationales: {} })
+      .expect(200);
+    expect(graded.body.score).toMatchObject({ passed: false, percent: expect.any(Number) });
+    expect(graded.body.score).not.toHaveProperty("results");
+    expect(graded.body).not.toHaveProperty("bestScore");
+
+    const retake = await request(app)
+      .post(`/api/quizzes/${lesson.id}/submit`)
+      .set(learner)
+      .send({ questionSetVersion: getQuestionSetVersion(lesson), responses: {}, rationales: {} })
+      .expect(429);
+    expect(retake.body.error).toMatchObject({ code: "QUIZ_RETAKE_COOLDOWN", details: { retryAt: expect.any(String) } });
+
+    const stale = await request(app)
+      .post(`/api/quizzes/${lesson.id}/submit`)
+      .set(learner)
+      .send({ questionSetVersion: `${lesson.id}:stale`, responses: {} })
+      .expect(409);
+    expect(stale.body.error.code).toBe("QUIZ_VERSION_CONFLICT");
+  });
+
+  test("scrubs protected answer keys from synchronized progress", async () => {
+    const userId = "protected-progress-user";
+    const headers = { "X-PulsaTeach-User-Id": userId };
+    await request(app).put(`/api/progress/${userId}`).set(headers).send({
+      review: {
+        items: {
+          legacy: {
+            id: "legacy",
+            kind: "quiz-question",
+            quizId: "git-final-exam",
+            questionId: "git-final-exam-1",
+            trackId: "git",
+            moduleId: "git-final",
+            lessonId: "git-final-exam",
+            prompt: "Prompt",
+            choices: [],
+            pairs: [],
+            answer: "secret",
+            acceptedAnswers: ["secret"],
+            keywords: ["secret"],
+            questionType: "single",
+            skills: [],
+            glossaryTerms: [],
+            intervalDays: 0,
+            ease: 2.5,
+            repetitions: 0,
+            lapses: 1,
+            confidence: 0,
+            dueAt: "2026-07-30T12:00:00.000Z",
+            lastReviewedAt: null,
+            updatedAt: "2026-07-30T12:00:00.000Z"
+          }
+        }
+      }
+    }).expect(200);
+    const progress = await request(app).get(`/api/progress/${userId}`).set(headers).expect(200);
+    expect(progress.body.review.items).toEqual({});
   });
 
   test("keeps role routes protected and accepts the development admin key", async () => {
@@ -266,12 +354,12 @@ describe("API security boundaries", () => {
         visibility: "unlisted"
       })
       .expect(201);
-    expect(first.body).toMatchObject({ version: 1, status: "submitted", rootId: first.body.id });
+    expect(first.body).toMatchObject({ version: 1, reviewRevision: 0, status: "submitted", rootId: first.body.id });
 
     await request(app)
       .patch(`/api/submissions/${first.body.id}/review`)
       .set(reviewer)
-      .send({ status: "in_review", expectedVersion: 1, feedback: "Review started" })
+      .send({ status: "in_review", expectedVersion: 1, expectedReviewRevision: 0, feedback: "Review started" })
       .expect(200);
     const changes = await request(app)
       .patch(`/api/submissions/${first.body.id}/review`)
@@ -279,12 +367,14 @@ describe("API security boundaries", () => {
       .send({
         status: "changes_requested",
         expectedVersion: 1,
+        expectedReviewRevision: 1,
         score: 58,
         feedback: "Corrige la navigation clavier.",
         rubric: { accessibility: 50, codeQuality: 66 },
         contextualComments: { accessibility: "Le focus doit rester visible." }
       })
       .expect(200);
+    expect(changes.body).toMatchObject({ reviewRevision: 2 });
     expect(changes.body.reviewLog).toHaveLength(2);
 
     const second = await request(app)
@@ -314,21 +404,52 @@ describe("API security boundaries", () => {
     const missingScore = await request(app)
       .patch(`/api/submissions/${second.body.id}/review`)
       .set(reviewerWithIdentity)
-      .send({ status: "approved", expectedVersion: 2 })
+      .send({ status: "approved", expectedVersion: 2, expectedReviewRevision: 0 })
       .expect(400);
     expect(missingScore.body.error.code).toBe("REVIEW_SCORE_REQUIRED");
     const superseded = await request(app)
       .patch(`/api/submissions/${first.body.id}/review`)
       .set(reviewerWithIdentity)
-      .send({ status: "approved", expectedVersion: 1, score: 90 })
+      .send({ status: "approved", expectedVersion: 1, expectedReviewRevision: 2, score: 90 })
       .expect(409);
     expect(superseded.body.error.code).toBe("SUBMISSION_SUPERSEDED");
     const approved = await request(app)
       .patch(`/api/submissions/${second.body.id}/review`)
       .set(reviewerWithIdentity)
-      .send({ status: "approved", expectedVersion: 2, score: 85 })
+      .send({ status: "approved", expectedVersion: 2, expectedReviewRevision: 0, score: 85 })
       .expect(200);
     expect(approved.body).toMatchObject({ reviewer: "reviewer-user", score: 85 });
+  });
+
+  test("serializes duplicate submissions and rejects stale concurrent reviews", async () => {
+    const learner = { "X-PulsaTeach-User-Id": "concurrent-project-user" };
+    const reviewer = { "X-PulsaTeach-Admin-Key": "test-admin-key" };
+    const payload = { projectId: "concurrent-project", title: "Concurrent project", repositoryUrl: "https://github.com/example/concurrent" };
+    const creations = await Promise.all(Array.from({ length: 4 }, () => request(app).post("/api/submissions").set(learner).send(payload)));
+    expect(creations.map((result) => result.status).sort()).toEqual([201, 409, 409, 409]);
+    expect(creations.filter((result) => result.status === 409).every((result) => result.body.error.code === "SUBMISSION_ALREADY_ACTIVE")).toBe(true);
+    const submission = creations.find((result) => result.status === 201).body;
+
+    const missingRevision = await request(app)
+      .patch(`/api/submissions/${submission.id}/review`)
+      .set(reviewer)
+      .send({ status: "in_review", expectedVersion: 1 })
+      .expect(400);
+    expect(missingRevision.body.error.code).toBe("VALIDATION_ERROR");
+
+    const reviews = await Promise.all([
+      request(app).patch(`/api/submissions/${submission.id}/review`).set(reviewer)
+        .send({ status: "in_review", expectedVersion: 1, expectedReviewRevision: 0 }),
+      request(app).patch(`/api/submissions/${submission.id}/review`).set(reviewer)
+        .send({ status: "changes_requested", expectedVersion: 1, expectedReviewRevision: 0, score: 55 })
+    ]);
+    expect(reviews.map((result) => result.status).sort()).toEqual([200, 409]);
+    expect(reviews.find((result) => result.status === 409).body.error).toMatchObject({
+      code: "SUBMISSION_REVIEW_REVISION_CONFLICT",
+      details: { expectedReviewRevision: 0, currentReviewRevision: 1 }
+    });
+    expect(reviews.find((result) => result.status === 200).body).toMatchObject({ reviewRevision: 1 });
+    expect(reviews.find((result) => result.status === 200).body.reviewLog).toHaveLength(1);
   });
 
   test("issues one publicly verifiable certificate and blocks post-revocation reissue", async () => {
@@ -345,6 +466,29 @@ describe("API security boundaries", () => {
       .map((lesson) => [lesson.id, { percent: 100, passed: true, skills: {}, attemptedAt: new Date().toISOString() }]));
 
     await request(app).put(`/api/progress/${userId}`).set(learner).send({ completed, quizEvidence }).expect(200);
+    const forgedEvaluation = await request(app).get(`/api/certificates/${userId}`).set(learner).expect(200);
+    const forgedCertificate = forgedEvaluation.body.certificates.find((certificate) => certificate.id === definition.id);
+    expect(forgedCertificate.eligible).toBe(false);
+    expect(forgedCertificate.evidence.exams.completed).toEqual([]);
+    await request(app).post("/api/certificates/frontend-foundations/issue").set(learner).expect(409);
+
+    const requiredExams = requiredLessons.filter((lesson) => lesson.purpose === "exam" || /final-exam|exam/i.test(lesson.id));
+    for (const lesson of requiredExams) {
+      const quiz = normalizeQuizLesson(lesson, { expand: false });
+      const responses = Object.fromEntries(quiz.questions.map((question) => [
+        question.id,
+        question.type === "short-open" ? (question.keywords || question.answer).join(" ") : question.answer
+      ]));
+      const graded = await request(app)
+        .post(`/api/quizzes/${lesson.id}/submit`)
+        .set(learner)
+        .send({ questionSetVersion: getQuestionSetVersion(lesson), responses, rationales: {} })
+        .expect(200);
+      expect(graded.body).toMatchObject({ gradingVersion: 1, status: "completed", score: { passed: true } });
+    }
+    const gradedEvaluation = await request(app).get(`/api/certificates/${userId}`).set(learner).expect(200);
+    expect(gradedEvaluation.body.certificates.find((certificate) => certificate.id === definition.id).evidence.exams.completed)
+      .toHaveLength(requiredExams.length);
     for (const projectId of definition.requiredProjects) {
       const submission = await request(app)
         .post("/api/submissions")
@@ -354,16 +498,17 @@ describe("API security boundaries", () => {
       await request(app)
         .patch(`/api/submissions/${submission.body.id}/review`)
         .set(reviewer)
-        .send({ status: "approved", expectedVersion: 1, score: 85 })
+        .send({ status: "approved", expectedVersion: 1, expectedReviewRevision: 0, score: 85 })
         .expect(200);
     }
 
-    const [firstIssue, replayedIssue] = await Promise.all([
-      request(app).post("/api/certificates/frontend-foundations/issue").set(learner),
+    const issueResponses = await Promise.all(Array.from({ length: 10 }, () =>
       request(app).post("/api/certificates/frontend-foundations/issue").set(learner)
-    ]);
-    expect([firstIssue.status, replayedIssue.status].sort()).toEqual([200, 201]);
-    expect(firstIssue.body.verificationCode).toBe(replayedIssue.body.verificationCode);
+    ));
+    expect(issueResponses.filter((result) => result.status === 201)).toHaveLength(1);
+    expect(issueResponses.filter((result) => result.status === 200)).toHaveLength(9);
+    const firstIssue = issueResponses[0];
+    expect(new Set(issueResponses.map((result) => result.body.verificationCode)).size).toBe(1);
     expect(firstIssue.body.evidence.projects.every((project) => project.score === 85)).toBe(true);
 
     const profile = await request(app).get(`/api/profile/${userId}`).set(learner).expect(200);
@@ -372,11 +517,17 @@ describe("API security boundaries", () => {
     const publicCertificate = await request(app).get(`/api/certificates/public/${firstIssue.body.verificationCode}`).expect(200);
     expect(publicCertificate.body).toMatchObject({ valid: true, status: "valid" });
 
-    await request(app)
+    const revoked = await request(app)
       .patch(`/api/certificates/${firstIssue.body.id}/revoke`)
       .set(reviewer)
       .send({ reason: "Certificate evidence was invalidated." })
       .expect(200);
+    const repeatedRevocation = await request(app)
+      .patch(`/api/certificates/${firstIssue.body.id}/revoke`)
+      .set(reviewer)
+      .send({ reason: "A later reason must not replace the first." })
+      .expect(200);
+    expect(repeatedRevocation.body).toMatchObject({ revokedAt: revoked.body.revokedAt, revocationReason: revoked.body.revocationReason });
     const reissue = await request(app).post("/api/certificates/frontend-foundations/issue").set(learner).expect(409);
     expect(reissue.body.error.code).toBe("CERTIFICATE_REVOKED");
   });
@@ -400,11 +551,26 @@ describe("API security boundaries", () => {
       expiresAt: null,
       revokedAt: null,
       revocationReason: null
+    }, {
+      id: "certificate-expired",
+      verificationCode: "verify-expired",
+      userId: "user-b",
+      certificateId: "git-github-practitioner",
+      certificateVersion: 1,
+      learnerName: "Expired Learner",
+      title: { fr: "Git", en: "Git" },
+      evidence: {},
+      issuedAt: "2025-01-01T00:00:00.000Z",
+      expiresAt: "2025-02-01T00:00:00.000Z",
+      revokedAt: null,
+      revocationReason: null
     }], null, 2));
 
     const valid = await request(app).get("/api/certificates/public/verify-test").expect(200);
     expect(valid.body).toMatchObject({ valid: true, status: "valid" });
     expect(valid.body.certificate.evidence.skills).toEqual(["semantic-html"]);
+    expect(await request(app).get("/api/certificates/public/verify-missing").expect(404).then((result) => result.body.error.code)).toBe("CERTIFICATE_NOT_FOUND");
+    expect(await request(app).get("/api/certificates/public/verify-expired").expect(200).then((result) => result.body.status)).toBe("expired");
 
     await request(app)
       .patch("/api/certificates/certificate-test/revoke")

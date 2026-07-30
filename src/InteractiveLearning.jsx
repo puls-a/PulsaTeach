@@ -6,10 +6,11 @@ import {
   Play,
   XCircle
 } from "lucide-react";
-import { getQuizSession, loadRemoteProgress, recordAttempt, recordLearningEvent, saveQuizSession, saveRemoteProgress } from "./apiClient.js";
+import { getQuizSession, loadRemoteProgress, recordAttempt, recordLearningEvent, saveQuizSession, saveRemoteProgress, submitQuiz } from "./apiClient.js";
 import { getDeferredTrackGroupModuleId, hasDeferredTrackGroup } from "./content/localTrackLoader.js";
 import { createQuizDraft, evaluateQuestion, normalizeQuizLesson, scoreQuiz } from "./features/quizzes/quizEngine.js";
 import QuizModal from "./features/quizzes/QuizModal.jsx";
+import { QuestionInput, QuizResults } from "./features/quizzes/QuizPresentation.jsx";
 import { scheduleQuizReview } from "./features/review/spacedRepetition.js";
 import { getNextLesson, getPreviousLesson, hasResponse, localize, markLessonCompleted, markLessonOpened, mergeProgress, readBookmarks, readLessonRoute, readProgress, readStoredJson } from "./features/learn/learningState.js";
 import { CompletionBanner, difficultyLabel, NotesPanel, SkillChips } from "./features/learn/LearningShared.jsx";
@@ -199,7 +200,7 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
           }
         }
       };
-      if (score.passed) next = markLessonCompleted(next, lesson, score.results.filter((item) => item.correct).length, now);
+      if (score.passed) next = markLessonCompleted(next, lesson, score.results?.filter((item) => item.correct).length ?? score.earned, now);
       persistProgress(next);
       return next;
     });
@@ -272,13 +273,15 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
   );
 
 }
-
 function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted, isBookmarked, onToggleBookmark, onQuizResult, onCloseQuiz, onNext, hasNext }) {
   const quiz = useMemo(() => normalizeQuizLesson(lesson), [lesson]);
+  const serverGraded = quiz.gradingMode === "server";
   const storageKey = `pulsateach-quiz-draft-${lesson.id}`;
   const [draft, setDraft] = useState(() => createQuizDraft(quiz, readStoredJson(storageKey)));
   const [feedback, setFeedback] = useState({});
   const [finalScore, setFinalScore] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState("");
   const [note, setNote] = useState("");
   const question = quiz.questions[draft.currentIndex];
   const response = draft.responses[question.id];
@@ -292,6 +295,8 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
     setDraft(createQuizDraft(quiz, readStoredJson(storageKey)));
     setFeedback({});
     setFinalScore(null);
+    setIsSubmitting(false);
+    setSubmissionError("");
   }, [lesson.id, quiz, storageKey]);
 
   useEffect(() => {
@@ -299,36 +304,31 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
   }, [draft, storageKey]);
 
   useEffect(() => {
+    if (!serverGraded) return undefined;
     let active = true;
     const localDraft = readStoredJson(storageKey);
     getQuizSession(lesson.id).then((remote) => {
       if (!active || !remote) return;
       const useRemote = !localDraft.updatedAt || new Date(remote.updatedAt).getTime() > new Date(localDraft.updatedAt).getTime();
       if (useRemote) setDraft(createQuizDraft(quiz, remote));
-      if (remote.status === "completed" && remote.score) setFinalScore(remote.score);
+      if (remote.gradingVersion === 1 && remote.status === "completed" && Array.isArray(remote.score?.results)) setFinalScore(remote.score);
     }).catch(() => {});
     return () => {
       active = false;
     };
-  }, [lesson.id, quiz, storageKey]);
+  }, [lesson.id, quiz, serverGraded, storageKey]);
 
   useEffect(() => {
+    if (!serverGraded) return undefined;
     const timeout = window.setTimeout(() => {
       saveQuizSession(lesson.id, {
         currentIndex: draft.currentIndex,
         responses: draft.responses,
-        rationales: draft.rationales,
-        status: finalScore?.passed ? "completed" : "draft",
-        score: finalScore ? {
-          earned: finalScore.earned,
-          available: finalScore.available,
-          percent: finalScore.percent,
-          passed: finalScore.passed
-        } : null
+        rationales: draft.rationales
       }).catch(() => {});
     }, 400);
     return () => window.clearTimeout(timeout);
-  }, [draft, finalScore, lesson.id]);
+  }, [draft, lesson.id, serverGraded]);
 
   useEffect(() => {
     if (question.type === "ordering" && !Array.isArray(response)) {
@@ -343,32 +343,46 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
     setDraft((current) => ({ ...current, responses: { ...current.responses, [question.id]: value } }));
     setFeedback((current) => ({ ...current, [question.id]: undefined }));
     setFinalScore(null);
+    setSubmissionError("");
   };
 
-  const validateCurrent = () => {
-    const result = evaluateQuestion(question, response);
-    setFeedback((current) => ({ ...current, [question.id]: result }));
-    if (draft.currentIndex < quiz.questions.length - 1) return;
+  const validateCurrent = async () => {
+    if (isSubmitting) return;
+    setSubmissionError("");
+    try {
+      const result = serverGraded ? { submitted: true } : evaluateQuestion(question, response);
+      setFeedback((current) => ({ ...current, [question.id]: result }));
+      if (draft.currentIndex < quiz.questions.length - 1) return;
 
-    const score = scoreQuiz(quiz, draft.responses);
-    setFinalScore(score);
-    recordAttempt({
-      lessonId: lesson.id,
-      trackId: activeTrack.id,
-      moduleId: activeModule.id,
-      passed: score.results.filter((item) => item.correct).length,
-      total: score.results.length
-    }).catch(() => {});
-    recordLearningEvent({
-      eventType: score.passed ? "lesson_completed" : "tests_failed",
-      lessonId: lesson.id,
-      trackId: activeTrack.id,
-      payload: { passed: score.earned, total: score.available, percent: score.percent, kind: "quiz" }
-    }).catch(() => {});
-    if (score.passed) {
-      localStorage.removeItem(storageKey);
+      if (serverGraded) setIsSubmitting(true);
+      const score = serverGraded
+        ? (await submitQuiz(lesson.id, { questionSetVersion: quiz.questionSetVersion, responses: draft.responses, rationales: draft.rationales })).score
+        : scoreQuiz(quiz, draft.responses);
+      setFinalScore(score);
+      recordAttempt({
+        lessonId: lesson.id,
+        trackId: activeTrack.id,
+        moduleId: activeModule.id,
+        passed: score.results?.filter((item) => item.correct).length ?? score.earned,
+        total: score.results?.length ?? score.available
+      }).catch(() => {});
+      recordLearningEvent({
+        eventType: score.passed ? "lesson_completed" : "tests_failed",
+        lessonId: lesson.id,
+        trackId: activeTrack.id,
+        payload: { passed: score.earned, total: score.available, percent: score.percent, kind: "quiz" }
+      }).catch(() => {});
+      if (score.passed) localStorage.removeItem(storageKey);
+      onQuizResult?.(lesson, quiz, score);
+    } catch (error) {
+      setSubmissionError(error?.code === "QUIZ_VERSION_CONFLICT"
+        ? (locale === "fr" ? "Ce bilan a changé. Recharge la page avant de recommencer." : "This assessment changed. Reload the page before restarting.")
+        : error?.code === "QUIZ_RETAKE_COOLDOWN"
+          ? (locale === "fr" ? "Ce bilan vient d’être noté. Attends 15 minutes avant une nouvelle tentative." : "This assessment was just graded. Wait 15 minutes before another attempt.")
+        : (locale === "fr" ? "La notation serveur a échoué. Réessaie sans quitter le quiz." : "Server grading failed. Try again without leaving the quiz."));
+    } finally {
+      setIsSubmitting(false);
     }
-    onQuizResult?.(lesson, quiz, score);
   };
 
   const restartQuiz = () => {
@@ -376,6 +390,7 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
     setDraft(createQuizDraft(quiz));
     setFeedback({});
     setFinalScore(null);
+    setSubmissionError("");
   };
 
   return (
@@ -397,10 +412,10 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
       <h3 id={`quiz-title-${lesson.id}`} className="mt-4 pr-12 font-display text-3xl font-bold leading-tight sm:text-4xl">{lesson.title[locale]}</h3>
       <p className="mt-3 max-w-3xl text-base font-semibold leading-7 text-ink/70 sm:text-lg">{lesson.brief[locale]}</p>
       <SkillChips skills={lesson.skills} />
-      <details className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+      {lesson.course && <details className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
         <summary className="cursor-pointer text-sm font-bold text-slate-700">{locale === "fr" ? "Besoin de réviser avant le bilan ?" : "Need a quick review first?"}</summary>
         <CourseChapter course={lesson.course} theory={lesson.theory} locale={locale} />
-      </details>
+      </details>}
       <div className="muted-surface mt-4 min-w-0 p-3 sm:mt-6 sm:p-5">
         <div className="flex min-w-0 items-center justify-between gap-3">
           <p className="text-sm font-bold text-indigoPop">{locale === "fr" ? "Question" : "Question"} {draft.currentIndex + 1}/{quiz.questions.length} · {answeredCount} {locale === "fr" ? "répondues" : "answered"}</p>
@@ -427,14 +442,15 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
         </>}
         <div className="mt-5 grid gap-2 sm:flex">
           {draft.currentIndex > 0 && <button type="button" onClick={() => setDraft((current) => ({ ...current, currentIndex: current.currentIndex - 1 }))} className="secondary-button w-full sm:w-auto">{locale === "fr" ? "Question précédente" : "Previous question"}</button>}
-          <button type="button" disabled={!canValidate} onClick={validateCurrent} className="primary-button w-full disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"><Play className="size-5" />{locale === "fr" ? "Valider" : "Check"}</button>
+          <button type="button" disabled={!canValidate || isSubmitting} aria-busy={isSubmitting} onClick={validateCurrent} className="primary-button w-full disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"><Play className="size-5" />{isSubmitting ? (locale === "fr" ? "Notation…" : "Grading…") : (locale === "fr" ? "Valider" : "Check")}</button>
           {questionFeedback && draft.currentIndex < quiz.questions.length - 1 && <button type="button" onClick={() => setDraft((current) => ({ ...current, currentIndex: current.currentIndex + 1 }))} className="secondary-button w-full sm:w-auto">{locale === "fr" ? "Question suivante" : "Next question"}</button>}
         </div>
       </div>
-      {questionFeedback && (
+      {submissionError && <p className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-800" role="alert">{submissionError}</p>}
+      {questionFeedback && !questionFeedback.submitted && (
         <div className={`mt-5 rounded-xl border p-4 text-sm font-semibold ${questionFeedback.correct ? "border-green-200 bg-green-50 text-green-800" : "border-red-200 bg-red-50 text-red-800"}`} role="status">
           {questionFeedback.correct ? <CheckCircle2 className="mb-2 size-6 text-green-700" /> : <XCircle className="mb-2 size-6 text-red-700" />}
-          {localize(question.explanation, locale)}
+          {localize(questionFeedback.feedback || question.explanation, locale)}
         </div>
       )}
       {finalScore && <QuizResults quiz={quiz} score={finalScore} locale={locale} onRestart={restartQuiz} />}
@@ -442,51 +458,4 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
       <div className="mt-5"><NotesPanel lessonId={lesson.id} locale={locale} note={note} setNote={setNote} /></div>
     </QuizModal>
   );
-}
-
-function QuizResults({ quiz, score, locale, onRestart }) {
-  const correctCount = score.results.filter((result) => result.correct).length;
-  return <section className={`mt-5 rounded-xl border p-4 ${score.passed ? "border-green-200 bg-green-50" : "border-amber-200 bg-amber-50"}`} aria-label={locale === "fr" ? "Résultats du quiz" : "Quiz results"}>
-    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-      <div><p className={`font-display text-2xl font-bold ${score.passed ? "text-green-900" : "text-amber-950"}`}>{locale === "fr" ? `Score final : ${score.percent} %` : `Final score: ${score.percent}%`}</p><p className="mt-1 text-sm font-semibold text-slate-700">{correctCount}/{score.results.length} {locale === "fr" ? "réponses correctes" : "correct answers"} · {locale === "fr" ? `seuil ${quiz.passingScore} %` : `${quiz.passingScore}% required`}</p></div>
-      <button type="button" onClick={onRestart} className="secondary-button">{locale === "fr" ? "Recommencer le bilan" : "Restart check"}</button>
-    </div>
-    <ol className="mt-4 grid gap-2">{quiz.questions.map((question, index) => {
-      const result = score.results.find((item) => item.questionId === question.id);
-      return <li className={`rounded-lg border bg-white p-3 text-sm ${result?.correct ? "border-green-200" : "border-red-200"}`} key={question.id}><div className="flex items-start gap-2">{result?.correct ? <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-green-700" /> : <XCircle className="mt-0.5 size-5 shrink-0 text-red-700" />}<div><p className="font-bold text-ink">{index + 1}. {localize(question.prompt, locale)}</p><p className="mt-1 leading-6 text-slate-600">{localize(question.explanation, locale)}</p></div></div></li>;
-    })}</ol>
-  </section>;
-}
-
-function QuestionInput({ question, response, locale, onChange }) {
-  const choices = question.choices?.length ? question.choices : question.type === "true-false"
-    ? [{ id: "true", label: { fr: "Vrai", en: "True" } }, { id: "false", label: { fr: "Faux", en: "False" } }]
-    : [];
-
-  if (["single", "true-false", "code-reading", "error-identification"].includes(question.type)) {
-    return <div className="mt-5 grid gap-3">{choices.map((choice) => <button type="button" aria-pressed={response === choice.id} key={choice.id} onClick={() => onChange(choice.id)} className={`rounded-xl border p-4 text-left text-sm font-semibold ${response === choice.id ? "border-indigo-400 bg-indigo-50 text-indigo-800" : "border-slate-200 bg-white hover:border-indigo-200"}`}>{localize(choice.label, locale)}</button>)}</div>;
-  }
-  if (question.type === "multiple") {
-    const selected = Array.isArray(response) ? response : [];
-    return <div className="mt-5 grid gap-3">{choices.map((choice) => <button type="button" aria-pressed={selected.includes(choice.id)} key={choice.id} onClick={() => onChange(selected.includes(choice.id) ? selected.filter((id) => id !== choice.id) : [...selected, choice.id])} className={`rounded-xl border p-4 text-left text-sm font-semibold ${selected.includes(choice.id) ? "border-indigo-400 bg-indigo-50 text-indigo-800" : "border-slate-200 bg-white hover:border-indigo-200"}`}>{localize(choice.label, locale)}</button>)}</div>;
-  }
-  if (question.type === "ordering") {
-    const order = Array.isArray(response) ? response : choices.map((choice) => choice.id);
-    return <ol className="mt-5 grid gap-2">{order.map((id, index) => {
-      const choice = choices.find((item) => item.id === id);
-      const move = (offset) => {
-        const target = index + offset;
-        if (target < 0 || target >= order.length) return;
-        const next = [...order];
-        [next[index], next[target]] = [next[target], next[index]];
-        onChange(next);
-      };
-      return <li className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-3" key={id}><span className="flex-1 font-semibold">{index + 1}. {localize(choice?.label, locale)}</span><button type="button" className="icon-button min-h-9 px-2" onClick={() => move(-1)} aria-label={locale === "fr" ? "Monter" : "Move up"}>↑</button><button type="button" className="icon-button min-h-9 px-2" onClick={() => move(1)} aria-label={locale === "fr" ? "Descendre" : "Move down"}>↓</button></li>;
-    })}</ol>;
-  }
-  if (question.type === "matching") {
-    const matches = response && typeof response === "object" && !Array.isArray(response) ? response : {};
-    return <div className="mt-5 grid gap-3">{(question.pairs || []).map((pair) => <label className="grid gap-2 rounded-xl border border-slate-200 bg-white p-3 sm:grid-cols-2 sm:items-center" key={pair.id}><span className="font-semibold">{localize(pair.label, locale)}</span><select className="form-control" value={matches[pair.id] || ""} onChange={(event) => onChange({ ...matches, [pair.id]: event.target.value })}><option value="">{locale === "fr" ? "Choisir" : "Choose"}</option>{(pair.choices || choices).map((choice) => <option value={choice.id} key={choice.id}>{localize(choice.label, locale)}</option>)}</select></label>)}</div>;
-  }
-  return <label className="mt-5 block"><span className="text-sm font-bold text-slate-700">{locale === "fr" ? "Ta réponse" : "Your answer"}</span><textarea className="mt-2 min-h-32 w-full rounded-xl border border-slate-300 bg-white p-3 font-mono text-sm outline-none focus:border-indigoPop" value={typeof response === "string" ? response : ""} onChange={(event) => onChange(event.target.value)} /></label>;
 }

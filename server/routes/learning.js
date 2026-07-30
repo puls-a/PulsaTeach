@@ -32,7 +32,6 @@ export function registerLearningRoutes(app, context) {
     lessonDraftUpdateSchema,
     progressMigrationSchema,
     progressSchema,
-    quizSessionSchema,
     reviewSchema,
     roleUpdateSchema,
     submissionSchema,
@@ -56,6 +55,9 @@ export function registerLearningRoutes(app, context) {
     readJsonStore,
     writeJsonStore,
     withStoreMutation,
+    createSupabaseSubmission,
+    reviewSupabaseSubmission,
+    shouldUseSupabaseMutations,
     authorizeUserParam,
     authorizePayloadUser,
     requireAuthenticatedWrite,
@@ -85,7 +87,8 @@ export function registerLearningRoutes(app, context) {
     markSupabaseUnavailable,
     rolesFromUser,
     randomUUID,
-    createHash
+    createHash,
+    sanitizeProgressExamEvidence
   } = context;
 
   app.get("/api/progress/:userId", async (request, response) => {
@@ -105,7 +108,7 @@ export function registerLearningRoutes(app, context) {
     }
     const store = await readProgressStore();
     store[userId] = {
-      ...request.body,
+      ...sanitizeProgressExamEvidence(request.body),
       userId,
       updatedAt: new Date().toISOString()
     };
@@ -122,33 +125,10 @@ export function registerLearningRoutes(app, context) {
     }
     const userId = request.authUserId;
     const store = await readProgressStore();
-    const merged = mergeProgress(store[userId], localProgress);
+    const merged = sanitizeProgressExamEvidence(mergeProgress(store[userId], localProgress));
     store[userId] = { ...merged, userId, updatedAt: new Date().toISOString() };
     await writeProgressStore(store);
     response.json({ migrated: true, progress: store[userId] });
-  });
-
-  app.get("/api/quizzes/:quizId/session", requireAuthenticatedRequest, async (request, response) => {
-    const store = await readJsonStore(quizSessionsFile, []);
-    const session = store.find((item) => item.userId === request.authUserId && item.quizId === request.params.quizId);
-    response.json(session || null);
-  });
-
-  app.put("/api/quizzes/:quizId/session", requireAuthenticatedRequest, validateBody(quizSessionSchema), async (request, response) => {
-    const store = await readJsonStore(quizSessionsFile, []);
-    const id = `${request.authUserId}:${request.params.quizId}`;
-    const index = store.findIndex((item) => item.id === id);
-    const session = {
-      id,
-      userId: request.authUserId,
-      quizId: request.params.quizId,
-      ...request.body,
-      updatedAt: new Date().toISOString()
-    };
-    if (index === -1) store.unshift(session);
-    else store[index] = session;
-    await writeJsonStore(quizSessionsFile, store.slice(0, 5000));
-    response.json(session);
   });
 
   app.get("/api/submissions", async (request, response) => {
@@ -182,20 +162,9 @@ export function registerLearningRoutes(app, context) {
     const userId = request.authUserId || payload.userId;
     if (!userId || !authorizePayloadUser(request, response, payload.userId)) return;
 
-    const store = await readJsonStore(submissionsFile, []);
-    const previous = store
-      .filter((item) => item.userId === userId && item.projectId === payload.projectId)
-      .sort((left, right) => Number(right.version || 1) - Number(left.version || 1))[0];
-    if (previous && !["changes_requested", "approved"].includes(previous.status)) {
-      sendApiError(response, request, 409, "SUBMISSION_ALREADY_ACTIVE", "Wait for review before submitting a new version.");
-      return;
-    }
     const now = new Date().toISOString();
-    const submission = {
+    const baseSubmission = {
       id: `sub-${randomUUID()}`,
-      rootId: previous?.rootId || previous?.id || null,
-      supersedesId: previous?.id || null,
-      version: Number(previous?.version || 0) + 1,
       userId: String(userId),
       projectId: String(payload.projectId),
       title: String(payload.title),
@@ -208,9 +177,29 @@ export function registerLearningRoutes(app, context) {
       selfAssessment: String(payload.selfAssessment || ""),
       visibility: payload.visibility || "private",
       status: "submitted",
+      reviewRevision: 0,
       reviewLog: [],
       createdAt: now,
       updatedAt: now
+    };
+    if (shouldUseSupabaseMutations()) {
+      response.status(201).json(await createSupabaseSubmission(baseSubmission));
+      return;
+    }
+
+    const store = await readJsonStore(submissionsFile, []);
+    const previous = store
+      .filter((item) => item.userId === userId && item.projectId === payload.projectId)
+      .sort((left, right) => Number(right.version || 1) - Number(left.version || 1))[0];
+    if (previous && !["changes_requested", "approved"].includes(previous.status)) {
+      sendApiError(response, request, 409, "SUBMISSION_ALREADY_ACTIVE", "Wait for review before submitting a new version.");
+      return;
+    }
+    const submission = {
+      ...baseSubmission,
+      rootId: previous?.rootId || previous?.id || null,
+      supersedesId: previous?.id || null,
+      version: Number(previous?.version || 0) + 1,
     };
     if (!submission.rootId) submission.rootId = submission.id;
     store.unshift(submission);
@@ -285,14 +274,28 @@ export function registerLearningRoutes(app, context) {
       return;
     }
 
+    const reviewer = String(request.authUserId || payload.reviewer || "PulsaTeach reviewer");
+    if (shouldUseSupabaseMutations()) {
+      response.json(await reviewSupabaseSubmission(request.params.id, { ...payload, reviewer }));
+      return;
+    }
+
     const store = await readJsonStore(submissionsFile, []);
     const index = store.findIndex((submission) => submission.id === request.params.id);
     if (index === -1) {
-      response.status(404).json({ error: "Submission not found." });
+      sendApiError(response, request, 404, "SUBMISSION_NOT_FOUND", "Submission not found.");
       return;
     }
     if (payload.expectedVersion && payload.expectedVersion !== Number(store[index].version || 1)) {
       sendApiError(response, request, 409, "SUBMISSION_VERSION_CONFLICT", "Submission version changed before this review was saved.");
+      return;
+    }
+    const currentReviewRevision = Number(store[index].reviewRevision || 0);
+    if (payload.expectedReviewRevision !== currentReviewRevision) {
+      sendApiError(response, request, 409, "SUBMISSION_REVIEW_REVISION_CONFLICT", "Submission review changed before this decision was saved.", {
+        expectedReviewRevision: payload.expectedReviewRevision,
+        currentReviewRevision
+      });
       return;
     }
     const currentRootId = store[index].rootId || store[index].id;
@@ -306,7 +309,7 @@ export function registerLearningRoutes(app, context) {
     const review = {
       status: payload.status,
       feedback: String(payload.feedback || ""),
-      reviewer: String(request.authUserId || payload.reviewer || "PulsaTeach reviewer"),
+      reviewer,
       score: payload.score == null ? null : Number(payload.score),
       rubric: isObject(payload.rubric) ? payload.rubric : {},
       contextualComments: isObject(payload.contextualComments) ? payload.contextualComments : {},
@@ -316,6 +319,7 @@ export function registerLearningRoutes(app, context) {
     store[index] = {
       ...store[index],
       ...review,
+      reviewRevision: currentReviewRevision + 1,
       reviewLog: [{
         status: review.status,
         feedback: review.feedback,
@@ -342,107 +346,6 @@ export function registerLearningRoutes(app, context) {
     if (shouldTrySupabase()) await deleteSupabaseRecord("submissions.json", submission.id);
     else await writeJsonStore(submissionsFile, store.filter((item) => item.id !== submission.id));
     response.json({ ok: true, id: submission.id });
-    });
-  });
-
-  app.get("/api/certificates/:userId", async (request, response) => {
-    if (!authorizeUserParam(request, response)) return;
-    const userId = request.authUserId || request.params.userId;
-    const progressStore = await readProgressStore();
-    const submissions = await readJsonStore(submissionsFile, []);
-    const progress = progressStore[userId] || {};
-    const userSubmissions = submissions.filter((item) => item.userId === userId);
-    const issued = await readJsonStore(issuedCertificatesFile, []);
-    response.json(buildCertificatesForUser(userId, progress, userSubmissions, issued));
-  });
-
-  app.post("/api/certificates/:certificateId/issue", requireAuthenticatedRequest, async (request, response) => {
-    await withStoreMutation("issued-certificates", async () => {
-    if (!requireAuthenticatedWrite(request, response)) return;
-    const userId = request.authUserId;
-    const progressStore = await readProgressStore();
-    const submissions = await readJsonStore(submissionsFile, []);
-    const users = await readJsonStore(usersFile, {});
-    const issued = await readJsonStore(issuedCertificatesFile, []);
-    const existing = issued.find((item) => item.userId === userId && item.certificateId === request.params.certificateId);
-    if (existing?.revokedAt) {
-      sendApiError(response, request, 409, "CERTIFICATE_REVOKED", "A revoked certificate cannot be reissued.");
-      return;
-    }
-    if (existing) {
-      response.json(existing);
-      return;
-    }
-    const evaluation = buildCertificatesForUser(userId, progressStore[userId] || {}, submissions.filter((item) => item.userId === userId), issued)
-      .certificates.find((item) => item.id === request.params.certificateId);
-    if (!evaluation) {
-      response.status(404).json({ error: "Certificate not found.", requestId: request.requestId });
-      return;
-    }
-    if (!evaluation.eligible) {
-      response.status(409).json({ error: "Certificate requirements are not complete.", progress: evaluation.progress, requestId: request.requestId });
-      return;
-    }
-    const now = new Date().toISOString();
-    const certificate = {
-      id: randomUUID(),
-      verificationCode: randomUUID().replaceAll("-", ""),
-      userId,
-      certificateId: evaluation.id,
-      learnerName: users[userId]?.displayName || request.authUser?.email || "PulsaTeach Learner",
-      title: evaluation.title,
-      certificateVersion: evaluation.certificateVersion,
-      evidence: evaluation.evidence,
-      issuedAt: now,
-      expiresAt: null,
-      revokedAt: null,
-      revocationReason: null
-    };
-    issued.unshift(certificate);
-    await writeJsonStore(issuedCertificatesFile, issued);
-    response.status(201).json(certificate);
-    });
-  });
-
-  app.get("/api/certificates/public/:verificationCode", async (request, response) => {
-    const issued = await readJsonStore(issuedCertificatesFile, []);
-    const certificate = issued.find((item) => item.verificationCode === request.params.verificationCode);
-    if (!certificate) {
-      response.status(404).json({ error: "Certificate not found.", requestId: request.requestId });
-      return;
-    }
-    response.json({
-      valid: !certificate.revokedAt && (!certificate.expiresAt || new Date(certificate.expiresAt).getTime() > Date.now()),
-      status: certificate.revokedAt ? "revoked" : certificate.expiresAt && new Date(certificate.expiresAt).getTime() <= Date.now() ? "expired" : "valid",
-      certificate: {
-        verificationCode: certificate.verificationCode,
-        learnerName: certificate.learnerName,
-        title: certificate.title,
-        certificateVersion: certificate.certificateVersion || 1,
-        evidence: certificate.evidence,
-        issuedAt: certificate.issuedAt,
-        expiresAt: certificate.expiresAt || null,
-        revokedAt: certificate.revokedAt,
-        revocationReason: certificate.revocationReason || null
-      }
-    });
-  });
-
-  app.patch("/api/certificates/:id/revoke", requireRole("admin", "reviewer"), validateBody(certificateRevokeSchema), async (request, response) => {
-    await withStoreMutation("issued-certificates", async () => {
-    const issued = await readJsonStore(issuedCertificatesFile, []);
-    const index = issued.findIndex((certificate) => certificate.id === request.params.id);
-    if (index === -1) {
-      sendApiError(response, request, 404, "CERTIFICATE_NOT_FOUND", "Certificate not found.");
-      return;
-    }
-    issued[index] = {
-      ...issued[index],
-      revokedAt: new Date().toISOString(),
-      revocationReason: request.body.reason
-    };
-    await writeJsonStore(issuedCertificatesFile, issued);
-    response.json(issued[index]);
     });
   });
 

@@ -3,6 +3,7 @@ import { BookOpen, Brain, CheckCircle2, Clock3, RotateCcw } from "lucide-react";
 import { loadRemoteProgress, recordLearningEvent, saveRemoteProgress } from "../../apiClient.js";
 import { LearnerPageHero, MetricCard } from "../../components/LearnerUI.jsx";
 import { evaluateQuestion } from "../quizzes/quizEngine.js";
+import { sanitizeProgressExamEvidence, sanitizeProtectedReviewItems } from "../quizzes/examPolicy.js";
 import { applyReviewRating, buildReviewSession, getReviewStats, reviewSessionSizes } from "./spacedRepetition.js";
 
 const progressKey = "pulsateach-learning-progress";
@@ -15,6 +16,8 @@ export default function ReviewPage({ locale }) {
   const [index, setIndex] = useState(0);
   const [response, setResponse] = useState("");
   const [result, setResult] = useState(null);
+  const [checking, setChecking] = useState(false);
+  const [checkError, setCheckError] = useState("");
   const [started, setStarted] = useState(false);
   const [syncState, setSyncState] = useState("local");
   const stats = useMemo(() => getReviewStats(progress.review?.items || {}), [progress]);
@@ -48,8 +51,23 @@ export default function ReviewPage({ locale }) {
     setIndex(0);
     setResponse("");
     setResult(null);
+    setCheckError("");
     setStarted(true);
     recordLearningEvent({ eventType: "review_started", payload: { size: nextSession.length } }).catch(() => {});
+  };
+
+  const checkResponse = async () => {
+    if (!item || checking) return;
+    setChecking(true);
+    setCheckError("");
+    try {
+      const nextResult = evaluateQuestion(toQuestion(item), response);
+      setResult(nextResult);
+    } catch {
+      setCheckError(fr ? "Vérification indisponible. Réessaie." : "Check unavailable. Try again.");
+    } finally {
+      setChecking(false);
+    }
   };
 
   const rate = (rating) => {
@@ -125,13 +143,15 @@ export default function ReviewPage({ locale }) {
             <ReviewQuestionInput item={item} response={response} locale={locale} onChange={(value) => {
               setResponse(value);
               setResult(null);
+              setCheckError("");
             }} />
-            {!result && <button type="button" className="primary-button mt-5" onClick={() => setResult(evaluateQuestion(toQuestion(item), response))} disabled={!hasResponse(response)}>{fr ? "Vérifier ma réponse" : "Check my answer"}</button>}
+            {!result && <button type="button" className="primary-button mt-5" onClick={checkResponse} disabled={!hasResponse(response) || checking}>{checking ? (fr ? "Vérification…" : "Checking…") : (fr ? "Vérifier ma réponse" : "Check my answer")}</button>}
+            {checkError && <p className="mt-3 text-sm font-bold text-red-700" role="alert">{checkError}</p>}
             {result && (
               <div className="mt-6" role="status">
                 <div className={`rounded-xl border p-4 font-bold ${result.correct ? "border-green-200 bg-green-50 text-green-900" : "border-amber-200 bg-amber-50 text-amber-950"}`}>
                   {result.correct ? (fr ? "Bonne réponse." : "Correct answer.") : (fr ? "Pas encore. Lis l’explication puis évalue ton rappel." : "Not yet. Read the explanation, then rate your recall.")}
-                  {item.explanation && <p className="mt-2 font-medium">{localize(item.explanation, locale)}</p>}
+                  {(result.feedback || item.explanation) && <p className="mt-2 font-medium">{localize(result.feedback || item.explanation, locale)}</p>}
                 </div>
                 <fieldset className="mt-5">
                   <legend className="text-sm font-bold text-slate-700">{fr ? "Comment était ton rappel ?" : "How well did you recall it?"}</legend>
@@ -201,14 +221,14 @@ function toQuestion(item) {
 
 function readProgress() {
   try {
-    return JSON.parse(localStorage.getItem(progressKey)) || { completed: {}, review: { items: {} } };
+    return sanitizeProgressExamEvidence(JSON.parse(localStorage.getItem(progressKey)) || { completed: {}, review: { items: {} } });
   } catch {
     return { completed: {}, review: { items: {} } };
   }
 }
 
 function mergeProgress(local, remote) {
-  return { ...local, ...remote, completed: { ...(local.completed || {}), ...(remote.completed || {}) }, review: { ...(local.review || {}), ...(remote.review || {}), items: { ...(local.review?.items || {}), ...(remote.review?.items || {}) } } };
+  return { ...local, ...remote, completed: { ...(local.completed || {}), ...(remote.completed || {}) }, review: { ...(local.review || {}), ...(remote.review || {}), items: sanitizeProtectedReviewItems({ ...(local.review?.items || {}), ...(remote.review?.items || {}) }) } };
 }
 
 function localize(value, locale) {

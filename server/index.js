@@ -6,13 +6,17 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { learningTracks } from "../src/content/allTrackRegistry.js";
 import { buildGlossaryIndex } from "../src/features/glossary/glossaryIndex.js";
+import { normalizeQuizLesson, scoreQuiz } from "../src/features/quizzes/quizEngine.js";
+import { getQuestionSetVersion, isProtectedExamLesson, sanitizeProgressExamEvidence } from "../src/features/quizzes/examPolicy.js";
 import { normalizePublishedCourse, validateCourseForPublication } from "../src/courseSchema.js";
 import { appendWorkflowLog, authorizeCourseTransition, createCourseVersion, diffCourseVersions, restoreCourseVersion } from "./courseWorkflow.js";
 import { productRoadmap } from "./roadmap.js";
+import { projectPublicTrack } from "./publicContent.js";
 import { sendWelcomeEmail, transactionalEmailEnabled } from "./emailService.js";
 import { applySecurity, localIdentityEnabled, sensitiveRateLimit } from "./security.js";
 import { checkSupabaseReadiness, deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, readSupabaseStore, requireSupabaseStorage, supabaseAdmin, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
-import { accountDeletionSchema, attemptSchema, avatarUploadSchema, certificateRevokeSchema, courseCreateSchema, courseRollbackSchema, courseUpdateSchema, enrollmentSchema, eventSchema, lessonDraftSchema, lessonDraftUpdateSchema, progressMigrationSchema, progressSchema, quizSessionSchema, reviewSchema, roleUpdateSchema, submissionSchema, telemetrySchema, userSettingsSchema, validateBody } from "./validation.js";
+import { createSupabaseSubmission, findSupabaseIssuedCertificateByVerificationCode, findSupabaseQuizSession, insertSupabaseIssuedCertificate, listSupabaseIssuedCertificatesForUser, listSupabaseQuizSessionsForUser, reviewSupabaseSubmission, revokeSupabaseIssuedCertificate, saveSupabaseQuizDraft, submitSupabaseQuizSession } from "./supabaseSensitiveOperations.js";
+import { accountDeletionSchema, attemptSchema, avatarUploadSchema, certificateRevokeSchema, courseCreateSchema, courseRollbackSchema, courseUpdateSchema, enrollmentSchema, eventSchema, lessonDraftSchema, lessonDraftUpdateSchema, progressMigrationSchema, progressSchema, quizSessionSchema, quizSubmissionSchema, reviewSchema, roleUpdateSchema, submissionSchema, telemetrySchema, userSettingsSchema, validateBody } from "./validation.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = process.env.PULSATEACH_DATA_DIR || (process.env.VERCEL ? "/tmp/pulsateach-data" : path.join(__dirname, "..", "data"));
@@ -42,6 +46,8 @@ import { registerAdministrationRoutes } from "./routes/administration.js";
 import { registerAccountsRoutes } from "./routes/accounts.js";
 import { registerAuthoringRoutes } from "./routes/authoring.js";
 import { registerLearningRoutes } from "./routes/learning.js";
+import { registerQuizSessionRoutes } from "./routes/quizSessions.js";
+import { registerCertificateRoutes } from "./routes/certificates.js";
 import { rolesFromUser } from "./authRoles.js";
 import { createAuthService } from "./authService.js";
 
@@ -81,6 +87,11 @@ app.use(attachAuthUser);
 const routeContext = {
   learningTracks,
   buildGlossaryIndex,
+  normalizeQuizLesson,
+  scoreQuiz,
+  getQuestionSetVersion,
+  isProtectedExamLesson,
+  sanitizeProgressExamEvidence,
   normalizePublishedCourse,
   validateCourseForPublication,
   appendWorkflowLog,
@@ -89,6 +100,7 @@ const routeContext = {
   diffCourseVersions,
   restoreCourseVersion,
   productRoadmap,
+  projectPublicTrack,
   sendWelcomeEmail,
   transactionalEmailEnabled,
   sensitiveRateLimit,
@@ -98,6 +110,17 @@ const routeContext = {
   supabaseAdmin,
   supabaseEnabled,
   requireSupabaseStorage,
+  createSupabaseSubmission,
+  findSupabaseIssuedCertificateByVerificationCode,
+  findSupabaseQuizSession,
+  insertSupabaseIssuedCertificate,
+  listIssuedCertificatesForUser,
+  listSupabaseQuizSessionsForUser,
+  reviewSupabaseSubmission,
+  revokeSupabaseIssuedCertificate,
+  saveSupabaseQuizDraft,
+  submitSupabaseQuizSession,
+  shouldUseSupabaseMutations,
   accountDeletionSchema,
   attemptSchema,
   avatarUploadSchema,
@@ -112,6 +135,7 @@ const routeContext = {
   progressMigrationSchema,
   progressSchema,
   quizSessionSchema,
+  quizSubmissionSchema,
   reviewSchema,
   roleUpdateSchema,
   submissionSchema,
@@ -173,6 +197,8 @@ registerCoursesRoutes(app, routeContext);
 registerAdministrationRoutes(app, routeContext);
 registerAccountsRoutes(app, routeContext);
 registerAuthoringRoutes(app, routeContext);
+registerQuizSessionRoutes(app, routeContext);
+registerCertificateRoutes(app, routeContext);
 registerLearningRoutes(app, routeContext);
 
 app.use((error, request, response, _next) => {
@@ -190,7 +216,8 @@ app.use((error, request, response, _next) => {
     request,
     status,
     error?.code || (status === 500 ? "INTERNAL_ERROR" : "REQUEST_REJECTED"),
-    status === 500 ? "Internal server error." : error.message
+    status === 500 ? "Internal server error." : error.message,
+    error?.details
   );
 });
 
@@ -307,6 +334,16 @@ function attachRequestContext(request, response, next) {
 
 function shouldTrySupabase() {
   return process.env.PULSATEACH_STORAGE !== "json" && supabaseEnabled && (requireSupabaseStorage || Date.now() >= supabaseFallbackUntil);
+}
+
+function shouldUseSupabaseMutations() {
+  return process.env.PULSATEACH_STORAGE !== "json" && supabaseEnabled;
+}
+
+async function listIssuedCertificatesForUser(userId) {
+  if (shouldUseSupabaseMutations()) return listSupabaseIssuedCertificatesForUser(userId);
+  const issued = await readJsonStore(issuedCertificatesFile, []);
+  return issued.filter((certificate) => certificate.userId === userId);
 }
 
 function markSupabaseUnavailable() {

@@ -4,7 +4,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 
 export default [
   {
-    ignores: ["dist/**", ".external/**", ".vercel/**", "node_modules/**", "data/**", "playwright-report/**", "test-results/**", "x_bot/**", "*.log"]
+    ignores: ["dist/**", ".generated/**", ".external/**", ".vercel/**", "node_modules/**", "data/**", "playwright-report/**", "test-results/**", "x_bot/**", "*.log"]
   },
   js.configs.recommended,
   {

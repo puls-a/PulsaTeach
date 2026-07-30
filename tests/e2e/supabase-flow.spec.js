@@ -18,6 +18,7 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
   let authUserId;
   let localUserId;
   let courseId;
+  let projectId;
   const browserErrors = [];
   page.on("pageerror", (error) => browserErrors.push(`pageerror: ${error.message}`));
   page.on("console", (message) => {
@@ -45,6 +46,89 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
     const { data: signedIn, error: signInError } = await anon.auth.signInWithPassword({ email, password });
     if (signInError) throw signInError;
     const headers = { Authorization: `Bearer ${signedIn.session.access_token}`, "Content-Type": "application/json" };
+
+    const quizId = "html-09-final-exam";
+    const concurrentQuizWrites = await Promise.all([
+      request.put(`http://127.0.0.1:4190/api/quizzes/${quizId}/session`, { headers, data: { currentIndex: 1, responses: {}, rationales: {} } }),
+      request.post(`http://127.0.0.1:4190/api/quizzes/${quizId}/submit`, { headers, data: { questionSetVersion: `${quizId}:1`, responses: {}, rationales: {} } })
+    ]);
+    expect(concurrentQuizWrites.every((response) => response.ok())).toBe(true);
+    const { data: quizRows, error: quizError } = await admin.from("quiz_sessions")
+      .select("status,payload")
+      .eq("user_id", localUserId)
+      .eq("quiz_id", quizId);
+    if (quizError) throw quizError;
+    expect(quizRows).toHaveLength(1);
+    expect(quizRows[0]).toMatchObject({ status: "completed", payload: { gradingVersion: 1, questionSetVersion: `${quizId}:1` } });
+
+    const { error: forbiddenQuizRpc } = await anon.rpc("save_quiz_draft_atomic", {
+      p_id: `${localUserId}:${quizId}`,
+      p_user_id: localUserId,
+      p_quiz_id: quizId,
+      p_current_index: 0,
+      p_responses: {},
+      p_rationales: {}
+    });
+    expect(forbiddenQuizRpc).toBeTruthy();
+
+    projectId = `supabase-concurrency-${stamp}`;
+    const submissionPayload = {
+      projectId,
+      title: "Supabase concurrency project",
+      repositoryUrl: "https://github.com/example/supabase-concurrency"
+    };
+    const concurrentSubmissions = await Promise.all(Array.from({ length: 3 }, () =>
+      request.post("http://127.0.0.1:4190/api/submissions", { headers, data: submissionPayload })
+    ));
+    expect(concurrentSubmissions.map((response) => response.status()).sort()).toEqual([201, 409, 409]);
+    const createdSubmission = await concurrentSubmissions.find((response) => response.status() === 201).json();
+    expect(createdSubmission).toMatchObject({ version: 1, reviewRevision: 0 });
+
+    const concurrentReviews = await Promise.all([
+      request.patch(`http://127.0.0.1:4190/api/submissions/${createdSubmission.id}/review`, {
+        headers,
+        data: { status: "changes_requested", score: 55, feedback: "First decision", expectedVersion: 1, expectedReviewRevision: 0 }
+      }),
+      request.patch(`http://127.0.0.1:4190/api/submissions/${createdSubmission.id}/review`, {
+        headers,
+        data: { status: "changes_requested", score: 60, feedback: "Concurrent decision", expectedVersion: 1, expectedReviewRevision: 0 }
+      })
+    ]);
+    expect(concurrentReviews.map((response) => response.status()).sort()).toEqual([200, 409]);
+    const { data: reviewedRows, error: reviewedError } = await admin.from("submissions")
+      .select("review_revision,review_log")
+      .eq("id", createdSubmission.id);
+    if (reviewedError) throw reviewedError;
+    expect(reviewedRows[0].review_revision).toBe(1);
+    expect(reviewedRows[0].review_log).toHaveLength(1);
+
+    const concurrentResubmissions = await Promise.all(Array.from({ length: 3 }, () =>
+      request.post("http://127.0.0.1:4190/api/submissions", { headers, data: { ...submissionPayload, title: "Version 2" } })
+    ));
+    expect(concurrentResubmissions.map((response) => response.status()).sort()).toEqual([201, 409, 409]);
+    const { data: versionRows, error: versionError } = await admin.from("submissions")
+      .select("version")
+      .eq("user_id", localUserId)
+      .eq("project_id", projectId)
+      .order("version");
+    if (versionError) throw versionError;
+    expect(versionRows.map((row) => row.version)).toEqual([1, 2]);
+
+    const { error: forbiddenRpc } = await anon.rpc("create_submission_atomic", {
+      p_id: `forbidden-${stamp}`,
+      p_user_id: localUserId,
+      p_project_id: projectId,
+      p_title: "Forbidden",
+      p_description: "",
+      p_url: "",
+      p_repository_url: "https://github.com/example/forbidden",
+      p_archive_url: "",
+      p_screenshots: [],
+      p_deliverables: [],
+      p_self_assessment: "",
+      p_visibility: "private"
+    });
+    expect(forbiddenRpc).toBeTruthy();
 
     const module = createModuleDraft(0);
     module.title = { fr: "Fondations CI", en: "CI Foundations" };
@@ -151,7 +235,9 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
   } finally {
     if (courseId) await admin.from("course_drafts").delete().eq("id", courseId);
     if (localUserId) {
+      if (projectId) await admin.from("submissions").delete().eq("user_id", localUserId).eq("project_id", projectId);
       await admin.from("learning_events").delete().eq("user_id", localUserId);
+      await admin.from("quiz_sessions").delete().eq("user_id", localUserId);
       await admin.from("progress").delete().eq("user_id", localUserId);
       await admin.from("profiles").delete().eq("local_user_id", localUserId);
     }

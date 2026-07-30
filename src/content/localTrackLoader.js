@@ -1,21 +1,24 @@
 import { publicTrackCatalog } from "./publicTrackCatalog.js";
 import { cssFoundationModuleIds, cssResponsiveModuleIds, getCssNextDeferredGroup, orderCssModules, resolveCssGroup } from "./cssTrackMetadata.js";
+import { getTrack } from "../apiClient.js";
+
+const loadRemoteTrack = (trackId) => getTrack(trackId).then((response) => response.track);
 
 const trackLoaders = {
   tools: () => import("./toolsTrack.js").then((module) => module.toolsTrack),
-  html: () => import("./htmlTrack.js").then((module) => module.htmlTrack),
+  html: () => loadRemoteTrack("html"),
   css: () => loadFullCssTrack(),
-  javascript: () => import("./javascriptTrack.js").then((module) => module.javascriptTrack),
-  git: () => import("./tracks/git.js").then((module) => module.gitTrack),
-  accessibility: () => import("./tracks/accessibility.js").then((module) => module.accessibilityTrack),
-  testing: () => import("./tracks/testing.js").then((module) => module.testingTrack),
-  typescript: () => import("./tracks/typescript.js").then((module) => module.typescriptTrack),
-  react: () => import("./tracks/react.js").then((module) => module.reactTrack),
-  "node-api": () => import("./tracks/node-api.js").then((module) => module.nodeApiTrack),
-  "sql-postgresql": () => import("./tracks/sql-postgresql.js").then((module) => module.sqlPostgresqlTrack),
-  "web-security": () => import("./tracks/web-security.js").then((module) => module.webSecurityTrack),
-  "web-performance": () => import("./tracks/web-performance.js").then((module) => module.webPerformanceTrack),
-  "devops-deployment": () => import("./tracks/devops-deployment.js").then((module) => module.devopsDeploymentTrack)
+  javascript: () => loadRemoteTrack("javascript"),
+  git: () => loadRemoteTrack("git"),
+  accessibility: () => loadRemoteTrack("accessibility"),
+  testing: () => loadRemoteTrack("testing"),
+  typescript: () => loadRemoteTrack("typescript"),
+  react: () => loadRemoteTrack("react"),
+  "node-api": () => loadRemoteTrack("node-api"),
+  "sql-postgresql": () => loadRemoteTrack("sql-postgresql"),
+  "web-security": () => loadRemoteTrack("web-security"),
+  "web-performance": () => loadRemoteTrack("web-performance"),
+  "devops-deployment": () => loadRemoteTrack("devops-deployment")
 };
 
 const cssModuleLoaders = {

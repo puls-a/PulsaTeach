@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("a failed quiz question enters spaced review and receives a new due date", async ({ page }) => {
+test("a failed protected exam does not expose questions in spaced review", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => localStorage.clear());
   await page.goto("/learn/html/html-final-audit/html-09-final-exam");
@@ -30,27 +30,10 @@ test("a failed quiz question enters spaced review and receives a new due date", 
   await page.getByLabel(/Ta réponse|Your answer/).fill("apparence uniquement");
   await page.getByRole("button", { name: /Valider|Check/ }).click();
   await expect(page.getByText(/Score final : 0|Final score: 0/)).toBeVisible();
-  await page.waitForFunction(() => {
-    const progress = JSON.parse(localStorage.getItem("pulsateach-learning-progress") || "{}");
-    return Object.keys(progress.review?.items || {}).length === 6;
-  });
+  const progress = await page.evaluate(() => JSON.parse(localStorage.getItem("pulsateach-learning-progress") || "{}"));
+  expect(progress.review?.items || {}).toEqual({});
 
   await page.goto("/review");
   await expect(page.getByRole("heading", { name: /Révisions espacées|Spaced reviews/ })).toBeVisible();
-  await expect(page.getByText("6", { exact: true }).first()).toBeVisible();
-  await page.getByRole("button", { name: /Commencer la révision|Start review/ }).click();
-  await expect(page.getByRole("heading", { name: /menu vise des id absents|menu targets missing ids/ })).toBeVisible();
-
-  await page.getByRole("button", { name: /livrable final mélange|final deliverable mixes/ }).click();
-  await page.getByRole("button", { name: /Vérifier ma réponse|Check my answer/ }).click();
-  await expect(page.getByText(/Bonne réponse|Correct answer/)).toBeVisible();
-  await page.getByRole("button", { name: /Facile|Easy/ }).click();
-  await expect(page.getByText(/Question 2 sur 6|Question 2 of 6/)).toBeVisible();
-
-  const progress = await page.evaluate(() => JSON.parse(localStorage.getItem("pulsateach-learning-progress")));
-  expect(progress.review.items["html-09-final-exam:html-09-final-exam-q1"]).toMatchObject({
-    repetitions: 1,
-    intervalDays: 3,
-    confidence: 1
-  });
+  await expect(page.getByRole("button", { name: /Aucune révision en attente|No reviews due/ })).toBeDisabled();
 });

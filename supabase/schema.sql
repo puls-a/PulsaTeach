@@ -67,6 +67,9 @@ create table if not exists public.issued_certificates (
   unique (user_id, certificate_id)
 );
 
+create index if not exists issued_certificates_user_issued_idx
+  on public.issued_certificates (user_id, issued_at desc);
+
 create table if not exists public.learning_events (
   id uuid primary key default gen_random_uuid(),
   user_id text,
@@ -111,7 +114,7 @@ create table if not exists public.submissions (
   id text primary key,
   root_id text not null,
   supersedes_id text,
-  version integer not null default 1,
+  version integer not null default 1 check (version > 0),
   user_id text not null,
   project_id text not null,
   title text not null,
@@ -130,10 +133,17 @@ create table if not exists public.submissions (
   rubric jsonb not null default '{}'::jsonb,
   contextual_comments jsonb not null default '{}'::jsonb,
   review_log jsonb not null default '[]'::jsonb,
+  review_revision integer not null default 0 check (review_revision >= 0),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   reviewed_at timestamptz
 );
+
+create unique index if not exists submissions_user_project_version_uidx
+  on public.submissions (user_id, project_id, version);
+
+create index if not exists submissions_user_project_latest_idx
+  on public.submissions (user_id, project_id, version desc);
 
 create table if not exists public.enrollments (
   id text primary key,

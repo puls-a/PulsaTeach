@@ -114,10 +114,19 @@ function getLessonsForTracks(trackIds) {
     .flatMap((track) => track.modules.flatMap((module) => module.lessons));
 }
 
-function buildCertificatesForUser(userId, progress, userSubmissions, issuedCertificates = []) {
+function buildCertificatesForUser(userId, progress, userSubmissions, issuedCertificates = [], quizSessions = []) {
   const completed = isObject(progress?.completed) ? progress.completed : {};
-  const completedLessonIds = Object.keys(completed).filter((lessonId) => Boolean(completed[lessonId]));
-  const quizEvidence = isObject(progress?.quizEvidence) ? progress.quizEvidence : {};
+  const completedLessonIds = new Set(Object.keys(completed).filter((lessonId) => Boolean(completed[lessonId])));
+  const certificationLessons = new Map(getLessonsForTracks([...new Set(certificates.flatMap((certificate) => certificate.requiredTracks))])
+    .map((lesson) => [lesson.id, lesson]));
+  const verifiedQuizSessions = new Map(quizSessions
+    .filter((session) => {
+      if (session.userId !== userId || session.status !== "completed" || session.gradingVersion !== 1) return false;
+      const lesson = certificationLessons.get(session.quizId);
+      const qualifiedVersion = session.qualifiedQuestionSetVersion || session.questionSetVersion;
+      return Boolean(lesson && (session.bestScore?.passed || session.score?.passed) && qualifiedVersion === `${lesson.id}:${lesson.examVersion || 1}`);
+    })
+    .map((session) => [session.quizId, session]));
 
   return {
     userId,
@@ -125,7 +134,9 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
       const requiredLessons = getLessonsForTracks(certificate.requiredTracks);
       const requiredExams = requiredLessons.filter((lesson) => lesson.purpose === "exam" || /final-exam|exam/i.test(lesson.id));
       const requiredExamIds = new Set(requiredExams.map((lesson) => lesson.id));
-      const completedRequiredLessons = requiredLessons.filter((lesson) => completedLessonIds.includes(lesson.id) && (!requiredExamIds.has(lesson.id) || quizEvidence[lesson.id]?.passed));
+      const completedRequiredLessons = requiredLessons.filter((lesson) => requiredExamIds.has(lesson.id)
+        ? verifiedQuizSessions.has(lesson.id)
+        : completedLessonIds.has(lesson.id));
       const completedExams = requiredExams.filter((lesson) => completedRequiredLessons.includes(lesson));
       const demonstratedSkills = [...new Set(requiredLessons.flatMap((lesson) => lesson.skills || []))].sort();
       const projectEvidence = certificate.requiredProjects.map((projectId) => {
@@ -162,7 +173,12 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
           skills: demonstratedSkills,
           exams: {
             completed: completedExams.map((lesson) => lesson.id),
-            required: requiredExams.map((lesson) => lesson.id)
+            required: requiredExams.map((lesson) => lesson.id),
+            scores: completedExams.map((lesson) => {
+              const session = verifiedQuizSessions.get(lesson.id);
+              const qualifiedScore = session.bestScore?.passed ? session.bestScore : session.score;
+              return { quizId: lesson.id, percent: qualifiedScore.percent, gradedAt: session.qualifiedAt || session.gradedAt };
+            })
           },
           projects: projectEvidence,
           progress: {

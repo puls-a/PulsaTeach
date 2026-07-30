@@ -22,16 +22,50 @@ describe("certificate evidence", () => {
     expect(certificate.progress.lessonsCompleted).toBe(0);
   });
 
-  test("requires passing quiz evidence for completed exams", () => {
+  test("requires a server-graded passing session for completed exams", () => {
     const gitTrack = learningTracks.find((track) => track.id === "git");
     const exam = gitTrack.modules.flatMap((module) => module.lessons).find((lesson) => lesson.purpose === "exam" || /final-exam|exam/i.test(lesson.id));
-    const progress = { completed: { [exam.id]: { passedAt: new Date().toISOString() } }, quizEvidence: { [exam.id]: { passed: false } } };
+    const progress = { completed: { [exam.id]: { passedAt: new Date().toISOString() } }, quizEvidence: { [exam.id]: { passed: true } } };
 
-    const failed = buildCertificatesForUser("learner", progress, []).certificates.find((item) => item.id === "git-github-practitioner");
-    expect(failed.evidence.exams.completed).not.toContain(exam.id);
-    progress.quizEvidence[exam.id].passed = true;
-    const passed = buildCertificatesForUser("learner", progress, []).certificates.find((item) => item.id === "git-github-practitioner");
+    const forged = buildCertificatesForUser("learner", progress, []).certificates.find((item) => item.id === "git-github-practitioner");
+    expect(forged.evidence.exams.completed).not.toContain(exam.id);
+    const sessions = [{
+      userId: "learner",
+      quizId: exam.id,
+      status: "completed",
+      gradingVersion: 1,
+      gradedAt: "2026-07-30T12:00:00.000Z",
+      questionSetVersion: `${exam.id}:${exam.examVersion || 1}`,
+      score: { percent: 80, passed: true }
+    }];
+    const passed = buildCertificatesForUser("learner", progress, [], [], sessions).certificates.find((item) => item.id === "git-github-practitioner");
     expect(passed.evidence.exams.completed).toContain(exam.id);
+    expect(passed.evidence.exams.scores).toContainEqual({ quizId: exam.id, percent: 80, gradedAt: sessions[0].gradedAt });
+
+    sessions[0].score = { percent: 20, passed: false };
+    sessions[0].bestScore = { percent: 80, passed: true };
+    sessions[0].qualifiedAt = sessions[0].gradedAt;
+    sessions[0].qualifiedQuestionSetVersion = sessions[0].questionSetVersion;
+    const failedRetake = buildCertificatesForUser("learner", progress, [], [], sessions).certificates.find((item) => item.id === "git-github-practitioner");
+    expect(failedRetake.evidence.exams.scores).toContainEqual({ quizId: exam.id, percent: 80, gradedAt: sessions[0].gradedAt });
+    sessions[0].score = { percent: 80, passed: true };
+    delete sessions[0].bestScore;
+    delete sessions[0].qualifiedAt;
+    delete sessions[0].qualifiedQuestionSetVersion;
+
+    sessions[0].questionSetVersion = `${exam.id}:stale`;
+    const staleSession = buildCertificatesForUser("learner", progress, [], [], sessions).certificates.find((item) => item.id === "git-github-practitioner");
+    expect(staleSession.evidence.exams.completed).not.toContain(exam.id);
+    sessions[0].questionSetVersion = `${exam.id}:${exam.examVersion || 1}`;
+
+    sessions[0].gradingVersion = null;
+    const legacySession = buildCertificatesForUser("learner", progress, [], [], sessions).certificates.find((item) => item.id === "git-github-practitioner");
+    expect(legacySession.evidence.exams.completed).not.toContain(exam.id);
+
+    sessions[0].gradingVersion = 1;
+    sessions[0].userId = "another-learner";
+    const wrongOwner = buildCertificatesForUser("learner", progress, [], [], sessions).certificates.find((item) => item.id === "git-github-practitioner");
+    expect(wrongOwner.evidence.exams.completed).not.toContain(exam.id);
   });
 
   test("uses the latest project version that meets the certificate score", () => {

@@ -20,12 +20,14 @@ test("learner resubmits a project after contextual review", async ({ page, reque
 
     let submissions = await (await request.get("http://127.0.0.1:4188/api/submissions", { headers })).json();
     const first = submissions.find((item) => item.projectId === projectId);
+    expect(first.reviewRevision).toBe(0);
     createdIds.push(first.id);
     await request.patch(`http://127.0.0.1:4188/api/submissions/${first.id}/review`, {
       headers: { ...headers, "Content-Type": "application/json" },
       data: {
         status: "changes_requested",
         expectedVersion: 1,
+        expectedReviewRevision: 0,
         score: 60,
         feedback: "Documente le focus clavier et le responsive.",
         rubric: { accessibility: 55, responsiveness: 65 },
@@ -46,9 +48,10 @@ test("learner resubmits a project after contextual review", async ({ page, reque
     const second = submissions.find((item) => item.projectId === projectId && item.version === 2);
     createdIds.push(second.id);
     expect(second.supersedesId).toBe(first.id);
+    expect(second.reviewRevision).toBe(0);
     await request.patch(`http://127.0.0.1:4188/api/submissions/${second.id}/review`, {
       headers: { ...headers, "Content-Type": "application/json" },
-      data: { status: "approved", expectedVersion: 2, score: 85, feedback: "Version approuvée." }
+      data: { status: "approved", expectedVersion: 2, expectedReviewRevision: 0, score: 85, feedback: "Version approuvée." }
     });
     await page.reload();
     await expect(page.getByRole("link", { name: "Certification" })).toHaveAttribute("href", "/certification");

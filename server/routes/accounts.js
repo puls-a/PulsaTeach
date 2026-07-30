@@ -56,6 +56,7 @@ export function registerAccountsRoutes(app, context) {
     readJsonStore,
     writeJsonStore,
     withStoreMutation,
+    listIssuedCertificatesForUser,
     authorizeUserParam,
     authorizePayloadUser,
     requireAuthenticatedWrite,
@@ -104,7 +105,8 @@ export function registerAccountsRoutes(app, context) {
     const progressStore = await readProgressStore();
     const submissions = await readJsonStore(submissionsFile, []);
     const attempts = await readJsonStore(attemptsFile, []);
-    const issuedCertificates = await readJsonStore(issuedCertificatesFile, []);
+    const issuedCertificates = await listIssuedCertificatesForUser(userId);
+    const quizSessions = await readJsonStore(quizSessionsFile, []);
     const users = await readJsonStore(usersFile, {});
     const progress = progressStore[userId] || null;
     const userSubmissions = submissions.filter((item) => item.userId === userId);
@@ -118,7 +120,7 @@ export function registerAccountsRoutes(app, context) {
       progress,
       submissions: userSubmissions,
       attempts: userAttempts.slice(0, 20),
-      certificates: buildCertificatesForUser(userId, progress, userSubmissions, issuedCertificates).certificates,
+      certificates: buildCertificatesForUser(userId, progress, userSubmissions, issuedCertificates, quizSessions).certificates,
       summary: buildProfileSummary(progress, userSubmissions, userAttempts)
     });
   });
@@ -210,7 +212,7 @@ export function registerAccountsRoutes(app, context) {
       readJsonStore(submissionsFile, []),
       readJsonStore(attemptsFile, []),
       readJsonStore(usersFile, {}),
-      readJsonStore(issuedCertificatesFile, []),
+      listIssuedCertificatesForUser(userId),
       readJsonStore(learningEventsFile, []),
       readJsonStore(quizSessionsFile, [])
     ]);
@@ -224,7 +226,7 @@ export function registerAccountsRoutes(app, context) {
       progress: progress[userId] || null,
       submissions: submissions.filter((item) => item.userId === userId),
       attempts: attempts.filter((item) => item.userId === userId),
-      certificates: issuedCertificates.filter((item) => item.userId === userId),
+      certificates: issuedCertificates,
       learningEvents: learningEvents.filter((item) => item.userId === userId),
       quizSessions: quizSessions.filter((item) => item.userId === userId)
     });
