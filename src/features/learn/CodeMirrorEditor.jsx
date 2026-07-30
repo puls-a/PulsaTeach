@@ -28,12 +28,13 @@ const pulsaHighlightStyle = HighlightStyle.define([
   { tag: [tags.operator, tags.punctuation], color: "#e2e8f0" }
 ]);
 
-export default function CodeMirrorEditor({ value, documentKey, languageKind, locale, editorRef, onChange, onRun, onSave }) {
+export default function CodeMirrorEditor({ value, documentKey, languageKind, locale, editorRef, fontSize, lineWrapping, onChange, onRun, onSave }) {
   const hostRef = useRef(null);
   const viewRef = useRef(null);
   const valueRef = useRef(value);
   const callbacksRef = useRef({ onChange, onRun, onSave });
   const languageRef = useRef(new Compartment());
+  const preferencesRef = useRef(new Compartment());
   const escapeArmedRef = useRef(false);
   valueRef.current = value;
 
@@ -50,10 +51,10 @@ export default function CodeMirrorEditor({ value, documentKey, languageKind, loc
         extensions: [
           lineNumbers(),
           history(),
-          EditorView.lineWrapping,
           syntaxHighlighting(pulsaHighlightStyle),
           editorTheme,
           languageRef.current.of([]),
+          preferencesRef.current.of([]),
           EditorView.contentAttributes.of({
             "aria-label": locale === "fr" ? "Éditeur de code PulsaTeach" : "PulsaTeach code editor",
             "aria-multiline": "true",
@@ -121,6 +122,11 @@ export default function CodeMirrorEditor({ value, documentKey, languageKind, loc
   }, [value]);
 
   useEffect(() => {
+    const view = viewRef.current;
+    if (view) view.dispatch({ effects: preferencesRef.current.reconfigure(editorPreferences(fontSize, lineWrapping)) });
+  }, [fontSize, lineWrapping]);
+
+  useEffect(() => {
     let active = true;
     loadLanguage(languageKind).then((extension) => {
       const view = viewRef.current;
@@ -132,6 +138,13 @@ export default function CodeMirrorEditor({ value, documentKey, languageKind, loc
   }, [documentKey, languageKind]);
 
   return <div ref={hostRef} className="h-full min-h-[480px] overflow-hidden bg-slate-950" />;
+}
+
+function editorPreferences(fontSize, lineWrapping) {
+  return [
+    EditorView.theme({ "&": { fontSize: `${fontSize}px` } }),
+    lineWrapping ? EditorView.lineWrapping : []
+  ];
 }
 
 async function loadLanguage(kind) {

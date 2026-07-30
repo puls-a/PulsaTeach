@@ -104,6 +104,7 @@ export function registerAccountsRoutes(app, context) {
     const progressStore = await readProgressStore();
     const submissions = await readJsonStore(submissionsFile, []);
     const attempts = await readJsonStore(attemptsFile, []);
+    const issuedCertificates = await readJsonStore(issuedCertificatesFile, []);
     const users = await readJsonStore(usersFile, {});
     const progress = progressStore[userId] || null;
     const userSubmissions = submissions.filter((item) => item.userId === userId);
@@ -117,7 +118,7 @@ export function registerAccountsRoutes(app, context) {
       progress,
       submissions: userSubmissions,
       attempts: userAttempts.slice(0, 20),
-      certificates: buildCertificatesForUser(request.params.userId, progress, userSubmissions).certificates,
+      certificates: buildCertificatesForUser(userId, progress, userSubmissions, issuedCertificates).certificates,
       summary: buildProfileSummary(progress, userSubmissions, userAttempts)
     });
   });

@@ -37,6 +37,7 @@ test("learner resubmits a project after contextual review", async ({ page, reque
     await expect(page.getByText("Documente le focus clavier et le responsive.").first()).toBeVisible();
     await page.getByLabel("Project ID").fill(projectId);
     await page.getByLabel(/Titre|Title/).fill(`${title} corrigé`);
+    await page.getByLabel(/Dépôt Git|Git repository/).fill("https://github.com/example/portfolio");
     await page.getByLabel(/Auto-évaluation|Self-assessment/).fill("Les preuves clavier et responsive sont maintenant documentées.");
     await page.getByRole("button", { name: /Soumettre|Submit/ }).click();
     await expect(page.getByText("v2", { exact: true })).toBeVisible();
@@ -45,9 +46,24 @@ test("learner resubmits a project after contextual review", async ({ page, reque
     const second = submissions.find((item) => item.projectId === projectId && item.version === 2);
     createdIds.push(second.id);
     expect(second.supersedesId).toBe(first.id);
+    await request.patch(`http://127.0.0.1:4188/api/submissions/${second.id}/review`, {
+      headers: { ...headers, "Content-Type": "application/json" },
+      data: { status: "approved", expectedVersion: 2, score: 85, feedback: "Version approuvée." }
+    });
+    await page.reload();
+    await expect(page.getByRole("link", { name: "Certification" })).toHaveAttribute("href", "/certification");
   } finally {
     for (const id of createdIds) {
       await request.delete(`http://127.0.0.1:4188/api/submissions/${id}`, { headers });
     }
   }
+});
+
+test("a lesson project link prefills canonical submission evidence", async ({ page }) => {
+  await page.goto("/projects?projectId=js-capstone-lab#nouvelle-soumission");
+  await expect(page.getByLabel("Project ID")).toHaveValue("js-capstone-lab");
+
+  await page.getByLabel(/Titre|Title/).fill("PulsaConf");
+  await page.getByRole("button", { name: /Soumettre|Submit/ }).click();
+  await expect(page.getByLabel(/Dépôt Git|Git repository/)).toBeFocused();
 });

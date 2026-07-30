@@ -156,7 +156,11 @@ export function registerLearningRoutes(app, context) {
     const userId = Array.isArray(request.query.userId) ? request.query.userId[0] : request.query.userId;
     const requestedUserId = typeof userId === "string" ? userId.trim() : "";
     const canReview = hasRole(request, "admin", "reviewer");
-    if (!request.authUserId && !canReview) {
+    if (canReview) {
+      response.json(requestedUserId ? store.filter((item) => item.userId === requestedUserId) : store);
+      return;
+    }
+    if (!request.authUserId) {
       sendApiError(response, request, 401, "AUTH_REQUIRED", "Authentication required.");
       return;
     }
@@ -164,12 +168,7 @@ export function registerLearningRoutes(app, context) {
       sendApiError(response, request, 403, "USER_ACCESS_DENIED", "Authenticated user cannot access another learner.");
       return;
     }
-    const normalizedUserId = request.authUserId || requestedUserId;
-    if (!normalizedUserId && !canReview) {
-      sendApiError(response, request, 403, "ROLE_REQUIRED", "Reviewer role required to list all submissions.");
-      return;
-    }
-    response.json(normalizedUserId ? store.filter((item) => item.userId === normalizedUserId) : store);
+    response.json(store.filter((item) => item.userId === request.authUserId));
   });
 
   app.post("/api/submissions", requireAuthenticatedRequest, validateBody(submissionSchema), async (request, response) => {
@@ -281,6 +280,10 @@ export function registerLearningRoutes(app, context) {
       response.status(400).json({ error: "Review requires a valid status." });
       return;
     }
+    if (payload.status === "approved" && payload.score == null) {
+      sendApiError(response, request, 400, "REVIEW_SCORE_REQUIRED", "Approved submissions require a score.");
+      return;
+    }
 
     const store = await readJsonStore(submissionsFile, []);
     const index = store.findIndex((submission) => submission.id === request.params.id);
@@ -292,13 +295,19 @@ export function registerLearningRoutes(app, context) {
       sendApiError(response, request, 409, "SUBMISSION_VERSION_CONFLICT", "Submission version changed before this review was saved.");
       return;
     }
+    const currentRootId = store[index].rootId || store[index].id;
+    const isSuperseded = store.some((submission) => (submission.rootId || submission.id) === currentRootId && Number(submission.version || 1) > Number(store[index].version || 1));
+    if (payload.status === "approved" && isSuperseded) {
+      sendApiError(response, request, 409, "SUBMISSION_SUPERSEDED", "Only the latest project version can be approved.");
+      return;
+    }
 
     const reviewedAt = new Date().toISOString();
     const review = {
       status: payload.status,
       feedback: String(payload.feedback || ""),
-      reviewer: String(payload.reviewer || "PulsaTeach reviewer"),
-      score: Number.isFinite(Number(payload.score)) ? Number(payload.score) : null,
+      reviewer: String(request.authUserId || payload.reviewer || "PulsaTeach reviewer"),
+      score: payload.score == null ? null : Number(payload.score),
       rubric: isObject(payload.rubric) ? payload.rubric : {},
       contextualComments: isObject(payload.contextualComments) ? payload.contextualComments : {},
       reviewedAt,
@@ -348,13 +357,18 @@ export function registerLearningRoutes(app, context) {
   });
 
   app.post("/api/certificates/:certificateId/issue", requireAuthenticatedRequest, async (request, response) => {
+    await withStoreMutation("issued-certificates", async () => {
     if (!requireAuthenticatedWrite(request, response)) return;
     const userId = request.authUserId;
     const progressStore = await readProgressStore();
     const submissions = await readJsonStore(submissionsFile, []);
     const users = await readJsonStore(usersFile, {});
     const issued = await readJsonStore(issuedCertificatesFile, []);
-    const existing = issued.find((item) => item.userId === userId && item.certificateId === request.params.certificateId && !item.revokedAt);
+    const existing = issued.find((item) => item.userId === userId && item.certificateId === request.params.certificateId);
+    if (existing?.revokedAt) {
+      sendApiError(response, request, 409, "CERTIFICATE_REVOKED", "A revoked certificate cannot be reissued.");
+      return;
+    }
     if (existing) {
       response.json(existing);
       return;
@@ -387,6 +401,7 @@ export function registerLearningRoutes(app, context) {
     issued.unshift(certificate);
     await writeJsonStore(issuedCertificatesFile, issued);
     response.status(201).json(certificate);
+    });
   });
 
   app.get("/api/certificates/public/:verificationCode", async (request, response) => {
@@ -414,6 +429,7 @@ export function registerLearningRoutes(app, context) {
   });
 
   app.patch("/api/certificates/:id/revoke", requireRole("admin", "reviewer"), validateBody(certificateRevokeSchema), async (request, response) => {
+    await withStoreMutation("issued-certificates", async () => {
     const issued = await readJsonStore(issuedCertificatesFile, []);
     const index = issued.findIndex((certificate) => certificate.id === request.params.id);
     if (index === -1) {
@@ -427,6 +443,7 @@ export function registerLearningRoutes(app, context) {
     };
     await writeJsonStore(issuedCertificatesFile, issued);
     response.json(issued[index]);
+    });
   });
 
   app.post("/api/events", sensitiveRateLimit(120), requireAuthenticatedRequest, validateBody(eventSchema), async (request, response) => {

@@ -106,6 +106,8 @@ describe("active JavaScript curriculum quality", () => {
 
   test("keeps JavaScript product links and certificate evidence on active lessons", () => {
     const lessonIds = new Set(lessons.map((lesson) => lesson.id));
+    expect(projectLessonIds).toContain("html-09-final-project-pulsaconf");
+    expect(projectLessonIds).not.toContain("html-12-final-project");
     expect(projectLessonIds).toContain("js-capstone-lab");
     expect(projectLessonIds).not.toContain("js-07-final-project");
     for (const zone of worldZones.filter((item) => item.href.startsWith("/learn/javascript/"))) {

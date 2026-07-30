@@ -101,3 +101,57 @@ test("the mobile code mode keeps editor and preview inside the viewport", async 
   const dimensions = await page.evaluate(() => ({ clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
 });
+
+test("desktop studio controls resize panels and persist editor preferences", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium");
+  await page.goto(pilotRoute, { waitUntil: "networkidle" });
+
+  const instructionSeparator = page.getByRole("separator", { name: /Redimensionner les consignes|Resize instructions/ });
+  await expect(instructionSeparator).toBeVisible();
+  await instructionSeparator.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(instructionSeparator).toHaveAttribute("aria-valuenow", "28");
+
+  await page.getByText(/Éditeur|Editor/, { exact: true }).click();
+  await page.getByLabel(/Taille du texte|Text size/).selectOption("18");
+  await page.getByLabel(/Retour à la ligne|Wrap long lines/).uncheck();
+  await expect.poll(() => page.locator(".cm-editor").evaluate((element) => getComputedStyle(element).fontSize)).toBe("18px");
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("pulsateach-studio-preferences")))).toMatchObject({ panelWidths: [28, 40, 32], fontSize: 18, lineWrapping: false });
+
+  await page.reload({ waitUntil: "networkidle" });
+  await expect.poll(() => page.locator(".cm-editor").evaluate((element) => getComputedStyle(element).fontSize)).toBe("18px");
+  await expect(page.getByRole("separator", { name: /Redimensionner les consignes|Resize instructions/ })).toHaveAttribute("aria-valuenow", "28");
+
+  await page.getByRole("button", { name: /Plein écran|Fullscreen/ }).click();
+  await expect(page.getByRole("button", { name: /Quitter|Exit/ })).toHaveAttribute("aria-pressed", "true");
+  const fullscreenBounds = await page.getByRole("region", { name: "PulsaTeach Studio" }).boundingBox();
+  expect(fullscreenBounds.x).toBe(0);
+  expect(fullscreenBounds.y).toBe(0);
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: /Plein écran|Fullscreen/ })).toBeFocused();
+});
+
+test("studio execution exposes a busy state and prevents duplicate runs", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium");
+  await page.goto(pilotRoute, { waitUntil: "networkidle" });
+  await page.getByRole("textbox", { name: /Éditeur de code PulsaTeach|PulsaTeach code editor/ }).fill("while (true) {}");
+
+  await page.getByRole("button", { name: /^(Exécuter|Run)$/ }).click();
+  const workspace = page.getByRole("region", { name: "PulsaTeach Studio" });
+  await expect(workspace).toHaveAttribute("aria-busy", "true");
+  await expect(page.getByRole("button", { name: /Vérifier mon code|Check my code/ })).toBeDisabled();
+  await expect(page.getByRole("status").filter({ hasText: /À corriger|Needs fixes/ })).toBeVisible({ timeout: 5_000 });
+  await expect(workspace).toHaveAttribute("aria-busy", "false");
+});
+
+test("a passed project carries its canonical identity into review", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium");
+  await page.goto("/learn/html/html-final-audit/html-09-final-project-pulsaconf", { waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "Correction", exact: true }).click();
+  await page.getByRole("button", { name: /Charger cette solution|Load this solution/ }).click();
+  await page.getByRole("button", { name: /Vérifier mon code|Check my code/ }).click();
+
+  const reviewLink = page.getByRole("link", { name: /Soumettre|Submit/ });
+  await expect(reviewLink).toBeVisible();
+  await expect(reviewLink).toHaveAttribute("href", "/projects?projectId=html-09-final-project-pulsaconf#nouvelle-soumission");
+});

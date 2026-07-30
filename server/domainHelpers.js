@@ -116,25 +116,25 @@ function getLessonsForTracks(trackIds) {
 
 function buildCertificatesForUser(userId, progress, userSubmissions, issuedCertificates = []) {
   const completed = isObject(progress?.completed) ? progress.completed : {};
-  const completedLessonIds = Object.keys(completed);
+  const completedLessonIds = Object.keys(completed).filter((lessonId) => Boolean(completed[lessonId]));
+  const quizEvidence = isObject(progress?.quizEvidence) ? progress.quizEvidence : {};
 
   return {
     userId,
     certificates: certificates.map((certificate) => {
       const requiredLessons = getLessonsForTracks(certificate.requiredTracks);
-      const approvedProjects = certificate.requiredProjects.filter((projectId) =>
-        userSubmissions.some((submission) => matchesProjectId(projectId, submission.projectId) && submission.status === "approved" && (submission.score ?? 0) >= certificate.minProjectScore)
-      );
-      const completedRequiredLessons = requiredLessons.filter((lesson) => completedLessonIds.includes(lesson.id));
       const requiredExams = requiredLessons.filter((lesson) => lesson.purpose === "exam" || /final-exam|exam/i.test(lesson.id));
-      const completedExams = requiredExams.filter((lesson) => completedLessonIds.includes(lesson.id));
+      const requiredExamIds = new Set(requiredExams.map((lesson) => lesson.id));
+      const completedRequiredLessons = requiredLessons.filter((lesson) => completedLessonIds.includes(lesson.id) && (!requiredExamIds.has(lesson.id) || quizEvidence[lesson.id]?.passed));
+      const completedExams = requiredExams.filter((lesson) => completedRequiredLessons.includes(lesson));
       const demonstratedSkills = [...new Set(requiredLessons.flatMap((lesson) => lesson.skills || []))].sort();
       const projectEvidence = certificate.requiredProjects.map((projectId) => {
         const submission = userSubmissions
-          .filter((item) => matchesProjectId(projectId, item.projectId) && item.status === "approved")
+          .filter((item) => matchesProjectId(projectId, item.projectId) && item.status === "approved" && (item.score ?? 0) >= certificate.minProjectScore)
           .sort((left, right) => Number(right.version || 1) - Number(left.version || 1))[0];
         return submission ? { projectId, submissionId: submission.id, version: submission.version || 1, score: submission.score } : { projectId, submissionId: null };
       });
+      const approvedProjects = projectEvidence.filter((project) => project.submissionId);
       const trackVersions = Object.fromEntries(certificate.requiredTracks.map((trackId) => {
         const track = learningTracks.find((item) => item.id === trackId);
         return [trackId, track?.version || "2026.06"];

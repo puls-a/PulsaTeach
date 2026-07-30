@@ -3,6 +3,8 @@ import request from "supertest";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createLessonDraft, createModuleDraft } from "../../src/courseSchema.js";
+import { learningTracks } from "../../src/content/allTrackRegistry.js";
+import { certificates } from "../../server/certificateCatalog.js";
 
 const testDataDir = path.join(process.cwd(), "test-results", "api-security-data");
 let app;
@@ -301,6 +303,82 @@ describe("API security boundaries", () => {
       supersedesId: first.body.id,
       status: "submitted"
     });
+
+    const reviewerWithIdentity = { ...reviewer, "X-PulsaTeach-User-Id": "reviewer-user" };
+    const reviewQueue = await request(app).get("/api/submissions").set(reviewerWithIdentity).expect(200);
+    expect(reviewQueue.body.some((submission) => submission.id === second.body.id)).toBe(true);
+    const filteredQueue = await request(app).get("/api/submissions?userId=project-user").set(reviewerWithIdentity).expect(200);
+    expect(filteredQueue.body.every((submission) => submission.userId === "project-user")).toBe(true);
+    await request(app).get("/api/submissions?userId=other-user").set(learner).expect(403);
+
+    const missingScore = await request(app)
+      .patch(`/api/submissions/${second.body.id}/review`)
+      .set(reviewerWithIdentity)
+      .send({ status: "approved", expectedVersion: 2 })
+      .expect(400);
+    expect(missingScore.body.error.code).toBe("REVIEW_SCORE_REQUIRED");
+    const superseded = await request(app)
+      .patch(`/api/submissions/${first.body.id}/review`)
+      .set(reviewerWithIdentity)
+      .send({ status: "approved", expectedVersion: 1, score: 90 })
+      .expect(409);
+    expect(superseded.body.error.code).toBe("SUBMISSION_SUPERSEDED");
+    const approved = await request(app)
+      .patch(`/api/submissions/${second.body.id}/review`)
+      .set(reviewerWithIdentity)
+      .send({ status: "approved", expectedVersion: 2, score: 85 })
+      .expect(200);
+    expect(approved.body).toMatchObject({ reviewer: "reviewer-user", score: 85 });
+  });
+
+  test("issues one publicly verifiable certificate and blocks post-revocation reissue", async () => {
+    const userId = "certificate-flow-user";
+    const learner = { "X-PulsaTeach-User-Id": userId };
+    const reviewer = { "X-PulsaTeach-Admin-Key": "test-admin-key" };
+    const definition = certificates.find((certificate) => certificate.id === "frontend-foundations");
+    const requiredLessons = learningTracks
+      .filter((track) => definition.requiredTracks.includes(track.id))
+      .flatMap((track) => track.modules.flatMap((module) => module.lessons));
+    const completed = Object.fromEntries(requiredLessons.map((lesson) => [lesson.id, { passedAt: new Date().toISOString() }]));
+    const quizEvidence = Object.fromEntries(requiredLessons
+      .filter((lesson) => lesson.purpose === "exam" || /final-exam|exam/i.test(lesson.id))
+      .map((lesson) => [lesson.id, { percent: 100, passed: true, skills: {}, attemptedAt: new Date().toISOString() }]));
+
+    await request(app).put(`/api/progress/${userId}`).set(learner).send({ completed, quizEvidence }).expect(200);
+    for (const projectId of definition.requiredProjects) {
+      const submission = await request(app)
+        .post("/api/submissions")
+        .set(learner)
+        .send({ projectId, title: projectId, repositoryUrl: `https://github.com/example/${projectId}` })
+        .expect(201);
+      await request(app)
+        .patch(`/api/submissions/${submission.body.id}/review`)
+        .set(reviewer)
+        .send({ status: "approved", expectedVersion: 1, score: 85 })
+        .expect(200);
+    }
+
+    const [firstIssue, replayedIssue] = await Promise.all([
+      request(app).post("/api/certificates/frontend-foundations/issue").set(learner),
+      request(app).post("/api/certificates/frontend-foundations/issue").set(learner)
+    ]);
+    expect([firstIssue.status, replayedIssue.status].sort()).toEqual([200, 201]);
+    expect(firstIssue.body.verificationCode).toBe(replayedIssue.body.verificationCode);
+    expect(firstIssue.body.evidence.projects.every((project) => project.score === 85)).toBe(true);
+
+    const profile = await request(app).get(`/api/profile/${userId}`).set(learner).expect(200);
+    expect(profile.body.certificates.find((certificate) => certificate.id === "frontend-foundations").issued.verificationCode)
+      .toBe(firstIssue.body.verificationCode);
+    const publicCertificate = await request(app).get(`/api/certificates/public/${firstIssue.body.verificationCode}`).expect(200);
+    expect(publicCertificate.body).toMatchObject({ valid: true, status: "valid" });
+
+    await request(app)
+      .patch(`/api/certificates/${firstIssue.body.id}/revoke`)
+      .set(reviewer)
+      .send({ reason: "Certificate evidence was invalidated." })
+      .expect(200);
+    const reissue = await request(app).post("/api/certificates/frontend-foundations/issue").set(learner).expect(409);
+    expect(reissue.body.error.code).toBe("CERTIFICATE_REVOKED");
   });
 
   test("publishes minimal certificate evidence and exposes revocation status", async () => {

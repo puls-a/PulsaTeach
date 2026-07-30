@@ -30,25 +30,24 @@ export function NotesPanel({ lessonId, locale, note, setNote }) {
 
 export function difficultyLabel(difficulty, locale) {
   const labels = {
-    easy: { fr: "Facile", en: "Easy" },
-    medium: { fr: "Intermédiaire", en: "Medium" },
-    hard: { fr: "Difficile", en: "Hard" },
-    intermediate: { fr: "Intermédiaire", en: "Intermediate" },
-    quiz: { fr: "Évaluation", en: "Quiz" },
-    quick: { fr: "Rapide", en: "Quick" },
-    starter: { fr: "Départ", en: "Starter" },
-    core: { fr: "Essentiel", en: "Core" },
-    stretch: { fr: "Défi", en: "Stretch" },
-    project: { fr: "Projet", en: "Project" }
+    easy: ["Facile", "Easy"],
+    medium: ["Intermédiaire", "Medium"],
+    hard: ["Difficile", "Hard"],
+    intermediate: ["Intermédiaire", "Intermediate"],
+    quiz: ["Évaluation", "Quiz"],
+    quick: ["Rapide", "Quick"],
+    starter: ["Départ", "Starter"],
+    core: ["Essentiel", "Core"],
+    project: ["Projet", "Project"]
   };
-  return labels[difficulty]?.[locale] || difficulty;
+  return labels[difficulty]?.[locale === "fr" ? 0 : 1] || difficulty;
 }
 
-export function CompletionBanner({ locale, onNext, hasNext }) {
+export function CompletionBanner({ locale, onNext, hasNext, projectId }) {
   return (
     <div className="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-green-200 bg-green-50 p-4 text-sm font-semibold text-green-800">
       <span>{locale === "fr" ? "C'est validé. XP ajouté à ta progression." : "Passed. XP has been added to your progress."}</span>
-      {hasNext && <button type="button" onClick={onNext} className="primary-button">{locale === "fr" ? "Leçon suivante" : "Next lesson"}</button>}
+      {projectId ? <a href={`/projects?projectId=${projectId}#nouvelle-soumission`} className="primary-button">{locale === "fr" ? "Soumettre" : "Submit"}</a> : hasNext && <button type="button" onClick={onNext} className="primary-button">{locale === "fr" ? "Leçon suivante" : "Next lesson"}</button>}
     </div>
   );
 }

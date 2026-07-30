@@ -153,7 +153,10 @@ export const submissionSchema = z.object({
   deliverables: z.array(z.string().trim().min(1).max(500)).max(30).optional().default([]),
   selfAssessment: z.string().max(4000).optional().default(""),
   visibility: z.enum(["private", "unlisted", "public"]).optional().default("private")
-}).strict();
+}).strict().refine((value) => Boolean(value.url || value.repositoryUrl || value.archiveUrl || value.screenshots.length), {
+  message: "A live URL, repository, archive, or screenshot is required.",
+  path: ["url"]
+});
 
 export const attemptSchema = z.object({
   userId: id.optional(),
