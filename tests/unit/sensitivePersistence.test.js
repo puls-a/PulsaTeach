@@ -65,4 +65,9 @@ describe("sensitive persistence mappings", () => {
     const error = { code: "08006", message: "connection failure" };
     expect(mapSensitiveRpcError(error)).toBe(error);
   });
+
+  test("maps RPC contracts when PostgREST preserves the message but normalizes the SQLSTATE", () => {
+    expect(mapSensitiveRpcError({ code: "P0001", message: "SUBMISSION_ALREADY_ACTIVE" }))
+      .toMatchObject({ status: 409, code: "SUBMISSION_ALREADY_ACTIVE" });
+  });
 });

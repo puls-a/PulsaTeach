@@ -83,7 +83,10 @@ export function mapSensitiveRpcError(error) {
     PT006: [409, "SUBMISSION_VERSION_CONFLICT", "Submission version changed before this operation completed."],
     PT007: [429, "QUIZ_RETAKE_COOLDOWN", "Wait before submitting another assessment attempt."]
   };
-  const contract = contracts[error?.code];
+  const contractKey = contracts[error?.code]
+    ? error.code
+    : Object.keys(contracts).find((key) => String(error?.message || "").includes(key) || String(error?.message || "").includes(contracts[key][1]));
+  const contract = contracts[contractKey];
   if (!contract) return error;
   const mapped = new Error(contract[2]);
   mapped.status = contract[0];
