@@ -184,7 +184,16 @@ export async function createSupabaseSubmission(submission) {
     p_self_assessment: submission.selfAssessment,
     p_visibility: submission.visibility
   });
-  if (error) throw mapSensitiveRpcError(error);
+  if (error) {
+    const latest = await findLatestSupabaseSubmission(submission.userId, submission.projectId);
+    if (latest && !["changes_requested", "approved"].includes(latest.status)) {
+      throw mapSensitiveRpcError({
+        code: "PT001",
+        details: JSON.stringify({ submissionId: latest.id, version: latest.version, status: latest.status })
+      });
+    }
+    throw mapSensitiveRpcError(error);
+  }
   return mapSubmissionRow(requireRpcRow(data));
 }
 
@@ -260,6 +269,18 @@ async function findSupabaseIssuedCertificateById(id) {
   const { data, error } = await supabaseAdmin.from("issued_certificates").select(certificateColumns).eq("id", id).maybeSingle();
   if (error) throw error;
   return data;
+}
+
+async function findLatestSupabaseSubmission(userId, projectId) {
+  const { data, error } = await supabaseAdmin.from("submissions")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("project_id", projectId)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? mapSubmissionRow(data) : null;
 }
 
 function requireRpcRow(data) {
