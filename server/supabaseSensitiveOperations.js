@@ -210,7 +210,18 @@ export async function reviewSupabaseSubmission(id, review) {
     p_rubric: review.rubric,
     p_contextual_comments: review.contextualComments
   });
-  if (error) throw mapSensitiveRpcError(error);
+  if (error) {
+    const current = await findSupabaseSubmissionById(id);
+    if (!current) throw mapSensitiveRpcError({ code: "PT002" });
+    if (current.reviewRevision !== review.expectedReviewRevision) {
+      throw mapSensitiveRpcError({
+        code: "PT003",
+        details: JSON.stringify({ expectedReviewRevision: review.expectedReviewRevision, currentReviewRevision: current.reviewRevision })
+      });
+    }
+    if (review.expectedVersion && current.version !== review.expectedVersion) throw mapSensitiveRpcError({ code: "PT006" });
+    throw mapSensitiveRpcError(error);
+  }
   return mapSubmissionRow(requireRpcRow(data));
 }
 
@@ -279,6 +290,12 @@ async function findLatestSupabaseSubmission(userId, projectId) {
     .order("version", { ascending: false })
     .limit(1)
     .maybeSingle();
+  if (error) throw error;
+  return data ? mapSubmissionRow(data) : null;
+}
+
+async function findSupabaseSubmissionById(id) {
+  const { data, error } = await supabaseAdmin.from("submissions").select("*").eq("id", id).maybeSingle();
   if (error) throw error;
   return data ? mapSubmissionRow(data) : null;
 }
