@@ -3,14 +3,16 @@ import path from "node:path";
 import { learningTracks } from "../src/content/allTrackRegistry.js";
 import { isProtectedExamLesson } from "../src/features/quizzes/examPolicy.js";
 import { normalizeQuizLesson } from "../src/features/quizzes/quizEngine.js";
-import { projectPublicTrack } from "../server/publicContent.js";
+import { decodeProtectedExamResponses, projectPublicTrack } from "../server/publicContent.js";
 
 const root = process.cwd();
 const failures = [];
 let protectedCount = 0;
+const auditSecret = "exam-privacy-audit-secret";
 
 for (const sourceTrack of learningTracks) {
-  const publicTrack = projectPublicTrack(sourceTrack);
+  const sampledPublicTracks = Array.from({ length: 24 }, () => projectPublicTrack(sourceTrack, auditSecret));
+  const publicTrack = sampledPublicTracks[0];
   const publicLessons = new Map(publicTrack.modules.flatMap((module) => module.lessons).map((lesson) => [lesson.id, lesson]));
   for (const sourceLesson of sourceTrack.modules.flatMap((module) => module.lessons)) {
     if (!isProtectedExamLesson(sourceLesson)) continue;
@@ -34,6 +36,22 @@ for (const sourceTrack of learningTracks) {
       for (const field of ["answer", "acceptedAnswers", "keywords", "explanation"]) {
         if (field in question) failures.push(`${lesson.id}/${question.id}: public question exposes ${field}`);
       }
+      const canonicalQuestion = canonicalQuiz.questions.find((item) => item.id === question.id);
+      if (canonicalQuestion.choices?.length && question.choices.some((choice) => canonicalQuestion.choices.some((canonicalChoice) => canonicalChoice.id === choice.id))) {
+        failures.push(`${lesson.id}/${question.id}: public choice ids are not opaque`);
+      }
+    }
+    for (const canonicalQuestion of canonicalQuiz.questions.filter((question) => ["single", "true-false", "code-reading", "error-identification"].includes(question.type))) {
+      const answerPositions = new Set(sampledPublicTracks.map((sampledTrack) => {
+        const sampledLesson = sampledTrack.modules.flatMap((module) => module.lessons).find((item) => item.id === lesson.id);
+        const publicQuestion = sampledLesson.questions.find((question) => question.id === canonicalQuestion.id);
+        return publicQuestion.choices.findIndex((choice) => decodeProtectedExamResponses(
+          canonicalQuiz,
+          { [canonicalQuestion.id]: choice.id },
+          auditSecret
+        )[canonicalQuestion.id] === canonicalQuestion.answer);
+      }));
+      if (answerPositions.size < 2) failures.push(`${lesson.id}/${canonicalQuestion.id}: correct answer position does not vary`);
     }
     for (const field of ["answer", "solution", "hint", "explanation"]) {
       if (field in lesson) failures.push(`${lesson.id}: public lesson exposes ${field}`);

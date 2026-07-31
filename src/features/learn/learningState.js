@@ -1,5 +1,6 @@
 import { publicTrackCatalog } from "../../content/publicTrackCatalog.js";
 import { sanitizeProgressExamEvidence, sanitizeProtectedReviewItems } from "../quizzes/examPolicy.js";
+import { getLearnerItem } from "../../learnerStorage.js";
 
 const progressKey = "pulsateach-learning-progress";
 const bookmarksKey = "pulsateach-learning-bookmarks";
@@ -66,7 +67,7 @@ export function filterLabel(filter, locale) {
 
 export function readStoredJson(key) {
   try {
-    return JSON.parse(localStorage.getItem(key)) || {};
+    return JSON.parse(getLearnerItem(key)) || {};
   } catch {
     return {};
   }
@@ -85,7 +86,7 @@ export function hasResponse(value) {
 
 export function readBookmarks() {
   try {
-    return JSON.parse(localStorage.getItem(bookmarksKey)) || [];
+    return JSON.parse(getLearnerItem(bookmarksKey)) || [];
   } catch {
     return [];
   }
@@ -93,7 +94,7 @@ export function readBookmarks() {
 
 export function readProgress() {
   try {
-    return sanitizeProgressExamEvidence({ ...createEmptyProgress(), ...JSON.parse(localStorage.getItem(progressKey)) });
+    return sanitizeProgressExamEvidence({ ...createEmptyProgress(), ...JSON.parse(getLearnerItem(progressKey)) });
   } catch {
     return createEmptyProgress();
   }

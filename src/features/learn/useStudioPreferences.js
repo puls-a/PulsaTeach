@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getLearnerItem, setLearnerItem } from "../../learnerStorage.js";
 
 const storageKey = "pulsateach-studio-preferences";
 const defaultPreferences = {
@@ -11,7 +12,7 @@ export default function useStudioPreferences() {
   const [preferences, setPreferences] = useState(readPreferences);
 
   useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(preferences));
+    setLearnerItem(storageKey, JSON.stringify(preferences));
   }, [preferences]);
 
   const setDividerPosition = (index, position) => {
@@ -36,7 +37,7 @@ export default function useStudioPreferences() {
 
 function readPreferences() {
   try {
-    return { ...defaultPreferences, ...JSON.parse(localStorage.getItem(storageKey)) };
+    return { ...defaultPreferences, ...JSON.parse(getLearnerItem(storageKey)) };
   } catch {
     return defaultPreferences;
   }

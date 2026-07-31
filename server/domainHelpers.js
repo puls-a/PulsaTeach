@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { learningTracks } from "../src/content/allTrackRegistry.js";
+import { getQuestionSetVersion } from "../src/features/quizzes/examPolicy.js";
 import { certificates, legacyProjectAliases } from "./certificateCatalog.js";
 
 function isObject(value) {
@@ -124,7 +125,7 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
       if (session.userId !== userId || session.status !== "completed" || session.gradingVersion !== 1) return false;
       const lesson = certificationLessons.get(session.quizId);
       const qualifiedVersion = session.qualifiedQuestionSetVersion || session.questionSetVersion;
-      return Boolean(lesson && (session.bestScore?.passed || session.score?.passed) && qualifiedVersion === `${lesson.id}:${lesson.examVersion || 1}`);
+      return Boolean(lesson && (session.bestScore?.passed || session.score?.passed) && qualifiedVersion === getQuestionSetVersion(lesson));
     })
     .map((session) => [session.quizId, session]));
 
@@ -143,7 +144,14 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
         const submission = userSubmissions
           .filter((item) => matchesProjectId(projectId, item.projectId) && item.status === "approved" && (item.score ?? 0) >= certificate.minProjectScore)
           .sort((left, right) => Number(right.version || 1) - Number(left.version || 1))[0];
-        return submission ? { projectId, submissionId: submission.id, version: submission.version || 1, score: submission.score } : { projectId, submissionId: null };
+        return submission ? {
+          projectId,
+          sourceProjectId: submission.projectId,
+          submissionId: submission.id,
+          version: submission.version || 1,
+          score: submission.score,
+          minimumScore: certificate.minProjectScore
+        } : { projectId, submissionId: null, minimumScore: certificate.minProjectScore };
       });
       const approvedProjects = projectEvidence.filter((project) => project.submissionId);
       const trackVersions = Object.fromEntries(certificate.requiredTracks.map((trackId) => {
@@ -152,7 +160,8 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
       }));
       const lessonPercent = requiredLessons.length ? Math.round((completedRequiredLessons.length / requiredLessons.length) * 100) : 0;
       const projectPercent = certificate.requiredProjects.length ? Math.round((approvedProjects.length / certificate.requiredProjects.length) * 100) : 0;
-      const eligible = lessonPercent === 100 && projectPercent === 100;
+      const examPercent = requiredExams.length ? Math.round((completedExams.length / requiredExams.length) * 100) : 100;
+      const eligible = examPercent === 100 && projectPercent === 100;
 
       return {
         ...certificate,
@@ -161,9 +170,12 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
         issued: issuedCertificates.find((item) => item.userId === userId && item.certificateId === certificate.id && !item.revokedAt) || null,
         progress: {
           lessonPercent,
+          examPercent,
           projectPercent,
           lessonsCompleted: completedRequiredLessons.length,
           lessonsRequired: requiredLessons.length,
+          examsCompleted: completedExams.length,
+          examsRequired: requiredExams.length,
           projectsApproved: approvedProjects.length,
           projectsRequired: certificate.requiredProjects.length
         },
@@ -174,6 +186,7 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
           exams: {
             completed: completedExams.map((lesson) => lesson.id),
             required: requiredExams.map((lesson) => lesson.id),
+            versions: Object.fromEntries(requiredExams.map((lesson) => [lesson.id, getQuestionSetVersion(lesson)])),
             scores: completedExams.map((lesson) => {
               const session = verifiedQuizSessions.get(lesson.id);
               const qualifiedScore = session.bestScore?.passed ? session.bestScore : session.score;

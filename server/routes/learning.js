@@ -246,7 +246,7 @@ export function registerLearningRoutes(app, context) {
     const passed = Number(payload.passed || 0);
     const total = Number(payload.total || 0);
     const attempt = {
-      id: `att-${Date.now()}`,
+      id: `att-${randomUUID()}`,
       userId: String(userId),
       lessonId: String(payload.lessonId),
       trackId: String(payload.trackId || ""),

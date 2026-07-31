@@ -24,7 +24,10 @@ test("lesson modes and CodeMirror support keyboard work without trapping focus",
   await expect(editor).toHaveAttribute("aria-multiline", "true");
   await editor.fill("function getCurrencyLabel(code) { return code; }");
   await editor.press("Control+s");
-  await expect.poll(() => page.evaluate(() => localStorage.getItem("pulsateach-code-js-functions-scope-declare-function-fr"))).toContain("getCurrencyLabel");
+  await expect.poll(() => page.evaluate(() => {
+    const owner = localStorage.getItem("pulsateach-user-id");
+    return localStorage.getItem(`pulsateach-code-js-functions-scope-declare-function-fr:owner:${encodeURIComponent(owner)}`);
+  })).toContain("getCurrencyLabel");
 
   await editor.focus();
   await page.keyboard.press("Escape");
@@ -80,7 +83,10 @@ test("the functions pilot starts with a real failure and ends with behavioral pr
   if (testInfo.project.name === "mobile-chromium") return;
 
   await editor.fill("function getCurrencyLabel(code) {\n  if (code === 'EUR') return String.fromCharCode(8364);\n  return code;\n}");
-  await expect.poll(() => page.evaluate(() => localStorage.getItem("pulsateach-code-js-functions-scope-declare-function-fr"))).toContain("if (code === 'EUR')");
+  await expect.poll(() => page.evaluate(() => {
+    const owner = localStorage.getItem("pulsateach-user-id");
+    return localStorage.getItem(`pulsateach-code-js-functions-scope-declare-function-fr:owner:${encodeURIComponent(owner)}`);
+  })).toContain("if (code === 'EUR')");
   await page.getByRole("button", { name: /Vérifier mon code|Check my code/ }).click();
   await expect(page.getByText("3/3", { exact: true })).toBeVisible();
   await expect(page.getByText(/C'est validé|Passed\. XP/)).toBeVisible();
@@ -116,7 +122,10 @@ test("desktop studio controls resize panels and persist editor preferences", asy
   await page.getByLabel(/Taille du texte|Text size/).selectOption("18");
   await page.getByLabel(/Retour à la ligne|Wrap long lines/).uncheck();
   await expect.poll(() => page.locator(".cm-editor").evaluate((element) => getComputedStyle(element).fontSize)).toBe("18px");
-  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("pulsateach-studio-preferences")))).toMatchObject({ panelWidths: [28, 40, 32], fontSize: 18, lineWrapping: false });
+  await expect.poll(() => page.evaluate(() => {
+    const owner = localStorage.getItem("pulsateach-user-id");
+    return JSON.parse(localStorage.getItem(`pulsateach-studio-preferences:owner:${encodeURIComponent(owner)}`));
+  })).toMatchObject({ panelWidths: [28, 40, 32], fontSize: 18, lineWrapping: false });
 
   await page.reload({ waitUntil: "networkidle" });
   await expect.poll(() => page.locator(".cm-editor").evaluate((element) => getComputedStyle(element).fontSize)).toBe("18px");

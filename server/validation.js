@@ -55,7 +55,7 @@ const quizEvidenceSchema = z.object({
     earned: z.coerce.number().min(0),
     available: z.coerce.number().min(0),
     percent: z.coerce.number().min(0).max(100)
-  }).strict()),
+  }).strict()).optional().default({}),
   attemptedAt: z.string().datetime()
 }).strict();
 
@@ -131,6 +131,7 @@ export const progressMigrationSchema = z.object({
 }).strict();
 
 export const quizSessionSchema = z.object({
+  questionSetVersion: z.string().trim().min(1).max(200),
   currentIndex: z.coerce.number().int().min(0).max(1000).optional().default(0),
   responses: z.record(z.string(), z.unknown()).optional().default({}),
   rationales: z.record(z.string(), z.string().max(4000)).optional().default({})

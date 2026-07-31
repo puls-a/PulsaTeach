@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Save } from "lucide-react";
+import { setLearnerItem } from "../../learnerStorage.js";
 
 export function SkillChips({ skills = [] }) {
   if (!skills.length) return null;
@@ -14,7 +15,7 @@ export function NotesPanel({ lessonId, locale, note, setNote }) {
       <summary className="cursor-pointer font-display text-lg font-bold">{locale === "fr" ? "Notes personnelles" : "Personal notes"}</summary>
       <div className="mt-3 flex justify-end">
         <button type="button" onClick={() => {
-          localStorage.setItem(`pulsateach-note-${lessonId}`, note);
+          setLearnerItem(`pulsateach-note-${lessonId}`, note);
           setSaved(true);
           window.setTimeout(() => setSaved(false), 1600);
         }} className="primary-button min-h-10 px-3 py-2 text-sm">

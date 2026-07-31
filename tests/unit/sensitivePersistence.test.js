@@ -55,7 +55,9 @@ describe("sensitive persistence mappings", () => {
     ["PT004", 409, "SUBMISSION_SUPERSEDED"],
     ["PT005", 400, "REVIEW_SCORE_REQUIRED"],
     ["PT006", 409, "SUBMISSION_VERSION_CONFLICT"],
-    ["PT007", 429, "QUIZ_RETAKE_COOLDOWN"]
+    ["PT007", 429, "QUIZ_RETAKE_COOLDOWN"],
+    ["PT008", 409, "CERTIFICATE_REVOKED"],
+    ["PT009", 409, "CERTIFICATE_REQUIREMENTS_INCOMPLETE"]
   ])("maps RPC error %s to a stable API contract", (databaseCode, status, apiCode) => {
     const mapped = mapSensitiveRpcError({ code: databaseCode, details: '{"currentReviewRevision":2}' });
     expect(mapped).toMatchObject({ status, code: apiCode, details: { currentReviewRevision: 2 } });

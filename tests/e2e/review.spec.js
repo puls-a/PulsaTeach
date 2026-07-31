@@ -28,9 +28,13 @@ test("a failed protected exam does not expose questions in spaced review", async
   await page.getByRole("button", { name: /Question suivante|Next question/ }).click();
 
   await page.getByLabel(/Ta réponse|Your answer/).fill("apparence uniquement");
-  await page.getByRole("button", { name: /Valider|Check/ }).click();
+  await page.getByRole("checkbox", { name: /Je confirme|I confirm/ }).check();
+  await page.getByRole("button", { name: /Envoyer l’examen|Submit exam/ }).click();
   await expect(page.getByText(/Score final : 0|Final score: 0/)).toBeVisible();
-  const progress = await page.evaluate(() => JSON.parse(localStorage.getItem("pulsateach-learning-progress") || "{}"));
+  const progress = await page.evaluate(() => {
+    const owner = localStorage.getItem("pulsateach-user-id");
+    return JSON.parse(localStorage.getItem(`pulsateach-learning-progress:owner:${encodeURIComponent(owner)}`) || "{}");
+  });
   expect(progress.review?.items || {}).toEqual({});
 
   await page.goto("/review");

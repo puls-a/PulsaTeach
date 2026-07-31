@@ -3,6 +3,7 @@ import { Download, Send, Settings, Trash2, Upload, UserRound } from "lucide-reac
 import { deleteAccount, exportAccountData, getUserSettings, saveUserSettings, uploadAvatar } from "./apiClient.js";
 import { signOutSupabase } from "./authState.js";
 import { navigate } from "./navigation.js";
+import { clearLearnerStorage } from "./learnerStorage.js";
 
 export default function AccountSettings({ locale = "fr" }) {
   const fr = locale === "fr";
@@ -67,9 +68,8 @@ export default function AccountSettings({ locale = "fr" }) {
     setStatus("deleting");
     try {
       await deleteAccount(deleteConfirmation);
+      clearLearnerStorage();
       await signOutSupabase();
-      localStorage.removeItem("pulsateach-learning-progress");
-      localStorage.removeItem("pulsateach-user-id");
       navigate("/catalog");
     } catch {
       setStatus("delete-error");

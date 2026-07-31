@@ -146,12 +146,17 @@ export function PublicCertificatePage({ locale = "fr", verificationCode }) {
   if (error) return <AccountState text={fr ? "Certificat introuvable ou code invalide." : "Certificate not found or invalid code."} />;
   if (!data) return <AccountState text={fr ? "Vérification du certificat..." : "Verifying certificate..."} />;
   const certificate = data.certificate;
+  const statusLabel = data.status === "expired"
+    ? (fr ? "Certificat expiré" : "Expired certificate")
+    : data.status === "revoked"
+      ? (fr ? "Certificat révoqué" : "Revoked certificate")
+      : (fr ? "Certificat vérifié" : "Verified certificate");
 
   return (
     <section className="app-page">
       <article className="mx-auto max-w-4xl rounded-3xl border-2 border-indigo-200 bg-white p-8 text-center shadow-xl shadow-indigo-950/10 sm:p-12">
         <Award className="mx-auto size-16 text-indigoPop" />
-        <p className={`mt-5 font-bold ${data.valid ? "text-green-700" : "text-red-700"}`}>{data.valid ? (fr ? "Certificat vérifié" : "Verified certificate") : (fr ? "Certificat révoqué" : "Revoked certificate")}</p>
+        <p className={`mt-5 font-bold ${data.valid ? "text-green-700" : "text-red-700"}`}>{statusLabel}</p>
         <h1 className="mt-4 font-display text-4xl font-bold sm:text-5xl">{certificate.title?.[locale] || certificate.title?.en}</h1>
         <p className="mt-8 text-lg text-slate-600">{fr ? "Délivré à" : "Issued to"}</p>
         <p className="mt-2 font-display text-3xl font-bold">{certificate.learnerName}</p>
@@ -164,10 +169,9 @@ export function PublicCertificatePage({ locale = "fr", verificationCode }) {
           </div>
         )}
         <div className="mt-8 grid gap-3 text-left sm:grid-cols-2">
-          <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-bold uppercase text-slate-500">{fr ? "Leçons" : "Lessons"}</p><p className="mt-2 text-xl font-black">{certificate.evidence?.progress?.lessonsCompleted ?? "—"}/{certificate.evidence?.progress?.lessonsRequired ?? "—"}</p></div>
-          <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-bold uppercase text-slate-500">{fr ? "Projets approuvés" : "Approved projects"}</p><p className="mt-2 text-xl font-black">{certificate.evidence?.progress?.projectsApproved ?? "—"}/{certificate.evidence?.progress?.projectsRequired ?? "—"}</p></div>
+          <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-bold uppercase text-slate-500">{fr ? "Examens réussis" : "Exams passed"}</p><p className="mt-2 text-xl font-black">{certificate.evidence?.exams?.completed ?? "—"}/{certificate.evidence?.exams?.required ?? "—"}</p></div>
+          <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-bold uppercase text-slate-500">{fr ? "Projets approuvés" : "Approved projects"}</p><p className="mt-2 text-xl font-black">{certificate.evidence?.projects?.approved ?? "—"}/{certificate.evidence?.projects?.required ?? "—"}</p></div>
         </div>
-        {certificate.revocationReason && <p className="mt-6 rounded-xl bg-red-50 p-4 font-bold text-red-800">{certificate.revocationReason}</p>}
         <p className="mt-2 break-all font-mono text-xs text-slate-400">{certificate.verificationCode}</p>
         <button type="button" onClick={() => window.print()} className="secondary-button mt-6 print:hidden">{fr ? "Imprimer le certificat" : "Print certificate"}</button>
       </article>

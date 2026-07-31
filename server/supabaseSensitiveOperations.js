@@ -66,6 +66,7 @@ export function mapQuizSessionRow(row) {
     gradingVersion: row.payload?.gradingVersion || null,
     gradedAt: row.payload?.gradedAt || null,
     questionSetVersion: row.payload?.questionSetVersion || null,
+    draftQuestionSetVersion: row.payload?.draftQuestionSetVersion || null,
     bestScore: row.payload?.bestScore || null,
     qualifiedAt: row.payload?.qualifiedAt || null,
     qualifiedQuestionSetVersion: row.payload?.qualifiedQuestionSetVersion || null,
@@ -81,7 +82,10 @@ export function mapSensitiveRpcError(error) {
     PT004: [409, "SUBMISSION_SUPERSEDED", "Only the latest project version can be approved."],
     PT005: [400, "REVIEW_SCORE_REQUIRED", "Approved submissions require a score."],
     PT006: [409, "SUBMISSION_VERSION_CONFLICT", "Submission version changed before this operation completed."],
-    PT007: [429, "QUIZ_RETAKE_COOLDOWN", "Wait before submitting another assessment attempt."]
+    PT007: [429, "QUIZ_RETAKE_COOLDOWN", "Wait before submitting another assessment attempt."],
+    PT008: [409, "CERTIFICATE_REVOKED", "A revoked certificate cannot be reissued."],
+    PT009: [409, "CERTIFICATE_REQUIREMENTS_INCOMPLETE", "Certificate requirements are not complete."],
+    PT010: [409, "QUIZ_VERSION_CONFLICT", "The quiz changed. Reload it before saving this draft."]
   };
   const contractKey = contracts[error?.code]
     ? error.code
@@ -109,17 +113,6 @@ export async function listSupabaseIssuedCertificatesForUser(userId) {
   return (data || []).map(mapIssuedCertificateRow);
 }
 
-export async function findSupabaseIssuedCertificate(userId, certificateId) {
-  requireClient();
-  const { data, error } = await supabaseAdmin.from("issued_certificates")
-    .select(certificateColumns)
-    .eq("user_id", userId)
-    .eq("certificate_id", certificateId)
-    .maybeSingle();
-  if (error) throw error;
-  return mapIssuedCertificateRow(data);
-}
-
 export async function findSupabaseIssuedCertificateByVerificationCode(verificationCode) {
   requireClient();
   const { data, error } = await supabaseAdmin.from("issued_certificates")
@@ -130,28 +123,26 @@ export async function findSupabaseIssuedCertificateByVerificationCode(verificati
   return mapIssuedCertificateRow(data);
 }
 
-export async function insertSupabaseIssuedCertificate(certificate) {
+export async function issueSupabaseCertificateAtomic(certificate, requirements) {
   requireClient();
-  const row = {
-    id: certificate.id,
-    verification_code: certificate.verificationCode,
-    user_id: certificate.userId,
-    certificate_id: certificate.certificateId,
-    certificate_version: certificate.certificateVersion || 1,
-    learner_name: certificate.learnerName,
-    title: certificate.title,
-    evidence: certificate.evidence || {},
-    issued_at: certificate.issuedAt,
-    expires_at: certificate.expiresAt || null,
-    revoked_at: certificate.revokedAt || null,
-    revocation_reason: certificate.revocationReason || null
+  const { data, error } = await supabaseAdmin.rpc("issue_certificate_atomic", {
+    p_id: certificate.id,
+    p_verification_code: certificate.verificationCode,
+    p_user_id: certificate.userId,
+    p_certificate_id: certificate.certificateId,
+    p_certificate_version: certificate.certificateVersion || 1,
+    p_learner_name: certificate.learnerName,
+    p_title: certificate.title,
+    p_evidence: certificate.evidence || {},
+    p_required_exams: requirements.exams,
+    p_required_projects: requirements.projects,
+    p_issued_at: certificate.issuedAt
+  });
+  if (error) throw mapSensitiveRpcError(error);
+  return {
+    created: Boolean(data?.created),
+    certificate: mapIssuedCertificateRow(data?.certificate)
   };
-  const { data, error } = await supabaseAdmin.from("issued_certificates").insert(row).select(certificateColumns).single();
-  if (!error) return { certificate: mapIssuedCertificateRow(data), created: true };
-  if (error.code !== "23505") throw error;
-  const existing = await findSupabaseIssuedCertificate(certificate.userId, certificate.certificateId);
-  if (!existing) throw error;
-  return { certificate: existing, created: false };
 }
 
 export async function revokeSupabaseIssuedCertificate(id, revokedAt, reason) {
@@ -233,7 +224,8 @@ export async function saveSupabaseQuizDraft(session) {
     p_quiz_id: session.quizId,
     p_current_index: session.currentIndex,
     p_responses: session.responses,
-    p_rationales: session.rationales
+    p_rationales: session.rationales,
+    p_question_set_version: session.questionSetVersion
   });
   if (error) throw mapSensitiveRpcError(error);
   return mapQuizSessionRow(requireRpcRow(data));

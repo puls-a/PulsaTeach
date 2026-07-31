@@ -36,6 +36,7 @@ import { CookiesPage, LegalNoticePage, PrivacyPage, TermsPage } from "./LegalPag
 import { currentPathSegments, migrateLegacyHashRoute } from "./navigation.js";
 import { updatePageMetadata } from "./appMetadata.js";
 import { knownRoutes } from "./appRoutes.js";
+import { learnerStorageOwnerEvent } from "./learnerStorage.js";
 
 const GlossaryPage = lazy(() => import("./features/glossary/GlossaryPage.jsx"));
 const NotFoundPage = lazy(() => import("./NotFoundPage.jsx"));
@@ -106,6 +107,8 @@ const navGroups = [
 
 function App() {
   const [locale, setLocale] = useState(() => localStorage.getItem("pulsateach-locale") || "fr");
+  const [storageOwnerVersion, setStorageOwnerVersion] = useState(0);
+  const { user, loading: authLoading } = useSupabaseSession();
   const [route, setRoute] = useState(() => {
     migrateLegacyHashRoute();
     return getPageRoute();
@@ -117,6 +120,12 @@ function App() {
     updatePageMetadata(route, locale, copy.metaTitle);
     localStorage.setItem("pulsateach-locale", locale);
   }, [copy.metaTitle, locale, route]);
+
+  useEffect(() => {
+    const handleOwnerChange = () => setStorageOwnerVersion((version) => version + 1);
+    window.addEventListener(learnerStorageOwnerEvent, handleOwnerChange);
+    return () => window.removeEventListener(learnerStorageOwnerEvent, handleOwnerChange);
+  }, []);
 
   useEffect(() => {
     const handleNavigation = (event) => {
@@ -148,19 +157,19 @@ function App() {
   return (
     <div className="flex min-h-screen flex-col">
       <a href="#main-content" className="skip-link">{locale === "fr" ? "Aller au contenu principal" : "Skip to main content"}</a>
-      <Header locale={locale} route={route} onLanguageToggle={() => setLocale(locale === "fr" ? "en" : "fr")} />
-      <main id="main-content" className="flex-1" tabIndex={-1}><Suspense fallback={<RouteFallback locale={locale} />}>{renderRoute(route, locale)}</Suspense></main>
+      <Header user={user} locale={locale} route={route} onLanguageToggle={() => setLocale(locale === "fr" ? "en" : "fr")} />
+      <main id="main-content" className="flex-1" tabIndex={-1} key={storageOwnerVersion}><Suspense fallback={<RouteFallback locale={locale} />}>{authLoading ? <RouteFallback locale={locale} /> : renderRoute(route, locale)}</Suspense></main>
       {route !== "learn" && <AppFooter locale={locale} />}
       <CookieConsent locale={locale} />
     </div>
   );
 }
 
-function Header({ locale, route, onLanguageToggle }) {
+function Header({ user, locale, route, onLanguageToggle }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [authError, setAuthError] = useState("");
   const mobilePanelRef = useRef(null);
-  const { user } = useSupabaseSession();
   const visibleNavGroups = navGroups.filter((group) => group.id !== "create" || canManageContent(user));
   const compact = route === "learn";
 
@@ -215,6 +224,16 @@ function Header({ locale, route, onLanguageToggle }) {
 
   const toggleMenu = (id) => setActiveMenu(activeMenu === id ? null : id);
   const activeGroup = visibleNavGroups.find((group) => group.items.some((item) => item.routes.includes(route)))?.id;
+  const handleSignOut = async () => {
+    setAuthError("");
+    try {
+      await signOutSupabase();
+      return true;
+    } catch {
+      setAuthError(locale === "fr" ? "La déconnexion a échoué. Réessaie." : "Sign-out failed. Try again.");
+      return false;
+    }
+  };
 
   return (
     <header className={`fixed inset-x-0 top-0 z-50 ${compact ? "px-2 pt-2" : "px-3 pt-3"}`} data-navigation-root>
@@ -231,7 +250,7 @@ function Header({ locale, route, onLanguageToggle }) {
 
         <div className="flex items-center gap-2">
           <button type="button" onClick={onLanguageToggle} className="nav-icon-button" aria-label={locale === "fr" ? "Passer en anglais" : "Switch to French"}><Languages className="size-4" /><span className="hidden sm:inline">{locale === "fr" ? "EN" : "FR"}</span></button>
-          <AccountMenu user={user} locale={locale} route={route} open={activeMenu === "account"} onToggle={() => toggleMenu("account")} onClose={() => setActiveMenu(null)} />
+          <AccountMenu user={user} locale={locale} route={route} open={activeMenu === "account"} authError={authError} onSignOut={handleSignOut} onToggle={() => toggleMenu("account")} onClose={() => setActiveMenu(null)} />
           <button type="button" onClick={() => setMobileOpen(!mobileOpen)} className="nav-icon-button lg:hidden" aria-expanded={mobileOpen} aria-controls="mobile-navigation" aria-label={locale === "fr" ? "Menu" : "Menu"}>
             {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
@@ -241,7 +260,7 @@ function Header({ locale, route, onLanguageToggle }) {
       {mobileOpen && (
         <>
           <button type="button" className="fixed inset-0 z-10 bg-slate-950/50 backdrop-blur-sm lg:hidden" aria-label={locale === "fr" ? "Fermer le menu" : "Close menu"} onClick={() => setMobileOpen(false)} />
-          <MobileNavigation panelRef={mobilePanelRef} locale={locale} user={user} route={route} groups={visibleNavGroups} onClose={() => setMobileOpen(false)} />
+          <MobileNavigation panelRef={mobilePanelRef} locale={locale} user={user} route={route} groups={visibleNavGroups} authError={authError} onSignOut={handleSignOut} onClose={() => setMobileOpen(false)} />
         </>
       )}
     </header>
@@ -278,7 +297,7 @@ function DropdownItem({ item, locale, active, onClick }) {
   );
 }
 
-function AccountMenu({ user, locale, route, open, onToggle, onClose }) {
+function AccountMenu({ user, locale, route, open, authError, onSignOut, onToggle, onClose }) {
   const items = user
     ? [
         { href: "/profile", routes: ["profile"], icon: UserRound, title: { fr: "Mon profil", en: "My profile" }, text: { fr: "Activité, projets et certificats", en: "Activity, projects, and certificates" } },
@@ -300,14 +319,15 @@ function AccountMenu({ user, locale, route, open, onToggle, onClose }) {
         <div id="account-menu" className="nav-dropdown right-0 w-[340px] grid-cols-1" role="menu">
           {user && <div className="mb-1 border-b border-slate-100 px-3 pb-3"><p className="truncate text-sm font-bold text-ink">{user.email}</p><p className="mt-1 text-xs text-green-700">{locale === "fr" ? "Progression synchronisée" : "Progress synced"}</p></div>}
           {items.map((item) => <DropdownItem key={item.href} item={item} locale={locale} active={item.routes.includes(route)} onClick={onClose} />)}
-          {user && <button type="button" onClick={() => { signOutSupabase(); onClose(); }} className="mt-1 flex w-full items-center gap-3 rounded-xl border-t border-slate-100 p-3 text-left text-sm font-bold text-red-600 hover:bg-red-50"><LogOut className="size-4" />{locale === "fr" ? "Se déconnecter" : "Sign out"}</button>}
+          {authError && <p className="rounded-lg bg-red-50 p-3 text-xs font-semibold text-red-700" role="alert">{authError}</p>}
+          {user && <button type="button" onClick={async () => { if (await onSignOut()) onClose(); }} className="mt-1 flex w-full items-center gap-3 rounded-xl border-t border-slate-100 p-3 text-left text-sm font-bold text-red-600 hover:bg-red-50"><LogOut className="size-4" />{locale === "fr" ? "Se déconnecter" : "Sign out"}</button>}
         </div>
       )}
     </div>
   );
 }
 
-function MobileNavigation({ panelRef, locale, user, route, groups, onClose }) {
+function MobileNavigation({ panelRef, locale, user, route, groups, authError, onSignOut, onClose }) {
   const currentGroup = groups.find((group) => group.items.some((item) => item.routes.includes(route)))?.id || "learn";
   const [openGroup, setOpenGroup] = useState(currentGroup);
 
@@ -356,7 +376,8 @@ function MobileNavigation({ panelRef, locale, user, route, groups, onClose }) {
             {user ? <Settings className="size-4" /> : <LogIn className="size-4" />}
             {user ? (locale === "fr" ? "Paramètres" : "Settings") : (locale === "fr" ? "Se connecter" : "Sign in")}
           </a>
-          {user && <button type="button" onClick={() => { signOutSupabase(); onClose(); }} className="flex min-h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50"><LogOut className="size-4" />{locale === "fr" ? "Se déconnecter" : "Sign out"}</button>}
+          {authError && <p className="rounded-lg bg-red-100 p-3 text-center text-xs font-semibold text-red-700" role="alert">{authError}</p>}
+          {user && <button type="button" onClick={async () => { if (await onSignOut()) onClose(); }} className="flex min-h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50"><LogOut className="size-4" />{locale === "fr" ? "Se déconnecter" : "Sign out"}</button>}
         </div>
       </div>
     </aside>

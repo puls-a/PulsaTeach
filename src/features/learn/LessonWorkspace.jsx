@@ -9,6 +9,7 @@ import { ActionButton, CompletionBanner, difficultyLabel, NotesPanel, SkillChips
 import { ExplainedCorrection, ProgressiveHints, ProjectRubric } from "./LearningPedagogy.jsx";
 import { sanitizeRichText } from "./richTextSanitizer.js";
 import useStudioPreferences from "./useStudioPreferences.js";
+import { getLearnerItem, setLearnerItem } from "../../learnerStorage.js";
 
 const CodeMirrorEditor = lazy(() => import("./CodeMirrorEditor.jsx"));
 
@@ -35,13 +36,13 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
   const { panelWidths, fontSize, lineWrapping, setDividerPosition, setFontSize, setLineWrapping } = useStudioPreferences();
 
   useEffect(() => {
-    const legacyCode = locale === "fr" ? localStorage.getItem(`pulsateach-code-${lesson.id}`) : null;
-    setCode(localStorage.getItem(`pulsateach-code-${lesson.id}-${locale}`) || legacyCode || starterCode);
+    const legacyCode = locale === "fr" ? getLearnerItem(`pulsateach-code-${lesson.id}`) : null;
+    setCode(getLearnerItem(`pulsateach-code-${lesson.id}-${locale}`) || legacyCode || starterCode);
     setResult(null);
     setHintLevel(0);
     setShowCorrection(false);
     setConsoleOutput("");
-    setNote(localStorage.getItem(`pulsateach-note-${lesson.id}`) || "");
+    setNote(getLearnerItem(`pulsateach-note-${lesson.id}`) || "");
     setFocusPanel("code");
     setWorkspacePanel("preview");
     setSaveState("saved");
@@ -69,7 +70,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
     if (lesson.type === "quiz") return undefined;
     setSaveState("saving");
     const timeout = window.setTimeout(() => {
-      localStorage.setItem(`pulsateach-code-${lesson.id}-${locale}`, code);
+      setLearnerItem(`pulsateach-code-${lesson.id}-${locale}`, code);
       setSaveState("saved");
     }, 450);
     return () => window.clearTimeout(timeout);
@@ -84,7 +85,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
   const allPassed = Boolean(result?.length) && result.every((check) => check.pass);
 
   const saveCode = (source = code) => {
-    localStorage.setItem(`pulsateach-code-${lesson.id}-${locale}`, source);
+    setLearnerItem(`pulsateach-code-${lesson.id}-${locale}`, source);
     setSaveState("saved");
   };
 

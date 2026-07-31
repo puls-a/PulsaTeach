@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { randomUUID } from "node:crypto";
 import process from "node:process";
 import { createLessonDraft, createModuleDraft } from "../../src/courseSchema.js";
 
@@ -49,8 +50,8 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
 
     const quizId = "html-09-final-exam";
     const concurrentQuizWrites = await Promise.all([
-      request.put(`http://127.0.0.1:4190/api/quizzes/${quizId}/session`, { headers, data: { currentIndex: 1, responses: {}, rationales: {} } }),
-      request.post(`http://127.0.0.1:4190/api/quizzes/${quizId}/submit`, { headers, data: { questionSetVersion: `${quizId}:1`, responses: {}, rationales: {} } })
+      request.put(`http://127.0.0.1:4190/api/quizzes/${quizId}/session`, { headers, data: { questionSetVersion: `${quizId}:2`, currentIndex: 1, responses: {}, rationales: {} } }),
+      request.post(`http://127.0.0.1:4190/api/quizzes/${quizId}/submit`, { headers, data: { questionSetVersion: `${quizId}:2`, responses: {}, rationales: {} } })
     ]);
     expect(concurrentQuizWrites.every((response) => response.ok())).toBe(true);
     const { data: quizRows, error: quizError } = await admin.from("quiz_sessions")
@@ -59,7 +60,7 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
       .eq("quiz_id", quizId);
     if (quizError) throw quizError;
     expect(quizRows).toHaveLength(1);
-    expect(quizRows[0]).toMatchObject({ status: "completed", payload: { gradingVersion: 1, questionSetVersion: `${quizId}:1` } });
+    expect(quizRows[0]).toMatchObject({ status: "completed", payload: { gradingVersion: 1, questionSetVersion: `${quizId}:2` } });
 
     const { error: forbiddenQuizRpc } = await anon.rpc("save_quiz_draft_atomic", {
       p_id: `${localUserId}:${quizId}`,
@@ -67,9 +68,64 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
       p_quiz_id: quizId,
       p_current_index: 0,
       p_responses: {},
-      p_rationales: {}
+      p_rationales: {},
+      p_question_set_version: `${quizId}:2`
     });
     expect(forbiddenQuizRpc).toBeTruthy();
+
+    const certificateRpcPayload = {
+      p_id: randomUUID(),
+      p_verification_code: `verify${stamp}`,
+      p_user_id: localUserId,
+      p_certificate_id: "ci-certificate",
+      p_certificate_version: 1,
+      p_learner_name: "CI Learner",
+      p_title: { fr: "CI", en: "CI" },
+      p_evidence: {},
+      p_required_exams: [{ quizId: "missing-exam", questionSetVersion: "missing-exam:2" }],
+      p_required_projects: [],
+      p_issued_at: new Date().toISOString()
+    };
+    const { error: incompleteCertificate } = await admin.rpc("issue_certificate_atomic", certificateRpcPayload);
+    expect(incompleteCertificate?.message).toContain("CERTIFICATE_REQUIREMENTS_INCOMPLETE");
+    const { error: forbiddenCertificateRpc } = await anon.rpc("issue_certificate_atomic", certificateRpcPayload);
+    expect(forbiddenCertificateRpc).toBeTruthy();
+
+    const certificateQuizId = `certificate-exam-${stamp}`;
+    const qualifiedAt = new Date().toISOString();
+    const { error: certificateQuizError } = await admin.from("quiz_sessions").upsert({
+      id: `${localUserId}:${certificateQuizId}`,
+      user_id: localUserId,
+      quiz_id: certificateQuizId,
+      status: "completed",
+      score: { passed: true, percent: 88, earned: 8, available: 9 },
+      payload: {
+        currentIndex: 0,
+        responses: {},
+        rationales: {},
+        gradingVersion: 1,
+        gradedAt: qualifiedAt,
+        questionSetVersion: `${certificateQuizId}:2`,
+        bestScore: { passed: true, percent: 88, earned: 8, available: 9 },
+        qualifiedAt,
+        qualifiedQuestionSetVersion: `${certificateQuizId}:2`
+      }
+    });
+    if (certificateQuizError) throw certificateQuizError;
+    const successfulCertificatePayload = {
+      ...certificateRpcPayload,
+      p_id: randomUUID(),
+      p_verification_code: `success${stamp}`,
+      p_certificate_id: `ci-certificate-success-${stamp}`,
+      p_evidence: { exams: { scores: [{ quizId: certificateQuizId, percent: 1 }] } },
+      p_required_exams: [{ quizId: certificateQuizId, questionSetVersion: `${certificateQuizId}:2` }]
+    };
+    const { data: issuedCertificate, error: issueCertificateError } = await admin.rpc("issue_certificate_atomic", successfulCertificatePayload);
+    if (issueCertificateError) throw issueCertificateError;
+    expect(issuedCertificate).toMatchObject({ created: true, certificate: { evidence: { exams: { scores: [{ quizId: certificateQuizId, percent: 88 }] } } } });
+    const { data: replayedCertificate, error: replayCertificateError } = await admin.rpc("issue_certificate_atomic", successfulCertificatePayload);
+    if (replayCertificateError) throw replayCertificateError;
+    expect(replayedCertificate).toMatchObject({ created: false, certificate: { id: successfulCertificatePayload.p_id } });
 
     projectId = `supabase-concurrency-${stamp}`;
     const submissionPayload = {

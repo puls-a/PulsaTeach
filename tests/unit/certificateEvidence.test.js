@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import { buildCertificatesForUser } from "../../server/domainHelpers.js";
 import { certificates } from "../../server/certificateCatalog.js";
 import { learningTracks } from "../../src/content/allTrackRegistry.js";
+import { getQuestionSetVersion } from "../../src/features/quizzes/examPolicy.js";
 
 describe("certificate evidence", () => {
   test("requires only active project lessons", () => {
@@ -35,7 +36,7 @@ describe("certificate evidence", () => {
       status: "completed",
       gradingVersion: 1,
       gradedAt: "2026-07-30T12:00:00.000Z",
-      questionSetVersion: `${exam.id}:${exam.examVersion || 1}`,
+      questionSetVersion: getQuestionSetVersion(exam),
       score: { percent: 80, passed: true }
     }];
     const passed = buildCertificatesForUser("learner", progress, [], [], sessions).certificates.find((item) => item.id === "git-github-practitioner");
@@ -56,7 +57,7 @@ describe("certificate evidence", () => {
     sessions[0].questionSetVersion = `${exam.id}:stale`;
     const staleSession = buildCertificatesForUser("learner", progress, [], [], sessions).certificates.find((item) => item.id === "git-github-practitioner");
     expect(staleSession.evidence.exams.completed).not.toContain(exam.id);
-    sessions[0].questionSetVersion = `${exam.id}:${exam.examVersion || 1}`;
+    sessions[0].questionSetVersion = getQuestionSetVersion(exam);
 
     sessions[0].gradingVersion = null;
     const legacySession = buildCertificatesForUser("learner", progress, [], [], sessions).certificates.find((item) => item.id === "git-github-practitioner");
@@ -66,6 +67,17 @@ describe("certificate evidence", () => {
     sessions[0].userId = "another-learner";
     const wrongOwner = buildCertificatesForUser("learner", progress, [], [], sessions).certificates.find((item) => item.id === "git-github-practitioner");
     expect(wrongOwner.evidence.exams.completed).not.toContain(exam.id);
+  });
+
+  test("does not trust browser-declared lesson completion for issuance", () => {
+    const definition = certificates.find((item) => item.id === "git-github-practitioner");
+    const lessons = learningTracks.find((track) => track.id === "git").modules.flatMap((module) => module.lessons);
+    const forgedProgress = { completed: Object.fromEntries(lessons.map((lesson) => [lesson.id, true])) };
+    const evaluation = buildCertificatesForUser("learner", forgedProgress, [])
+      .certificates.find((item) => item.id === definition.id);
+    expect(evaluation.progress.lessonPercent).toBeGreaterThan(0);
+    expect(evaluation.progress.examPercent).toBe(0);
+    expect(evaluation.eligible).toBe(false);
   });
 
   test("uses the latest project version that meets the certificate score", () => {

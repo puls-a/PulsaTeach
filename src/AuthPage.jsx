@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, Eye, EyeOff, LockKeyhole, LogOut, Mail, RotateCcw, ShieldCheck, UserPlus } from "lucide-react";
 import { createLocalSession, signOutSupabase, syncSessionUserId, useSupabaseSession } from "./authState.js";
 import { getSupabaseClient, isSupabaseBrowserConfigured } from "./supabaseClient.js";
@@ -27,13 +27,15 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
   ], [fr, password]);
   const passwordValid = passwordRules.every((rule) => rule.valid);
 
+  useEffect(() => setMode(defaultMode), [defaultMode]);
+
   const submitPasswordAuth = async (event) => {
     event.preventDefault();
     if (mode === "signup" && !displayName.trim()) {
       setStatus({ type: "error", message: fr ? "Indique le nom qui apparaîtra sur ton profil." : "Enter the name shown on your profile." });
       return;
     }
-    if (!passwordValid) {
+    if (mode === "signup" && !passwordValid) {
       setStatus({ type: "error", message: fr ? "Le mot de passe ne respecte pas encore les critères." : "The password does not meet all requirements." });
       return;
     }
@@ -163,6 +165,17 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
     });
   };
 
+  const handleSignOut = async () => {
+    setBusy(true);
+    try {
+      await signOutSupabase();
+    } catch {
+      setStatus({ type: "error", message: fr ? "La déconnexion a échoué. Réessaie." : "Sign-out failed. Try again." });
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (session) {
     return (
       <section className="app-page min-h-screen bg-slate-50">
@@ -172,8 +185,9 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
           <p className="mt-3 break-all font-semibold text-slate-600">{session.user.email || session.user.id}</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <a href="/dashboard" className="primary-button">{fr ? "Voir ma progression" : "View progress"}</a>
-            <button type="button" onClick={signOutSupabase} className="secondary-button"><LogOut className="size-5" />{fr ? "Se déconnecter" : "Sign out"}</button>
+            <button type="button" onClick={handleSignOut} disabled={busy} className="secondary-button"><LogOut className="size-5" />{fr ? "Se déconnecter" : "Sign out"}</button>
           </div>
+          {status.message && <p className="status-error mt-4 rounded-xl p-3 font-semibold" role="alert">{status.message}</p>}
         </div>
       </section>
     );

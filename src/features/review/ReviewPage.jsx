@@ -5,6 +5,7 @@ import { LearnerPageHero, MetricCard } from "../../components/LearnerUI.jsx";
 import { evaluateQuestion } from "../quizzes/quizEngine.js";
 import { sanitizeProgressExamEvidence, sanitizeProtectedReviewItems } from "../quizzes/examPolicy.js";
 import { applyReviewRating, buildReviewSession, getReviewStats, reviewSessionSizes } from "./spacedRepetition.js";
+import { getLearnerItem, setLearnerItem } from "../../learnerStorage.js";
 
 const progressKey = "pulsateach-learning-progress";
 
@@ -29,7 +30,7 @@ export default function ReviewPage({ locale }) {
       if (!active || !remote) return;
       setProgress((local) => {
         const merged = mergeProgress(local, remote);
-        localStorage.setItem(progressKey, JSON.stringify(merged));
+        setLearnerItem(progressKey, JSON.stringify(merged));
         return merged;
       });
       setSyncState("synced");
@@ -85,7 +86,7 @@ export default function ReviewPage({ locale }) {
       }
     };
     setProgress(next);
-    localStorage.setItem(progressKey, JSON.stringify(next));
+    setLearnerItem(progressKey, JSON.stringify(next));
     saveRemoteProgress(next).then(() => setSyncState("synced")).catch(() => setSyncState("offline"));
     recordLearningEvent({
       eventType: index + 1 >= session.length ? "review_completed" : "review_answered",
@@ -221,7 +222,7 @@ function toQuestion(item) {
 
 function readProgress() {
   try {
-    return sanitizeProgressExamEvidence(JSON.parse(localStorage.getItem(progressKey)) || { completed: {}, review: { items: {} } });
+    return sanitizeProgressExamEvidence(JSON.parse(getLearnerItem(progressKey)) || { completed: {}, review: { items: {} } });
   } catch {
     return { completed: {}, review: { items: {} } };
   }

@@ -1,23 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Bookmark,
-  BookmarkCheck,
-  CheckCircle2,
-  Play,
-  XCircle
-} from "lucide-react";
+import { CheckCircle2, Play, XCircle } from "lucide-react";
 import { getQuizSession, loadRemoteProgress, recordAttempt, recordLearningEvent, saveQuizSession, saveRemoteProgress, submitQuiz } from "./apiClient.js";
 import { getDeferredTrackGroupModuleId, hasDeferredTrackGroup } from "./content/localTrackLoader.js";
 import { createQuizDraft, evaluateQuestion, normalizeQuizLesson, scoreQuiz } from "./features/quizzes/quizEngine.js";
 import QuizModal from "./features/quizzes/QuizModal.jsx";
-import { QuestionInput, QuizResults } from "./features/quizzes/QuizPresentation.jsx";
+import { QuestionInput, QuizHeader, QuizResults } from "./features/quizzes/QuizPresentation.jsx";
 import { scheduleQuizReview } from "./features/review/spacedRepetition.js";
 import { getNextLesson, getPreviousLesson, hasResponse, localize, markLessonCompleted, markLessonOpened, mergeProgress, readBookmarks, readLessonRoute, readProgress, readStoredJson } from "./features/learn/learningState.js";
-import { CompletionBanner, difficultyLabel, NotesPanel, SkillChips } from "./features/learn/LearningShared.jsx";
-import { CourseChapter } from "./features/learn/LearningPedagogy.jsx";
+import { CompletionBanner, NotesPanel } from "./features/learn/LearningShared.jsx";
 import { FocusedLearningLayout } from "./features/learn/LearningLayout.jsx";
 import { useLessonRouteSync } from "./features/learn/useLessonRouteSync.js";
 import { updatePageMetadata } from "./appMetadata.js";
+import { getLearnerItem, removeLearnerItem, setLearnerItem } from "./learnerStorage.js";
 
 const progressKey = "pulsateach-learning-progress";
 const bookmarksKey = "pulsateach-learning-bookmarks";
@@ -82,7 +76,7 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
     updatePageMetadata("learn", locale, "PulsaTeach", { trackName: localize(activeTrack.title, locale), moduleName: localize(activeModule.title, locale), lessonName: localize(activeLesson.title, locale), description: localize(activeLesson.brief, locale) || localize(activeTrack.summary, locale) });
     setProgress((current) => {
       const next = markLessonOpened(current, { trackId: activeTrackId, moduleId: activeModuleId, lessonId: activeLessonId });
-      localStorage.setItem(progressKey, JSON.stringify(next));
+      setLearnerItem(progressKey, JSON.stringify(next));
       return next;
     });
     recordLearningEvent({ eventType: "lesson_opened", lessonId: activeLessonId, trackId: activeTrackId }).catch(() => {});
@@ -96,7 +90,7 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
         if (remote?.completed) {
           setProgress((current) => {
             const merged = mergeProgress(current, remote);
-            localStorage.setItem(progressKey, JSON.stringify(merged));
+            setLearnerItem(progressKey, JSON.stringify(merged));
             return merged;
           });
           setSyncState("synced");
@@ -159,7 +153,7 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
   ));
 
   const persistProgress = (next) => {
-    localStorage.setItem(progressKey, JSON.stringify(next));
+    setLearnerItem(progressKey, JSON.stringify(next));
     saveRemoteProgress(next)
       .then(() => setSyncState("synced"))
       .catch(() => setSyncState("offline"));
@@ -195,7 +189,7 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
           [lesson.id]: {
             percent: score.percent,
             passed: score.passed,
-            skills: score.skills,
+            skills: score.skills || {},
             attemptedAt: now.toISOString()
           }
         }
@@ -211,7 +205,7 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
       ? bookmarks.filter((item) => item !== lessonId)
       : [...bookmarks, lessonId];
     setBookmarks(next);
-    localStorage.setItem(bookmarksKey, JSON.stringify(next));
+    setLearnerItem(bookmarksKey, JSON.stringify(next));
   };
 
   if (!activeTrack || !activeModule || !activeLesson) {
@@ -283,52 +277,99 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
   const [note, setNote] = useState("");
+  const [hydratedKey, setHydratedKey] = useState("");
+  const [confirmedFinal, setConfirmedFinal] = useState(false);
+  const [retryAt, setRetryAt] = useState(0);
+  const [clock, setClock] = useState(Date.now());
+  const questionHeadingRef = useRef(null);
+  const shouldFocusQuestionRef = useRef(false);
   const question = quiz.questions[draft.currentIndex];
   const response = draft.responses[question.id];
   const rationale = draft.rationales[question.id] || "";
   const questionFeedback = feedback[question.id];
-  const canValidate = hasResponse(response) && (!question.requiresRationale || rationale.trim().length >= 12);
+  const isLastQuestion = draft.currentIndex === quiz.questions.length - 1;
+  const cooldownSeconds = Math.max(0, Math.ceil((retryAt - clock) / 1000));
+  const canValidate = hasResponse(response)
+    && (!question.requiresRationale || rationale.trim().length >= 12)
+    && (!serverGraded || !isLastQuestion || confirmedFinal)
+    && hydratedKey === storageKey
+    && cooldownSeconds === 0;
   const answeredCount = quiz.questions.filter((item) => hasResponse(draft.responses[item.id])).length;
 
   useEffect(() => {
-    setNote(localStorage.getItem(`pulsateach-note-${lesson.id}`) || "");
-    setDraft(createQuizDraft(quiz, readStoredJson(storageKey)));
+    let active = true;
+    const storedDraft = readStoredJson(storageKey);
+    const localDraft = createQuizDraft(quiz, storedDraft);
+    setHydratedKey("");
+    setNote(getLearnerItem(`pulsateach-note-${lesson.id}`) || "");
+    setDraft(localDraft);
     setFeedback({});
     setFinalScore(null);
     setIsSubmitting(false);
     setSubmissionError("");
-  }, [lesson.id, quiz, storageKey]);
-
-  useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify({ ...draft, updatedAt: new Date().toISOString() }));
-  }, [draft, storageKey]);
-
-  useEffect(() => {
-    if (!serverGraded) return undefined;
-    let active = true;
-    const localDraft = readStoredJson(storageKey);
+    setConfirmedFinal(false);
+    setRetryAt(0);
+    if (!serverGraded) {
+      setHydratedKey(storageKey);
+      return () => {
+        active = false;
+      };
+    }
     getQuizSession(lesson.id).then((remote) => {
       if (!active || !remote) return;
-      const useRemote = !localDraft.updatedAt || new Date(remote.updatedAt).getTime() > new Date(localDraft.updatedAt).getTime();
-      if (useRemote) setDraft(createQuizDraft(quiz, remote));
-      if (remote.gradingVersion === 1 && remote.status === "completed" && Array.isArray(remote.score?.results)) setFinalScore(remote.score);
-    }).catch(() => {});
+      const localTime = storedDraft.questionSetVersion === quiz.questionSetVersion && localDraft.updatedAt
+        ? new Date(localDraft.updatedAt).getTime()
+        : 0;
+      const remoteTime = remote.updatedAt ? new Date(remote.updatedAt).getTime() : 0;
+      if (remote.draftQuestionSetVersion === quiz.questionSetVersion && remoteTime > localTime) {
+        setDraft(createQuizDraft(quiz, { ...remote, questionSetVersion: remote.draftQuestionSetVersion }));
+      }
+      if (remote.questionSetVersion === quiz.questionSetVersion && remote.gradingVersion === 1 && remote.status === "completed" && remote.score) {
+        setFinalScore(remote.score);
+      }
+      if (remote.gradedAt) setRetryAt(new Date(remote.gradedAt).getTime() + 15 * 60 * 1000);
+    }).catch(() => {}).finally(() => {
+      if (active) setHydratedKey(storageKey);
+    });
     return () => {
       active = false;
     };
   }, [lesson.id, quiz, serverGraded, storageKey]);
 
   useEffect(() => {
-    if (!serverGraded) return undefined;
+    if (hydratedKey !== storageKey) return;
+    setLearnerItem(storageKey, JSON.stringify({ ...draft, updatedAt: new Date().toISOString() }));
+  }, [draft, hydratedKey, storageKey]);
+
+  useEffect(() => {
+    if (!serverGraded || hydratedKey !== storageKey) return undefined;
     const timeout = window.setTimeout(() => {
       saveQuizSession(lesson.id, {
+        questionSetVersion: quiz.questionSetVersion,
         currentIndex: draft.currentIndex,
         responses: draft.responses,
         rationales: draft.rationales
       }).catch(() => {});
     }, 400);
     return () => window.clearTimeout(timeout);
-  }, [draft, lesson.id, serverGraded]);
+  }, [draft, hydratedKey, lesson.id, quiz.questionSetVersion, serverGraded, storageKey]);
+
+  useEffect(() => {
+    if (retryAt <= Date.now()) return undefined;
+    const interval = window.setInterval(() => {
+      const now = Date.now();
+      setClock(now);
+      if (now >= retryAt) window.clearInterval(interval);
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [retryAt]);
+
+  useEffect(() => {
+    if (hydratedKey === storageKey && shouldFocusQuestionRef.current) {
+      shouldFocusQuestionRef.current = false;
+      questionHeadingRef.current?.focus();
+    }
+  }, [draft.currentIndex, hydratedKey, storageKey]);
 
   useEffect(() => {
     if (question.type === "ordering" && !Array.isArray(response)) {
@@ -344,10 +385,11 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
     setFeedback((current) => ({ ...current, [question.id]: undefined }));
     setFinalScore(null);
     setSubmissionError("");
+    setConfirmedFinal(false);
   };
 
   const validateCurrent = async () => {
-    if (isSubmitting) return;
+    if (isSubmitting || cooldownSeconds > 0 || hydratedKey !== storageKey) return;
     setSubmissionError("");
     try {
       const result = serverGraded ? { submitted: true } : evaluateQuestion(question, response);
@@ -355,9 +397,11 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
       if (draft.currentIndex < quiz.questions.length - 1) return;
 
       if (serverGraded) setIsSubmitting(true);
-      const score = serverGraded
-        ? (await submitQuiz(lesson.id, { questionSetVersion: quiz.questionSetVersion, responses: draft.responses, rationales: draft.rationales })).score
-        : scoreQuiz(quiz, draft.responses);
+      const gradedSession = serverGraded
+        ? await submitQuiz(lesson.id, { questionSetVersion: quiz.questionSetVersion, responses: draft.responses, rationales: draft.rationales })
+        : null;
+      const score = gradedSession?.score || scoreQuiz(quiz, draft.responses);
+      if (gradedSession?.gradedAt) setRetryAt(new Date(gradedSession.gradedAt).getTime() + 15 * 60 * 1000);
       setFinalScore(score);
       recordAttempt({
         lessonId: lesson.id,
@@ -372,11 +416,15 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
         trackId: activeTrack.id,
         payload: { passed: score.earned, total: score.available, percent: score.percent, kind: "quiz" }
       }).catch(() => {});
-      if (score.passed) localStorage.removeItem(storageKey);
+      if (score.passed) removeLearnerItem(storageKey);
       onQuizResult?.(lesson, quiz, score);
     } catch (error) {
+      const nextRetryAt = error?.payload?.error?.details?.retryAt;
+      if (nextRetryAt) setRetryAt(new Date(nextRetryAt).getTime());
       setSubmissionError(error?.code === "QUIZ_VERSION_CONFLICT"
         ? (locale === "fr" ? "Ce bilan a changé. Recharge la page avant de recommencer." : "This assessment changed. Reload the page before restarting.")
+        : error?.code === "AUTH_REQUIRED"
+          ? (locale === "fr" ? "Connecte-toi avant d’envoyer cet examen. Ton brouillon reste enregistré sur cet appareil." : "Sign in before submitting this exam. Your draft remains saved on this device.")
         : error?.code === "QUIZ_RETAKE_COOLDOWN"
           ? (locale === "fr" ? "Ce bilan vient d’être noté. Attends 15 minutes avant une nouvelle tentative." : "This assessment was just graded. Wait 15 minutes before another attempt.")
         : (locale === "fr" ? "La notation serveur a échoué. Réessaie sans quitter le quiz." : "Server grading failed. Try again without leaving the quiz."));
@@ -386,42 +434,25 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
   };
 
   const restartQuiz = () => {
-    localStorage.removeItem(storageKey);
+    if (retryAt > Date.now()) return;
+    removeLearnerItem(storageKey);
     setDraft(createQuizDraft(quiz));
     setFeedback({});
     setFinalScore(null);
     setSubmissionError("");
+    setConfirmedFinal(false);
   };
 
   return (
     <QuizModal titleId={`quiz-title-${lesson.id}`} locale={locale} onClose={onCloseQuiz}>
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold uppercase text-indigoPop">quiz</span>
-        <span className="rounded-full bg-slate-950 px-3 py-1.5 text-xs font-bold text-emerald-300">{lesson.xp} XP</span>
-        <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600">{difficultyLabel(lesson.difficulty, locale)} · {lesson.durationMin} min</span>
-        {isCompleted && <span className="rounded-full bg-green-100 px-3 py-1.5 text-xs font-bold text-green-700">{locale === "fr" ? "Validé" : "Passed"}</span>}
-        <button
-          type="button"
-          onClick={onToggleBookmark}
-          className="inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-cloud px-4 py-2 text-sm font-extrabold text-ink shadow-clayPressed transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orangePop"
-        >
-          {isBookmarked ? <BookmarkCheck className="size-4" /> : <Bookmark className="size-4" />}
-          {isBookmarked ? (locale === "fr" ? "Sauvé" : "Saved") : (locale === "fr" ? "Favori" : "Save")}
-        </button>
-      </div>
-      <h3 id={`quiz-title-${lesson.id}`} className="mt-4 pr-12 font-display text-3xl font-bold leading-tight sm:text-4xl">{lesson.title[locale]}</h3>
-      <p className="mt-3 max-w-3xl text-base font-semibold leading-7 text-ink/70 sm:text-lg">{lesson.brief[locale]}</p>
-      <SkillChips skills={lesson.skills} />
-      {lesson.course && <details className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
-        <summary className="cursor-pointer text-sm font-bold text-slate-700">{locale === "fr" ? "Besoin de réviser avant le bilan ?" : "Need a quick review first?"}</summary>
-        <CourseChapter course={lesson.course} theory={lesson.theory} locale={locale} />
-      </details>}
-      <div className="muted-surface mt-4 min-w-0 p-3 sm:mt-6 sm:p-5">
+      <QuizHeader lesson={lesson} locale={locale} isCompleted={isCompleted} isBookmarked={isBookmarked} onToggleBookmark={onToggleBookmark} />
+      {hydratedKey !== storageKey && <p className="mt-5 rounded-xl bg-slate-50 p-4 text-sm font-semibold text-slate-700" role="status">{locale === "fr" ? "Chargement de ta tentative…" : "Loading your attempt…"}</p>}
+      {hydratedKey === storageKey && (!finalScore || !serverGraded) && <div className="muted-surface mt-4 min-w-0 p-3 sm:mt-6 sm:p-5">
         <div className="flex min-w-0 items-center justify-between gap-3">
           <p className="text-sm font-bold text-indigoPop">{locale === "fr" ? "Question" : "Question"} {draft.currentIndex + 1}/{quiz.questions.length} · {answeredCount} {locale === "fr" ? "répondues" : "answered"}</p>
           <div className="h-2 min-w-16 flex-1 overflow-hidden rounded-full bg-slate-200 sm:max-w-40"><div className="h-full rounded-full bg-indigoPop" style={{ width: `${((draft.currentIndex + 1) / quiz.questions.length) * 100}%` }} /></div>
         </div>
-        <p className="mt-4 break-words font-display text-xl font-bold leading-snug sm:text-2xl">{localize(question.prompt, locale)}</p>
+        <p ref={questionHeadingRef} tabIndex={-1} className="mt-4 break-words font-display text-xl font-bold leading-snug outline-none sm:text-2xl">{localize(question.prompt, locale)}</p>
         {question.code && <pre tabIndex={0} aria-label={locale === "fr" ? "Code de question scrollable" : "Scrollable question code"} className="mt-4 overflow-x-auto rounded-xl bg-slate-950 p-4 text-sm text-indigo-100"><code>{question.code}</code></pre>}
         <QuestionInput question={question} response={response} locale={locale} onChange={setResponse} />
         {question.requiresRationale && <>
@@ -440,12 +471,13 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
           />
           <p className="mt-2 text-xs font-semibold text-slate-600">{locale === "fr" ? "La justification force à raisonner au-delà de la mémorisation." : "The explanation makes you reason beyond memorization."}</p>
         </>}
+        {serverGraded && isLastQuestion && <label className="mt-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-950"><input type="checkbox" checked={confirmedFinal} onChange={(event) => setConfirmedFinal(event.target.checked)} className="mt-0.5 size-5" />{locale === "fr" ? `Je confirme l’envoi de mes ${answeredCount} réponses pour notation.` : `I confirm submitting my ${answeredCount} answers for grading.`}</label>}
         <div className="mt-5 grid gap-2 sm:flex">
-          {draft.currentIndex > 0 && <button type="button" onClick={() => setDraft((current) => ({ ...current, currentIndex: current.currentIndex - 1 }))} className="secondary-button w-full sm:w-auto">{locale === "fr" ? "Question précédente" : "Previous question"}</button>}
-          <button type="button" disabled={!canValidate || isSubmitting} aria-busy={isSubmitting} onClick={validateCurrent} className="primary-button w-full disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"><Play className="size-5" />{isSubmitting ? (locale === "fr" ? "Notation…" : "Grading…") : (locale === "fr" ? "Valider" : "Check")}</button>
-          {questionFeedback && draft.currentIndex < quiz.questions.length - 1 && <button type="button" onClick={() => setDraft((current) => ({ ...current, currentIndex: current.currentIndex + 1 }))} className="secondary-button w-full sm:w-auto">{locale === "fr" ? "Question suivante" : "Next question"}</button>}
+          {draft.currentIndex > 0 && <button type="button" onClick={() => { shouldFocusQuestionRef.current = true; setDraft((current) => ({ ...current, currentIndex: current.currentIndex - 1 })); }} className="secondary-button w-full sm:w-auto">{locale === "fr" ? "Question précédente" : "Previous question"}</button>}
+          <button type="button" disabled={!canValidate || isSubmitting} aria-busy={isSubmitting} onClick={validateCurrent} className="primary-button w-full disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"><Play className="size-5" />{isSubmitting ? (locale === "fr" ? "Notation…" : "Grading…") : serverGraded && isLastQuestion ? (locale === "fr" ? "Envoyer l’examen" : "Submit exam") : (locale === "fr" ? "Valider" : "Check")}</button>
+          {questionFeedback && draft.currentIndex < quiz.questions.length - 1 && <button type="button" onClick={() => { shouldFocusQuestionRef.current = true; setDraft((current) => ({ ...current, currentIndex: current.currentIndex + 1 })); }} className="secondary-button w-full sm:w-auto">{locale === "fr" ? "Question suivante" : "Next question"}</button>}
         </div>
-      </div>
+      </div>}
       {submissionError && <p className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-800" role="alert">{submissionError}</p>}
       {questionFeedback && !questionFeedback.submitted && (
         <div className={`mt-5 rounded-xl border p-4 text-sm font-semibold ${questionFeedback.correct ? "border-green-200 bg-green-50 text-green-800" : "border-red-200 bg-red-50 text-red-800"}`} role="status">
@@ -453,7 +485,8 @@ function QuizWorkspace({ activeTrack, activeModule, lesson, locale, isCompleted,
           {localize(questionFeedback.feedback || question.explanation, locale)}
         </div>
       )}
-      {finalScore && <QuizResults quiz={quiz} score={finalScore} locale={locale} onRestart={restartQuiz} />}
+      {submissionError && submissionError.includes(locale === "fr" ? "Connecte-toi" : "Sign in") && <a className="secondary-button mt-3" href="/auth">{locale === "fr" ? "Se connecter" : "Sign in"}</a>}
+      {finalScore && <QuizResults quiz={quiz} score={finalScore} locale={locale} onRestart={restartQuiz} restartDisabled={cooldownSeconds > 0} retrySeconds={cooldownSeconds} />}
       {finalScore?.passed && <CompletionBanner locale={locale} onNext={onNext} hasNext={hasNext} />}
       <div className="mt-5"><NotesPanel lessonId={lesson.id} locale={locale} note={note} setNote={setNote} /></div>
     </QuizModal>

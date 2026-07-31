@@ -5,6 +5,8 @@ export function registerQuizSessionRoutes(app, context) {
     scoreQuiz,
     getQuestionSetVersion,
     isProtectedExamLesson,
+    decodeProtectedExamResponses,
+    examTokenSecret,
     sensitiveRateLimit,
     quizSessionSchema,
     quizSubmissionSchema,
@@ -32,6 +34,15 @@ export function registerQuizSessionRoutes(app, context) {
   app.put("/api/quizzes/:quizId/session", requireAuthenticatedRequest, validateBody(quizSessionSchema), async (request, response) => {
     await withStoreMutation("quiz-sessions", async () => {
       if (!requireAuthenticatedWrite(request, response)) return;
+      const lesson = findQuizLesson(learningTracks, request.params.quizId);
+      if (!lesson || !isProtectedExamLesson(lesson)) {
+        sendApiError(response, request, 404, "QUIZ_NOT_FOUND", "Quiz not found.");
+        return;
+      }
+      if (request.body.questionSetVersion !== getQuestionSetVersion(lesson)) {
+        sendApiError(response, request, 409, "QUIZ_VERSION_CONFLICT", "The quiz changed. Reload it before saving this draft.");
+        return;
+      }
       const id = `${request.authUserId}:${request.params.quizId}`;
       if (shouldUseSupabaseMutations()) {
         const session = await saveSupabaseQuizDraft({
@@ -56,6 +67,7 @@ export function registerQuizSessionRoutes(app, context) {
         gradingVersion: existing?.gradingVersion === 1 ? 1 : null,
         gradedAt: existing?.gradingVersion === 1 ? existing.gradedAt : null,
         questionSetVersion: existing?.questionSetVersion || null,
+        draftQuestionSetVersion: request.body.questionSetVersion,
         bestScore: existing?.bestScore || null,
         qualifiedAt: existing?.qualifiedAt || null,
         qualifiedQuestionSetVersion: existing?.qualifiedQuestionSetVersion || null,
@@ -82,7 +94,15 @@ export function registerQuizSessionRoutes(app, context) {
       }
 
       const quiz = normalizeQuizLesson(lesson, { expand: false });
-      const score = scoreQuiz(quiz, request.body.responses);
+      let decodedResponses;
+      try {
+        decodedResponses = decodeProtectedExamResponses(quiz, request.body.responses, examTokenSecret);
+      } catch (error) {
+        if (error?.code !== "INVALID_QUIZ_RESPONSE") throw error;
+        sendApiError(response, request, 400, "INVALID_QUIZ_RESPONSE", "One or more quiz responses are invalid. Reload the assessment and try again.");
+        return;
+      }
+      const score = scoreQuiz(quiz, decodedResponses);
       score.results = score.results.map((result) => ({
         ...result,
         feedback: quiz.questions.find((question) => question.id === result.questionId)?.explanation
@@ -105,6 +125,12 @@ export function registerQuizSessionRoutes(app, context) {
       const previousQualifiedVersion = previousBestScore
         ? existing?.qualifiedQuestionSetVersion || existing?.questionSetVersion || null
         : null;
+      const currentQuestionSetVersion = getQuestionSetVersion(lesson);
+      const replacesBestScore = score.passed && (
+        !previousBestScore
+        || previousQualifiedVersion !== currentQuestionSetVersion
+        || Number(score.percent) > Number(previousBestScore.percent)
+      );
       const session = {
         id,
         userId: request.authUserId,
@@ -116,11 +142,11 @@ export function registerQuizSessionRoutes(app, context) {
         score,
         gradingVersion: 1,
         gradedAt: now,
-        questionSetVersion: getQuestionSetVersion(lesson),
-        bestScore: score.passed ? score : previousBestScore,
-        qualifiedAt: score.passed ? now : previousQualifiedAt,
-        qualifiedQuestionSetVersion: score.passed
-          ? getQuestionSetVersion(lesson)
+        questionSetVersion: currentQuestionSetVersion,
+        bestScore: replacesBestScore ? score : previousBestScore,
+        qualifiedAt: replacesBestScore ? now : previousQualifiedAt,
+        qualifiedQuestionSetVersion: replacesBestScore
+          ? currentQuestionSetVersion
           : previousQualifiedVersion,
         updatedAt: now
       };
@@ -141,7 +167,12 @@ function projectPublicSession(session) {
   delete publicSession.bestScore;
   return {
     ...publicSession,
-    score: session.score ? { ...session.score, results: undefined } : null
+    score: session.score ? {
+      earned: session.score.earned,
+      available: session.score.available,
+      percent: session.score.percent,
+      passed: session.score.passed
+    } : null
   };
 }
 

@@ -2,11 +2,12 @@ import { useEffect, useMemo } from "react";
 import { ArrowRight, Award, BookOpen, Check, Clock3, Code2, Flag, GraduationCap, ArrowLeft, LayoutTemplate, ShieldCheck, Sparkles } from "lucide-react";
 import { useSupabaseSession } from "../../authState.js";
 import { useLearningTracks } from "../../useLearningTracks.js";
+import { getLearnerItem } from "../../learnerStorage.js";
 
 // Utility for reading progress from localStorage if offline or getting it from Supabase context
 function readProgress() {
   try {
-    return JSON.parse(localStorage.getItem("pulsateach-learning-progress")) || { completed: {} };
+    return JSON.parse(getLearnerItem("pulsateach-learning-progress")) || { completed: {} };
   } catch {
     return { completed: {} };
   }

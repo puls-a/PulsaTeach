@@ -40,7 +40,7 @@ export default function CertificationPage({ locale }) {
           icon={Award}
           eyebrow={fr ? "Certifications" : "Certifications"}
           title={fr ? "Des compétences prouvées, pas seulement déclarées." : "Skills proven, not merely claimed."}
-          description={fr ? "Chaque certificat relie tes leçons, tes examens et tes projets à une preuve publique vérifiable." : "Each certificate connects your lessons, exams, and projects to verifiable public evidence."}
+          description={fr ? "Chaque certificat relie tes examens notés serveur et tes projets approuvés à une preuve publique vérifiable." : "Each certificate connects server-graded exams and approved projects to verifiable public evidence."}
           status={status === "loading" ? (fr ? "Évaluation en cours" : "Evaluating") : status === "error" ? (fr ? "Connexion requise" : "Sign-in required") : (fr ? "Preuves actualisées" : "Evidence updated")}
           action={{ href: "#certificats", label: fr ? "Voir mes objectifs" : "View my goals" }}
         >
@@ -61,7 +61,7 @@ export default function CertificationPage({ locale }) {
             <Star className="size-9 text-indigoPop" />
             <h2 className="mt-4 font-display text-2xl font-black">{fr ? "Règles de délivrance" : "Issuance rules"}</h2>
             <ul className="mt-5 grid gap-3">{[
-              fr ? "Terminer toutes les leçons et examens requis." : "Finish every required lesson and exam.",
+              fr ? "Réussir tous les examens requis, notés côté serveur." : "Pass every required server-graded exam.",
               fr ? "Faire approuver les projets avec le score minimal." : "Get projects approved with the minimum score.",
               fr ? "Conserver versions, compétences et preuves dans le certificat." : "Store versions, skills, and evidence in the certificate."
             ].map((item) => <li className="flex gap-3 rounded-2xl bg-slate-50 p-4 font-semibold text-slate-700" key={item}><CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-600" />{item}</li>)}</ul>
@@ -79,7 +79,7 @@ function CertificateCard({ certificate, locale, busy, issuing, onIssue }) {
         <div><div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold ${certificate.eligible ? "bg-emerald-100 text-emerald-800" : "bg-indigo-50 text-indigo-800"}`}><Award className="size-5" />{certificate.eligible ? (fr ? "Prêt à délivrer" : "Ready to issue") : (fr ? "En progression" : "In progress")}</div><h2 className="mt-4 font-display text-3xl font-black sm:text-4xl">{certificate.title[locale] || certificate.title.fr || certificate.title.en}</h2><p className="mt-3 max-w-2xl font-semibold leading-7 text-ink/70">{certificate.description[locale] || certificate.description.fr || certificate.description.en}</p></div>
         <ShieldCheck className="size-12 text-indigoPop" />
       </div>
-      <div className="mt-6 grid gap-4 rounded-2xl bg-slate-50 p-4 md:grid-cols-2"><ProgressMeter label={fr ? "Leçons complétées" : "Lessons completed"} value={certificate.progress.lessonPercent} detail={`${certificate.progress.lessonsCompleted}/${certificate.progress.lessonsRequired}`} /><ProgressMeter label={fr ? "Projets approuvés" : "Approved projects"} value={certificate.progress.projectPercent} detail={`${certificate.progress.projectsApproved}/${certificate.progress.projectsRequired}`} /></div>
+      <div className="mt-6 grid gap-4 rounded-2xl bg-slate-50 p-4 md:grid-cols-2"><ProgressMeter label={fr ? "Examens réussis" : "Exams passed"} value={certificate.progress.examPercent} detail={`${certificate.progress.examsCompleted}/${certificate.progress.examsRequired}`} /><ProgressMeter label={fr ? "Projets approuvés" : "Approved projects"} value={certificate.progress.projectPercent} detail={`${certificate.progress.projectsApproved}/${certificate.progress.projectsRequired}`} /></div>
       {certificate.issued ? <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4"><p className="font-bold text-emerald-900">{fr ? "Certificat délivré et vérifiable publiquement." : "Certificate issued and publicly verifiable."}</p><a href={`/verify/${certificate.issued.verificationCode}`} className="secondary-button mt-3">{fr ? "Ouvrir la page publique" : "Open public page"}</a></div> : certificate.eligible ? <button type="button" onClick={onIssue} disabled={busy} className="primary-button mt-6 disabled:opacity-60"><Award className="size-5" />{issuing ? (fr ? "Délivrance..." : "Issuing...") : (fr ? "Délivrer mon certificat" : "Issue my certificate")}</button> : null}
     </article>
   );

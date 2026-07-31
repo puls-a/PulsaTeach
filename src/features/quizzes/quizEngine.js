@@ -228,18 +228,20 @@ export function shuffleQuestions(questions, random = Math.random) {
 }
 
 export function createQuizDraft(quiz, saved = {}) {
+  const compatibleSaved = !quiz.questionSetVersion || saved.questionSetVersion === quiz.questionSetVersion ? saved : {};
   const validQuestionIds = new Set(quiz.questions.map((question) => question.id));
   const responses = Object.fromEntries(
-    Object.entries(saved.responses || {}).filter(([questionId]) => validQuestionIds.has(questionId))
+    Object.entries(compatibleSaved.responses || {}).filter(([questionId]) => validQuestionIds.has(questionId))
   );
   return {
     quizId: quiz.id,
-    currentIndex: Math.min(Math.max(Number(saved.currentIndex) || 0, 0), Math.max(quiz.questions.length - 1, 0)),
+    questionSetVersion: quiz.questionSetVersion || null,
+    currentIndex: Math.min(Math.max(Number(compatibleSaved.currentIndex) || 0, 0), Math.max(quiz.questions.length - 1, 0)),
     responses,
     rationales: Object.fromEntries(
-      Object.entries(saved.rationales || {}).filter(([questionId]) => validQuestionIds.has(questionId))
+      Object.entries(compatibleSaved.rationales || {}).filter(([questionId]) => validQuestionIds.has(questionId))
     ),
-    updatedAt: saved.updatedAt || new Date().toISOString()
+    updatedAt: compatibleSaved.updatedAt || new Date().toISOString()
   };
 }
 

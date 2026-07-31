@@ -12,6 +12,7 @@ export function registerSystemRoutes(app, context) {
     restoreCourseVersion,
     productRoadmap,
     projectPublicTrack,
+    examTokenSecret,
     sendWelcomeEmail,
     transactionalEmailEnabled,
     sensitiveRateLimit,
@@ -112,7 +113,7 @@ export function registerSystemRoutes(app, context) {
     response.status(ready ? 200 : 503).json({
       ...healthPayload(),
       ok: ready,
-      checks: { database }
+      checks: { database: { ok: database.ok, latencyMs: database.latencyMs } }
     });
   });
 
@@ -133,7 +134,8 @@ export function registerSystemRoutes(app, context) {
       });
       return;
     }
-    response.json(await getSupabaseStatus());
+    const status = await getSupabaseStatus();
+    response.json({ enabled: status.enabled, mode: status.mode, ok: status.ok });
   });
 
   app.get("/api/me", (request, response) => {
@@ -170,7 +172,7 @@ export function registerSystemRoutes(app, context) {
       return;
     }
     response.setHeader("Cache-Control", "no-store");
-    response.json({ track: projectPublicTrack(track) });
+    response.json({ track: projectPublicTrack(track, examTokenSecret) });
   });
 
   app.get("/api/glossary", (_request, response) => {

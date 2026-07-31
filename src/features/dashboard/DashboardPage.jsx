@@ -8,6 +8,7 @@ import { getReviewStats } from "../review/spacedRepetition.js";
 import { computeSkillProgress } from "../skills/skillIndex.js";
 import { useLearningTracks } from "../../useLearningTracks.js";
 import { buildDailyDashboard } from "./dashboardModel.js";
+import { getLearnerItem, setLearnerItem } from "../../learnerStorage.js";
 
 const progressKey = "pulsateach-learning-progress";
 
@@ -46,7 +47,7 @@ export default function DashboardPage({ locale }) {
         }
         setProgress((current) => {
           const merged = mergeDashboardProgress(current, remote);
-          localStorage.setItem(progressKey, JSON.stringify(merged));
+          setLearnerItem(progressKey, JSON.stringify(merged));
           return merged;
         });
         setSyncState("synced");
@@ -335,7 +336,7 @@ function formatActivityDate(value, fr) {
 
 function readLocalProgress() {
   try {
-    return JSON.parse(localStorage.getItem(progressKey)) || { xp: 0, completed: {}, activity: [], streak: {} };
+    return JSON.parse(getLearnerItem(progressKey)) || { xp: 0, completed: {}, activity: [], streak: {} };
   } catch {
     return { xp: 0, completed: {}, activity: [], streak: {} };
   }

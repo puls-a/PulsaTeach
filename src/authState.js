@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { migrateLocalProgress, recordLearningEvent, saveUserSettings } from "./apiClient.js";
 import { getSupabaseClient, isSupabaseBrowserConfigured } from "./supabaseClient.js";
+import { getLearnerItem, resetLearnerStorageOwner, setLearnerItem, setLearnerStorageOwner } from "./learnerStorage.js";
 
-const authUserIdKey = "pulsateach-user-id";
 const localSessionKey = "pulsateach-local-session";
 const localAuthEvent = "pulsateach-local-auth";
 const learningProgressKey = "pulsateach-learning-progress";
@@ -16,42 +16,64 @@ export function getSessionUserId(session) {
 
 export function syncSessionUserId(session) {
   const userId = getSessionUserId(session);
-  if (userId) localStorage.setItem(authUserIdKey, userId);
+  if (userId) setLearnerStorageOwner(userId);
   return userId;
 }
 
 export function useSupabaseSession() {
   const [session, setSession] = useState(readLocalSession);
-  const [loading, setLoading] = useState(isSupabaseBrowserConfigured && !useLocalAuth);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isSupabaseBrowserConfigured || useLocalAuth) {
+      const localSession = readLocalSession();
+      if (localSession) syncSessionUserId(localSession);
+      else resetLearnerStorageOwner();
+      setSession(localSession);
       setLoading(false);
-      const handleLocalAuth = () => setSession(readLocalSession());
+      const handleLocalAuth = () => {
+        const nextSession = readLocalSession();
+        if (nextSession) syncSessionUserId(nextSession);
+        else resetLearnerStorageOwner();
+        setSession(nextSession);
+      };
       window.addEventListener(localAuthEvent, handleLocalAuth);
       return () => window.removeEventListener(localAuthEvent, handleLocalAuth);
     }
 
     let mounted = true;
     let unsubscribe = () => {};
+    const failClosed = () => {
+      if (!mounted) return;
+      localStorage.removeItem(localSessionKey);
+      resetLearnerStorageOwner();
+      setSession(null);
+      setLoading(false);
+    };
 
     getSupabaseClient().then((supabase) => {
       if (!mounted || !supabase) {
-        if (mounted) setLoading(false);
+        if (mounted) failClosed();
         return;
       }
 
-      supabase.auth.getSession().then(({ data }) => {
+      supabase.auth.getSession().then(({ data, error }) => {
         if (!mounted) return;
+        if (error) {
+          failClosed();
+          return;
+        }
         if (data.session) localStorage.removeItem(localSessionKey);
+        if (!data.session) resetLearnerStorageOwner();
         setSession(data.session || null);
         setLoading(false);
         syncProfile(data.session);
         migrateProgressForSession(data.session);
-      });
+      }).catch(failClosed);
 
       const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
         if (nextSession) localStorage.removeItem(localSessionKey);
+        if (!nextSession) resetLearnerStorageOwner();
         setSession(nextSession || null);
         syncProfile(nextSession);
         migrateProgressForSession(nextSession);
@@ -77,11 +99,19 @@ export function useSupabaseSession() {
 }
 
 export async function signOutSupabase() {
-  localStorage.removeItem(localSessionKey);
-  window.dispatchEvent(new Event(localAuthEvent));
-  if (!isSupabaseBrowserConfigured || useLocalAuth) return;
+  if (!isSupabaseBrowserConfigured || useLocalAuth) {
+    localStorage.removeItem(localSessionKey);
+    resetLearnerStorageOwner(true);
+    window.dispatchEvent(new Event(localAuthEvent));
+    return;
+  }
   const supabase = await getSupabaseClient();
-  if (supabase) await supabase.auth.signOut();
+  if (!supabase) throw new Error("Authentication is unavailable.");
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+  localStorage.removeItem(localSessionKey);
+  resetLearnerStorageOwner();
+  window.dispatchEvent(new Event(localAuthEvent));
 }
 
 export function createLocalSession(email) {
@@ -128,7 +158,7 @@ async function migrateProgressForSession(session) {
   if (localStorage.getItem(migrationKey)) return;
   let localProgress;
   try {
-    localProgress = JSON.parse(localStorage.getItem(learningProgressKey));
+    localProgress = JSON.parse(getLearnerItem(learningProgressKey));
   } catch {
     localProgress = null;
   }
@@ -138,7 +168,7 @@ async function migrateProgressForSession(session) {
   }
   try {
     const result = await migrateLocalProgress(localProgress);
-    localStorage.setItem(learningProgressKey, JSON.stringify(result.progress));
+    setLearnerItem(learningProgressKey, JSON.stringify(result.progress));
     localStorage.setItem(migrationKey, new Date().toISOString());
     window.dispatchEvent(new CustomEvent("pulsateach-progress-synced", { detail: result.progress }));
     recordLearningEvent({

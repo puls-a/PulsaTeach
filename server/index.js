@@ -11,11 +11,11 @@ import { getQuestionSetVersion, isProtectedExamLesson, sanitizeProgressExamEvide
 import { normalizePublishedCourse, validateCourseForPublication } from "../src/courseSchema.js";
 import { appendWorkflowLog, authorizeCourseTransition, createCourseVersion, diffCourseVersions, restoreCourseVersion } from "./courseWorkflow.js";
 import { productRoadmap } from "./roadmap.js";
-import { projectPublicTrack } from "./publicContent.js";
+import { decodeProtectedExamResponses, projectPublicTrack } from "./publicContent.js";
 import { sendWelcomeEmail, transactionalEmailEnabled } from "./emailService.js";
 import { applySecurity, localIdentityEnabled, sensitiveRateLimit } from "./security.js";
 import { checkSupabaseReadiness, deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, readSupabaseStore, requireSupabaseStorage, supabaseAdmin, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
-import { createSupabaseSubmission, findSupabaseIssuedCertificateByVerificationCode, findSupabaseQuizSession, insertSupabaseIssuedCertificate, listSupabaseIssuedCertificatesForUser, listSupabaseQuizSessionsForUser, reviewSupabaseSubmission, revokeSupabaseIssuedCertificate, saveSupabaseQuizDraft, submitSupabaseQuizSession } from "./supabaseSensitiveOperations.js";
+import { createSupabaseSubmission, findSupabaseIssuedCertificateByVerificationCode, findSupabaseQuizSession, issueSupabaseCertificateAtomic, listSupabaseIssuedCertificatesForUser, listSupabaseQuizSessionsForUser, reviewSupabaseSubmission, revokeSupabaseIssuedCertificate, saveSupabaseQuizDraft, submitSupabaseQuizSession } from "./supabaseSensitiveOperations.js";
 import { accountDeletionSchema, attemptSchema, avatarUploadSchema, certificateRevokeSchema, courseCreateSchema, courseRollbackSchema, courseUpdateSchema, enrollmentSchema, eventSchema, lessonDraftSchema, lessonDraftUpdateSchema, progressMigrationSchema, progressSchema, quizSessionSchema, quizSubmissionSchema, reviewSchema, roleUpdateSchema, submissionSchema, telemetrySchema, userSettingsSchema, validateBody } from "./validation.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -33,6 +33,7 @@ const learningEventsFile = path.join(dataDir, "learning-events.json");
 const quizSessionsFile = path.join(dataDir, "quiz-sessions.json");
 const port = process.env.PORT || 4174;
 const adminAccessKey = localIdentityEnabled ? process.env.PULSATEACH_ADMIN_KEY || "dev-admin-key" : "";
+const examTokenSecret = process.env.PULSATEACH_EXAM_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || adminAccessKey || "pulsateach-local-exam-token";
 const supabaseRetryDelayMs = 5 * 60 * 1000;
 let supabaseFallbackUntil = 0;
 const localWriteQueues = new Map();
@@ -101,6 +102,8 @@ const routeContext = {
   restoreCourseVersion,
   productRoadmap,
   projectPublicTrack,
+  decodeProtectedExamResponses,
+  examTokenSecret,
   sendWelcomeEmail,
   transactionalEmailEnabled,
   sensitiveRateLimit,
@@ -113,7 +116,7 @@ const routeContext = {
   createSupabaseSubmission,
   findSupabaseIssuedCertificateByVerificationCode,
   findSupabaseQuizSession,
-  insertSupabaseIssuedCertificate,
+  issueSupabaseCertificateAtomic,
   listIssuedCertificatesForUser,
   listSupabaseQuizSessionsForUser,
   reviewSupabaseSubmission,

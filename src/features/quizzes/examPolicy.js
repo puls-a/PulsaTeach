@@ -24,7 +24,7 @@ export function isProtectedExamLesson(lesson) {
 }
 
 export function getQuestionSetVersion(lesson) {
-  return `${lesson.id}:${lesson.examVersion || 1}`;
+  return `${lesson.id}:${lesson.examVersion || 2}`;
 }
 
 export function sanitizeProtectedReviewItems(items = {}) {

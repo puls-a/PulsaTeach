@@ -10,7 +10,7 @@ export default defineConfig({
   reporter: [["list"], ["html", { open: "never", outputFolder: "playwright-report-supabase" }]],
   use: {
     baseURL: "http://127.0.0.1:5190",
-    trace: "retain-on-failure",
+    trace: "off",
     screenshot: "only-on-failure"
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],

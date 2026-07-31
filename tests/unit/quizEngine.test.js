@@ -63,6 +63,14 @@ describe("quiz engine", () => {
     expect(draft.rationales).toEqual({ q2: "Because" });
   });
 
+  test("resets protected drafts from a different question-set version", () => {
+    const quiz = { id: "exam", questionSetVersion: "exam:2", questions: [{ id: "q1" }, { id: "q2" }] };
+    const current = createQuizDraft(quiz, { questionSetVersion: "exam:2", currentIndex: 1, responses: { q1: "current" } });
+    const stale = createQuizDraft(quiz, { questionSetVersion: "exam:1", currentIndex: 1, responses: { q1: "stale" } });
+    expect(current.responses).toEqual({ q1: "current" });
+    expect(stale).toMatchObject({ questionSetVersion: "exam:2", currentIndex: 0, responses: {}, rationales: {} });
+  });
+
   test("shuffles deterministically when a random source is supplied", () => {
     const values = [0, 0];
     expect(shuffleQuestions(["a", "b", "c"], () => values.shift())).toEqual(["b", "c", "a"]);

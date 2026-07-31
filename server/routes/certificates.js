@@ -16,7 +16,7 @@ export function registerCertificateRoutes(app, context) {
     sendApiError,
     buildCertificatesForUser,
     findSupabaseIssuedCertificateByVerificationCode,
-    insertSupabaseIssuedCertificate,
+    issueSupabaseCertificateAtomic,
     listIssuedCertificatesForUser,
     listSupabaseQuizSessionsForUser,
     revokeSupabaseIssuedCertificate,
@@ -99,11 +99,13 @@ export function registerCertificateRoutes(app, context) {
         revocationReason: null
       };
       if (useSupabase) {
-        const result = await insertSupabaseIssuedCertificate(candidate);
-        if (result.certificate.revokedAt) {
-          sendApiError(response, request, 409, "CERTIFICATE_REVOKED", "A revoked certificate cannot be reissued.");
-          return;
-        }
+        const result = await issueSupabaseCertificateAtomic(candidate, {
+          exams: evaluation.evidence.exams.required.map((quizId) => ({
+            quizId,
+            questionSetVersion: evaluation.evidence.exams.versions[quizId]
+          })),
+          projects: evaluation.evidence.projects
+        });
         response.status(result.created ? 201 : 200).json(result.certificate);
         return;
       }
@@ -132,11 +134,11 @@ export function registerCertificateRoutes(app, context) {
         learnerName: certificate.learnerName,
         title: certificate.title,
         certificateVersion: certificate.certificateVersion || 1,
-        evidence: certificate.evidence,
+        evidence: projectPublicCertificateEvidence(certificate.evidence),
         issuedAt: certificate.issuedAt,
         expiresAt: certificate.expiresAt || null,
         revokedAt: certificate.revokedAt,
-        revocationReason: certificate.revocationReason || null
+        revoked: Boolean(certificate.revokedAt)
       }
     });
   });
@@ -166,4 +168,21 @@ export function registerCertificateRoutes(app, context) {
       response.json(issued[index]);
     });
   });
+}
+
+function projectPublicCertificateEvidence(evidence = {}) {
+  const completedExams = Array.isArray(evidence.exams?.completed) ? evidence.exams.completed.length : null;
+  const requiredExams = Array.isArray(evidence.exams?.required) ? evidence.exams.required.length : null;
+  const hasProjectEvidence = Array.isArray(evidence.projects);
+  const approvedProjects = hasProjectEvidence
+    ? evidence.projects.filter((project) => project.submissionId).length
+    : evidence.progress?.projectsApproved;
+  const requiredProjects = hasProjectEvidence ? evidence.projects.length : evidence.progress?.projectsRequired;
+  return {
+    certificateVersion: evidence.certificateVersion || 1,
+    trackVersions: evidence.trackVersions || {},
+    skills: evidence.skills || [],
+    exams: { completed: completedExams, required: requiredExams },
+    projects: { approved: approvedProjects ?? null, required: requiredProjects ?? null }
+  };
 }

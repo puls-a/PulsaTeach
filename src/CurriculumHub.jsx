@@ -4,6 +4,7 @@ import { useSupabaseSession } from "./authState.js";
 import { canManageContent } from "./authRoles.js";
 import { LearnerPageHero, MetricCard, ProgressMeter } from "./components/LearnerUI.jsx";
 import { useLearningTracks } from "./useLearningTracks.js";
+import { getLearnerItem } from "./learnerStorage.js";
 
 const trackPresentation = {
   tools: { icon: Laptop, tone: "bg-slate-100 text-slate-700" },
@@ -136,7 +137,7 @@ function countLessons(track) {
 
 function readProgress() {
   try {
-    return JSON.parse(localStorage.getItem("pulsateach-learning-progress")) || { completed: {} };
+    return JSON.parse(getLearnerItem("pulsateach-learning-progress")) || { completed: {} };
   } catch {
     return { completed: {} };
   }
@@ -144,7 +145,7 @@ function readProgress() {
 
 function readCourseDrafts() {
   try {
-    return JSON.parse(localStorage.getItem("pulsateach-course-drafts")) || [];
+    return JSON.parse(getLearnerItem("pulsateach-course-drafts")) || [];
   } catch {
     return [];
   }

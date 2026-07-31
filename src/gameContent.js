@@ -114,7 +114,7 @@ export const gameBadges = [
 
 export function readGameProgress() {
   try {
-    return JSON.parse(localStorage.getItem("pulsateach-game-progress")) || { xp: 0, badges: {}, missions: {} };
+    return JSON.parse(getLearnerItem("pulsateach-game-progress")) || { xp: 0, badges: {}, missions: {} };
   } catch {
     return { xp: 0, badges: {}, missions: {} };
   }
@@ -130,7 +130,8 @@ export function awardGameMission(missionId, xp, badgeId) {
     badges: badgeId ? { ...(progress.badges || {}), [badgeId]: true } : { ...(progress.badges || {}) }
   };
 
-  localStorage.setItem("pulsateach-game-progress", JSON.stringify(next));
+  setLearnerItem("pulsateach-game-progress", JSON.stringify(next));
   window.dispatchEvent(new CustomEvent("pulsateach-game-progress", { detail: next }));
   return next;
 }
+import { getLearnerItem, setLearnerItem } from "./learnerStorage.js";

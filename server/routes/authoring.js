@@ -108,12 +108,12 @@ export function registerAuthoringRoutes(app, context) {
     const store = await readJsonStore(enrollmentsFile, []);
     const existing = store.find((item) => item.email === email);
     if (existing) {
-      response.json({ ...existing, duplicate: true });
+      response.status(202).json({ accepted: true });
       return;
     }
 
     const enrollment = {
-      id: `enr-${Date.now()}`,
+      id: `enr-${randomUUID()}`,
       email,
       locale: String(payload.locale || "en"),
       source: String(payload.source || "landing"),
@@ -122,7 +122,7 @@ export function registerAuthoringRoutes(app, context) {
     };
     store.unshift(enrollment);
     await writeJsonStore(enrollmentsFile, store.slice(0, 2000));
-    response.status(201).json(enrollment);
+    response.status(202).json({ accepted: true });
   });
 
   app.get("/api/lesson-drafts", requireRole("admin", "author", "reviewer"), async (request, response) => {
@@ -142,7 +142,7 @@ export function registerAuthoringRoutes(app, context) {
     const store = await readJsonStore(draftsFile, []);
     const now = new Date().toISOString();
     const draft = {
-      id: `draft-${Date.now()}`,
+      id: `draft-${randomUUID()}`,
       trackId: String(payload.trackId),
       moduleId: String(payload.moduleId || "backlog"),
       title: normalizeLocalizedText(payload.title),

@@ -7,6 +7,7 @@ import { learningTracks } from "../../src/content/allTrackRegistry.js";
 import { normalizeQuizLesson } from "../../src/features/quizzes/quizEngine.js";
 import { getQuestionSetVersion } from "../../src/features/quizzes/examPolicy.js";
 import { certificates } from "../../server/certificateCatalog.js";
+import { encodeProtectedExamResponses } from "../../server/publicContent.js";
 
 const testDataDir = path.join(process.cwd(), "test-results", "api-security-data");
 let app;
@@ -17,6 +18,7 @@ beforeAll(async () => {
   process.env.PULSATEACH_ALLOW_LOCAL_IDENTITY = "true";
   process.env.PULSATEACH_DATA_DIR = testDataDir;
   process.env.PULSATEACH_ADMIN_KEY = "test-admin-key";
+  process.env.PULSATEACH_EXAM_SECRET = "test-exam-secret";
   ({ default: app } = await import("../../server/index.js"));
 });
 
@@ -38,7 +40,7 @@ describe("API security boundaries", () => {
     expect(fullTrack.body.track.id).toBe("git");
     expect(fullTrack.body.track.modules[0].lessons[0].course).toBeDefined();
     const publicExam = fullTrack.body.track.modules.flatMap((module) => module.lessons).find((lesson) => lesson.id === "git-final-exam");
-    expect(publicExam).toMatchObject({ gradingMode: "server", questionSetVersion: "git-final-exam:1" });
+    expect(publicExam).toMatchObject({ gradingMode: "server", questionSetVersion: "git-final-exam:2" });
     expect(publicExam.questions[0]).not.toHaveProperty("answer");
     expect(publicExam.questions[0]).not.toHaveProperty("explanation");
 
@@ -55,6 +57,7 @@ describe("API security boundaries", () => {
       ok: true,
       checks: { database: { ok: false } }
     });
+    expect(ready.body.checks.database).not.toHaveProperty("error");
   });
 
   test("sanitizes request IDs and accepts privacy-preserving telemetry", async () => {
@@ -155,17 +158,24 @@ describe("API security boundaries", () => {
 
   test("persists quiz drafts without exposing them to another learner", async () => {
     await request(app)
-      .put("/api/quizzes/html-quiz/session")
+      .put("/api/quizzes/git-final-exam/session")
       .set("X-PulsaTeach-User-Id", "user-a")
-      .send({ currentIndex: 1, responses: { q1: "label" }, rationales: {} })
+      .send({ questionSetVersion: "git-final-exam:2", currentIndex: 1, responses: { q1: "label" }, rationales: {} })
       .expect(200);
 
     const forgedScore = await request(app)
-      .put("/api/quizzes/html-quiz/session")
+      .put("/api/quizzes/git-final-exam/session")
       .set("X-PulsaTeach-User-Id", "user-a")
-      .send({ currentIndex: 1, responses: {}, rationales: {}, status: "completed", score: { passed: true } })
+      .send({ questionSetVersion: "git-final-exam:2", currentIndex: 1, responses: {}, rationales: {}, status: "completed", score: { passed: true } })
       .expect(400);
     expect(forgedScore.body.error.code).toBe("VALIDATION_ERROR");
+
+    const staleDraft = await request(app)
+      .put("/api/quizzes/git-final-exam/session")
+      .set("X-PulsaTeach-User-Id", "user-c")
+      .send({ questionSetVersion: "git-final-exam:1", currentIndex: 0, responses: {}, rationales: {} })
+      .expect(409);
+    expect(staleDraft.body.error.code).toBe("QUIZ_VERSION_CONFLICT");
 
     const unknownQuiz = await request(app)
       .post("/api/quizzes/unknown-quiz/submit")
@@ -175,18 +185,26 @@ describe("API security boundaries", () => {
     expect(unknownQuiz.body.error.code).toBe("QUIZ_NOT_FOUND");
 
     const own = await request(app)
-      .get("/api/quizzes/html-quiz/session")
+      .get("/api/quizzes/git-final-exam/session")
       .set("X-PulsaTeach-User-Id", "user-a")
       .expect(200);
     expect(own.body.responses).toEqual({ q1: "label" });
 
     const other = await request(app)
-      .get("/api/quizzes/html-quiz/session")
+      .get("/api/quizzes/git-final-exam/session")
       .set("X-PulsaTeach-User-Id", "user-b")
       .expect(200);
     expect(other.body).toBeNull();
 
-    await request(app).get("/api/quizzes/html-quiz/session").expect(401);
+    await request(app).get("/api/quizzes/git-final-exam/session").expect(401);
+  });
+
+  test("does not reveal whether an enrollment email already exists", async () => {
+    const payload = { email: "privacy@example.com", locale: "fr", source: "landing" };
+    const created = await request(app).post("/api/enrollments").send(payload).expect(202);
+    const duplicate = await request(app).post("/api/enrollments").send(payload).expect(202);
+    expect(created.body).toEqual({ accepted: true });
+    expect(duplicate.body).toEqual(created.body);
   });
 
   test("returns only aggregate protected exam results", async () => {
@@ -194,10 +212,25 @@ describe("API security boundaries", () => {
     const lesson = learningTracks.flatMap((track) => track.modules.flatMap((module) => module.lessons))
       .find((item) => item.id === "git-final-exam");
     const question = normalizeQuizLesson(lesson, { expand: false }).questions[0];
+    const forged = await request(app)
+      .post(`/api/quizzes/${lesson.id}/submit`)
+      .set("X-PulsaTeach-User-Id", "forged-token-user")
+      .send({ questionSetVersion: getQuestionSetVersion(lesson), responses: { [question.id]: "forged-token" }, rationales: {} })
+      .expect(400);
+    expect(forged.body.error.code).toBe("INVALID_QUIZ_RESPONSE");
+    await request(app)
+      .post(`/api/quizzes/${lesson.id}/submit`)
+      .set("X-PulsaTeach-User-Id", "forged-token-user")
+      .send({ questionSetVersion: getQuestionSetVersion(lesson), responses: {}, rationales: {} })
+      .expect(200);
     const graded = await request(app)
       .post(`/api/quizzes/${lesson.id}/submit`)
       .set(learner)
-      .send({ questionSetVersion: getQuestionSetVersion(lesson), responses: { [question.id]: question.answer }, rationales: {} })
+      .send({
+        questionSetVersion: getQuestionSetVersion(lesson),
+        responses: encodeProtectedExamResponses(normalizeQuizLesson(lesson, { expand: false }), { [question.id]: question.answer }, "test-exam-secret"),
+        rationales: {}
+      })
       .expect(200);
     expect(graded.body.score).toMatchObject({ passed: false, percent: expect.any(Number) });
     expect(graded.body.score).not.toHaveProperty("results");
@@ -475,10 +508,11 @@ describe("API security boundaries", () => {
     const requiredExams = requiredLessons.filter((lesson) => lesson.purpose === "exam" || /final-exam|exam/i.test(lesson.id));
     for (const lesson of requiredExams) {
       const quiz = normalizeQuizLesson(lesson, { expand: false });
-      const responses = Object.fromEntries(quiz.questions.map((question) => [
+      const canonicalResponses = Object.fromEntries(quiz.questions.map((question) => [
         question.id,
         question.type === "short-open" ? (question.keywords || question.answer).join(" ") : question.answer
       ]));
+      const responses = encodeProtectedExamResponses(quiz, canonicalResponses, "test-exam-secret");
       const graded = await request(app)
         .post(`/api/quizzes/${lesson.id}/submit`)
         .set(learner)
@@ -516,6 +550,8 @@ describe("API security boundaries", () => {
       .toBe(firstIssue.body.verificationCode);
     const publicCertificate = await request(app).get(`/api/certificates/public/${firstIssue.body.verificationCode}`).expect(200);
     expect(publicCertificate.body).toMatchObject({ valid: true, status: "valid" });
+    expect(publicCertificate.body.certificate.evidence.projects).toEqual({ approved: definition.requiredProjects.length, required: definition.requiredProjects.length });
+    expect(JSON.stringify(publicCertificate.body)).not.toContain("submissionId");
 
     const revoked = await request(app)
       .patch(`/api/certificates/${firstIssue.body.id}/revoke`)
@@ -569,6 +605,8 @@ describe("API security boundaries", () => {
     const valid = await request(app).get("/api/certificates/public/verify-test").expect(200);
     expect(valid.body).toMatchObject({ valid: true, status: "valid" });
     expect(valid.body.certificate.evidence.skills).toEqual(["semantic-html"]);
+    expect(valid.body.certificate.evidence.exams).toEqual({ completed: null, required: null });
+    expect(valid.body.certificate.evidence.projects).toEqual({ approved: 1, required: 1 });
     expect(await request(app).get("/api/certificates/public/verify-missing").expect(404).then((result) => result.body.error.code)).toBe("CERTIFICATE_NOT_FOUND");
     expect(await request(app).get("/api/certificates/public/verify-expired").expect(200).then((result) => result.body.status)).toBe("expired");
 
@@ -579,7 +617,7 @@ describe("API security boundaries", () => {
       .expect(200);
     const revoked = await request(app).get("/api/certificates/public/verify-test").expect(200);
     expect(revoked.body).toMatchObject({ valid: false, status: "revoked" });
-    expect(revoked.body.certificate.revocationReason).toContain("invalidated");
+    expect(revoked.body.certificate).not.toHaveProperty("revocationReason");
   });
 
   test("pseudonymizes learning events and documents aggregate privacy rules", async () => {

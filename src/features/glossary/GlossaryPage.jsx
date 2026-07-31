@@ -3,6 +3,7 @@ import { Bookmark, BookmarkCheck, BookOpen, Languages, Search, Volume2 } from "l
 import { getGlossary } from "../../apiClient.js";
 import { getGlossaryTerm, searchGlossary } from "./glossaryIndex.js";
 import { currentPathSegments } from "../../navigation.js";
+import { getLearnerItem, setLearnerItem } from "../../learnerStorage.js";
 
 const favoritesKey = "pulsateach-glossary-favorites";
 const historyKey = "pulsateach-glossary-history";
@@ -159,7 +160,7 @@ function Filter({ label, value, onChange, options }) {
 
 function readList(key) {
   try {
-    return JSON.parse(localStorage.getItem(key)) || [];
+    return JSON.parse(getLearnerItem(key)) || [];
   } catch {
     return [];
   }
@@ -167,13 +168,13 @@ function readList(key) {
 
 function toggleStored(key, values, value) {
   const next = values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
-  localStorage.setItem(key, JSON.stringify(next));
+  setLearnerItem(key, JSON.stringify(next));
   return next;
 }
 
 function remember(slug) {
   const history = readList(historyKey).filter((item) => item !== slug);
-  localStorage.setItem(historyKey, JSON.stringify([slug, ...history].slice(0, 20)));
+  setLearnerItem(historyKey, JSON.stringify([slug, ...history].slice(0, 20)));
 }
 
 function readSelectedSlug() {

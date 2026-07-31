@@ -30,11 +30,14 @@ for (const requirement of [
   "review_submission_atomic",
   "save_quiz_draft_atomic",
   "submit_quiz_session_atomic",
+  "issue_certificate_atomic",
   "pg_advisory_xact_lock",
   "enable row level security"
 ]) {
   if (!combined.includes(requirement)) failures.push(`Missing migration contract: ${requirement}`);
 }
+if (!/issue_certificate_atomic\s*\(\s*p_id uuid/.test(combined)) failures.push("Atomic certificate issuance must use the issued_certificates UUID id type.");
+if (!combined.includes("draftquestionsetversion")) failures.push("Quiz drafts must persist their question-set version.");
 
 if (failures.length) {
   console.error(`Migration audit failed:\n${failures.join("\n")}`);
