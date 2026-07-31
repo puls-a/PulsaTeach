@@ -38,6 +38,7 @@ for (const requirement of [
 }
 if (!/issue_certificate_atomic\s*\(\s*p_id uuid/.test(combined)) failures.push("Atomic certificate issuance must use the issued_certificates UUID id type.");
 if (!combined.includes("draftquestionsetversion")) failures.push("Quiz drafts must persist their question-set version.");
+if (!combined.includes("regexp_replace(v_definition, '''pt[0-9]{3}''', '''p0001'''")) failures.push("RPC business errors must not use PostgREST PTxxx HTTP status overrides.");
 
 if (failures.length) {
   console.error(`Migration audit failed:\n${failures.join("\n")}`);
