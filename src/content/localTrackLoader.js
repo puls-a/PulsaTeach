@@ -60,6 +60,7 @@ export async function loadAllLocalTracks() {
 
 async function loadCssTrack(options = {}) {
   if (!options.moduleId) return loadFullCssTrack();
+  if (options.moduleId === "css-getting-started") return loadRemoteTrack("css");
   const load = cssModuleLoaders[options.moduleId];
   if (load) return load();
   return resolveCssGroup(options.moduleId) === "responsive"

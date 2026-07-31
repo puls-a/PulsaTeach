@@ -47,6 +47,11 @@ test("lesson routes expose unique course metadata", async ({ page }) => {
   ]));
 });
 
+test("canonical CSS intro route opens the requested lesson", async ({ page }) => {
+  await gotoRoute(page, "/learn/css/css-getting-started/css-00-what-css-does");
+  await expect(page.getByRole("heading", { level: 1, name: /Ce que CSS fait vraiment|What CSS really does/ })).toBeVisible();
+});
+
 test("tools formation links to a valid first lesson", async ({ page }) => {
   await page.goto("/formations/tools", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: /Premiers outils de développement|First development tools/ })).toBeVisible();

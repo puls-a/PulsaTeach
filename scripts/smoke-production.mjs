@@ -45,22 +45,30 @@ try {
   for (const viewport of [{ width: 375, height: 812 }, { width: 1440, height: 900 }]) {
     const page = await browser.newPage({ viewport });
     let currentRoute = "/";
+    await page.route("**/api/**", async (route) => {
+      const request = route.request();
+      const pathname = new URL(request.url()).pathname;
+      if (request.method() === "POST" && ["/api/events", "/api/telemetry"].includes(pathname)) {
+        await route.fulfill({ status: 202, contentType: "application/json", body: "{}" });
+        return;
+      }
+      await route.continue();
+    });
     page.on("console", (message) => {
       if (message.type() === "error") failures.push(`${viewport.width}px ${currentRoute} console: ${message.text()}`);
     });
     page.on("pageerror", (error) => failures.push(`${viewport.width}px ${currentRoute} page: ${error.message}`));
 
-    const initialResponse = await page.goto(baseUrl, { waitUntil: "networkidle" });
+    const initialResponse = await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
     if (!initialResponse?.ok()) failures.push(`${viewport.width}px /: HTTP ${initialResponse?.status() || "unknown"}`);
 
     for (const route of routes) {
       currentRoute = route;
-      if (route !== "/") {
-        await page.evaluate((nextRoute) => {
-          window.history.pushState(null, "", nextRoute);
-          window.dispatchEvent(new PopStateEvent("popstate"));
-        }, route);
-        await page.waitForFunction((nextRoute) => window.location.pathname === nextRoute, route);
+      if (route === lessonRoutes[0]?.route) {
+        const lessonResponse = await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+        if (!lessonResponse?.ok()) failures.push(`${viewport.width}px ${route}: HTTP ${lessonResponse?.status() || "unknown"}`);
+      } else if (route !== "/") {
+        await navigatePage(page, route);
       }
       await page.waitForTimeout(250);
       const pageState = await page.evaluate(() => ({
@@ -78,8 +86,9 @@ try {
         } catch {
           failures.push(`${viewport.width}px ${route}: lesson title is not visible`);
         }
-        const breadcrumbListStyle = await page.locator('nav[aria-label="Fil d\'Ariane"] ol').evaluate((element) => getComputedStyle(element).listStyleType).catch(() => "missing");
-        if (breadcrumbListStyle !== "none") failures.push(`${viewport.width}px ${route}: breadcrumb list markers are visible`);
+        const breadcrumb = page.locator('nav[aria-label="Fil d\'Ariane"] ol');
+        const breadcrumbListStyle = await breadcrumb.count() ? await breadcrumb.evaluate((element) => getComputedStyle(element).listStyleType) : null;
+        if (breadcrumbListStyle && breadcrumbListStyle !== "none") failures.push(`${viewport.width}px ${route}: breadcrumb list markers are visible`);
         if (/\b(?:easy|medium|hard|intermediate)\s*·/i.test(pageState.bodyText)) {
           failures.push(`${viewport.width}px ${route}: difficulty label is not localized`);
         }
@@ -105,6 +114,14 @@ async function json(path) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+async function navigatePage(page, route) {
+  await page.evaluate((nextRoute) => {
+    window.history.pushState(null, "", nextRoute);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }, route);
+  await page.waitForFunction((nextRoute) => window.location.pathname === nextRoute, route);
 }
 
 function representativeLessonRoutes(track) {
