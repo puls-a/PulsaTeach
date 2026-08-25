@@ -1,3 +1,5 @@
+import { expandQuizQuestions } from "../../features/quizzes/quizEngine.js";
+
 export function createProfessionalTrack(config) {
   return {
     id: config.id,
@@ -103,6 +105,8 @@ function createQuizLesson(track, module, lesson) {
     fr: pedagogyLocale(track, { ...lesson, title: [title.fr, title.en], solution: "" }, vocabulary, "fr"),
     en: pedagogyLocale(track, { ...lesson, title: [title.fr, title.en], solution: "" }, vocabulary, "en")
   };
+  // Compile scenario-linked variants into curriculum data once; the quiz runtime never pads assessments.
+  const questions = expandQuizQuestions(lesson.questions, lesson.purpose === "exam" ? 10 : 6);
   return {
     id: lesson.id,
     type: "quiz",
@@ -122,7 +126,7 @@ function createQuizLesson(track, module, lesson) {
     starterCode: "",
     solution: "",
     tests: [{ type: "quiz", label: "Passing score", value: String(lesson.passingScore || 70) }],
-    questions: lesson.questions.map(normalizeQuestion),
+    questions: questions.map(normalizeQuestion),
     passingScore: lesson.passingScore || 70,
     randomizeQuestions: lesson.randomizeQuestions !== false,
     feedbackMode: lesson.feedbackMode || "immediate",
@@ -162,7 +166,7 @@ function courseLocale(track, module, lesson, vocabulary, locale) {
     vocabulary: vocabulary.map((entry) => [entry[index], entry[index + 2]]),
     sections: [
       { title: locale === "fr" ? "Le problème à résoudre" : "The problem to solve", paragraphs: [module.description[index], brief, professionalContext], example: lesson.badExample || "" },
-      { title: locale === "fr" ? "Le contrat de la solution" : "The solution contract", paragraphs: [implementation, reviewChecklist], example: resolveLocaleValue(lesson.solution || lesson.example || "", locale) },
+      { title: locale === "fr" ? "Le contrat de la solution" : "The solution contract", paragraphs: [implementation, reviewChecklist], example: resolveLocaleValue(lesson.verificationExample || lesson.starterCode || "", locale) },
       { title: locale === "fr" ? "La preuve attendue" : "Expected evidence", paragraphs: [verification, requirements.length ? (locale === "fr" ? `Contrôles ciblés : ${requirements.join(" · ")}.` : `Targeted checks: ${requirements.join(" · ")}.`) : "", productionTransfer].filter(Boolean), example: resolveLocaleValue(lesson.verificationExample || "", locale) }
     ],
     rules: requirements.slice(0, 3).length ? requirements.slice(0, 3) : [brief, verification],

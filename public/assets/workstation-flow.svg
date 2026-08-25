@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 220" role="img" aria-labelledby="title desc">
+  <title id="title">Workstation learning loop</title>
+  <desc id="desc">Create a file, edit it, save it, reload the preview, then observe the result.</desc>
+  <rect width="960" height="220" rx="28" fill="#10102b"/>
+  <g font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">
+    <g fill="#e0e7ff"><rect x="34" y="66" width="142" height="88" rx="18" fill="#312e81"/><text x="105" y="112">Create</text><text x="105" y="139">files</text></g>
+    <g fill="#d1fae5"><rect x="225" y="66" width="142" height="88" rx="18" fill="#065f46"/><text x="296" y="112">Edit</text><text x="296" y="139">content</text></g>
+    <g fill="#fef3c7"><rect x="416" y="66" width="142" height="88" rx="18" fill="#92400e"/><text x="487" y="112">Save</text><text x="487" y="139">changes</text></g>
+    <g fill="#dbeafe"><rect x="607" y="66" width="142" height="88" rx="18" fill="#1e40af"/><text x="678" y="112">Reload</text><text x="678" y="139">preview</text></g>
+    <g fill="#fce7f3"><rect x="798" y="66" width="128" height="88" rx="18" fill="#9d174d"/><text x="862" y="112">Observe</text><text x="862" y="139">evidence</text></g>
+  </g>
+  <g stroke="#a5b4fc" stroke-width="8" stroke-linecap="round"><path d="M184 110h28"/><path d="M375 110h28"/><path d="M566 110h28"/><path d="M757 110h28"/></g>
+</svg>

@@ -83,6 +83,11 @@ export default function LandingPage({ locale = "fr" }) {
                 ? "Pas de vidéos à collectionner. Tu codes, tu testes, tu expliques tes choix et tu termines chaque parcours avec un projet que tu peux montrer."
                 : "No videos to collect. You code, test, explain your choices, and finish every path with a project you can show."}
             </p>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+              {fr
+                ? "PulsaTeach est une plateforme gratuite pour apprendre le développement web : cours HTML, CSS, JavaScript, React, TypeScript, Node.js et projets pratiques directement dans le navigateur."
+                : "PulsaTeach is a free platform for learning web development through HTML, CSS, JavaScript, React, TypeScript, Node.js, and hands-on browser-based projects."}
+            </p>
 
             <div className="mt-6 grid max-w-3xl grid-cols-2 gap-2.5 sm:mt-7 sm:gap-3">
               {benefits.map(([Icon, title, text]) => (

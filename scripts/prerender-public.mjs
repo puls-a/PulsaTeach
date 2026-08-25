@@ -1,15 +1,18 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { learningTracks } from "../src/content/allTrackRegistry.js";
+import { publicTrackCatalog } from "../src/content/publicTrackCatalog.js";
 import { buildGlossaryIndex } from "../src/features/glossary/glossaryIndex.js";
 
 const siteUrl = "https://pulsateach.vercel.app";
 const distUrl = new URL("../dist/", import.meta.url);
 const template = await readFile(new URL("index.html", distUrl), "utf8");
+const publicTrackIds = new Set(publicTrackCatalog.map((track) => track.id));
+const publicTracks = learningTracks.filter((track) => publicTrackIds.has(track.id));
 
 await renderPage("", {
   title: "PulsaTeach : apprendre le développement web gratuitement",
   description: "Formations gratuites en HTML, CSS, JavaScript, React, TypeScript, Node.js, SQL, Git, tests, accessibilité, sécurité et performance web.",
-  body: `<main><h1>Apprendre le développement web en construisant</h1><p>PulsaTeach propose ${learningTracks.length} formations gratuites, ${lessonTotal()} leçons bilingues, des quiz, des projets, des révisions et des certificats vérifiables.</p><p><a href="/catalog">Voir les formations gratuites</a> <a href="/learn/html/html-foundations/html-01-document-skeleton">Essayer une leçon HTML</a></p><section><h2>Formations disponibles</h2>${learningTracks.slice(0, 8).map(trackCard).join("")}</section><section><h2>Pourquoi PulsaTeach ?</h2><p>Chaque parcours relie théorie, vocabulaire, pratique guidée, validation, projet final et certification. L’objectif est de comprendre, construire et prouver sa progression.</p></section></main>`,
+  body: `<main><h1>Apprendre le développement web en construisant</h1><p>PulsaTeach propose ${publicTracks.length} formations gratuites, ${lessonTotal()} leçons bilingues, des quiz, des projets, des révisions et des certificats vérifiables.</p><p><a href="/catalog">Voir les formations gratuites</a> <a href="/learn/html/html-foundations/html-01-document-skeleton">Essayer une leçon HTML</a></p><section><h2>Formations disponibles</h2>${publicTracks.map(trackCard).join("")}</section><section><h2>Pourquoi PulsaTeach ?</h2><p>Chaque parcours relie théorie, vocabulaire, pratique guidée, validation, projet final et certification. L’objectif est de comprendre, construire et prouver sa progression.</p></section></main>`,
   schema: homeSchema()
 });
 
@@ -23,7 +26,7 @@ await renderPage("about", {
 await renderPage("catalog", {
   title: "Formations développement web gratuites | PulsaTeach",
   description: "Apprends HTML, CSS, JavaScript, React, TypeScript, Node.js, SQL, Git, les tests, la sécurité et la performance avec des parcours gratuits, quiz, projets et certificats.",
-  body: `<main><h1>Formations gratuites en développement web</h1><p>Apprends par la pratique avec ${lessonTotal()} leçons bilingues, des quiz approfondis, des exercices guidés, des mini-projets, des examens et des certificats vérifiables.</p><section><h2>Parcours disponibles</h2>${learningTracks.map(trackCard).join("")}</section><section><h2>Comment apprendre sur PulsaTeach ?</h2><p>Chaque parcours combine contexte professionnel, vocabulaire, exemples, erreurs fréquentes, quiz multi-types, révision et projets. Les cours sont pensés pour progresser depuis les bases jusqu’à un livrable démontrable.</p></section></main>`,
+  body: `<main><h1>Formations gratuites en développement web</h1><p>Apprends par la pratique avec ${lessonTotal()} leçons bilingues, des quiz approfondis, des exercices guidés, des mini-projets, des examens et des certificats vérifiables.</p><section><h2>Parcours disponibles</h2>${publicTracks.map(trackCard).join("")}</section><section><h2>Comment apprendre sur PulsaTeach ?</h2><p>Chaque parcours combine contexte professionnel, vocabulaire, exemples, erreurs fréquentes, quiz multi-types, révision et projets. Les cours sont pensés pour progresser depuis les bases jusqu’à un livrable démontrable.</p></section></main>`,
   schema: collectionSchema()
 });
 
@@ -49,7 +52,7 @@ await renderPage("projects", {
   schema: aboutSchema()
 });
 
-for (const track of learningTracks) {
+for (const track of publicTracks) {
   const route = `formations/${track.id}`;
   const title = `Formation ${track.title.fr} en ligne gratuite | PulsaTeach`;
   const description = `Rejoins la formation complète et gratuite sur ${track.title.fr}. Apprends par la pratique avec des leçons interactives, des quiz et des projets.`;
@@ -61,7 +64,7 @@ for (const track of learningTracks) {
   });
 }
 
-for (const track of learningTracks) {
+for (const track of publicTracks) {
   for (const module of track.modules) {
     for (const lesson of module.lessons) {
       const route = `learn/${track.id}/${module.id}/${lesson.id}`;
@@ -77,19 +80,13 @@ for (const track of learningTracks) {
   }
 }
 
-console.log(`Prerendered ${learningTracks.reduce((sum, track) => sum + track.modules.reduce((inner, module) => inner + module.lessons.length, 0), 0) + 4} public pages.`);
+console.log(`Prerendered ${publicTracks.reduce((sum, track) => sum + track.modules.reduce((inner, module) => inner + module.lessons.length, 0), 0) + 4} public pages.`);
 
 async function renderPage(route, page) {
   const canonical = route ? `${siteUrl}/${route}` : `${siteUrl}/`;
-  const hreflangTags = [
-    `<link rel="alternate" hreflang="fr" href="${canonical}" />`,
-    `<link rel="alternate" hreflang="en" href="${canonical}" />`,
-    `<link rel="alternate" hreflang="x-default" href="${canonical}" />`
-  ].join("\n    ");
-
   const html = template
     .replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(page.title)}</title>`)
-    .replace(/<link rel="canonical" href="[^"]*"\s*\/>/, `<link rel="canonical" href="${canonical}" />\n    ${hreflangTags}`)
+    .replace(/<link rel="canonical" href="[^"]*"\s*\/>/, `<link rel="canonical" href="${canonical}" />`)
     .replace(/<meta\s+name="description"\s+content="[^"]*"\s*\/>/s, `<meta name="description" content="${escapeAttribute(page.description)}" />`)
     .replace(/<meta property="og:title" content="[^"]*"\s*\/>/, `<meta property="og:title" content="${escapeAttribute(page.title)}" />`)
     .replace(/<meta property="og:description" content="[^"]*"\s*\/>/, `<meta property="og:description" content="${escapeAttribute(page.description)}" />`)
@@ -114,14 +111,14 @@ function trackCard(track) {
 function lessonBody(track, module, lesson) {
   const course = lesson.course?.fr || {};
   const vocabulary = (course.vocabulary || []).slice(0, 5).map((entry) => `<li><strong>${escapeHtml(entry[0])}</strong> — ${escapeHtml(entry[1])}</li>`).join("");
-  const sections = (course.sections || []).map((section) => `<section><h2>${escapeHtml(section.title)}</h2>${(section.paragraphs || []).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}${section.example ? `<pre><code>${escapeHtml(section.example)}</code></pre>` : ""}</section>`).join("");
+  const sections = (course.sections || []).map((section) => `<section><h2>${escapeHtml(section.title)}</h2>${(section.paragraphs || []).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}</section>`).join("");
   const objectives = (course.objectives || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
   const checks = (course.check || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
   return `<main><nav><a href="/catalog">Formations</a> / ${escapeHtml(track.title.fr)} / ${escapeHtml(module.title.fr)}</nav><article><h1>${escapeHtml(lesson.title.fr)}</h1><p>${escapeHtml(lesson.brief?.fr || "")}</p><section><h2>Objectifs de la leçon</h2><ul>${objectives}</ul></section>${sections}<section><h2>Vocabulaire lié</h2><ul>${vocabulary}</ul></section><section><h2>Validation</h2><ul>${checks}</ul><p>${escapeHtml(course.summary || "")}</p></section><p><a href="/learn/${track.id}/${module.id}/${lesson.id}">Ouvrir la leçon interactive</a></p></article></main>`;
 }
 
 function lessonTotal() {
-  return learningTracks.reduce((sum, track) => sum + track.modules.reduce((inner, module) => inner + module.lessons.length, 0), 0);
+  return publicTracks.reduce((sum, track) => sum + track.modules.reduce((inner, module) => inner + module.lessons.length, 0), 0);
 }
 
 function courseSchema(track, module, lesson, route, description) {
@@ -129,12 +126,11 @@ function courseSchema(track, module, lesson, route, description) {
   return {
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "Course", name: lesson.title.fr, description, url, inLanguage: ["fr", "en"], isAccessibleForFree: true, provider: { "@type": "Organization", name: "PulsaTeach", url: siteUrl } },
       { "@type": "LearningResource", name: lesson.title.fr, description, url, inLanguage: ["fr", "en"], educationalLevel: track.level?.fr || "Débutant à intermédiaire", teaches: lesson.skills || [], timeRequired: `PT${lesson.durationMin || 30}M`, isAccessibleForFree: true },
       { "@type": "BreadcrumbList", itemListElement: [
         listItem(1, "Accueil", `${siteUrl}/`),
         listItem(2, "Formations", `${siteUrl}/catalog`),
-        listItem(3, track.title.fr, `${siteUrl}/learn/${track.id}/${module.id}/${lesson.id}`),
+        listItem(3, track.title.fr, `${siteUrl}/formations/${track.id}`),
         listItem(4, lesson.title.fr, url)
       ] }
     ]

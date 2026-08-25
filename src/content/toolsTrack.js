@@ -167,7 +167,7 @@ export const toolsTrack = {
   modules: [toolsModule]
 };
 
-function setupLesson({ id, type = "html", title, brief, durationMin, course, artifact }) {
+function setupLesson({ id, type = "workstation", title, brief, durationMin, course, artifact }) {
   artifact = localizeArtifact(id, artifact);
   const pedagogy = {
     fr: lessonPedagogy(course.fr, brief[0], type === "project"),
@@ -176,6 +176,8 @@ function setupLesson({ id, type = "html", title, brief, durationMin, course, art
   return {
     id,
     type,
+    runtime: "workstation",
+    workstation: workstationContract(id),
     title: { fr: title[0], en: title[1] },
     brief: { fr: brief[0], en: brief[1] },
     course,
@@ -190,10 +192,22 @@ function setupLesson({ id, type = "html", title, brief, durationMin, course, art
     durationMin,
     starterCode: artifact.starterCode,
     solution: artifact.solution,
-    tests: artifact.tests,
+    tests: workstationContract(id).required.map((requirement) => ({ type: "workstation", label: requirement, value: requirement })),
     hint: { fr: artifact.hint[0], en: artifact.hint[1] },
     xp: type === "project" ? 120 : 60
   };
+}
+
+function workstationContract(id) {
+  const required = {
+    "tools-01-vscode": ["folder", "file", "environment", "observe"],
+    "tools-02-php": ["folder", "file", "terminal", "path"],
+    "tools-03-postgresql": ["file", "save", "reload", "observe"],
+    "tools-04-project-notes": ["file", "save", "reload", "notes"],
+    "tools-05-troubleshooting": ["file", "diagnosis", "privacy", "observe"],
+    "tools-06-workstation-project": ["folder", "file", "terminal", "save", "reload", "diagnosis"]
+  };
+  return { required: required[id] || [] };
 }
 
 function lessonPedagogy(course, summary, project) {

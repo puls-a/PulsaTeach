@@ -1,4 +1,6 @@
-export const publicTrackCatalog = [
+const visibleTrackIds = new Set(["tools", "html", "css"]);
+
+const allTrackCatalog = [
   {
     id: "tools",
     label: "TOOLS",
@@ -127,12 +129,14 @@ export const publicTrackCatalog = [
   }
 ];
 
+export const publicTrackCatalog = allTrackCatalog.filter((track) => visibleTrackIds.has(track.id));
+
 const totalLessons = publicTrackCatalog.reduce((sum, track) => sum + (track.lessons || 0), 0);
 
 export const publicLearningStats = {
   tracks: publicTrackCatalog.length,
   lessons: totalLessons,
-  projects: 140
+  projects: 26
 };
 
 export const publicTrackSummaries = publicTrackCatalog.map((track) => ({

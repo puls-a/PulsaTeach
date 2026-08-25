@@ -4,10 +4,17 @@ Disallow: /api/
 Disallow: /admin
 Disallow: /analytics
 Disallow: /author
+Disallow: /auth
 Disallow: /dashboard
+Disallow: /discord
+Disallow: /login
+Disallow: /onboarding
 Disallow: /profile
+Disallow: /recovery
 Disallow: /review
+Disallow: /roadmap
 Disallow: /settings
+Disallow: /signup
 Disallow: /studio
 
 Sitemap: https://pulsateach.vercel.app/sitemap.xml

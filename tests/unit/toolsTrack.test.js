@@ -26,14 +26,24 @@ describe("tools track editorial contract", () => {
     }
   });
 
-  test("uses artifact-based checks instead of self-reported completion", () => {
+  test("uses stateful workstation contracts instead of HTML keyword checks", () => {
     for (const lesson of lessons) {
-      expect(lesson.tests.length).toBeGreaterThanOrEqual(4);
-      expect(lesson.tests.every((check) => check.type === "contains")).toBe(true);
-      expect(lesson.tests.some((check) => /^ok$/i.test(String(check.value).trim()))).toBe(false);
+      expect(lesson.runtime).toBe("workstation");
+      expect(lesson.workstation.required.length).toBeGreaterThan(1);
+      expect(lesson.tests.every((check) => check.type === "workstation")).toBe(true);
+      expect(lesson.tests.map((check) => check.value)).toEqual(lesson.workstation.required);
       expect(resolveLocaleValue(lesson.solution, "fr")).not.toMatch(/>\s*OK\s*</i);
       expect(resolveLocaleValue(lesson.solution, "en")).not.toMatch(/>\s*OK\s*</i);
     }
+  });
+
+  test("requires increasingly complete evidence through the capstone", () => {
+    const byId = Object.fromEntries(lessons.map((lesson) => [lesson.id, lesson]));
+    expect(byId["tools-01-vscode"].workstation.required).toEqual(["folder", "file", "environment", "observe"]);
+    expect(byId["tools-02-php"].workstation.required).toContain("terminal");
+    expect(byId["tools-03-postgresql"].workstation.required).toEqual(["file", "save", "reload", "observe"]);
+    expect(byId["tools-05-troubleshooting"].workstation.required).toContain("diagnosis");
+    expect(byId["tools-06-workstation-project"].workstation.required).toEqual(["folder", "file", "terminal", "save", "reload", "diagnosis"]);
   });
 
   test("is platform-inclusive, supports constrained environments, and avoids promotion", () => {

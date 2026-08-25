@@ -1,5 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { learningTracks } from "../src/content/allTrackRegistry.js";
+import { publicTrackCatalog } from "../src/content/publicTrackCatalog.js";
 
 const siteUrl = "https://pulsateach.vercel.app";
 const today = new Date().toISOString().slice(0, 10);
@@ -24,8 +25,9 @@ const staticRoutes = Object.keys(staticRoutePriority);
 
 // Build lesson routes from the source of truth (allTrackRegistry.js)
 // Use a Map keyed by URL to deduplicate: only one entry per unique path
+const publicTrackIds = new Set(publicTrackCatalog.map((track) => track.id));
 const lessonRouteMap = new Map();
-for (const track of learningTracks) {
+for (const track of learningTracks.filter((track) => publicTrackIds.has(track.id))) {
   for (const module of track.modules) {
     for (const lesson of module.lessons) {
       const path = `/learn/${track.id}/${module.id}/${lesson.id}`;
@@ -37,7 +39,7 @@ for (const track of learningTracks) {
 }
 
 const lessonRoutes = [...lessonRouteMap.keys()];
-const trackRoutes = learningTracks.map(track => `/formations/${track.id}`);
+const trackRoutes = learningTracks.filter((track) => publicTrackIds.has(track.id)).map((track) => `/formations/${track.id}`);
 
 // Combine and deduplicate (Set handles any remaining static duplicates)
 const allRoutes = [...new Set([...staticRoutes, ...trackRoutes, ...lessonRoutes])];

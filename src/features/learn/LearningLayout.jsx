@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BookmarkCheck, CheckCircle2, Code2, Flame, Menu, Search, X } from "lucide-react";
 import { filterLabel, isVisibleLesson } from "./learningState.js";
 import LessonWorkspace from "./LessonWorkspace.jsx";
+import WorkstationWorkspace from "./WorkstationWorkspace.jsx";
 
 // projectMissions = learningTracks.map(...) now relies on per-track lazy loading instead of an eager global registry.
 
@@ -28,7 +29,7 @@ export function FocusedLearningLayout(props) {
           </div>
         </header>
         {trackLoadError && <p className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-800" role="alert">{trackLoadError}</p>}
-        <LessonWorkspace QuizComponent={QuizComponent} activeTrack={activeTrack} activeModule={activeModule} lesson={activeLesson} locale={locale} isCompleted={Boolean(progress.completed[activeLesson.id])} isBookmarked={bookmarks.includes(activeLesson.id)} onToggleBookmark={onToggleBookmark} onComplete={onComplete} onQuizResult={onQuizResult} onCloseQuiz={onCloseQuiz} onNext={onNext} hasNext={hasNext} />
+        {activeLesson.runtime === "workstation" ? <WorkstationWorkspace lesson={activeLesson} locale={locale} onComplete={onComplete} onNext={onNext} hasNext={hasNext} /> : <LessonWorkspace QuizComponent={QuizComponent} activeTrack={activeTrack} activeModule={activeModule} lesson={activeLesson} locale={locale} isCompleted={Boolean(progress.completed[activeLesson.id])} isBookmarked={bookmarks.includes(activeLesson.id)} onToggleBookmark={onToggleBookmark} onComplete={onComplete} onQuizResult={onQuizResult} onCloseQuiz={onCloseQuiz} onNext={onNext} hasNext={hasNext} />}
       </div>
       {curriculumOpen && <CurriculumDrawer {...props} onOpenLesson={openLesson} onClose={() => setCurriculumOpen(false)} />}
     </section>

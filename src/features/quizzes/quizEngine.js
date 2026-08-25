@@ -11,7 +11,7 @@ export const supportedQuestionTypes = [
   "short-open"
 ];
 
-export function normalizeQuizLesson(lesson, { expand = true } = {}) {
+export function normalizeQuizLesson(lesson) {
   const sourceQuestions = Array.isArray(lesson.questions) && lesson.questions.length
     ? lesson.questions
     : [{
@@ -25,9 +25,6 @@ export function normalizeQuizLesson(lesson, { expand = true } = {}) {
         skills: lesson.skills || [],
         requiresRationale: true
       }];
-  const targetCount = lesson.purpose === "exam" ? 10 : 6;
-  const questions = expand ? expandQuizQuestions(sourceQuestions, targetCount) : sourceQuestions;
-
   return {
     id: lesson.id,
     title: lesson.title,
@@ -36,7 +33,7 @@ export function normalizeQuizLesson(lesson, { expand = true } = {}) {
     passingScore: Number(lesson.passingScore ?? 70),
     randomizeQuestions: Boolean(lesson.randomizeQuestions),
     feedbackMode: lesson.feedbackMode || "immediate",
-    questions: questions.map((question, index) => ({
+    questions: sourceQuestions.map((question, index) => ({
       points: 1,
       choices: [],
       skills: [],
@@ -48,7 +45,8 @@ export function normalizeQuizLesson(lesson, { expand = true } = {}) {
   };
 }
 
-function expandQuizQuestions(sourceQuestions, targetCount) {
+// Retained only for content-author migration tooling; learner quizzes never call it.
+export function expandQuizQuestions(sourceQuestions, targetCount) {
   const questions = [...sourceQuestions];
   let sourceIndex = 0;
   while (questions.length < targetCount && sourceQuestions.length) {
@@ -80,15 +78,15 @@ function expandQuizQuestions(sourceQuestions, targetCount) {
         ...shared,
         type: "multiple",
         prompt: localizedPair(
-          "Quels réflexes permettent de confirmer la réponse dans un cas réel ?",
-          "Which practices confirm the answer in a real situation?"
+          `Pour « ${localizedText(source.prompt, "fr")} », quels réflexes permettent de confirmer la réponse dans un cas réel ?`,
+          `For “${localizedText(source.prompt, "en")}”, which practices confirm the answer in a real situation?`
         ),
         choices: [
-          { id: "context", label: localizedPair("Relire le contexte et la contrainte", "Review the context and constraint") },
-          { id: "evidence", label: localizedPair("Vérifier avec une preuve observable", "Verify with observable evidence") },
-          { id: "appearance", label: localizedPair("Se fier uniquement à l’apparence", "Rely only on appearance") }
+          { id: `${shared.id}-1`, label: localizedPair("Relire le contexte et la contrainte", "Review the context and constraint") },
+          { id: `${shared.id}-2`, label: localizedPair("Vérifier avec une preuve observable", "Verify with observable evidence") },
+          { id: `${shared.id}-3`, label: localizedPair("Se fier uniquement à l’apparence", "Rely only on appearance") }
         ],
-        answer: ["context", "evidence"],
+        answer: [`${shared.id}-1`, `${shared.id}-2`],
         explanation: localizedPair(
           `${localizedText(source.explanation, "fr")} Le contexte et une preuve évitent une réponse mémorisée sans compréhension.`,
           `${localizedText(source.explanation, "en")} Context and evidence prevent a memorized answer without understanding.`
@@ -103,12 +101,12 @@ function expandQuizQuestions(sourceQuestions, targetCount) {
           "Put the resolution method in the most reliable order."
         ),
         choices: [
-          { id: "context", label: localizedPair("Relire le scénario et identifier la contrainte", "Reread the scenario and identify the constraint") },
-          { id: "decision", label: localizedPair(`Choisir « ${localizedText(correct.label, "fr")} »`, `Choose “${localizedText(correct.label, "en")}”`) },
-          { id: "evidence", label: localizedPair("Vérifier avec une preuve observable", "Verify with observable evidence") },
-          { id: "explain", label: localizedPair("Expliquer pourquoi les distracteurs échouent", "Explain why distractors fail") }
+          { id: `${shared.id}-1`, label: localizedPair("Relire le scénario et identifier la contrainte", "Reread the scenario and identify the constraint") },
+          { id: `${shared.id}-2`, label: localizedPair(`Choisir « ${localizedText(correct.label, "fr")} »`, `Choose “${localizedText(correct.label, "en")}”`) },
+          { id: `${shared.id}-3`, label: localizedPair("Vérifier avec une preuve observable", "Verify with observable evidence") },
+          { id: `${shared.id}-4`, label: localizedPair("Expliquer pourquoi les distracteurs échouent", "Explain why distractors fail") }
         ],
-        answer: ["context", "decision", "evidence", "explain"],
+        answer: [`${shared.id}-1`, `${shared.id}-2`, `${shared.id}-3`, `${shared.id}-4`],
         explanation: localizedPair(
           `${localizedText(source.explanation, "fr")} Une bonne réponse suit une méthode : contexte, décision, preuve, explication.`,
           `${localizedText(source.explanation, "en")} A strong answer follows a method: context, decision, evidence, explanation.`
@@ -137,11 +135,11 @@ function expandQuizQuestions(sourceQuestions, targetCount) {
         `Someone answers “${localizedText(wrong.label, "en")}” to “${localizedText(source.prompt, "en")}”. What is the correct diagnosis?`
       ),
       choices: [
-        { id: "reject", label: localizedPair("La réponse ne traite pas correctement le problème", "The answer does not address the problem correctly") },
-        { id: "accept", label: localizedPair("La réponse est recommandée", "The answer is recommended") },
-        { id: "neutral", label: localizedPair("Les réponses sont équivalentes", "The answers are equivalent") }
+        { id: `${shared.id}-1`, label: localizedPair("La réponse ne traite pas correctement le problème", "The answer does not address the problem correctly") },
+        { id: `${shared.id}-2`, label: localizedPair("La réponse est recommandée", "The answer is recommended") },
+        { id: `${shared.id}-3`, label: localizedPair("Les réponses sont équivalentes", "The answers are equivalent") }
       ],
-      answer: "reject",
+      answer: `${shared.id}-1`,
       explanation: localizedPair(
         `${localizedText(source.explanation, "fr")} La réponse attendue était « ${localizedText(correct.label, "fr")} ».`,
         `${localizedText(source.explanation, "en")} The expected answer was “${localizedText(correct.label, "en")}”.`
