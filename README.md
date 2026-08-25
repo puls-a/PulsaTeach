@@ -23,8 +23,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/pulsaflow/PulsaTeach/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/pulsaflow/PulsaTeach/actions/workflows/ci.yml/badge.svg?branch=main" /></a>
-  <a href="https://github.com/pulsaflow/PulsaTeach/actions/workflows/uptime.yml"><img alt="Production uptime" src="https://github.com/pulsaflow/PulsaTeach/actions/workflows/uptime.yml/badge.svg?branch=main" /></a>
+  <a href="https://github.com/puls-a/PulsaTeach/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/puls-a/PulsaTeach/actions/workflows/ci.yml/badge.svg?branch=main" /></a>
+  <a href="https://github.com/puls-a/PulsaTeach/actions/workflows/uptime.yml"><img alt="Production uptime" src="https://github.com/puls-a/PulsaTeach/actions/workflows/uptime.yml/badge.svg?branch=main" /></a>
   <a href="https://pulsateach.vercel.app/api/health/ready"><img alt="Production ready" src="https://img.shields.io/badge/production-ready-16a34a?style=flat" /></a>
   <img alt="React" src="https://img.shields.io/badge/React-19-61dafb?style=flat&logo=react&logoColor=111827" />
   <img alt="Vite" src="https://img.shields.io/badge/Vite-8-646cff?style=flat&logo=vite&logoColor=white" />
@@ -45,9 +45,9 @@ Le produit combine une expérience apprenant publique, un catalogue pédagogique
 
 | Indicateur | État actuel |
 | --- | --- |
-| Parcours | 14 formations web et outillage |
-| Leçons publiques | 874 leçons pré-rendues et indexées |
-| URLs publiques | 900 URLs dans le sitemap |
+| Curriculum source | 14 parcours web et outillage |
+| Catalogue public | 3 parcours, 208 leçons pré-rendues et indexées |
+| URLs publiques | 223 URLs dans le sitemap |
 | Tests automatisés | Vitest, Supertest, Playwright, Supabase E2E, Lighthouse |
 | Glossaire | 586 termes bilingues reliés au catalogue |
 | Qualité | `npm run validate` bloque lint, tests, audits, build, SEO et bundle |
@@ -208,7 +208,7 @@ Règles non négociables : `SUPABASE_SERVICE_ROLE_KEY`, clés admin, cookies de 
 
 ## Statut Du Dépôt
 
-Ce dépôt contient le produit PulsaTeach complet. Le code est préparé pour exploitation produit, démo technique et audit interne. Aucune licence open source n'est publiée pour le moment ; sans fichier `LICENSE`, tous droits réservés par défaut.
+PulsaTeach est open source sous licence [MIT](LICENSE). Les contributions, corrections pédagogiques et retours produit sont bienvenus : lis [`CONTRIBUTING.md`](CONTRIBUTING.md) avant d'ouvrir une issue ou une pull request, et utilise [`SECURITY.md`](SECURITY.md) pour signaler une vulnérabilité sans l'exposer publiquement.
 
 ---
 
