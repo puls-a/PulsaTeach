@@ -54,6 +54,25 @@ describe("last five active HTML modules", () => {
     expect(failures).toEqual([]);
   });
 
+  test("keeps publishing URLs honest and static forms pristine", () => {
+    const byId = (id) => lessons.find((lesson) => lesson.id === id);
+    const canonical = resolveLocaleValue(byId("html-08-canonical").solution, "fr");
+    const openGraph = resolveLocaleValue(byId("html-08-open-graph").solution, "fr");
+    const errorLesson = resolveLocaleValue(byId("html-07-error-message").solution, "fr");
+    const formProject = resolveLocaleValue(byId("html-07-project-robust-form").solution, "fr");
+
+    expect(canonical).toContain("https://example.com/pulsaconf");
+    expect(canonical).toContain("reserved for documentation");
+    expect(openGraph).toContain("https://pulsateach.vercel.app/assets/og-pulsateach-v2.png");
+    for (const markup of [errorLesson, formProject]) {
+      const document = new DOMParser().parseFromString(markup, "text/html");
+      expect(document.querySelector("form [aria-invalid]")).toBeNull();
+      expect(document.querySelector("form [role=alert]")).toBeNull();
+      expect(document.querySelector("template#email-error-after-validation")?.content.querySelector("[aria-invalid=\"true\"]")).not.toBeNull();
+      expect(document.querySelector("template#email-error-after-validation")?.content.querySelector("[role=\"alert\"]")).not.toBeNull();
+    }
+  });
+
   test("uses diversified module-specific quiz scenarios", () => {
     const quizzes = lastFive.map((module) => module.lessons.find((lesson) => lesson.type === "quiz"));
     expect(quizzes.every((quiz) => quiz.questions.length >= 6)).toBe(true);

@@ -5,7 +5,7 @@ const adminKey = process.env.API_ADMIN_KEY || process.env.PULSATEACH_ADMIN_KEY |
 const routes = [
   "",
   "catalog",
-  "learn/html/html-foundations/html-01-document-skeleton",
+  "learn/html/html-getting-started/html-00-what-html-does",
   "learn/css/css-selectors/css-01-selectors",
   "learn/css/css-advanced-responsive/css-07-container-queries",
   "learn/javascript/js-basics/js-01-variables",
