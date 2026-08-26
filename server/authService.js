@@ -7,8 +7,7 @@ export function createAuthService({
   adminAccessKey = "",
   getUserFromAccessToken,
   localIdentityEnabled = false,
-  shouldTrySupabase,
-  supabaseAdmin = null
+  shouldTrySupabase
 }) {
   if (typeof getUserFromAccessToken !== "function") {
     throw new TypeError("getUserFromAccessToken must be a function.");
@@ -28,9 +27,7 @@ export function createAuthService({
         if (user?.id) {
           request.authUser = user;
           request.authUserId = `supabase-${user.id}`;
-          const metadataRoles = rolesFromUser(user);
-          const profileRoles = await readProfileRoles(user.id);
-          request.authRoles = uniqueRoles([...metadataRoles, ...profileRoles]);
+          request.authRoles = uniqueRoles(rolesFromUser(user));
         }
       }
 
@@ -40,17 +37,6 @@ export function createAuthService({
     } catch (error) {
       next(error);
     }
-  }
-
-  async function readProfileRoles(authUserId) {
-    if (!supabaseAdmin) return [];
-    const { data: profile, error } = await supabaseAdmin
-      .from("profiles")
-      .select("roles")
-      .eq("auth_user_id", authUserId)
-      .maybeSingle();
-    if (error) throw error;
-    return uniqueRoles(profile?.roles);
   }
 
   function attachLocalIdentity(request) {

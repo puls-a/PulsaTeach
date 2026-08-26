@@ -148,6 +148,56 @@ export async function writeSupabaseStore(storeName, store) {
   return true;
 }
 
+export async function readSupabaseProgressForUser(userId) {
+  if (!supabaseAdmin) return null;
+  const { data, error } = await supabaseAdmin
+    .from("progress")
+    .select("payload,updated_at,revision")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? { ...(data.payload || {}), userId, updatedAt: data.updated_at, revision: Number(data.revision || 0) } : null;
+}
+
+export async function saveSupabaseProgressAtomic(userId, incomingProgress, mergeProgress, sanitizeProgress) {
+  if (!supabaseAdmin) throw new Error("Supabase progress storage is unavailable.");
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const current = await readSupabaseProgressForUser(userId);
+    const currentRevision = Number(current?.revision || 0);
+    const merged = sanitizeProgress(mergeProgress(current || {}, incomingProgress || {}));
+    const updatedAt = new Date().toISOString();
+    const nextRevision = currentRevision + 1;
+    const payload = { ...merged, userId, updatedAt };
+    delete payload.revision;
+
+    if (!current) {
+      const { error } = await supabaseAdmin.from("progress").insert({
+        user_id: userId,
+        payload,
+        revision: nextRevision,
+        updated_at: updatedAt
+      });
+      if (!error) return { ...payload, revision: nextRevision };
+      if (error.code === "23505") continue;
+      throw error;
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from("progress")
+      .update({ payload, revision: nextRevision, updated_at: updatedAt })
+      .eq("user_id", userId)
+      .eq("revision", currentRevision)
+      .select("revision")
+      .maybeSingle();
+    if (error) throw error;
+    if (data) return { ...payload, revision: nextRevision };
+  }
+  throw Object.assign(new Error("Progress changed too many times. Retry the operation."), {
+    status: 409,
+    code: "PROGRESS_CONFLICT"
+  });
+}
+
 export async function deleteSupabaseRecord(storeName, id) {
   if (!supabaseAdmin) return false;
   const table = tableForStore(storeName);

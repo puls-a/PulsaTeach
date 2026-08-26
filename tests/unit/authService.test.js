@@ -23,7 +23,7 @@ function runMiddleware(middleware, request) {
 }
 
 describe("createAuthService", () => {
-  test("combines trusted metadata and profile roles while ignoring user metadata", async () => {
+  test("uses app metadata as the only production role authority", async () => {
     const supabaseAdmin = {
       from: vi.fn(() => ({
         select() { return this; },
@@ -49,7 +49,7 @@ describe("createAuthService", () => {
     await runMiddleware(service.attachAuthUser, request);
 
     expect(request.authUserId).toBe("supabase-auth-1");
-    expect(request.authRoles).toEqual(["learner", "reviewer"]);
+    expect(request.authRoles).toEqual(["learner"]);
   });
 
   test("keeps local identities and development admin access explicit", async () => {
@@ -106,22 +106,17 @@ describe("createAuthService", () => {
     expect(next).not.toHaveBeenCalled();
   });
 
-  test("propagates profile lookup failures to Express error handling", async () => {
-    const failure = new Error("profile unavailable");
+  test("does not query profile roles during authentication", async () => {
+    const from = vi.fn();
     const service = createAuthService({
       getUserFromAccessToken: vi.fn(async () => ({ id: "auth-2", app_metadata: {} })),
       shouldTrySupabase: () => true,
-      supabaseAdmin: {
-        from: () => ({
-          select() { return this; },
-          eq() { return this; },
-          async maybeSingle() { return { data: null, error: failure }; }
-        })
-      }
+      supabaseAdmin: { from }
     });
 
     await expect(runMiddleware(service.attachAuthUser, {
       headers: { authorization: "Bearer valid-token" }
-    })).rejects.toThrow("profile unavailable");
+    })).resolves.toBeTruthy();
+    expect(from).not.toHaveBeenCalled();
   });
 });

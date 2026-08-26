@@ -14,7 +14,7 @@ import { productRoadmap } from "./roadmap.js";
 import { decodeProtectedExamResponses, projectPublicTrack } from "./publicContent.js";
 import { sendWelcomeEmail, transactionalEmailEnabled } from "./emailService.js";
 import { applySecurity, localIdentityEnabled, sensitiveRateLimit } from "./security.js";
-import { checkSupabaseReadiness, deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, readSupabaseStore, requireSupabaseStorage, supabaseAdmin, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
+import { checkSupabaseReadiness, deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, readSupabaseProgressForUser, readSupabaseStore, requireSupabaseStorage, saveSupabaseProgressAtomic, supabaseAdmin, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
 import { createSupabaseSubmission, findSupabaseIssuedCertificateByVerificationCode, findSupabaseQuizSession, issueSupabaseCertificateAtomic, listSupabaseIssuedCertificatesForUser, listSupabaseQuizSessionsForUser, reviewSupabaseSubmission, revokeSupabaseIssuedCertificate, saveSupabaseQuizDraft, submitSupabaseQuizSession } from "./supabaseSensitiveOperations.js";
 import { accountDeletionSchema, attemptSchema, avatarUploadSchema, certificateRevokeSchema, courseCreateSchema, courseRollbackSchema, courseUpdateSchema, enrollmentSchema, eventSchema, lessonDraftSchema, lessonDraftUpdateSchema, progressMigrationSchema, progressSchema, quizSessionSchema, quizSubmissionSchema, reviewSchema, roleUpdateSchema, submissionSchema, telemetrySchema, userSettingsSchema, validateBody } from "./validation.js";
 
@@ -75,8 +75,7 @@ const {
   adminAccessKey,
   getUserFromAccessToken,
   localIdentityEnabled,
-  shouldTrySupabase,
-  supabaseAdmin
+  shouldTrySupabase
 });
 
 app.use(attachRequestContext);
@@ -110,6 +109,8 @@ const routeContext = {
   deleteSupabaseRecord,
   getSupabaseStatus,
   checkSupabaseReadiness,
+  readSupabaseProgressForUser,
+  saveSupabaseProgressAtomic,
   supabaseAdmin,
   supabaseEnabled,
   requireSupabaseStorage,

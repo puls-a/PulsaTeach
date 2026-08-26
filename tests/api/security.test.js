@@ -47,6 +47,19 @@ describe("API security boundaries", () => {
     await request(app).get("/api/catalog/unknown-track").expect(404);
   });
 
+  test("lists canonical curriculum projects and rejects unknown project submissions", async () => {
+    const catalog = await request(app).get("/api/projects/catalog").expect(200);
+    expect(catalog.headers["cache-control"]).toContain("public");
+    expect(catalog.body).toContainEqual(expect.objectContaining({ id: "html-09-final-project-pulsaconf", trackId: "html" }));
+
+    const rejected = await request(app)
+      .post("/api/submissions")
+      .set("X-PulsaTeach-User-Id", "unknown-project-user")
+      .send({ projectId: "unknown-project", title: "Unknown project", repositoryUrl: "https://github.com/example/unknown" })
+      .expect(400);
+    expect(rejected.body.error.code).toBe("PROJECT_NOT_FOUND");
+  });
+
   test("exposes separate liveness and readiness probes", async () => {
     const live = await request(app).get("/api/health/live").expect(200);
     expect(live.body).toMatchObject({ ok: true, service: "pulsateach-api" });
@@ -321,6 +334,13 @@ describe("API security boundaries", () => {
     const id = created.body.id;
     expect(created.body).toMatchObject({ status: "draft", version: 1 });
 
+    const noChanges = await request(app)
+      .patch(`/api/courses/${id}`)
+      .set(headers)
+      .send({ expectedVersion: 1 })
+      .expect(400);
+    expect(noChanges.body.error.code).toBe("COURSE_NO_CHANGES");
+
     const denied = await request(app)
       .patch(`/api/courses/${id}`)
       .set(headers)
@@ -379,7 +399,7 @@ describe("API security boundaries", () => {
       .post("/api/submissions")
       .set(learner)
       .send({
-        projectId: "project-versioned",
+        projectId: "html-09-final-project-pulsaconf",
         title: "Version 1",
         repositoryUrl: "https://github.com/example/project",
         deliverables: ["README", "Application"],
@@ -414,7 +434,7 @@ describe("API security boundaries", () => {
       .post("/api/submissions")
       .set(learner)
       .send({
-        projectId: "project-versioned",
+        projectId: "html-09-final-project-pulsaconf",
         title: "Version 2",
         repositoryUrl: "https://github.com/example/project",
         selfAssessment: "La navigation clavier est corrigée."
@@ -457,7 +477,7 @@ describe("API security boundaries", () => {
   test("serializes duplicate submissions and rejects stale concurrent reviews", async () => {
     const learner = { "X-PulsaTeach-User-Id": "concurrent-project-user" };
     const reviewer = { "X-PulsaTeach-Admin-Key": "test-admin-key" };
-    const payload = { projectId: "concurrent-project", title: "Concurrent project", repositoryUrl: "https://github.com/example/concurrent" };
+    const payload = { projectId: "html-09-final-project-pulsaconf", title: "Concurrent project", repositoryUrl: "https://github.com/example/concurrent" };
     const creations = await Promise.all(Array.from({ length: 4 }, () => request(app).post("/api/submissions").set(learner).send(payload)));
     expect(creations.map((result) => result.status).sort()).toEqual([201, 409, 409, 409]);
     expect(creations.filter((result) => result.status === 409).every((result) => result.body.error.code === "SUBMISSION_ALREADY_ACTIVE")).toBe(true);

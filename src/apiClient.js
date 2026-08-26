@@ -137,6 +137,10 @@ export async function listSubmissions(userId = getUserId()) {
   return request(`/api/submissions?userId=${encodeURIComponent(userId)}`);
 }
 
+export async function listProjectCatalog() {
+  return request("/api/projects/catalog");
+}
+
 export async function listAllSubmissions() {
   return request("/api/submissions");
 }

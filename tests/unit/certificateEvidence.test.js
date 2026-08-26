@@ -80,7 +80,7 @@ describe("certificate evidence", () => {
     expect(evaluation.eligible).toBe(false);
   });
 
-  test("uses the latest project version that meets the certificate score", () => {
+  test("requires the latest project version to meet the certificate score", () => {
     const submissions = [
       { id: "qualifying", projectId: "git-04-capstone", version: 1, status: "approved", score: 90 },
       { id: "below-threshold", projectId: "git-04-capstone", version: 2, status: "approved", score: 60 }
@@ -89,7 +89,7 @@ describe("certificate evidence", () => {
       .certificates.find((item) => item.id === "git-github-practitioner");
 
     expect(certificate.evidence.projects.find((project) => project.projectId === "git-04-capstone"))
-      .toMatchObject({ submissionId: "qualifying", version: 1, score: 90 });
-    expect(certificate.progress.projectsApproved).toBe(1);
+      .toMatchObject({ submissionId: null, minimumScore: 70 });
+    expect(certificate.progress.projectsApproved).toBe(0);
   });
 });
