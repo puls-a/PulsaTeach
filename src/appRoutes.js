@@ -5,6 +5,7 @@ export const knownRoutes = [
   "signup",
   "onboarding",
   "recovery",
+  "discord",
   "verify",
   "studio",
   "world",

@@ -32,7 +32,7 @@ export async function getSupabaseStatus() {
     };
   }
 
-  const tables = ["profiles", "progress", "attempts", "submissions", "enrollments", "lesson_drafts", "course_drafts", "course_versions", "issued_certificates", "learning_events", "quiz_sessions"];
+  const tables = ["profiles", "progress", "attempts", "submissions", "enrollments", "lesson_drafts", "course_drafts", "course_versions", "issued_certificates", "learning_events", "quiz_sessions", "discord_links", "used_link_nonces", "verified_track_completions", "discord_outbox"];
   const checks = await Promise.all(tables.map(async (table) => {
     const { count, error } = await supabaseAdmin.from(table).select("*", { count: "exact", head: true });
     return {

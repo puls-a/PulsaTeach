@@ -73,12 +73,16 @@ Enable providers in Supabase Dashboard:
 
 PulsaTeach exposes auth at `/auth`. Legacy `#/auth` links are migrated automatically.
 
+Discord OAuth uses the Supabase Discord provider. Enable it in Supabase, configure the Discord client credentials, and allow `/auth/callback` URLs for production, local, and preview deployments. A signed PulsaBot link resumes after OAuth and verifies that the authenticated Discord identity owns the link.
+
 ## Endpoints
 
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/api/health` | API status probe |
 | `GET` | `/api/supabase/status` | Supabase configuration and table health |
+| `POST` | `/api/discord/link` | Consume a signed, one-time PulsaBot account link |
+| `GET` | `/api/discord/progression/:discordId` | Return linked learner progression to PulsaBot |
 | `GET` | `/api/catalog` | Lightweight catalog summaries for built-in and published tracks |
 | `GET` | `/api/catalog/:trackId` | Complete content for one track, loaded on demand |
 | `GET` | `/api/glossary` | Canonical bilingual glossary generated from all built-in tracks |
@@ -129,6 +133,10 @@ PulsaTeach exposes auth at `/auth`. Legacy `#/auth` links are migrated automatic
 | `quiz_sessions` | Private quiz drafts, responses, scores, and resume state |
 
 ## Course Studio workflow
+
+## PulsaBot Integration
+
+Configure `PULSABOT_API_URL`, `PULSABOT_API_KEY`, `PULSABOT_LINK_SIGNING_SECRET`, `PULSATEACH_WEBHOOK_SECRET`, and `CRON_SECRET` as server-only variables. Apply the three `20260815...discord...` migrations before deployment. The cron endpoint drains signed webhook outbox events and requires `Authorization: Bearer $CRON_SECRET`.
 
 The API enforces:
 

@@ -90,7 +90,8 @@ export function registerLearningRoutes(app, context) {
     createHash,
     sanitizeProgressExamEvidence,
     readSupabaseProgressForUser,
-    saveSupabaseProgressAtomic
+    saveSupabaseProgressAtomic,
+    discordIntegration
   } = context;
 
   const projectCatalog = learningTracks.flatMap((track) => (track.modules || []).flatMap((module) => (module.lessons || [])
@@ -123,7 +124,9 @@ export function registerLearningRoutes(app, context) {
       return;
     }
     if (shouldUseSupabaseMutations()) {
-      response.json(await saveSupabaseProgressAtomic(userId, request.body, mergeProgress, sanitizeProgressExamEvidence));
+      const progress = await saveSupabaseProgressAtomic(userId, request.body, mergeProgress, sanitizeProgressExamEvidence);
+      await discordIntegration.recordProgress(userId, progress);
+      response.json(progress);
       return;
     }
     await withStoreMutation(`progress:${userId}`, async () => {
@@ -148,6 +151,7 @@ export function registerLearningRoutes(app, context) {
     const userId = request.authUserId;
     if (shouldUseSupabaseMutations()) {
       const progress = await saveSupabaseProgressAtomic(userId, localProgress, mergeProgress, sanitizeProgressExamEvidence);
+      await discordIntegration.recordProgress(userId, progress);
       response.json({ migrated: true, progress });
       return;
     }

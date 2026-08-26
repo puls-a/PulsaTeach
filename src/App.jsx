@@ -30,6 +30,7 @@ import AuthPage from "./AuthPage.jsx";
 import { OnboardingPage, PasswordRecoveryPage, PublicCertificatePage } from "./AccountPages.jsx";
 import LandingPage from "./LandingPage.jsx";
 import AboutPage from "./AboutPage.jsx";
+import DiscordLinkPage from "./DiscordLinkPage.jsx";
 import AppFooter from "./components/AppFooter.jsx";
 import CookieConsent from "./components/CookieConsent.jsx";
 import { CookiesPage, LegalNoticePage, PrivacyPage, TermsPage } from "./LegalPages.jsx";
@@ -410,6 +411,7 @@ function renderRoute(route, locale) {
   if (route === "signup") return <AuthPage locale={locale} defaultMode="signup" />;
   if (route === "onboarding") return <OnboardingPage locale={locale} />;
   if (route === "recovery") return <PasswordRecoveryPage locale={locale} />;
+  if (route === "discord" && currentPathSegments()[1] === "link") return <DiscordLinkPage locale={locale} />;
   if (route === "verify") return <PublicCertificatePage locale={locale} verificationCode={currentPathSegments()[1] || ""} />;
   if (route === "studio") return <AuthorGate locale={locale}><CourseStudio locale={locale} /></AuthorGate>;
   if (route === "world") return <WorldPage locale={locale} />;
