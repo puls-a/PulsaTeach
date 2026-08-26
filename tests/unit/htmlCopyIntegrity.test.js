@@ -1,5 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, test } from "vitest";
+import { htmlPulsaConfModules } from "../../src/content/htmlPulsaConfCurriculum.js";
+import { resolveLocaleValue } from "../../src/localeValue.js";
 
 const curriculumPath = new URL("../../src/content/htmlPulsaConfCurriculum.js", import.meta.url);
 
@@ -38,5 +40,30 @@ describe("HTML curriculum copy integrity", () => {
     expect(source).toContain("Transformer le contenu en plan lisible");
     expect(source).toContain("Construire une saisie exploitable");
     expect(source).toContain("Passer d'exercices isolés à un produit cohérent");
+  });
+
+  test("uses authored English copy for learner-facing starter and reference artifacts", () => {
+    const englishArtifacts = htmlPulsaConfModules
+      .flatMap((module) => module.lessons)
+      .filter((lesson) => lesson.type !== "quiz")
+      .flatMap((lesson) => [resolveLocaleValue(lesson.starterCode, "en"), resolveLocaleValue(lesson.solution, "en")]);
+    const corruptedPatterns = [
+      /\b(?:Write|Open|Choose|Submit|Download)\s+(?:à|le|les|un|une|l')/i,
+      /\b(?:freee|frees)\b/i,
+      /\b(?:Maya présente|Samir relie|Utilise l'adresse|Aller au contenu principal)\b/i,
+      /<!--\s*(?:Assemble|Construis|Décris)\b/i
+    ];
+
+    expect(englishArtifacts.every((artifact) => artifact.trim().length > 0)).toBe(true);
+    for (const pattern of corruptedPatterns) {
+      expect(englishArtifacts.join("\n"), `Corrupted English artifact: ${pattern}`).not.toMatch(pattern);
+    }
+  });
+
+  test("does not generate English artifacts from broad token translations", async () => {
+    const source = await readFile(curriculumPath, "utf8");
+
+    expect(source).not.toContain("function translateArtifact");
+    expect(source).toContain("Artifact copy is authored as complete learner-facing phrases");
   });
 });
