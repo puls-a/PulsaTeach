@@ -25,6 +25,10 @@ export async function getSupabaseStatus() {
   return request("/api/supabase/status");
 }
 
+export async function linkDiscordAccount(state) {
+  return request("/api/discord/link", { method: "POST", cache: "no-store", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ state }) });
+}
+
 export async function getRoadmap() {
   return request("/api/roadmap");
 }

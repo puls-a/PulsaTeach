@@ -69,7 +69,7 @@ export function applySecurity(app) {
     limit: Number(process.env.PULSATEACH_RATE_LIMIT || 300),
     standardHeaders: "draft-8",
     legacyHeaders: false,
-    skip: () => process.env.NODE_ENV === "test",
+    skip: (request) => process.env.NODE_ENV === "test" || request.path.startsWith("/api/discord/progression/"),
     handler: (request, response) => response.status(429).json({
       error: {
         code: "RATE_LIMITED",
@@ -95,4 +95,8 @@ export function sensitiveRateLimit(limit = 30) {
       requestId: request.requestId
     })
   });
+}
+
+export function pulsaBotRateLimit() {
+  return rateLimit({ windowMs: 15 * 60 * 1000, limit: Number(process.env.PULSABOT_RATE_LIMIT || 3000), standardHeaders: "draft-8", legacyHeaders: false, skip: () => process.env.NODE_ENV === "test", handler: (request, response) => response.status(429).json({ error: { code: "RATE_LIMITED", message: "Too many PulsaBot requests. Please try again later." }, requestId: request.requestId }) });
 }

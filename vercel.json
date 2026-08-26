@@ -2,6 +2,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm ci",
+  "crons": [{ "path": "/api/internal/maintenance", "schedule": "*/5 * * * *" }],
   "headers": [
     {
       "source": "/assets/(.*)",

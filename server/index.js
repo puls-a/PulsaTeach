@@ -13,7 +13,7 @@ import { appendWorkflowLog, authorizeCourseTransition, createCourseVersion, diff
 import { productRoadmap } from "./roadmap.js";
 import { decodeProtectedExamResponses, projectPublicTrack } from "./publicContent.js";
 import { sendWelcomeEmail, transactionalEmailEnabled } from "./emailService.js";
-import { applySecurity, localIdentityEnabled, sensitiveRateLimit } from "./security.js";
+import { applySecurity, localIdentityEnabled, pulsaBotRateLimit, sensitiveRateLimit } from "./security.js";
 import { checkSupabaseReadiness, deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, readSupabaseProgressForUser, readSupabaseStore, requireSupabaseStorage, saveSupabaseProgressAtomic, supabaseAdmin, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
 import { createSupabaseSubmission, findSupabaseIssuedCertificateByVerificationCode, findSupabaseQuizSession, issueSupabaseCertificateAtomic, listSupabaseIssuedCertificatesForUser, listSupabaseQuizSessionsForUser, reviewSupabaseSubmission, revokeSupabaseIssuedCertificate, saveSupabaseQuizDraft, submitSupabaseQuizSession } from "./supabaseSensitiveOperations.js";
 import { accountDeletionSchema, attemptSchema, avatarUploadSchema, certificateRevokeSchema, courseCreateSchema, courseRollbackSchema, courseUpdateSchema, enrollmentSchema, eventSchema, lessonDraftSchema, lessonDraftUpdateSchema, progressMigrationSchema, progressSchema, quizSessionSchema, quizSubmissionSchema, reviewSchema, roleUpdateSchema, submissionSchema, telemetrySchema, userSettingsSchema, validateBody } from "./validation.js";
@@ -51,6 +51,8 @@ import { registerQuizSessionRoutes } from "./routes/quizSessions.js";
 import { registerCertificateRoutes } from "./routes/certificates.js";
 import { rolesFromUser } from "./authRoles.js";
 import { createAuthService } from "./authService.js";
+import { createDiscordIntegration } from "./discordIntegration.js";
+import { registerDiscordRoutes } from "./routes/discord.js";
 
 const app = express();
 const productionRuntime = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
@@ -78,11 +80,16 @@ const {
   shouldTrySupabase
 });
 
+const discordIntegration = createDiscordIntegration({ supabaseAdmin, learningTracks });
+
 app.use(attachRequestContext);
 applySecurity(app);
 app.use("/api/account/avatar", express.json({ limit: "1200kb", strict: true }));
 app.use(express.json({ limit: "256kb", strict: true }));
-app.use(attachAuthUser);
+app.use((request, response, next) => {
+  if (request.path.startsWith("/api/discord/") || request.path === "/api/internal/maintenance") return next();
+  return attachAuthUser(request, response, next);
+});
 
 const routeContext = {
   learningTracks,
@@ -106,8 +113,10 @@ const routeContext = {
   sendWelcomeEmail,
   transactionalEmailEnabled,
   sensitiveRateLimit,
+  pulsaBotRateLimit,
   deleteSupabaseRecord,
   getSupabaseStatus,
+  getUserFromAccessToken,
   checkSupabaseReadiness,
   readSupabaseProgressForUser,
   saveSupabaseProgressAtomic,
@@ -193,7 +202,8 @@ const routeContext = {
   markSupabaseUnavailable,
   rolesFromUser,
   randomUUID,
-  createHash
+  createHash,
+  discordIntegration
 };
 
 registerSystemRoutes(app, routeContext);
@@ -204,6 +214,7 @@ registerAuthoringRoutes(app, routeContext);
 registerQuizSessionRoutes(app, routeContext);
 registerCertificateRoutes(app, routeContext);
 registerLearningRoutes(app, routeContext);
+registerDiscordRoutes(app, routeContext);
 
 app.use((error, request, response, _next) => {
   const status = Number(error?.status) >= 400 && Number(error?.status) < 600 ? Number(error.status) : 500;
