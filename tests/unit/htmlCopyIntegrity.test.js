@@ -60,6 +60,25 @@ describe("HTML curriculum copy integrity", () => {
     }
   });
 
+  test("keeps French prose out of generated English artifacts", () => {
+    const englishArtifacts = htmlPulsaConfModules
+      .flatMap((module) => module.lessons)
+      .filter((lesson) => lesson.type !== "quiz")
+      .flatMap((lesson) => [resolveLocaleValue(lesson.starterCode, "en"), resolveLocaleValue(lesson.solution, "en")])
+      .join("\n")
+      // URLs and filenames may intentionally preserve French routes or asset names.
+      .replace(/\b(?:action|href|src)=(?:"[^"]*"|'[^']*')/gi, "");
+    const frenchProse = [
+      /\b(?:le|la|les|des|une|un|pour|avec|dans|sur|est|sont|pas|que|qui|vous|tu|ton|ta|tes|je|au|aux|cet|cette)\b/i,
+      /\b(?:ajoute|assemble|construis|décris|écrire|sauvegarder|recharger|ouvrir|vérifier|modifier|apprendre|inscription|programme|intervenants|atelier|formulaire|journée|gratuit(?:e)?|débutants?)\b/i,
+      /(?:à|é|è|ê|ç|ù|œ)/i
+    ];
+
+    for (const pattern of frenchProse) {
+      expect(englishArtifacts, `French prose in English artifact: ${pattern}`).not.toMatch(pattern);
+    }
+  });
+
   test("does not generate English artifacts from broad token translations", async () => {
     const source = await readFile(curriculumPath, "utf8");
 
