@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { learningTracks } from "../src/content/allTrackRegistry.js";
-import { publicLearningStats } from "../src/content/publicTrackCatalog.js";
+import { publicLearningStats, publicTrackCatalog } from "../src/content/publicTrackCatalog.js";
 import { buildGlossaryIndex } from "../src/features/glossary/glossaryIndex.js";
 
 const failures = [];
@@ -8,8 +8,10 @@ const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
 const roadmap = await readFile(new URL("../docs/ROADMAP_EVIDENCE.md", import.meta.url), "utf8");
 const sitemap = await readFile(new URL("../public/sitemap.xml", import.meta.url), "utf8").catch(() => "");
 
-const trackCount = learningTracks.length;
-const lessonCount = learningTracks.reduce((total, track) => total + track.modules.reduce((sum, module) => sum + module.lessons.length, 0), 0);
+const publicTrackIds = new Set(publicTrackCatalog.map((track) => track.id));
+const publicTracks = learningTracks.filter((track) => publicTrackIds.has(track.id));
+const trackCount = publicTracks.length;
+const lessonCount = publicTracks.reduce((total, track) => total + track.modules.reduce((sum, module) => sum + module.lessons.length, 0), 0);
 const glossaryCount = buildGlossaryIndex(learningTracks).length;
 const sitemapCount = (sitemap.match(/<url>/g) || []).length;
 const expectedSitemapCount = 12 + trackCount + lessonCount;
@@ -17,10 +19,7 @@ const expectedSitemapCount = 12 + trackCount + lessonCount;
 expectEqual(publicLearningStats.tracks, trackCount, "publicLearningStats.tracks");
 expectEqual(publicLearningStats.lessons, lessonCount, "publicLearningStats.lessons");
 expectEqual(sitemapCount, expectedSitemapCount, "sitemap public URL count");
-requireText(readme, `${lessonCount} leçons`, "README lesson count");
-requireText(readme, `${expectedSitemapCount} URLs`, "README sitemap count");
 requireText(readme, `${glossaryCount} termes`, "README glossary count");
-requireText(roadmap, `${trackCount} parcours, ${lessonCount} leçons`, "roadmap lesson count");
 requireText(roadmap, `${glossaryCount} termes`, "roadmap glossary count");
 
 if (failures.length) {

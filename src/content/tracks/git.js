@@ -1,5 +1,6 @@
 import { gitModules } from "./gitModules.js";
 import { gitScenarioFor } from "./gitLessonScenarios.js";
+import { expandQuizQuestions } from "../../features/quizzes/quizEngine.js";
 
 const sharedVocabulary = {
   repository: ["dépôt", "repository", "Dossier suivi par Git avec son historique.", "A folder tracked by Git with its history."],
@@ -274,7 +275,7 @@ function richLesson(spec) {
     starterCode: spec.starterCode,
     solution: spec.solution,
     tests: spec.tests,
-    questions: spec.questions,
+    questions: spec.questions ? expandQuizQuestions(spec.questions, 10) : spec.questions,
     passingScore: spec.passingScore,
     randomizeQuestions: spec.randomizeQuestions,
     feedbackMode: spec.feedbackMode,

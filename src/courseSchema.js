@@ -136,7 +136,7 @@ function normalizeModule(module, index) {
 }
 
 function normalizeLesson(lesson, index) {
-  const type = ["html", "css", "js", "dom", "typescript", "react", "node", "sql", "terminal", "text", "quiz", "project"].includes(lesson.type) ? lesson.type : "html";
+  const type = ["html", "css", "js", "dom", "typescript", "react", "node", "sql", "terminal", "text", "workstation", "quiz", "project"].includes(lesson.type) ? lesson.type : "html";
   return {
     ...lesson,
     id: lesson.id || `lesson-${index + 1}`,

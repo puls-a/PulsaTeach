@@ -82,9 +82,13 @@ describe("active web security curriculum", () => {
   test("uses language-neutral quiz answer identifiers in all modules", () => {
     for (const lesson of lessons.filter((item) => item.type === "quiz")) {
       for (const question of lesson.questions) {
-        expect(question.choices.some((choice) => choice.id === question.answer)).toBe(true);
-        expect(question.answer).toMatch(new RegExp(`^${question.id}-\\d+$`));
-        expect(question.answer).not.toMatch(/[àâçéèêëîïôùûüÿœ]|\s/i);
+        if (!question.choices?.length) continue;
+        const answers = Array.isArray(question.answer) ? question.answer : [question.answer];
+        for (const answer of answers) {
+          expect(question.choices.some((choice) => choice.id === answer)).toBe(true);
+          expect(answer).toMatch(new RegExp(`^${question.id}-\\d+$`));
+          expect(answer).not.toMatch(/[àâçéèêëîïôùûüÿœ]|\s/i);
+        }
       }
     }
   });

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCatalog, getTrack } from "./apiClient.js";
 import { loadAllLocalTracks, loadLocalTrack, mergeLoadedTrack } from "./content/localTrackLoader.js";
-import { publicTrackSummaries } from "./content/publicTrackCatalog.js";
+import { publicTrackCatalog, publicTrackSummaries } from "./content/publicTrackCatalog.js";
+
+const publicTrackIds = new Set(publicTrackCatalog.map((track) => track.id));
 
 export function useLearningTracks({ remoteCatalog = false, mode = "summary", freshCatalog = false } = {}) {
   const summaryMode = mode !== "full";
@@ -63,7 +65,7 @@ export function useLearningTracks({ remoteCatalog = false, mode = "summary", fre
             if (!active) return;
             const remoteTracks = Array.isArray(catalog?.tracks) ? catalog.tracks : [];
             const localById = new Map(localTracks.map((track) => [track.id, track]));
-            setTracks(remoteTracks.map((track) => localById.get(track.id) || track));
+            setTracks(remoteTracks.filter((track) => publicTrackIds.has(track.id)).map((track) => localById.get(track.id) || track));
             setError(null);
           })
           .catch((nextError) => {
