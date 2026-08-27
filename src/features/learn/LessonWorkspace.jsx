@@ -84,7 +84,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
       setSaveState("saved");
     }, 450);
     return () => window.clearTimeout(timeout);
-  }, [code, lesson.id, lesson.type, locale]);
+  }, [code, lesson.id, lesson.projectThreadId, lesson.type, locale]);
 
   const preview = useMemo(() => createPreview(lesson, code, locale), [code, lesson, locale]);
   const previewKind = getPreviewKind(lesson);
