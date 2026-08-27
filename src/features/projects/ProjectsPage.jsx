@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, FolderKanban, Send } from "lucide-react";
-import { createSubmission, listSubmissions } from "../../apiClient.js";
+import { createSubmission, listProjectCatalog, listSubmissions } from "../../apiClient.js";
 import AuthNotice from "../../components/AuthNotice.jsx";
 import { LearnerPageHero, MetricCard, StatusBadge } from "../../components/LearnerUI.jsx";
 
@@ -18,13 +18,23 @@ const emptyForm = {
 export default function ProjectsPage({ locale }) {
   const fr = locale === "fr";
   const [submissions, setSubmissions] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [form, setForm] = useState(() => ({ ...emptyForm, projectId: new URLSearchParams(window.location.search).get("projectId") || emptyForm.projectId }));
   const [loadStatus, setLoadStatus] = useState("loading");
   const [status, setStatus] = useState("idle");
   const updateForm = (event) => setForm({ ...form, [event.target.name]: event.target.value });
 
   useEffect(() => {
-    listSubmissions().then(setSubmissions).then(() => setLoadStatus("ready")).catch(() => setLoadStatus("error"));
+    Promise.all([listSubmissions(), listProjectCatalog()])
+      .then(([nextSubmissions, nextProjects]) => {
+        setSubmissions(nextSubmissions);
+        setProjects(nextProjects);
+        setForm((current) => nextProjects.some((project) => project.id === current.projectId) || !nextProjects[0]
+          ? current
+          : { ...current, projectId: nextProjects[0].id });
+        setLoadStatus("ready");
+      })
+      .catch(() => setLoadStatus("error"));
   }, []);
 
   const submit = async (event) => {
@@ -64,7 +74,7 @@ export default function ProjectsPage({ locale }) {
           <form id="nouvelle-soumission" onSubmit={submit} className="surface scroll-mt-24 rounded-3xl">
             <div className="mb-5 flex items-center gap-3"><FolderKanban className="size-7 text-indigoPop" /><h2 className="font-display text-2xl font-black">{fr ? "Nouvelle soumission" : "New submission"}</h2></div>
             <div className="grid gap-4">
-              <Field name="projectId" label="Project ID" value={form.projectId} onChange={updateForm} />
+              <label className="grid gap-2 text-sm font-semibold text-slate-700">{fr ? "Projet du parcours" : "Curriculum project"}<select name="projectId" required value={form.projectId} onChange={updateForm} className="form-control">{projects.map((project) => <option key={project.id} value={project.id}>{project.title?.[locale] || project.title?.fr || project.id} · {project.trackId}</option>)}</select></label>
               <Field name="title" label={fr ? "Titre" : "Title"} value={form.title} onChange={updateForm} required />
               <Field name="url" type="url" label="URL" value={form.url} onChange={updateForm} />
               <Field name="repositoryUrl" type="url" label={fr ? "Dépôt Git" : "Git repository"} value={form.repositoryUrl} onChange={updateForm} required={!form.url} />
@@ -72,7 +82,7 @@ export default function ProjectsPage({ locale }) {
               <Field multiline name="deliverables" label={fr ? "Livrables, un par ligne" : "Deliverables, one per line"} value={form.deliverables} onChange={updateForm} />
               <Field multiline name="selfAssessment" label={fr ? "Auto-évaluation" : "Self-assessment"} value={form.selfAssessment} onChange={updateForm} />
               <label className="grid gap-2 text-sm font-semibold text-slate-700">{fr ? "Visibilité portfolio" : "Portfolio visibility"}<select name="visibility" value={form.visibility} onChange={updateForm} className="form-control"><option value="private">{fr ? "Privé" : "Private"}</option><option value="unlisted">{fr ? "Non listé" : "Unlisted"}</option><option value="public">Public</option></select></label>
-              <button type="submit" disabled={loadStatus === "loading" || status === "saving"} className="primary-button disabled:cursor-wait disabled:opacity-60"><Send className="size-5" />{status === "saving" ? (fr ? "Envoi..." : "Saving...") : (fr ? "Soumettre" : "Submit")}</button>
+              <button type="submit" disabled={loadStatus !== "ready" || status === "saving"} className="primary-button disabled:cursor-wait disabled:opacity-60"><Send className="size-5" />{status === "saving" ? (fr ? "Envoi..." : "Saving...") : (fr ? "Soumettre" : "Submit")}</button>
               {status === "error" && <p className="status-error rounded-xl p-3 text-sm font-semibold" role="alert">{fr ? "La soumission a échoué. Vérifie ta connexion et réessaie." : "Submission failed. Check your connection and try again."}</p>}
               {status === "saved" && <p className="status-success rounded-xl p-3 text-sm font-semibold" role="status">{fr ? "Projet soumis." : "Project submitted."}</p>}
             </div>

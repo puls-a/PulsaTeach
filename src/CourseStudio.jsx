@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Archive,
   BookOpen,
@@ -25,6 +25,7 @@ import { formatAnswer, formatChoices, moveItem, parseAnswer, parseChoices, updat
 export default function CourseStudio({ locale = "fr" }) {
   const fr = locale === "fr";
   const [courses, setCourses] = useState([]);
+  const editRevision = useRef(0);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedModuleId, setSelectedModuleId] = useState(null);
   const [selectedLessonId, setSelectedLessonId] = useState(null);
@@ -95,6 +96,7 @@ export default function CourseStudio({ locale = "fr" }) {
   };
 
   const updateLocalCourse = (updater) => {
+    editRevision.current += 1;
     setCourses((items) => items.map((course) => course.id === selectedId ? updater(structuredClone(course)) : course));
   };
 
@@ -102,6 +104,7 @@ export default function CourseStudio({ locale = "fr" }) {
     if (!selectedCourse) return;
     setStatus("saving");
     setMessage("");
+    const savingRevision = editRevision.current;
     try {
       const updated = await updateCourse(selectedCourse.id, {
         title: selectedCourse.title,
@@ -110,7 +113,11 @@ export default function CourseStudio({ locale = "fr" }) {
         curriculum: selectedCourse.curriculum,
         expectedVersion: selectedCourse.version
       });
-      setCourses((items) => items.map((course) => course.id === updated.id ? updated : course));
+      setCourses((items) => items.map((course) => {
+        if (course.id !== updated.id) return course;
+        if (editRevision.current === savingRevision) return updated;
+        return { ...course, version: updated.version, updatedAt: updated.updatedAt };
+      }));
       setVersions(await listCourseVersions(selectedCourse.id));
       setStatus("idle");
       setMessage(fr ? "Toutes les modifications sont enregistrées." : "All changes are saved.");

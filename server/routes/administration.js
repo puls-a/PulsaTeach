@@ -214,7 +214,6 @@ export function registerAdministrationRoutes(app, context) {
       app_metadata: { roles }
     });
     if (error) throw error;
-    await supabaseAdmin.from("profiles").update({ roles, updated_at: new Date().toISOString() }).eq("auth_user_id", request.params.id);
     response.json({ id: data.user.id, email: data.user.email, roles });
   });
 }

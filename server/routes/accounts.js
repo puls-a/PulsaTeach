@@ -240,22 +240,17 @@ export function registerAccountsRoutes(app, context) {
     }
     const userId = request.authUserId;
     if (supabaseAdmin && request.authUser?.id) {
-      const deletes = [
-        supabaseAdmin.from("learning_events").delete().eq("user_id", userId),
-        supabaseAdmin.from("issued_certificates").delete().eq("user_id", userId),
-        supabaseAdmin.from("submissions").delete().eq("user_id", userId),
-        supabaseAdmin.from("attempts").delete().eq("user_id", userId),
-        supabaseAdmin.from("quiz_sessions").delete().eq("user_id", userId),
-        supabaseAdmin.from("progress").delete().eq("user_id", userId),
-        supabaseAdmin.from("profiles").delete().eq("local_user_id", userId)
-      ];
-      const results = await Promise.all(deletes);
-      const failed = results.find((result) => result.error);
-      if (failed?.error) throw failed.error;
-      const { data: avatarFiles } = await supabaseAdmin.storage.from("avatars").list(request.authUser.id);
+      const { data: avatarFiles, error: listError } = await supabaseAdmin.storage.from("avatars").list(request.authUser.id);
+      if (listError) throw listError;
       if (avatarFiles?.length) {
-        await supabaseAdmin.storage.from("avatars").remove(avatarFiles.map((file) => `${request.authUser.id}/${file.name}`));
+        const { error: removeError } = await supabaseAdmin.storage.from("avatars").remove(avatarFiles.map((file) => `${request.authUser.id}/${file.name}`));
+        if (removeError) throw removeError;
       }
+      const { error: purgeError } = await supabaseAdmin.rpc("purge_application_user_data", {
+        p_auth_user_id: request.authUser.id,
+        p_local_user_id: userId
+      });
+      if (purgeError) throw purgeError;
       const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(request.authUser.id);
       if (authError) throw authError;
     } else {

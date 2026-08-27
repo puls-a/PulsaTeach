@@ -141,17 +141,21 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
       const completedExams = requiredExams.filter((lesson) => completedRequiredLessons.includes(lesson));
       const demonstratedSkills = [...new Set(requiredLessons.flatMap((lesson) => lesson.skills || []))].sort();
       const projectEvidence = certificate.requiredProjects.map((projectId) => {
-        const submission = userSubmissions
-          .filter((item) => matchesProjectId(projectId, item.projectId) && item.status === "approved" && (item.score ?? 0) >= certificate.minProjectScore)
+        const latestSubmission = userSubmissions
+          .filter((item) => matchesProjectId(projectId, item.projectId))
           .sort((left, right) => Number(right.version || 1) - Number(left.version || 1))[0];
+        const submission = latestSubmission?.status === "approved" && (latestSubmission.score ?? 0) >= certificate.minProjectScore
+          ? latestSubmission
+          : null;
         return submission ? {
           projectId,
           sourceProjectId: submission.projectId,
+          acceptedProjectIds: [projectId, ...(legacyProjectAliases[projectId] || [])],
           submissionId: submission.id,
           version: submission.version || 1,
           score: submission.score,
           minimumScore: certificate.minProjectScore
-        } : { projectId, submissionId: null, minimumScore: certificate.minProjectScore };
+        } : { projectId, acceptedProjectIds: [projectId, ...(legacyProjectAliases[projectId] || [])], submissionId: null, minimumScore: certificate.minProjectScore };
       });
       const approvedProjects = projectEvidence.filter((project) => project.submissionId);
       const trackVersions = Object.fromEntries(certificate.requiredTracks.map((trackId) => {
@@ -220,8 +224,8 @@ function mergeProgress(remoteProgress, localProgress) {
   const localStreak = isObject(local.streak) ? local.streak : {};
   const remoteStreak = isObject(remote.streak) ? remote.streak : {};
   return {
-    ...local,
     ...remote,
+    ...local,
     xp: Math.max(Number(local.xp) || 0, Number(remote.xp) || 0),
     streak: {
       ...localStreak,
@@ -231,9 +235,52 @@ function mergeProgress(remoteProgress, localProgress) {
       totalActiveDays: Math.max(Number(localStreak.totalActiveDays) || 0, Number(remoteStreak.totalActiveDays) || 0),
       recentDates: [...new Set([...(localStreak.recentDates || []), ...(remoteStreak.recentDates || [])])].sort().slice(-30)
     },
-    completed: { ...(local.completed || {}), ...(remote.completed || {}) },
+    completed: Object.fromEntries(
+      [...new Set([...Object.keys(remote.completed || {}), ...Object.keys(local.completed || {})])]
+        .filter((id) => Boolean(remote.completed?.[id]) || Boolean(local.completed?.[id]))
+        .map((id) => [id, true])
+    ),
+    review: {
+      ...(remote.review || {}),
+      ...(local.review || {}),
+      items: mergeTimestampedRecords(remote.review?.items, local.review?.items),
+      updatedAt: latestIso(remote.review?.updatedAt, local.review?.updatedAt)
+    },
+    quizEvidence: mergeTimestampedRecords(remote.quizEvidence, local.quizEvidence),
+    lastOpenedLesson: latestObject(remote.lastOpenedLesson, local.lastOpenedLesson, "openedAt"),
     activity
   };
+}
+
+function mergeTimestampedRecords(left, right) {
+  const result = { ...(isObject(left) ? left : {}) };
+  for (const [id, value] of Object.entries(isObject(right) ? right : {})) {
+    const current = result[id];
+    const currentTime = timestampOf(current);
+    const nextTime = timestampOf(value);
+    if (!current || nextTime >= currentTime) result[id] = value;
+  }
+  return result;
+}
+
+function timestampOf(value) {
+  for (const field of ["updatedAt", "lastReviewedAt", "qualifiedAt", "gradedAt", "at"]) {
+    const timestamp = Date.parse(value?.[field] || "");
+    if (Number.isFinite(timestamp)) return timestamp;
+  }
+  return 0;
+}
+
+function latestObject(left, right, field) {
+  if (!left) return right || null;
+  if (!right) return left;
+  return Date.parse(right[field] || "") >= Date.parse(left[field] || "") ? right : left;
+}
+
+function latestIso(left, right) {
+  if (!left) return right;
+  if (!right) return left;
+  return Date.parse(right) >= Date.parse(left) ? right : left;
 }
 
 function slugify(value) {

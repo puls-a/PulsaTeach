@@ -132,6 +132,15 @@ export function registerCoursesRoutes(app, context) {
       scheduledAt: null,
       archivedAt: null
     };
+    if (shouldTrySupabase()) {
+      const { data, error } = await supabaseAdmin.rpc("create_course_atomic", {
+        p_course: course,
+        p_actor: request.authUserId || "admin"
+      });
+      if (error) throw error;
+      response.status(201).json(data);
+      return;
+    }
     store.unshift(course);
     const versions = await readJsonStore(courseVersionsFile, []);
     versions.unshift(createCourseVersion(course, request.authUserId || "admin", "created", "Course created", new Date(now)));
@@ -162,8 +171,17 @@ export function registerCoursesRoutes(app, context) {
       return;
     }
     const hasContentChanges = ["title", "description", "curriculum", "level"].some((field) => payload[field] !== undefined);
+    const changedStatus = nextStatus !== current.status;
+    if (!hasContentChanges && !changedStatus) {
+      sendApiError(response, request, 400, "COURSE_NO_CHANGES", "Course update does not contain any changes.");
+      return;
+    }
     if (hasContentChanges && !hasRole(request, "admin", "author")) {
       sendApiError(response, request, 403, "COURSE_EDIT_DENIED", "Author role required to edit course content.");
+      return;
+    }
+    if ((hasContentChanges || ["review"].includes(nextStatus)) && !hasRole(request, "admin") && current.authorUserId !== request.authUserId) {
+      sendApiError(response, request, 403, "COURSE_OWNER_REQUIRED", "Only the owning author can edit or submit this course.");
       return;
     }
     if (hasContentChanges && !["draft", "changes_requested"].includes(current.status)) {
@@ -193,7 +211,6 @@ export function registerCoursesRoutes(app, context) {
       return;
     }
     const now = new Date();
-    const changedStatus = nextStatus !== current.status;
     const nextVersion = Number(current.version || 1) + 1;
     store[index] = {
       ...candidate,
@@ -214,6 +231,22 @@ export function registerCoursesRoutes(app, context) {
           })
         : current.workflowLog || []
     };
+    if (shouldTrySupabase()) {
+      const { data, error } = await supabaseAdmin.rpc("save_course_atomic", {
+        p_course: store[index],
+        p_expected_version: Number(current.version || 1),
+        p_actor: request.authUserId || "admin",
+        p_change_type: changedStatus ? "transition" : "content",
+        p_comment: payload.comment || ""
+      });
+      if (error?.message?.includes("COURSE_VERSION_CONFLICT")) {
+        sendApiError(response, request, 409, "COURSE_VERSION_CONFLICT", "Course was updated by another editor.", { currentVersion: Number(error.details) || undefined });
+        return;
+      }
+      if (error) throw error;
+      response.json(data);
+      return;
+    }
     const versions = await readJsonStore(courseVersionsFile, []);
     if (!versions.some((entry) => entry.courseId === current.id)) {
       versions.unshift(createCourseVersion({ ...current, version: Number(current.version || 1) }, current.authorUserId || "system", "created", "Legacy baseline"));
@@ -263,6 +296,22 @@ export function registerCoursesRoutes(app, context) {
     }
     const now = new Date();
     store[index] = restoreCourseVersion(store[index], source, request.authUserId || "admin", request.body.comment, now);
+    if (shouldTrySupabase()) {
+      const { data, error } = await supabaseAdmin.rpc("save_course_atomic", {
+        p_course: store[index],
+        p_expected_version: Number(store[index].version || 2) - 1,
+        p_actor: request.authUserId || "admin",
+        p_change_type: "rollback",
+        p_comment: request.body.comment
+      });
+      if (error?.message?.includes("COURSE_VERSION_CONFLICT")) {
+        sendApiError(response, request, 409, "COURSE_VERSION_CONFLICT", "Course was updated by another editor.");
+        return;
+      }
+      if (error) throw error;
+      response.json(data);
+      return;
+    }
     versions.unshift(createCourseVersion(store[index], request.authUserId || "admin", "rollback", request.body.comment, now));
     await writeJsonStore(coursesFile, store);
     await writeJsonStore(courseVersionsFile, versions.slice(0, 5000));
@@ -280,6 +329,10 @@ export function registerCoursesRoutes(app, context) {
     }
     if (course.status === "published" && !hasRole(request, "admin")) {
       response.status(403).json({ error: "Only an admin can delete a published course.", requestId: request.requestId });
+      return;
+    }
+    if (!hasRole(request, "admin") && course.authorUserId !== request.authUserId) {
+      sendApiError(response, request, 403, "COURSE_OWNER_REQUIRED", "Only the owning author can delete this course.");
       return;
     }
     if (shouldTrySupabase()) await deleteSupabaseRecord("course-drafts.json", course.id);
