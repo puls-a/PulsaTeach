@@ -41,6 +41,32 @@ describe("HTML semantic lesson validation", () => {
     expect(await check("labelForControl", value, '<label for=" ">X</label><input id="x">')).toBe(false);
   });
 
+  test("checks document-wide ids and local fragment targets", async () => {
+    expect(await check("uniqueIds", null, '<main id="content"></main><aside id="help"></aside>')).toBe(true);
+    expect(await check("uniqueIds", null, '<main id="content"></main><aside id="content"></aside>')).toBe(false);
+    expect(await check("uniqueIds", null, '<main id=" "></main>')).toBe(false);
+    expect(await check("validFragmentTargets", null, '<a href="#content">Skip</a><main id="content"></main>')).toBe(true);
+    expect(await check("validFragmentTargets", null, '<a href="#missing">Skip</a><main id="content"></main>')).toBe(false);
+    expect(await check("validFragmentTargets", null, '<a href="#">Skip</a><main id="content"></main>')).toBe(false);
+  });
+
+  test("checks implicit and explicit labels plus submitted form controls", async () => {
+    const valid = '<form><label for="email">Email</label><input id="email" name="email" type="email"><label><input name="updates" type="checkbox"> Updates</label><button type="submit">Send</button></form>';
+    expect(await check("labelsAssociated", null, valid)).toBe(true);
+    expect(await check("formControlsNamed", null, valid)).toBe(true);
+    expect(await check("labelsAssociated", null, '<label>Email<input name="email"><input name="other"></label>')).toBe(false);
+    expect(await check("formControlsNamed", null, '<form><input type="email"><input type="hidden"><button type="submit">Send</button></form>')).toBe(false);
+    expect(await check("formControlsNamed", null, '<form><input disabled type="email"><button type="submit">Send</button></form>')).toBe(true);
+    expect(await check("formControlsNamed", null, '<form><fieldset disabled><input type="email"></fieldset></form>')).toBe(true);
+  });
+
+  test("checks the small publishable-document baseline without validating all HTML", async () => {
+    const valid = '<!doctype html><html lang="en"><head><title>Page</title></head><body><main>Ready</main></body></html>';
+    expect(await check("documentSanity", null, valid)).toBe(true);
+    expect(await check("documentSanity", null, '<html lang="en"><head><title>Page</title></head><body></body></html>')).toBe(false);
+    expect(await check("documentSanity", null, '<!doctype html><html lang="en"><head></head><body></body></html>')).toBe(false);
+  });
+
   test("supports non-vacuous all and none selector predicates", async () => {
     expect(await check("allMatch", { selector: "nav a", matches: "[href]" }, '<nav><a href="/a">A</a><a href="/b">B</a></nav>')).toBe(true);
     expect(await check("allMatch", { selector: "nav a", matches: "[href]" }, "<nav><!-- <a href='/a'> --></nav>")).toBe(false);

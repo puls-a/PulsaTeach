@@ -111,7 +111,7 @@ export async function validateLesson(lesson, code, locale = "fr") {
     if (item.type === "notContainsAny") {
       pass = asValues(item.value).every((value) => !normalize(activeCode).includes(normalize(value)));
     }
-    if (["referenceExists", "nonEmptyAttribute", "attributeIncludes", "domOrder", "labelForControl", "allMatch", "noneMatch"].includes(item.type)) {
+    if (["referenceExists", "nonEmptyAttribute", "attributeIncludes", "domOrder", "labelForControl", "allMatch", "noneMatch", "uniqueIds", "validFragmentTargets", "labelsAssociated", "formControlsNamed", "documentSanity"].includes(item.type)) {
       pass = checkHtmlSemanticAssertion(code, item);
     }
     if (item.type === "jsExpression") {
@@ -210,13 +210,25 @@ function checkAttributeEquals(code, selector, attribute, expected) {
 export const HTML_TEST_TYPES = new Set([
   "contains", "containsAny", "doctype", "notContains", "notContainsAny", "selector", "minSelector", "exactSelector",
   "attributeEquals", "referenceExists", "nonEmptyAttribute", "attributeIncludes",
-  "domOrder", "labelForControl", "allMatch", "noneMatch"
+  "domOrder", "labelForControl", "allMatch", "noneMatch", "uniqueIds", "validFragmentTargets",
+  "labelsAssociated", "formControlsNamed", "documentSanity"
 ]);
 
 function checkHtmlSemanticAssertion(code, test) {
   try {
     const doc = new DOMParser().parseFromString(code, "text/html");
     const value = test.value || {};
+
+    if (test.type === "documentSanity") return hasSaneDocument(code, doc);
+    if (test.type === "uniqueIds") return [...doc.querySelectorAll("[id]")].every((element) => element.id.trim() && hasUniqueId(doc, element.id));
+    if (test.type === "validFragmentTargets") return [...doc.querySelectorAll("a[href^='#']")].every((link) => {
+      const ids = referencedIds(link, "href");
+      return ids.length === 1 && hasUniqueId(doc, ids[0]);
+    });
+    if (test.type === "labelsAssociated") return [...doc.querySelectorAll("label")].every(hasAssociatedControl.bind(null, doc));
+    if (test.type === "formControlsNamed") return [...doc.querySelectorAll("form input, form select, form textarea")]
+      .filter((control) => !control.matches(":disabled") && isSubmittableControl(control))
+      .every((control) => control.getAttribute("name")?.trim());
 
     if (test.type === "domOrder") {
       const selectors = Array.isArray(value) ? value : value.selectors;
@@ -258,6 +270,31 @@ function checkHtmlSemanticAssertion(code, test) {
   } catch {
     return false;
   }
+}
+
+function hasSaneDocument(code, doc) {
+  const root = doc.documentElement;
+  return Boolean(/^\s*<!doctype\s+html\s*>/i.test(code)
+    && root?.tagName === "HTML"
+    && root.getAttribute("lang")?.trim()
+    && doc.head?.parentElement === root
+    && doc.body?.parentElement === root
+    && doc.querySelectorAll("html > head").length === 1
+    && doc.querySelectorAll("html > body").length === 1
+    && doc.querySelectorAll("head > title").length === 1
+    && doc.title.trim());
+}
+
+function hasAssociatedControl(doc, label) {
+  const id = label.getAttribute("for")?.trim();
+  if (id) return Boolean(getUniqueElementById(doc, id)?.matches("button, input:not([type=hidden]), meter, output, progress, select, textarea"));
+  if (label.hasAttribute("for")) return false;
+  return label.querySelectorAll("button, input:not([type=hidden]), meter, output, progress, select, textarea").length === 1;
+}
+
+function isSubmittableControl(control) {
+  if (control.matches("select, textarea")) return true;
+  return !["button", "hidden", "image", "reset", "submit"].includes((control.getAttribute("type") || "text").toLowerCase());
 }
 
 function referencedIds(element, attribute) {
