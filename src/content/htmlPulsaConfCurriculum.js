@@ -2,6 +2,12 @@ import { getPedagogy } from "./pedagogy.js";
 import { lesson, module, projectLesson, quizLesson, test } from "./trackBuilders.js";
 
 const threadId = "html-pulsaconf-premium";
+const projectDocument = {
+  id: threadId,
+  fileName: "pulsaconf.html",
+  fr: "Un document PulsaConf partagé, versionné à chaque étape fusionnée.",
+  en: "One shared PulsaConf document, versioned at every merged step."
+};
 
 const T = (fr, en) => ({ fr, en });
 const P = (fr, en) => [fr, en];
@@ -588,6 +594,7 @@ function enrich(item, stepNumber, buildsOn, focus, example, vocabulary) {
     guide,
     pedagogy: getPedagogy(item.id, { course, guide, title: item.title, brief: item.brief, solution: item.solution, type: item.type }),
     projectThreadId: threadId,
+    projectDocument,
     stepNumber,
     buildsOn: buildsOn || null
   };
@@ -1513,9 +1520,9 @@ function quizDef(id, title, vocabulary, focus) {
   };
 }
 
-export const htmlPulsaConfModules = modules.map((mod, moduleIndex) => {
-  let previous = null;
-  let stepNumber = moduleIndex * 8 + 1;
+let previous = null;
+let stepNumber = 1;
+const compiledModules = modules.map((mod) => {
   const lessons = mod.lessons.map((def) => {
     const item = def.id === "html-09-final-exam"
       ? makeQuiz(quizDef("html-09-final-exam", def.title, mod.vocabulary, def.focus), stepNumber++, previous)
@@ -1530,5 +1537,12 @@ export const htmlPulsaConfModules = modules.map((mod, moduleIndex) => {
   }
   const project = makeProject(projectDef(mod.project, mod.vocabulary), stepNumber++, previous);
   lessons.push(project);
+  previous = project.id;
   return module(mod.id, mod.title[0], mod.title[1], lessons);
 });
+
+const totalSteps = stepNumber - 1;
+export const htmlPulsaConfModules = compiledModules.map((mod) => ({
+  ...mod,
+  lessons: mod.lessons.map((item) => ({ ...item, stepCount: totalSteps }))
+}));

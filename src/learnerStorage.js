@@ -9,7 +9,7 @@ const learnerExactKeys = new Set([
   "pulsateach-learning-progress",
   "pulsateach-studio-preferences"
 ]);
-const learnerKeyPrefixes = ["pulsateach-code-", "pulsateach-note-", "pulsateach-quiz-draft-"];
+const learnerKeyPrefixes = ["pulsateach-code-", "pulsateach-note-", "pulsateach-project-thread-", "pulsateach-quiz-draft-"];
 export const learnerStorageOwnerEvent = "pulsateach-storage-owner-changed";
 
 export function getLearnerStorageOwner() {
