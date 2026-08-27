@@ -88,12 +88,28 @@ export function registerLearningRoutes(app, context) {
     rolesFromUser,
     randomUUID,
     createHash,
-    sanitizeProgressExamEvidence
+    sanitizeProgressExamEvidence,
+    readSupabaseProgressForUser,
+    saveSupabaseProgressAtomic
   } = context;
+
+  const projectCatalog = learningTracks.flatMap((track) => (track.modules || []).flatMap((module) => (module.lessons || [])
+    .filter((lesson) => lesson.type === "project")
+    .map((lesson) => ({ id: lesson.id, trackId: track.id, title: lesson.title }))));
+  const projectIds = new Set(projectCatalog.map((project) => project.id));
+
+  app.get("/api/projects/catalog", (_request, response) => {
+    response.set("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
+    response.json(projectCatalog);
+  });
 
   app.get("/api/progress/:userId", async (request, response) => {
     if (!authorizeUserParam(request, response)) return;
     const userId = request.authUserId || request.params.userId;
+    if (shouldUseSupabaseMutations()) {
+      response.json(await readSupabaseProgressForUser(userId));
+      return;
+    }
     const store = await readProgressStore();
     response.json(store[userId] || null);
   });
@@ -106,14 +122,20 @@ export function registerLearningRoutes(app, context) {
       response.status(400).json({ error: "Progress payload must be an object." });
       return;
     }
-    const store = await readProgressStore();
-    store[userId] = {
-      ...sanitizeProgressExamEvidence(request.body),
-      userId,
-      updatedAt: new Date().toISOString()
-    };
-    await writeProgressStore(store);
-    response.json(store[userId]);
+    if (shouldUseSupabaseMutations()) {
+      response.json(await saveSupabaseProgressAtomic(userId, request.body, mergeProgress, sanitizeProgressExamEvidence));
+      return;
+    }
+    await withStoreMutation(`progress:${userId}`, async () => {
+      const store = await readProgressStore();
+      store[userId] = {
+        ...sanitizeProgressExamEvidence(mergeProgress(store[userId], request.body)),
+        userId,
+        updatedAt: new Date().toISOString()
+      };
+      await writeProgressStore(store);
+      response.json(store[userId]);
+    });
   });
 
   app.post("/api/progress/migrate", requireAuthenticatedRequest, validateBody(progressMigrationSchema), async (request, response) => {
@@ -124,11 +146,18 @@ export function registerLearningRoutes(app, context) {
       return;
     }
     const userId = request.authUserId;
-    const store = await readProgressStore();
-    const merged = sanitizeProgressExamEvidence(mergeProgress(store[userId], localProgress));
-    store[userId] = { ...merged, userId, updatedAt: new Date().toISOString() };
-    await writeProgressStore(store);
-    response.json({ migrated: true, progress: store[userId] });
+    if (shouldUseSupabaseMutations()) {
+      const progress = await saveSupabaseProgressAtomic(userId, localProgress, mergeProgress, sanitizeProgressExamEvidence);
+      response.json({ migrated: true, progress });
+      return;
+    }
+    await withStoreMutation(`progress:${userId}`, async () => {
+      const store = await readProgressStore();
+      const merged = sanitizeProgressExamEvidence(mergeProgress(store[userId], localProgress));
+      store[userId] = { ...merged, userId, updatedAt: new Date().toISOString() };
+      await writeProgressStore(store);
+      response.json({ migrated: true, progress: store[userId] });
+    });
   });
 
   app.get("/api/submissions", async (request, response) => {
@@ -161,6 +190,10 @@ export function registerLearningRoutes(app, context) {
     }
     const userId = request.authUserId || payload.userId;
     if (!userId || !authorizePayloadUser(request, response, payload.userId)) return;
+    if (!projectIds.has(String(payload.projectId))) {
+      sendApiError(response, request, 400, "PROJECT_NOT_FOUND", "Choose a project from the PulsaTeach curriculum.");
+      return;
+    }
 
     const now = new Date().toISOString();
     const baseSubmission = {
