@@ -21,6 +21,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
   const [hintLevel, setHintLevel] = useState(0);
   const [showCorrection, setShowCorrection] = useState(false);
   const [consoleOutput, setConsoleOutput] = useState("");
+  const [executionError, setExecutionError] = useState("");
   const [note, setNote] = useState("");
   const [copied, setCopied] = useState(false);
   const [focusPanel, setFocusPanel] = useState("code");
@@ -42,6 +43,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
     setHintLevel(0);
     setShowCorrection(false);
     setConsoleOutput("");
+    setExecutionError("");
     setNote(getLearnerItem(`pulsateach-note-${lesson.id}`) || "");
     setFocusPanel("code");
     setWorkspacePanel("preview");
@@ -95,6 +97,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
     executionRef.current = execution;
     setExecutionStatus("running");
     setResult(null);
+    setExecutionError("");
     setWorkspacePanel("tests");
     setFocusPanel("results");
     window.requestAnimationFrame(() => {
@@ -102,17 +105,24 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
       if (resultsTab?.offsetParent) resultsTab.focus();
     });
     recordLearningEvent({ eventType: "tests_run", lessonId: lesson.id, trackId: activeTrack.id, payload: { testCount: lesson.tests.length } }).catch(() => {});
-    const checks = await validateLesson(lesson, source, locale);
-    if (executionRef.current !== execution) return;
-    executionRef.current = null;
-    if (source !== code) setCode(source);
-    setResult(checks);
-    const passedCount = checks.filter((check) => check.pass).length;
-    const successful = passedCount === checks.length;
-    setExecutionStatus(successful ? "passed" : "failed");
-    recordAttempt({ lessonId: lesson.id, trackId: activeTrack.id, moduleId: activeModule.id, passed: passedCount, total: checks.length }).catch(() => {});
-    recordLearningEvent({ eventType: checks.every((check) => check.pass) ? "lesson_completed" : "tests_failed", lessonId: lesson.id, trackId: activeTrack.id, payload: { passed: passedCount, total: checks.length, failedTests: checks.filter((check) => !check.pass).map((check) => check.label || check.id) } }).catch(() => {});
-    if (successful) onComplete(lesson, checks.length);
+    try {
+      const checks = await validateLesson(lesson, source, locale);
+      if (executionRef.current !== execution) return;
+      if (source !== code) setCode(source);
+      setResult(checks);
+      const passedCount = checks.filter((check) => check.pass).length;
+      const successful = passedCount === checks.length;
+      setExecutionStatus(successful ? "passed" : "failed");
+      recordAttempt({ lessonId: lesson.id, trackId: activeTrack.id, moduleId: activeModule.id, passed: passedCount, total: checks.length }).catch(() => {});
+      recordLearningEvent({ eventType: checks.every((check) => check.pass) ? "lesson_completed" : "tests_failed", lessonId: lesson.id, trackId: activeTrack.id, payload: { passed: passedCount, total: checks.length, failedTests: checks.filter((check) => !check.pass).map((check) => check.label || check.id) } }).catch(() => {});
+      if (successful) onComplete(lesson, checks.length);
+    } catch {
+      if (executionRef.current !== execution) return;
+      setExecutionError(locale === "fr" ? "Les tests n'ont pas pu s'exécuter. Réessaie." : "Tests could not run. Try again.");
+      setExecutionStatus("failed");
+    } finally {
+      if (executionRef.current === execution) executionRef.current = null;
+    }
   };
 
   const runCode = async (source = code) => {
@@ -120,21 +130,32 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
     const execution = {};
     executionRef.current = execution;
     setExecutionStatus("running");
+    setExecutionError("");
     if (source !== code) setCode(source);
     setFocusPanel("code");
     setWorkspacePanel("preview");
     setConsoleOutput(locale === "fr" ? "Exécution en cours…" : "Running…");
-    const output = await runJavaScriptWithConsole(source, locale);
-    if (executionRef.current !== execution) return;
-    executionRef.current = null;
-    setConsoleOutput(output);
-    setExecutionStatus(/^(Erreur|Error):/.test(output) ? "failed" : "passed");
+    try {
+      const output = await runJavaScriptWithConsole(source, locale);
+      if (executionRef.current !== execution) return;
+      setConsoleOutput(output);
+      setExecutionStatus(/^(Erreur|Error):/.test(output) ? "failed" : "passed");
+    } catch {
+      if (executionRef.current !== execution) return;
+      const message = locale === "fr" ? "Erreur : l'exécution a échoué. Réessaie." : "Error: execution failed. Try again.";
+      setConsoleOutput(message);
+      setExecutionError(message);
+      setExecutionStatus("failed");
+    } finally {
+      if (executionRef.current === execution) executionRef.current = null;
+    }
   };
 
   const resetCode = () => {
     setCode(starterCode);
     setResult(null);
     setConsoleOutput("");
+    setExecutionError("");
     setFocusPanel("code");
     setWorkspacePanel("preview");
     setExecutionStatus("idle");
@@ -175,7 +196,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
         </section>
         <ResizeHandle index={1} locale={locale} position={panelWidths[0] + panelWidths[1]} min={panelWidths[0] + 28} max={80} onPointerDown={beginResize} onPointerMove={resizePanels} onPointerUp={endResize} onPositionChange={setDividerPosition} />
         <section id="lesson-panel-results" role="tabpanel" aria-labelledby="lesson-tab-results" tabIndex={0} className={`${focusPanel === "results" ? "flex" : "hidden"} min-h-[600px] min-w-0 flex-col bg-[#f7f7fc] xl:flex xl:min-h-0`}>
-          <OutputWorkbench lesson={lesson} locale={locale} code={code} preview={preview} previewKind={previewKind} consoleOutput={consoleOutput} result={result} tests={lesson.tests} total={total} passed={passed} allPassed={allPassed} showCorrection={showCorrection} selectedPanel={workspacePanel} isRunning={executionStatus === "running"} onSelectPanel={setWorkspacePanel} onRunTests={runTests} onNext={onNext} hasNext={hasNext} onLoadSolution={() => { setCode(solution); setFocusPanel("code"); }} />
+          <OutputWorkbench lesson={lesson} locale={locale} code={code} preview={preview} previewKind={previewKind} consoleOutput={consoleOutput} executionError={executionError} result={result} tests={lesson.tests} total={total} passed={passed} allPassed={allPassed} showCorrection={showCorrection} selectedPanel={workspacePanel} isRunning={executionStatus === "running"} onSelectPanel={setWorkspacePanel} onRunTests={runTests} onNext={onNext} hasNext={hasNext} onLoadSolution={() => { setCode(solution); setFocusPanel("code"); }} />
         </section>
       </div>
     </section>
@@ -273,18 +294,30 @@ function EditorWorkbench({ code, documentKey, editorRef, fileName, fontSize, lan
   );
 }
 
-function OutputWorkbench({ lesson, locale, code, preview, previewKind, consoleOutput, result, tests, total, passed, allPassed, showCorrection, selectedPanel, isRunning, onSelectPanel, onRunTests, onNext, hasNext, onLoadSolution }) {
+function OutputWorkbench({ lesson, locale, code, preview, previewKind, consoleOutput, executionError, result, tests, total, passed, allPassed, showCorrection, selectedPanel, isRunning, onSelectPanel, onRunTests, onNext, hasNext, onLoadSolution }) {
+  const tabs = ["preview", "tests"];
+  const selectTab = (nextPanel) => {
+    onSelectPanel(nextPanel);
+    window.requestAnimationFrame(() => document.getElementById(`lesson-output-tab-${nextPanel}`)?.focus());
+  };
+  const handleTabKeyDown = (event, index) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    if (event.key === "Home") return selectTab(tabs[0]);
+    if (event.key === "End") return selectTab(tabs.at(-1));
+    selectTab(tabs[(index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length]);
+  };
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-[#f7f7fc]">
       <div className="flex min-h-11 items-center border-b border-white/15 bg-[#171733] px-2" role="tablist" aria-label={locale === "fr" ? "Sortie du code" : "Code output"}>
         <div className="flex gap-2">
-          <button type="button" role="tab" aria-selected={selectedPanel === "preview"} onClick={() => onSelectPanel("preview")} className={`min-h-10 px-4 font-bold ${selectedPanel === "preview" ? "bg-white text-[#0a0a23]" : "border border-white/30 text-white"}`}>{locale === "fr" ? "Aperçu live" : "Live preview"}</button>
-          <button type="button" role="tab" aria-selected={selectedPanel === "tests"} onClick={() => onSelectPanel("tests")} className={`min-h-10 px-4 font-bold ${selectedPanel === "tests" ? "bg-white text-[#0a0a23]" : "border border-white/30 text-white"}`}>{locale === "fr" ? "Tests" : "Tests"}{result ? ` ${passed}/${total}` : ""}</button>
+          <button id="lesson-output-tab-preview" type="button" role="tab" aria-controls="lesson-output-preview" aria-selected={selectedPanel === "preview"} tabIndex={selectedPanel === "preview" ? 0 : -1} onKeyDown={(event) => handleTabKeyDown(event, 0)} onClick={() => selectTab("preview")} className={`min-h-10 px-4 font-bold ${selectedPanel === "preview" ? "bg-white text-[#0a0a23]" : "border border-white/30 text-white"}`}>{locale === "fr" ? "Aperçu live" : "Live preview"}</button>
+          <button id="lesson-output-tab-tests" type="button" role="tab" aria-controls="lesson-output-tests" aria-selected={selectedPanel === "tests"} tabIndex={selectedPanel === "tests" ? 0 : -1} onKeyDown={(event) => handleTabKeyDown(event, 1)} onClick={() => selectTab("tests")} className={`min-h-10 px-4 font-bold ${selectedPanel === "tests" ? "bg-white text-[#0a0a23]" : "border border-white/30 text-white"}`}>{locale === "fr" ? "Tests" : "Tests"}{result ? ` ${passed}/${total}` : ""}</button>
         </div>
       </div>
-      <div className="h-full min-h-0 flex-1 overflow-y-auto" tabIndex={0} aria-label={locale === "fr" ? "Contenu de l’aperçu et des tests" : "Preview and test content"}>
+      <div id={`lesson-output-${selectedPanel}`} role="tabpanel" aria-labelledby={`lesson-output-tab-${selectedPanel}`} className="h-full min-h-0 flex-1 overflow-y-auto" tabIndex={0}>
         {selectedPanel === "preview" && <Preview lesson={lesson} locale={locale} code={code} preview={preview} previewKind={previewKind} consoleOutput={consoleOutput} />}
-        {selectedPanel === "tests" && <div className="p-3">{allPassed && <CompletionBanner locale={locale} onNext={onNext} hasNext={hasNext} projectId={lesson.type === "project" ? lesson.id : ""} />}<TestPanel locale={locale} result={result} tests={tests} total={total} passed={passed} isRunning={isRunning} onRunTests={() => onRunTests(code)} />{(showCorrection || allPassed) && <ExplainedCorrection lesson={lesson} locale={locale} onLoadSolution={onLoadSolution} />}</div>}
+        {selectedPanel === "tests" && <div className="p-3">{executionError && <p className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-900" role="alert">{executionError}</p>}{allPassed && <CompletionBanner locale={locale} onNext={onNext} hasNext={hasNext} projectId={lesson.type === "project" ? lesson.id : ""} />}<TestPanel locale={locale} result={result} tests={tests} total={total} passed={passed} isRunning={isRunning} onRunTests={() => onRunTests(code)} />{(showCorrection || allPassed) && <ExplainedCorrection lesson={lesson} locale={locale} onLoadSolution={onLoadSolution} />}</div>}
       </div>
     </div>
   );
