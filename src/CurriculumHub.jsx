@@ -25,7 +25,7 @@ const trackPresentation = {
 
 export default function CurriculumHub({ locale = "fr" }) {
   const { user } = useSupabaseSession();
-  const { tracks, loading, error } = useLearningTracks({ remoteCatalog: true, mode: "summary", freshCatalog: Boolean(user) });
+  const { tracks, loading, error, reload } = useLearningTracks({ remoteCatalog: true, mode: "summary", freshCatalog: Boolean(user) });
   const [query, setQuery] = useState("");
   const [progress, setProgress] = useState(readProgress);
   const courseDrafts = useMemo(readCourseDrafts, []);
@@ -84,7 +84,7 @@ export default function CurriculumHub({ locale = "fr" }) {
           </div>
 
           {loading && <p className="empty-state mt-6" role="status">{locale === "fr" ? "Chargement du catalogue..." : "Loading catalog..."}</p>}
-          {error && <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900" role="status">{locale === "fr" ? "Le catalogue distant est indisponible. Les formations intégrées restent accessibles." : "Remote catalog unavailable. Built-in courses remain accessible."}</p>}
+          {error && <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900" role="status"><span>{locale === "fr" ? "Le catalogue distant est indisponible. Les formations intégrées restent accessibles." : "Remote catalog unavailable. Built-in courses remain accessible."}</span><button type="button" onClick={reload} className="rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-black hover:bg-amber-100">{locale === "fr" ? "Réessayer" : "Try again"}</button></div>}
           <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {filteredTracks.map((track) => <CourseCard key={track.id} track={track} locale={locale} />)}
           </div>
