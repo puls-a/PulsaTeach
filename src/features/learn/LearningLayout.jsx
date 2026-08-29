@@ -13,9 +13,10 @@ export function FocusedLearningLayout(props) {
     onOpenLesson(moduleId, lessonId);
     setCurriculumOpen(false);
   };
+  const workstationLesson = activeLesson.runtime === "workstation";
   return (
-    <section id="learn" className="min-h-screen overflow-x-hidden bg-[#10102b] pt-[4.5rem] text-white xl:h-screen xl:min-h-0 xl:overflow-hidden">
-      <div className="mx-auto flex h-full w-full max-w-[1920px] flex-col px-2 pb-2 sm:px-3">
+    <section id="learn" className={`min-h-screen overflow-x-hidden bg-[#10102b] pt-[4.5rem] text-white ${workstationLesson ? "pb-6" : "xl:h-screen xl:min-h-0 xl:overflow-hidden"}`}>
+      <div className={`mx-auto flex w-full max-w-[1920px] flex-col px-2 sm:px-3 ${workstationLesson ? "" : "h-full pb-2"}`}>
         <header className="mb-2 flex shrink-0 flex-col gap-2 border border-indigo-300/20 bg-[#1b1b3a] px-3 py-2 shadow-lg lg:min-h-[52px] lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
             <p className="truncate text-[10px] font-black uppercase tracking-[.12em] text-indigo-200">{activeTrack.title[locale]} <span className="text-slate-500">/</span> {activeModule.title[locale]}</p>
