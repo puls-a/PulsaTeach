@@ -37,7 +37,7 @@ export const worldZones = [
     href: "/flexbox-arena",
     tone: "bg-aquaPop",
     badge: "Alignment Ace",
-    levels: 6,
+    levels: 4,
     title: { en: "Flexbox Arena", fr: "Flexbox Arena" },
     text: {
       en: "Move the academy bot with justify-content and align-items until it reaches the target.",
@@ -61,7 +61,7 @@ export const worldZones = [
     href: "/js-arena",
     tone: "bg-rosePop",
     badge: "Logic Shooter",
-    levels: 8,
+    levels: 4,
     title: { en: "JavaScript Lab", fr: "JavaScript Lab" },
     text: {
       en: "Use variables, functions, conditions, loops, and events through playable missions.",

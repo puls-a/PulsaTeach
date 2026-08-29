@@ -84,7 +84,9 @@ const text = {
     tests: "Target cases",
     level: "Level",
     visible: "Visible target",
-    allowed: "Allowed returns"
+    allowed: "Allowed returns",
+    mission: "Mission",
+    target: "Target"
   },
   fr: {
     title: "JavaScript Arena",
@@ -101,7 +103,9 @@ const text = {
     tests: "Cas testés",
     level: "Niveau",
     visible: "Cible visible",
-    allowed: "Retours autorisés"
+    allowed: "Retours autorisés",
+    mission: "Mission",
+    target: "Cible"
   }
 };
 
@@ -141,11 +145,13 @@ export default function ArrowTargetGame({ locale = "en" }) {
     if (ok) awardGameMission(`arrow-target-${level.id}`, level.xp, levelIndex === jsArenaLevels.length - 1 ? "arrow-clear" : null);
   };
 
-  const nextLevel = () => resetLevel((levelIndex + 1) % jsArenaLevels.length);
+  const nextLevel = () => {
+    if (message === "pass") resetLevel((levelIndex + 1) % jsArenaLevels.length);
+  };
 
   return (
     <section className="lab-shell">
-      <div className="grid min-h-[700px] lg:grid-cols-[minmax(0,.94fr)_minmax(430px,1.06fr)]">
+      <div className="grid lg:grid-cols-[minmax(0,.94fr)_minmax(430px,1.06fr)]">
         <div className="flex min-w-0 flex-col bg-ink p-3">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -153,18 +159,18 @@ export default function ArrowTargetGame({ locale = "en" }) {
               <p className="mt-1 text-xs font-bold uppercase tracking-[.14em] text-indigo-200">{copy.level} {levelIndex + 1}/{jsArenaLevels.length} · {level.title[locale]}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => setMissionOpen(true)} className="lab-toolbar-button"><Info className="size-4" />Mission</button>
+              <button type="button" onClick={() => setMissionOpen(true)} className="lab-toolbar-button"><Info className="size-4" />{copy.mission}</button>
               <button type="button" onClick={() => { setCode(starterCode); setResults(null); setMessage(null); }} className="lab-toolbar-button"><RotateCcw className="size-4" />{copy.reset}</button>
               <button type="button" onClick={fire} className="lab-primary-button"><TestTube2 className="size-4" />{copy.validate}</button>
-              <button type="button" onClick={nextLevel} className="lab-toolbar-button">{copy.next}<ArrowRight className="size-4" /></button>
+              <button type="button" onClick={nextLevel} disabled={message !== "pass"} className="lab-toolbar-button disabled:cursor-not-allowed disabled:opacity-45">{copy.next}<ArrowRight className="size-4" /></button>
             </div>
           </div>
           <label className="flex min-h-0 flex-1 flex-col">
             <span className="sr-only">{copy.code}</span>
-            <textarea value={code} onChange={(event) => { setCode(event.target.value); setResults(null); setMessage(null); }} spellCheck="false" className="code-editor min-h-[540px]" />
+            <textarea value={code} onChange={(event) => { setCode(event.target.value); setResults(null); setMessage(null); }} spellCheck="false" className="code-editor min-h-[300px] sm:min-h-[420px] lg:min-h-[540px]" />
           </label>
           {message && (
-            <p className={`mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold ${message === "pass" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-900"}`}>
+            <p role="status" aria-live="polite" className={`mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold ${message === "pass" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-900"}`}>
               {message === "pass" ? <CheckCircle2 className="size-5" /> : <TriangleAlert className="size-5" />}
               {message === "pass" ? (levelIndex === jsArenaLevels.length - 1 ? copy.complete : copy.pass) : copy.fail}
             </p>
@@ -184,7 +190,7 @@ export default function ArrowTargetGame({ locale = "en" }) {
             <div className="absolute left-1/2 top-1/2 z-10 size-16 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-indigo-200 bg-indigoPop shadow-xl" />
             <div className={`absolute left-1/2 top-1/2 z-0 h-2 origin-left rounded-full transition-all duration-500 ${visibleResult?.pass ? "bg-green-500" : results ? "bg-amber-500" : "bg-indigo-400"}`} style={{ width: beam.width, transform: `rotate(${beam.rotate}deg)` }} />
             <img src={assetPaths.arrow} alt="" className="absolute left-1/2 top-1/2 z-10 h-10 w-28 origin-left -translate-y-1/2 transition-transform duration-500" style={{ transform: `rotate(${beam.rotate}deg) translateY(-50%)` }} />
-            <img src={assetPaths.target} alt="Target" className="absolute z-20 size-24 -translate-x-1/2 -translate-y-1/2" style={{ left: `${focusCase.x}%`, top: `${focusCase.y}%` }} />
+            <img src={assetPaths.target} alt={copy.target} className="absolute z-20 size-24 -translate-x-1/2 -translate-y-1/2" style={{ left: `${focusCase.x}%`, top: `${focusCase.y}%` }} />
             {visibleResult?.pass && <img src={assetPaths.spark} alt="" className="absolute z-30 size-20 -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ left: `${focusCase.x}%`, top: `${focusCase.y}%` }} />}
             <div className="absolute bottom-4 left-4 z-20 rounded-xl border border-white/70 bg-white/85 p-3 text-xs font-bold text-slate-600 shadow-sm">
               <p>{copy.visible}: x={focusCase.x}, y={focusCase.y}</p>
@@ -199,7 +205,6 @@ export default function ArrowTargetGame({ locale = "en" }) {
                 <h3 className="font-display text-2xl font-bold">{copy.tests}</h3>
                 <p className="mt-1 text-sm font-semibold text-slate-500">{copy.allowed}: center, left, right, up, down, left-up, right-up, left-down, right-down</p>
               </div>
-              <button type="button" onClick={fire} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-green-700 px-4 text-sm font-black text-white hover:bg-green-800"><TestTube2 className="size-4" />{copy.validate}</button>
             </div>
             <div className="mt-4 grid gap-2">
               {(results || level.cases.map((item) => ({ ...item, returned: "…", pass: false, waiting: true }))).map((item) => (
@@ -213,7 +218,7 @@ export default function ArrowTargetGame({ locale = "en" }) {
         </div>
       </div>
 
-      <MissionModal open={missionOpen} title={copy.title} onClose={() => setMissionOpen(false)}>
+      <MissionModal open={missionOpen} title={copy.title} closeLabel={locale === "fr" ? "Fermer" : "Close"} onClose={() => setMissionOpen(false)}>
         <p className="font-bold leading-7 text-ink/70">{copy.intro}</p>
         <div className="mt-5 grid gap-3 md:grid-cols-2">
           {jsArenaLevels.map((item, index) => (

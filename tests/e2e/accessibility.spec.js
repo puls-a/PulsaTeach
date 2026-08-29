@@ -18,7 +18,9 @@ const pages = [
   { name: "lesson", path: "/learn/html/html-getting-started/html-00-what-html-does" },
   { name: "tools lesson", path: "/learn/tools/tools-setup/tools-01-vscode" },
   { name: "tools formation", path: "/formations/tools" },
-  { name: "playground", path: "/playground" }
+  { name: "playground", path: "/playground" },
+  { name: "Flexbox Arena", path: "/flexbox-arena" },
+  { name: "JavaScript Arena", path: "/js-arena" }
 ];
 
 for (const entry of pages) {

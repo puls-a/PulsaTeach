@@ -24,6 +24,15 @@ describe("Flexbox Arena", () => {
     }`);
     expect(buildFlexboxTests(parsed, level.expected).every((check) => check.pass)).toBe(false);
   });
+
+  test("only reads declarations inside the .arena rule", () => {
+    const parsed = parseArenaFlex(`
+      /* .arena { display: flex; justify-content: flex-end; } */
+      .other { display: flex; justify-content: flex-end; align-items: flex-end; }
+      .arena { display: flex; justify-content: center; align-items: center; }
+    `);
+    expect(parsed).toEqual({ display: "flex", justifyContent: "center", alignItems: "center" });
+  });
 });
 
 describe("JavaScript Arena", () => {
