@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BookmarkCheck, CheckCircle2, Code2, Flame, Menu, Search, X } from "lucide-react";
 import { filterLabel, isVisibleLesson } from "./learningState.js";
 import LessonWorkspace from "./LessonWorkspace.jsx";
@@ -9,9 +9,11 @@ import WorkstationWorkspace from "./WorkstationWorkspace.jsx";
 export function FocusedLearningLayout(props) {
   const { QuizComponent, locale, activeTrack, activeModule, activeLesson, activeTrackCompleted, activeTrackTotal, progress, bookmarks, trackLoadError, onOpenLesson, onToggleBookmark, onComplete, onQuizResult, onCloseQuiz, onNext, hasNext } = props;
   const [curriculumOpen, setCurriculumOpen] = useState(false);
+  const curriculumTriggerRef = useRef(null);
+  const closeCurriculum = useCallback(() => setCurriculumOpen(false), []);
   const openLesson = (moduleId, lessonId) => {
     onOpenLesson(moduleId, lessonId);
-    setCurriculumOpen(false);
+    closeCurriculum();
   };
   const workstationLesson = activeLesson.runtime === "workstation";
   return (
@@ -23,7 +25,7 @@ export function FocusedLearningLayout(props) {
             <h1 className="mt-0.5 truncate font-display text-base font-bold leading-tight text-white sm:text-lg">{activeLesson.title[locale]}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <button type="button" onClick={() => setCurriculumOpen(true)} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-indigo-300/30 bg-indigo-500/15 px-3 font-bold text-indigo-100 hover:bg-indigo-500/25"><Menu className="size-4" />{locale === "fr" ? "Programme" : "Curriculum"}</button>
+            <button ref={curriculumTriggerRef} type="button" onClick={() => setCurriculumOpen(true)} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-indigo-300/30 bg-indigo-500/15 px-3 font-bold text-indigo-100 hover:bg-indigo-500/25" aria-expanded={curriculumOpen} aria-controls="curriculum-drawer"><Menu className="size-4" />{locale === "fr" ? "Programme" : "Curriculum"}</button>
             <div className="min-w-40 flex-1 lg:w-56 lg:flex-none"><div className="mb-1 flex justify-between font-bold text-slate-300"><span>{activeTrackCompleted}/{activeTrackTotal} {locale === "fr" ? "leçons" : "lessons"}</span><span>{activeTrackTotal ? Math.round((activeTrackCompleted / activeTrackTotal) * 100) : 0}%</span></div><div className="h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-indigo-400" style={{ width: `${activeTrackTotal ? (activeTrackCompleted / activeTrackTotal) * 100 : 0}%` }} /></div></div>
             {progress.xp > 0 && <span className="rounded-md bg-indigo-500/15 px-2 py-1.5 font-bold text-indigo-200">{progress.xp} XP</span>}
             {(progress.streak?.count || 0) > 0 && <span className="inline-flex items-center gap-1 rounded-md bg-orange-400/10 px-2 py-1.5 font-bold text-orange-300"><Flame className="size-3.5" />{progress.streak.count}</span>}
@@ -32,14 +34,53 @@ export function FocusedLearningLayout(props) {
         {trackLoadError && <p className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-800" role="alert">{trackLoadError}</p>}
         {activeLesson.runtime === "workstation" ? <WorkstationWorkspace lesson={activeLesson} locale={locale} onComplete={onComplete} onNext={onNext} hasNext={hasNext} /> : <LessonWorkspace QuizComponent={QuizComponent} activeTrack={activeTrack} activeModule={activeModule} lesson={activeLesson} locale={locale} isCompleted={Boolean(progress.completed[activeLesson.id])} isBookmarked={bookmarks.includes(activeLesson.id)} onToggleBookmark={onToggleBookmark} onComplete={onComplete} onQuizResult={onQuizResult} onCloseQuiz={onCloseQuiz} onNext={onNext} hasNext={hasNext} />}
       </div>
-      {curriculumOpen && <CurriculumDrawer {...props} onOpenLesson={openLesson} onClose={() => setCurriculumOpen(false)} />}
+      {curriculumOpen && <CurriculumDrawer {...props} triggerRef={curriculumTriggerRef} onOpenLesson={openLesson} onClose={closeCurriculum} />}
     </section>
   );
 }
 
 function CurriculumDrawer(props) {
-  const { locale, onClose } = props;
-  return <div className="fixed inset-0 z-[80]"><button type="button" className="absolute inset-0 bg-slate-950/70" onClick={onClose} aria-label={locale === "fr" ? "Fermer le programme" : "Close curriculum"} /><aside className="absolute inset-y-0 left-0 w-[min(94vw,28rem)] overflow-y-auto bg-white p-4 text-ink shadow-2xl"><div className="mb-3 flex items-center justify-between border-b border-slate-200 pb-3"><div><p className="text-xs font-black uppercase tracking-[.14em] text-indigoPop">PulsaTeach</p><h2 className="font-display text-xl font-bold">{locale === "fr" ? "Programme" : "Curriculum"}</h2></div><button type="button" onClick={onClose} className="nav-icon-button" aria-label={locale === "fr" ? "Fermer" : "Close"}><X className="size-5" /></button></div><CurriculumPanel {...props} /></aside></div>;
+  const { locale, onClose, triggerRef } = props;
+  const drawerRef = useRef(null);
+  const closeButtonRef = useRef(null);
+
+  useEffect(() => {
+    const trigger = triggerRef.current;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(drawerRef.current?.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])') || []);
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!drawerRef.current?.contains(document.activeElement)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    const drawer = drawerRef.current;
+    drawer?.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      drawer?.removeEventListener("keydown", onKeyDown);
+      trigger?.focus();
+    };
+  }, [onClose, triggerRef]);
+
+  return <div className="fixed inset-0 z-[80]"><button type="button" className="absolute inset-0 bg-slate-950/70" onClick={onClose} aria-label={locale === "fr" ? "Fermer le programme" : "Close curriculum"} /><aside ref={drawerRef} id="curriculum-drawer" className="absolute inset-y-0 left-0 w-[min(94vw,28rem)] overflow-y-auto bg-white p-4 text-ink shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="curriculum-drawer-title"><div className="mb-3 flex items-center justify-between border-b border-slate-200 pb-3"><div><p className="text-xs font-black uppercase tracking-[.14em] text-indigoPop">PulsaTeach</p><h2 id="curriculum-drawer-title" className="font-display text-xl font-bold">{locale === "fr" ? "Programme" : "Curriculum"}</h2></div><button ref={closeButtonRef} type="button" onClick={onClose} className="nav-icon-button" aria-label={locale === "fr" ? "Fermer" : "Close"}><X className="size-5" /></button></div><CurriculumPanel {...props} /></aside></div>;
 }
 
 function CurriculumPanel({ locale, tracks, activeTrack, activeTrackId, activeLesson, progress, bookmarks, lessonQuery, statusFilter, onTrackChange, onQueryChange, onFilterChange, onOpenLesson }) {

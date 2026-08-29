@@ -72,7 +72,10 @@ const copyMap = {
     tests: "Alignment contract",
     level: "Level",
     terrain: "Arena preview",
-    hint: "Flexbox moves items on two axes: justify-content horizontally, align-items vertically."
+    hint: "Flexbox moves items on two axes: justify-content horizontally, align-items vertically.",
+    mission: "Mission",
+    target: "Target position",
+    bot: "PulsaTeach bot"
   },
   fr: {
     title: "Flexbox Arena",
@@ -87,7 +90,10 @@ const copyMap = {
     tests: "Contrat d’alignement",
     level: "Niveau",
     terrain: "Aperçu de l’arène",
-    hint: "Flexbox déplace les éléments sur deux axes : justify-content à l’horizontale, align-items à la verticale."
+    hint: "Flexbox déplace les éléments sur deux axes : justify-content à l’horizontale, align-items à la verticale.",
+    mission: "Mission",
+    target: "Position cible",
+    bot: "Bot PulsaTeach"
   }
 };
 
@@ -116,49 +122,56 @@ export default function FlexboxArena({ locale = "en" }) {
     }
   };
 
-  const nextLevel = () => resetLevel((levelIndex + 1) % flexboxLevels.length);
+  const nextLevel = () => {
+    if (status === "passed") resetLevel((levelIndex + 1) % flexboxLevels.length);
+  };
 
   return (
     <section className="lab-shell">
-      <div className="grid min-h-[680px] gap-0 lg:grid-cols-[minmax(0,.92fr)_minmax(420px,1.08fr)]">
-        <div className="flex min-w-0 flex-col bg-ink p-3">
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,.92fr)_minmax(420px,1.08fr)]">
+        <div className="flex min-w-0 flex-col bg-[#10102b] p-3 sm:p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="font-display text-xl font-bold text-white">{copy.code}</div>
               <p className="mt-1 text-xs font-bold uppercase tracking-[.14em] text-indigo-200">{copy.level} {levelIndex + 1}/{flexboxLevels.length} · {level.title[locale]}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => setMissionOpen(true)} className="lab-toolbar-button"><Info className="size-4" />Mission</button>
+              <button type="button" onClick={() => setMissionOpen(true)} className="lab-toolbar-button"><Info className="size-4" />{copy.mission}</button>
               <button type="button" onClick={() => resetLevel()} className="lab-toolbar-button"><RotateCcw className="size-4" />{copy.reset}</button>
               <button type="button" onClick={validate} className="lab-primary-button"><TestTube2 className="size-4" />{copy.validate}</button>
-              <button type="button" onClick={nextLevel} className="lab-toolbar-button">{copy.next}<ChevronRight className="size-4" /></button>
+              <button type="button" onClick={nextLevel} disabled={status !== "passed"} className="lab-toolbar-button disabled:cursor-not-allowed disabled:opacity-45">{copy.next}<ChevronRight className="size-4" /></button>
             </div>
           </div>
           <label className="flex min-h-0 flex-1 flex-col">
             <span className="sr-only">{copy.code}</span>
-            <textarea value={code} onChange={(event) => { setCode(event.target.value); setStatus(null); }} spellCheck="false" className="code-editor min-h-[540px]" />
+            <textarea value={code} onChange={(event) => { setCode(event.target.value); setStatus(null); }} spellCheck="false" className="code-editor min-h-[300px] sm:min-h-[420px] lg:min-h-[540px]" />
           </label>
           {status && (
-            <p className={`mt-3 rounded-lg px-3 py-2 text-sm font-bold ${status === "passed" ? "bg-green-600 text-white" : "bg-amber-100 text-amber-900"}`}>
+            <p role="status" aria-live="polite" className={`mt-3 rounded-lg px-3 py-2 text-sm font-bold ${status === "passed" ? "bg-green-600 text-white" : "bg-amber-100 text-amber-900"}`}>
               {status === "passed" ? (levelIndex === flexboxLevels.length - 1 ? copy.complete : copy.passed) : copy.failed}
             </p>
           )}
         </div>
 
-        <div className="grid gap-3 bg-white p-3">
-          <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-cyan-50 via-indigo-50 to-green-50 p-4">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-              <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold">
-                <Target className="size-5 text-orangePop" />
+        <div className="grid gap-3 bg-slate-50 p-3 sm:p-4">
+          <div className="rounded-2xl border-2 border-[#25265d] bg-[#17183d] p-3 shadow-[0_18px_36px_rgba(16,16,43,.18)] sm:p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-white">
+              <div className="inline-flex items-center gap-2 rounded-lg border border-indigo-300/30 bg-white/10 px-4 py-2 text-sm font-bold">
+                <Target className="size-5 text-orange-300" />
                 {level.mission[locale]}
               </div>
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-black uppercase tracking-[.12em] text-indigoPop">+{level.xp} XP</span>
+              <span className="rounded-full bg-aquaPop px-3 py-1 text-xs font-black uppercase tracking-[.12em] text-[#071b28]">+{level.xp} XP</span>
             </div>
-            <div className="relative min-h-[360px] overflow-hidden rounded-2xl border-2 border-dashed border-slate-400 bg-white/70 p-4">
-              <img src={assetPaths.target} alt="" className={`pointer-events-none absolute z-0 size-24 opacity-80 ${level.targetClass}`} />
-              <div className="relative z-10 h-[328px] rounded-xl bg-white/35 p-4" style={{ display: parsed.display, justifyContent: parsed.justifyContent, alignItems: parsed.alignItems }}>
-                <img src={assetPaths.bot} alt="PulsaTeach bot" className="size-24 drop-shadow-xl transition-all" />
+            <div className="relative isolate min-h-[280px] overflow-hidden rounded-xl border border-indigo-300/30 bg-[#0c0d27] p-3 sm:min-h-[360px] sm:p-4">
+              <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(129,140,248,.22)_1px,transparent_1px),linear-gradient(90deg,rgba(129,140,248,.22)_1px,transparent_1px)] [background-size:32px_32px]" />
+              <div className="pointer-events-none absolute inset-3 rounded-lg border border-dashed border-indigo-300/35 sm:inset-4" />
+              <div className="absolute inset-3 flex sm:inset-4" style={{ justifyContent: level.expected.justifyContent, alignItems: level.expected.alignItems }}>
+                <img src={assetPaths.target} alt={copy.target} className="size-20 opacity-90 drop-shadow-[0_0_16px_rgba(249,115,22,.65)] sm:size-24" />
               </div>
+              <div className="absolute inset-3 flex sm:inset-4" style={{ display: parsed.display, justifyContent: parsed.justifyContent, alignItems: parsed.alignItems }}>
+                <img src={assetPaths.bot} alt={copy.bot} className="size-20 drop-shadow-[0_12px_18px_rgba(0,0,0,.48)] transition-all duration-300 sm:size-24" />
+              </div>
+              <p className="absolute bottom-3 left-3 rounded-md border border-indigo-300/25 bg-[#17183d]/90 px-2 py-1 text-[10px] font-black uppercase tracking-[.14em] text-indigo-100 sm:bottom-4 sm:left-4">{copy.terrain}</p>
             </div>
           </div>
 
@@ -176,7 +189,7 @@ export default function FlexboxArena({ locale = "en" }) {
           </div>
         </div>
       </div>
-      <MissionModal open={missionOpen} title={copy.title} onClose={() => setMissionOpen(false)}>
+      <MissionModal open={missionOpen} title={copy.title} closeLabel={locale === "fr" ? "Fermer" : "Close"} onClose={() => setMissionOpen(false)}>
         <p className="font-bold leading-7 text-ink/70">{copy.intro}</p>
         <div className="mt-5 grid gap-3 md:grid-cols-2">
           {flexboxLevels.map((item, index) => (
@@ -193,10 +206,11 @@ export default function FlexboxArena({ locale = "en" }) {
 }
 
 export function parseArenaFlex(code) {
+  const arenaBody = extractArenaBody(code);
   return {
-    display: readDeclaration(code, "display", "block"),
-    justifyContent: readDeclaration(code, "justify-content", "flex-start"),
-    alignItems: readDeclaration(code, "align-items", "stretch")
+    display: readDeclaration(arenaBody, "display", "block"),
+    justifyContent: readDeclaration(arenaBody, "justify-content", "flex-start"),
+    alignItems: readDeclaration(arenaBody, "align-items", "stretch")
   };
 }
 
@@ -211,4 +225,10 @@ export function buildFlexboxTests(parsed, expected) {
 function readDeclaration(code, property, fallback) {
   const match = new RegExp(`${property}\\s*:\\s*([^;\\n}]+)`, "i").exec(code);
   return match ? match[1].trim().toLowerCase() : fallback;
+}
+
+function extractArenaBody(code) {
+  const withoutComments = code.replace(/\/\*[\s\S]*?\*\//g, "");
+  const match = /\.arena\s*\{([^}]*)\}/i.exec(withoutComments);
+  return match ? match[1] : "";
 }

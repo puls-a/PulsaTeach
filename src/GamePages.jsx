@@ -29,13 +29,13 @@ export function WorldPage({ locale }) {
       locale={locale}
       kicker="Pulsa Academy"
       title={locale === "fr" ? "Carte du monde" : "World map"}
-      description={locale === "fr" ? "Choisis une zone, termine des missions et dÃ©bloque les premiers badges." : "Choose a zone, clear missions, and unlock the first badges."}
+      description={locale === "fr" ? "Choisis une zone, termine des missions et débloque les premiers badges." : "Choose a zone, clear missions, and unlock the first badges."}
       stat={`${progress.xp || 0} XP`}
     >
       <AuthNotice locale={locale} />
       <div className="grid gap-4 xl:grid-cols-[1.15fr_.85fr]">
         <div className="surface p-3">
-          <img src={assetPaths.map} alt="Carte de Pulsa Academy" className="h-full min-h-[360px] w-full rounded-xl object-cover" />
+          <img src={assetPaths.map} alt={locale === "fr" ? "Carte de Pulsa Academy" : "Pulsa Academy map"} className="h-full min-h-[360px] w-full rounded-xl object-cover" />
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
@@ -67,7 +67,7 @@ export function WorldPage({ locale }) {
         ))}
       </div>
 
-      <MissionModal open={badgesOpen} title={locale === "fr" ? "Badges actifs" : "Active badges"} onClose={() => setBadgesOpen(false)}>
+      <MissionModal open={badgesOpen} title={locale === "fr" ? "Badges actifs" : "Active badges"} closeLabel={locale === "fr" ? "Fermer" : "Close"} onClose={() => setBadgesOpen(false)}>
         <div className="grid gap-3 md:grid-cols-3">
           {gameBadges.map((badge) => (
             <div key={badge.id} className="muted-surface flex items-center gap-3">

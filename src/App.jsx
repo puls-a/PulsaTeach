@@ -242,7 +242,7 @@ function Header({ user, locale, route, onLanguageToggle }) {
           <img src="/assets/logo-wordmark.webp" alt="PulsaTeach" className={compact ? "h-8 w-auto" : "h-9 w-auto sm:h-10"} width="198" height="48" />
         </a>
 
-        <div className={`${compact ? "hidden" : "hidden items-center gap-1 lg:flex"}`}>
+        <div className="hidden items-center gap-1 lg:flex">
           {visibleNavGroups.map((group) => (
             <NavDropdown key={group.id} group={group} locale={locale} route={route} open={activeMenu === group.id} active={activeGroup === group.id} onToggle={() => toggleMenu(group.id)} onClose={() => setActiveMenu(null)} />
           ))}
