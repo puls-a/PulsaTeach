@@ -10,6 +10,7 @@ export function useLearningTracks({ remoteCatalog = false, mode = "summary", fre
   const [tracks, setTracks] = useState(summaryMode ? publicTrackSummaries : []);
   const [loading, setLoading] = useState(remoteCatalog || !summaryMode);
   const [error, setError] = useState(null);
+  const [reloadVersion, setReloadVersion] = useState(0);
   const pendingLoads = useRef(new Map());
 
   const loadTrack = useCallback(async (trackId, options = {}) => {
@@ -79,7 +80,8 @@ export function useLearningTracks({ remoteCatalog = false, mode = "summary", fre
     return () => {
       active = false;
     };
-  }, [freshCatalog, remoteCatalog, summaryMode]);
+  }, [freshCatalog, reloadVersion, remoteCatalog, summaryMode]);
 
-  return { tracks, loading, error, loadTrack };
+  const reload = useCallback(() => setReloadVersion((version) => version + 1), []);
+  return { tracks, loading, error, loadTrack, reload };
 }

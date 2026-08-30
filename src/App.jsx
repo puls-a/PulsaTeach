@@ -171,7 +171,6 @@ function Header({ user, locale, route, onLanguageToggle }) {
   const [authError, setAuthError] = useState("");
   const mobilePanelRef = useRef(null);
   const visibleNavGroups = navGroups.filter((group) => group.id !== "create" || canManageContent(user));
-  const compact = route === "learn";
 
   useEffect(() => {
     const close = () => {
@@ -236,10 +235,10 @@ function Header({ user, locale, route, onLanguageToggle }) {
   };
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 ${compact ? "px-2 pt-2" : "px-3 pt-3"}`} data-navigation-root>
-      <nav className={`relative z-0 mx-auto flex items-center justify-between gap-3 border border-slate-200/90 bg-white/95 shadow-lg shadow-slate-900/5 backdrop-blur-xl ${compact ? "h-14 max-w-[1920px] rounded-xl px-3" : "h-[72px] max-w-7xl rounded-2xl px-4 sm:h-[76px] sm:gap-4"}`} aria-label={locale === "fr" ? "Navigation principale" : "Main navigation"}>
+    <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3" data-navigation-root>
+      <nav className="relative z-0 mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white/95 px-4 shadow-lg shadow-slate-900/5 backdrop-blur-xl sm:h-[76px] sm:gap-4" aria-label={locale === "fr" ? "Navigation principale" : "Main navigation"}>
         <a href="/" className="flex min-w-0 items-center rounded-xl py-2" aria-label={locale === "fr" ? "Accueil PulsaTeach" : "PulsaTeach home"}>
-          <img src="/assets/logo-wordmark.webp" alt="PulsaTeach" className={compact ? "h-8 w-auto" : "h-9 w-auto sm:h-10"} width="198" height="48" />
+          <img src="/assets/logo-wordmark.webp" alt="PulsaTeach" className="h-9 w-auto sm:h-10" width="198" height="48" />
         </a>
 
         <div className="hidden items-center gap-1 lg:flex">

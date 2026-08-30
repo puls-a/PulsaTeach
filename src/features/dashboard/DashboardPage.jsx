@@ -18,6 +18,7 @@ export default function DashboardPage({ locale }) {
   const [progress, setProgress] = useState(readLocalProgress);
   const [skills, setSkills] = useState([]);
   const [skillsLoading, setSkillsLoading] = useState(true);
+  const [skillsError, setSkillsError] = useState(false);
   const [plannedLessons, setPlannedLessons] = useState([]);
   const [lessons, setLessons] = useState([]);
   const [profile, setProfile] = useState(null);
@@ -72,6 +73,7 @@ export default function DashboardPage({ locale }) {
   useEffect(() => {
     let cancelled = false;
     setSkillsLoading(true);
+    setSkillsError(false);
     loadAllLocalTracks()
       .then((fullTracks) => {
         if (cancelled) return;
@@ -81,7 +83,10 @@ export default function DashboardPage({ locale }) {
         setSkills(computeSkillProgress(fullTracks, progress).slice(0, 6));
       })
       .catch(() => {
-        if (!cancelled) setSkills([]);
+        if (!cancelled) {
+          setSkills([]);
+          setSkillsError(true);
+        }
       })
       .finally(() => {
         if (!cancelled) setSkillsLoading(false);
@@ -129,7 +134,7 @@ export default function DashboardPage({ locale }) {
         </section>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-3">
-          <SkillsPanel skills={skills} loading={skillsLoading} locale={locale} />
+          <SkillsPanel skills={skills} loading={skillsLoading} error={skillsError} locale={locale} />
           <StreakPanel streak={streak} locale={locale} />
         </div>
 
@@ -213,7 +218,7 @@ function MetricCard({ icon: Icon, label, value, detail, href, reward = false }) 
   return href ? <a href={href} className={`${classes} hover:-translate-y-0.5 hover:border-indigo-300`}>{content}</a> : <article className={classes}>{content}</article>;
 }
 
-function SkillsPanel({ skills, loading, locale }) {
+function SkillsPanel({ skills, loading, error, locale }) {
   const fr = locale === "fr";
   return (
     <section className="surface lg:col-span-2">
@@ -224,7 +229,8 @@ function SkillsPanel({ skills, loading, locale }) {
       <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-slate-600">{fr ? "Le niveau combine les leçons validées, les quiz et la solidité de tes révisions." : "Levels combine passed lessons, quiz evidence, and review strength."}</p>
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {loading && <p className="empty-state">{fr ? "Calcul des compétences en cours..." : "Computing skills..."}</p>}
-        {!loading && skills.length === 0 && <p className="empty-state">{fr ? "Valide une première leçon pour révéler tes compétences." : "Pass your first lesson to reveal your skills."}</p>}
+        {!loading && error && <p className="empty-state" role="alert">{fr ? "Les compétences n'ont pas pu être calculées. Réessaie en rechargeant la page." : "Skills could not be calculated. Reload the page to try again."}</p>}
+        {!loading && !error && skills.length === 0 && <p className="empty-state">{fr ? "Valide une première leçon pour révéler tes compétences." : "Pass your first lesson to reveal your skills."}</p>}
         {skills.map((skill) => {
           const percent = Math.max(0, Math.min(100, Number(skill.percent) || 0));
           return (
