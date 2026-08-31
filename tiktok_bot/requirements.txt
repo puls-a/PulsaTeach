@@ -1,5 +1,5 @@
-tiktok-uploader==2.1.2
-playwright==1.42.0
+tiktok-uploader==1.2.0
+playwright==1.62.0
 moviepy==1.0.3
 python-dotenv==1.2.2
 schedule==1.2.1
