@@ -1,10 +1,10 @@
-streamlit==1.32.0
-instagrapi==1.17.0
+streamlit==1.54.0
+instagrapi==2.18.18
 tweepy==4.14.0
 tiktok-uploader
 playwright==1.42.0
 moviepy==1.0.3
-python-dotenv==1.0.0
+python-dotenv==1.2.2
 schedule==1.2.1
 requests>=2.31.0
 pandas
