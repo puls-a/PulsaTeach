@@ -13,7 +13,7 @@ import { appendWorkflowLog, authorizeCourseTransition, createCourseVersion, diff
 import { productRoadmap } from "./roadmap.js";
 import { decodeProtectedExamResponses, projectPublicTrack } from "./publicContent.js";
 import { sendWelcomeEmail, transactionalEmailEnabled } from "./emailService.js";
-import { applySecurity, localIdentityEnabled, sensitiveRateLimit } from "./security.js";
+import { applySecurity, localIdentityEnabled, pulsaBotRateLimit, sensitiveRateLimit } from "./security.js";
 import { checkSupabaseReadiness, deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, readSupabaseProgressForUser, readSupabaseStore, requireSupabaseStorage, saveSupabaseProgressAtomic, supabaseAdmin, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
 import { createSupabaseSubmission, findSupabaseIssuedCertificateByVerificationCode, findSupabaseQuizSession, issueSupabaseCertificateAtomic, listSupabaseIssuedCertificatesForUser, listSupabaseQuizSessionsForUser, reviewSupabaseSubmission, revokeSupabaseIssuedCertificate, saveSupabaseQuizDraft, submitSupabaseQuizSession } from "./supabaseSensitiveOperations.js";
 import { accountDeletionSchema, attemptSchema, avatarUploadSchema, certificateRevokeSchema, courseCreateSchema, courseRollbackSchema, courseUpdateSchema, enrollmentSchema, eventSchema, lessonDraftSchema, lessonDraftUpdateSchema, progressMigrationSchema, progressSchema, quizSessionSchema, quizSubmissionSchema, reviewSchema, roleUpdateSchema, submissionSchema, telemetrySchema, userSettingsSchema, validateBody } from "./validation.js";
@@ -49,11 +49,14 @@ import { registerAuthoringRoutes } from "./routes/authoring.js";
 import { registerLearningRoutes } from "./routes/learning.js";
 import { registerQuizSessionRoutes } from "./routes/quizSessions.js";
 import { registerCertificateRoutes } from "./routes/certificates.js";
+import { createDiscordIntegration } from "./discordIntegration.js";
+import { registerDiscordRoutes } from "./routes/discord.js";
 import { rolesFromUser } from "./authRoles.js";
 import { createAuthService } from "./authService.js";
 
 const app = express();
 const productionRuntime = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
+const discordIntegration = createDiscordIntegration({ supabaseAdmin, learningTracks });
 
 if (requireSupabaseStorage && !supabaseEnabled) {
   throw new Error("Supabase storage is required. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.");
@@ -106,9 +109,11 @@ const routeContext = {
   sendWelcomeEmail,
   transactionalEmailEnabled,
   sensitiveRateLimit,
+  pulsaBotRateLimit,
   deleteSupabaseRecord,
   getSupabaseStatus,
   checkSupabaseReadiness,
+  getUserFromAccessToken,
   readSupabaseProgressForUser,
   saveSupabaseProgressAtomic,
   supabaseAdmin,
@@ -193,7 +198,8 @@ const routeContext = {
   markSupabaseUnavailable,
   rolesFromUser,
   randomUUID,
-  createHash
+  createHash,
+  discordIntegration
 };
 
 registerSystemRoutes(app, routeContext);
@@ -204,6 +210,7 @@ registerAuthoringRoutes(app, routeContext);
 registerQuizSessionRoutes(app, routeContext);
 registerCertificateRoutes(app, routeContext);
 registerLearningRoutes(app, routeContext);
+registerDiscordRoutes(app, routeContext);
 
 app.use((error, request, response, _next) => {
   const status = Number(error?.status) >= 400 && Number(error?.status) < 600 ? Number(error.status) : 500;
