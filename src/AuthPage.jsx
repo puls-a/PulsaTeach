@@ -3,6 +3,8 @@ import { Check, Eye, EyeOff, LockKeyhole, LogOut, Mail, RotateCcw, ShieldCheck, 
 import { createLocalSession, signOutSupabase, syncSessionUserId, useSupabaseSession } from "./authState.js";
 import { getSupabaseClient, isSupabaseBrowserConfigured } from "./supabaseClient.js";
 import { navigate } from "./navigation.js";
+import { getSafeAuthReturn, pathWithAuthReturn } from "./authReturn.js";
+import { signInWithDiscord } from "./discordAuth.js";
 
 const useLocalAuth = import.meta.env.VITE_AUTH_MODE === "local";
 
@@ -10,6 +12,7 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
   const fr = locale === "fr";
   const authAvailable = useLocalAuth || isSupabaseBrowserConfigured;
   const { session } = useSupabaseSession();
+  const returnTo = getSafeAuthReturn();
   const [mode, setMode] = useState(defaultMode);
   const [authMethod, setAuthMethod] = useState("password");
   const [displayName, setDisplayName] = useState("");
@@ -55,7 +58,7 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
               email,
               password,
               options: {
-                emailRedirectTo: `${window.location.origin}/auth/callback`,
+                emailRedirectTo: `${window.location.origin}${pathWithAuthReturn("/auth/callback?onboarding=1", returnTo)}`,
                 data: {
                   name: displayName.trim(),
                   full_name: displayName.trim(),
@@ -74,7 +77,7 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
         }
         syncSessionUserId(result.data.session);
         if (result.data.session) {
-          window.location.assign(mode === "signup" ? "/auth/callback/onboarding" : "/dashboard");
+          window.location.assign(mode === "signup" ? pathWithAuthReturn("/onboarding", returnTo) : returnTo || "/dashboard");
         } else {
           setStatus({
             type: "confirmation",
@@ -98,7 +101,7 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
     }
     createLocalSession(email);
     setBusy(false);
-    navigate(mode === "signup" ? "/onboarding" : "/dashboard");
+    navigate(mode === "signup" ? pathWithAuthReturn("/onboarding", returnTo) : returnTo || "/dashboard");
   };
 
   const sendMagicLink = async (event) => {
@@ -113,7 +116,7 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
     }
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback`, shouldCreateUser: false }
+      options: { emailRedirectTo: `${window.location.origin}${pathWithAuthReturn("/auth/callback?resume=1", returnTo)}`, shouldCreateUser: false }
     });
     setBusy(false);
     setStatus({
@@ -134,7 +137,7 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
     const { error } = await supabase.auth.resend({
       type: "signup",
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
+      options: { emailRedirectTo: `${window.location.origin}${pathWithAuthReturn("/auth/callback?onboarding=1", returnTo)}` }
     });
     setBusy(false);
     setStatus({
@@ -165,6 +168,17 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
     });
   };
 
+  const submitDiscordAuth = async () => {
+    setStatus({ type: "idle", message: "" });
+    setBusy(true);
+    try {
+      await signInWithDiscord({ returnTo });
+    } catch (error) {
+      setStatus({ type: "error", message: error.message || (fr ? "Connexion Discord indisponible." : "Discord sign-in is unavailable.") });
+      setBusy(false);
+    }
+  };
+
   const handleSignOut = async () => {
     setBusy(true);
     try {
@@ -184,7 +198,7 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
           <h1 className="mt-4 font-display text-4xl font-bold">{fr ? "Ton compte est connecté" : "Your account is connected"}</h1>
           <p className="mt-3 break-all font-semibold text-slate-600">{session.user.email || session.user.id}</p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <a href="/dashboard" className="primary-button">{fr ? "Voir ma progression" : "View progress"}</a>
+            <a href={returnTo || "/dashboard"} className="primary-button">{returnTo ? (fr ? "Continuer" : "Continue") : (fr ? "Voir ma progression" : "View progress")}</a>
             <button type="button" onClick={handleSignOut} disabled={busy} className="secondary-button"><LogOut className="size-5" />{fr ? "Se déconnecter" : "Sign out"}</button>
           </div>
           {status.message && <p className="status-error mt-4 rounded-xl p-3 font-semibold" role="alert">{status.message}</p>}
@@ -217,6 +231,18 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
             <button type="button" role="tab" aria-selected={mode === "login"} onClick={() => { setMode("login"); setStatus({ type: "idle", message: "" }); }} className={`min-h-11 rounded-lg px-4 text-sm font-bold ${mode === "login" ? "bg-white text-ink shadow-sm" : "text-slate-600"}`}>{fr ? "Connexion" : "Sign in"}</button>
             <button type="button" role="tab" aria-selected={mode === "signup"} onClick={() => { setMode("signup"); setAuthMethod("password"); setStatus({ type: "idle", message: "" }); }} className={`min-h-11 rounded-lg px-4 text-sm font-bold ${mode === "signup" ? "bg-white text-ink shadow-sm" : "text-slate-600"}`}>{fr ? "Créer un compte" : "Create account"}</button>
           </div>
+
+          {isSupabaseBrowserConfigured && !useLocalAuth && (
+            <div className="mt-5">
+              <button type="button" onClick={submitDiscordAuth} disabled={busy} className="secondary-button min-h-12 w-full justify-center disabled:opacity-50">
+                <DiscordAuthIcon />{fr ? "Continuer avec Discord" : "Continue with Discord"}
+              </button>
+              <p className="mt-2 text-center text-xs leading-5 text-slate-500">
+                {fr ? "Connexion ou création de compte. En continuant, tu acceptes nos conditions et notre politique de confidentialité." : "Sign in or create an account. By continuing, you accept our terms and privacy policy."}
+              </p>
+              <div className="my-5 flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-slate-400"><span className="h-px flex-1 bg-slate-200" /><span>{fr ? "ou" : "or"}</span><span className="h-px flex-1 bg-slate-200" /></div>
+            </div>
+          )}
 
           {mode === "login" && (
             <div className="mt-5 flex gap-2 border-b border-slate-200 pb-4">
@@ -280,6 +306,10 @@ export default function AuthPage({ locale = "fr", defaultMode = "login" }) {
       </div>
     </section>
   );
+}
+
+function DiscordAuthIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5" fill="currentColor"><path d="M19.54 5.34a16.7 16.7 0 0 0-4.13-1.28.08.08 0 0 0-.09.04c-.18.32-.39.73-.53 1.06a15.6 15.6 0 0 0-4.68 0 10.6 10.6 0 0 0-.54-1.06.08.08 0 0 0-.09-.04 16.5 16.5 0 0 0-4.13 1.28.08.08 0 0 0-.04.03C2.69 9.28 1.98 13.1 2.34 16.86c0 .02.02.05.04.06a16.8 16.8 0 0 0 5.07 2.56.09.09 0 0 0 .1-.03c.39-.53.73-1.09 1.03-1.68a.08.08 0 0 0-.05-.12 11 11 0 0 1-1.58-.75.08.08 0 0 1 0-.14l.31-.24a.08.08 0 0 1 .08 0c3.03 1.38 6.31 1.38 9.3 0a.08.08 0 0 1 .09 0l.31.24a.08.08 0 0 1 0 .14c-.5.3-1.03.55-1.58.75a.08.08 0 0 0-.04.12c.3.59.64 1.15 1.02 1.68.03.03.07.04.1.03a16.7 16.7 0 0 0 5.08-2.56.08.08 0 0 0 .03-.06c.43-4.35-.72-8.14-3.08-11.49a.07.07 0 0 0-.04-.03ZM8.68 14.57c-.91 0-1.66-.84-1.66-1.87 0-1.04.73-1.88 1.66-1.88.93 0 1.67.85 1.66 1.88 0 1.03-.73 1.87-1.66 1.87Zm6.65 0c-.92 0-1.66-.84-1.66-1.87 0-1.04.73-1.88 1.66-1.88.93 0 1.67.85 1.66 1.88 0 1.03-.73 1.87-1.66 1.87Z" /></svg>;
 }
 
 function AuthField({ label, type, value, onChange, autoComplete, placeholder }) {

@@ -4,10 +4,14 @@ import { getPublicCertificate, getUserSettings, saveUserSettings } from "./apiCl
 import { useSupabaseSession } from "./authState.js";
 import { getSupabaseClient } from "./supabaseClient.js";
 import { navigate } from "./navigation.js";
+import { getSafeAuthReturn, pathWithAuthReturn } from "./authReturn.js";
 
 export function OnboardingPage({ locale = "fr" }) {
   const fr = locale === "fr";
   const { user, loading } = useSupabaseSession();
+  const returnTo = getSafeAuthReturn();
+  const resumeDirectly = new URLSearchParams(window.location.search).has("resume");
+  const oauthCallback = new URLSearchParams(window.location.search).has("oauth");
   const [step, setStep] = useState(1);
   const [status, setStatus] = useState("idle");
   const [form, setForm] = useState({
@@ -19,23 +23,35 @@ export function OnboardingPage({ locale = "fr" }) {
   });
 
   useEffect(() => {
+    if (user && returnTo && resumeDirectly) navigate(returnTo, { replace: true });
+  }, [resumeDirectly, returnTo, user]);
+
+  useEffect(() => {
     if (!user) return;
-    getUserSettings().then((profile) => setForm((current) => ({
-      ...current,
-      displayName: current.displayName || (profile.displayName === "PulsaTeach Learner" ? "" : profile.displayName || user.user_metadata?.full_name || user.user_metadata?.name || ""),
-      goal: profile.goal || current.goal,
-      weeklyMinutes: profile.weeklyMinutes || current.weeklyMinutes,
-      locale: profile.locale || locale,
-      bio: current.bio || profile.bio || ""
-    }))).catch(() => {});
-  }, [locale, user]);
+    getUserSettings().then((profile) => {
+      if (oauthCallback && profile.onboardingCompleted) {
+        navigate(returnTo || "/dashboard", { replace: true });
+        return;
+      }
+      setForm((current) => ({
+        ...current,
+        displayName: current.displayName || (profile.displayName === "PulsaTeach Learner" ? "" : profile.displayName || user.user_metadata?.full_name || user.user_metadata?.name || ""),
+        goal: profile.goal || current.goal,
+        weeklyMinutes: profile.weeklyMinutes || current.weeklyMinutes,
+        locale: profile.locale || locale,
+        bio: current.bio || profile.bio || ""
+      }));
+    }).catch(() => {});
+  }, [locale, oauthCallback, returnTo, user]);
+
+  if (returnTo && resumeDirectly && (loading || user)) return <AccountState text={fr ? "Reprise de la liaison sécurisée..." : "Resuming secure account linking..."} />;
 
   const finish = async () => {
     setStatus("saving");
     try {
       await saveUserSettings({ ...form, onboardingCompleted: true });
       setStatus("saved");
-      navigate("/dashboard");
+      navigate(returnTo || "/dashboard");
     } catch (error) {
       setStatus(error.message || "error");
     }
@@ -46,7 +62,7 @@ export function OnboardingPage({ locale = "fr" }) {
     return (
       <AccountState
         text={fr ? "Connecte-toi pour personnaliser ton parcours." : "Sign in to personalize your path."}
-        action={{ href: "/signup", label: fr ? "Créer un compte" : "Create account" }}
+        action={{ href: pathWithAuthReturn("/signup", returnTo), label: fr ? "Créer un compte" : "Create account" }}
       />
     );
   }

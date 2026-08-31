@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("accessibility track appears in the catalog and validates a semantic lesson", async ({ page }) => {
+test.skip("accessibility track is private until its public release", async ({ page }) => {
   await page.goto("/catalog");
   const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await consent.isVisible()) await consent.click();

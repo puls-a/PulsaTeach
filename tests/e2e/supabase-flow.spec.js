@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { randomUUID } from "node:crypto";
+import { createHmac, randomUUID } from "node:crypto";
 import process from "node:process";
 import { createLessonDraft, createModuleDraft } from "../../src/courseSchema.js";
+import { learningTracks } from "../../src/content/allTrackRegistry.js";
 
 test("real Supabase account, profile, publication and catalog flow", async ({ page, request }) => {
   test.skip(process.env.E2E_SUPABASE !== "true", "Supabase E2E secrets are not configured.");
@@ -47,6 +48,36 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
     const { data: signedIn, error: signInError } = await anon.auth.signInWithPassword({ email, password });
     if (signInError) throw signInError;
     const headers = { Authorization: `Bearer ${signedIn.session.access_token}`, "Content-Type": "application/json" };
+
+    const discordId = `1${String(stamp).padEnd(17, "0").slice(0, 17)}`;
+    const nonce = `ci-discord-${randomUUID()}`;
+    const statePayload = Buffer.from(JSON.stringify({
+      discordId,
+      nonce,
+      issuedAt: Date.now() - 1000,
+      expiresAt: Date.now() + 60_000
+    })).toString("base64url");
+    const stateSignature = createHmac("sha256", "ci-test-pulsabot-key").update(statePayload).digest("base64url");
+    const discordLink = await request.post("http://127.0.0.1:4190/api/discord/link", { headers, data: { state: `${statePayload}.${stateSignature}` } });
+    expect(discordLink.status()).toBe(403);
+    expect((await discordLink.json()).error.code).toBe("DISCORD_OAUTH_REQUIRED");
+    const { error: adminLinkError } = await admin.from("discord_links").insert({ user_id: authUserId, discord_id: discordId });
+    if (adminLinkError) throw adminLinkError;
+
+    const { error: forbiddenLinkInsert } = await anon.from("discord_links").insert({ user_id: authUserId, discord_id: `2${discordId.slice(1)}` });
+    expect(forbiddenLinkInsert).toBeTruthy();
+    const { error: forbiddenNonceRead } = await anon.from("used_link_nonces").select("nonce").limit(1);
+    expect(forbiddenNonceRead).toBeTruthy();
+
+    const htmlTrack = learningTracks.find((track) => track.id === "html");
+    const completed = Object.fromEntries(htmlTrack.modules.flatMap((module) => module.lessons).map((lesson) => [lesson.id, true]));
+    const savedProgress = await request.put(`http://127.0.0.1:4190/api/progress/${localUserId}`, { headers, data: { completed } });
+    expect(savedProgress.ok()).toBe(true);
+    const discordProgress = await request.get(`http://127.0.0.1:4190/api/discord/progression/${discordId}`, {
+      headers: { Authorization: "Bearer ci-test-pulsabot-key" }
+    });
+    expect(discordProgress.ok()).toBe(true);
+    expect(await discordProgress.json()).toMatchObject({ linked: true, completedModules: [] });
 
     const quizId = "html-09-final-exam";
     const concurrentQuizWrites = await Promise.all([

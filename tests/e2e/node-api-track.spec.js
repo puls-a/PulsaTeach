@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("Node API track validates a strict request schema", async ({ page }) => {
+test.skip("Node API track is private until its public release", async ({ page }) => {
   await page.goto("/catalog");
   const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await consent.isVisible()) await consent.click();

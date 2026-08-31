@@ -73,12 +73,24 @@ Enable providers in Supabase Dashboard:
 
 PulsaTeach exposes auth at `/auth`. Legacy `#/auth` links are migrated automatically.
 
+Discord OAuth uses the Supabase Discord provider. In Supabase, enable Discord
+under **Authentication > Providers** and set the Discord application Client ID
+and Client Secret. Add the Supabase callback URL shown on that screen to the
+Discord Developer Portal OAuth2 redirects (it ends in `/auth/v1/callback`). In
+**Authentication > URL Configuration**, allow
+`https://pulsateach.vercel.app/auth/callback` and the corresponding local and
+preview callback URLs. A valid `/teach lien` then resumes after OAuth, creates a
+Supabase user when needed, and verifies that the authenticated Discord identity
+owns the signed Discord link.
+
 ## Endpoints
 
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/api/health` | API status probe |
 | `GET` | `/api/supabase/status` | Supabase configuration and table health |
+| `POST` | `/api/discord/link` | Consume a signed, one-time PulsaBot account link for the authenticated learner |
+| `GET` | `/api/discord/progression/:discordId` | Return mapped progression to PulsaBot after Bearer authentication |
 | `GET` | `/api/catalog` | Lightweight catalog summaries for built-in and published tracks |
 | `GET` | `/api/catalog/:trackId` | Complete content for one track, loaded on demand |
 | `GET` | `/api/glossary` | Canonical bilingual glossary generated from all built-in tracks |
@@ -127,6 +139,37 @@ PulsaTeach exposes auth at `/auth`. Legacy `#/auth` links are migrated automatic
 | `course_versions` | Immutable content snapshots used by diff and rollback |
 | `issued_certificates` | Public verification code and minimal evidence |
 | `quiz_sessions` | Private quiz drafts, responses, scores, and resume state |
+| `discord_links` | One unique Discord identity linked to one Supabase Auth user |
+| `used_link_nonces` | Server-only replay protection for signed account links |
+
+## PulsaBot integration
+
+Set these server-only Vercel environment variables for Production:
+
+```text
+PULSABOT_API_URL=https://pulsabot.130-110-241-167.sslip.io
+PULSABOT_API_KEY=<long random value shared only with PulsaBot>
+PULSABOT_LINK_SIGNING_SECRET=<different long random value used only for one-time links>
+PULSATEACH_WEBHOOK_SECRET=<different long random value shared only with PulsaBot>
+PULSABOT_RATE_LIMIT=3000
+```
+
+PulsaBot signs the one-time `/teach lien` state with
+`PULSABOT_LINK_SIGNING_SECRET`. It uses `PULSABOT_API_KEY` only as its Bearer
+credential for progression reads. Webhook request bodies use the separate
+`PULSATEACH_WEBHOOK_SECRET`.
+
+In Vercel, open the PulsaTeach project, then **Settings > Environment Variables**.
+Add each variable with only **Production** selected, save it, then redeploy the
+latest production deployment. Do not prefix either secret with `VITE_`, and do
+not expose them in Supabase browser configuration or commit their values.
+
+Apply `20260815210000_discord_integration.sql` and
+`20260815213000_atomic_discord_linking.sql` before redeploying. Both Discord
+tables have RLS enabled. Browser roles cannot create links, update links, or
+read/consume nonces; the Express service-role client performs the atomic link
+operation. `PULSABOT_RATE_LIMIT` is optional and defaults to 3000 requests per
+15 minutes.
 
 ## Course Studio workflow
 

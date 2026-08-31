@@ -37,6 +37,30 @@ export function TextField({ label, value, onChange, multiline = false, code = fa
   return <label className="grid gap-2 text-sm font-bold">{label}<Component value={value} onChange={(event) => onChange(event.target.value)} className={`form-control ${multiline ? "min-h-28 resize-y" : ""} ${code ? "font-mono text-xs leading-6" : ""}`} /></label>;
 }
 
-export function ListField({ label, value = [], onChange }) {
-  return <TextField label={label} value={value.join("\n")} multiline onChange={(text) => onChange(text.split("\n").map((item) => item.trim()).filter(Boolean))} />;
+export function ListField({ label, value = [], onChange, format = "text" }) {
+  const serialized = value.map((item) => serializeListItem(item, format)).join("\n");
+  return <TextField label={label} value={serialized} multiline onChange={(text) => onChange(text.split("\n").map((item) => parseListItem(item.trim(), format)).filter((item) => item !== null))} />;
+}
+
+function serializeListItem(item, format) {
+  if (format === "vocabulary" && Array.isArray(item)) return `${item[0] || ""} : ${item.slice(1).join(": ")}`;
+  if (format === "json" && item && typeof item === "object") return JSON.stringify(item);
+  return String(item ?? "");
+}
+
+function parseListItem(item, format) {
+  if (!item) return null;
+  if (format === "vocabulary") {
+    const [term, ...definition] = item.split(":");
+    return [term.trim(), definition.join(":").trim()];
+  }
+  if (format === "json") {
+    try {
+      const parsed = JSON.parse(item);
+      return parsed && typeof parsed === "object" ? parsed : item;
+    } catch {
+      return item;
+    }
+  }
+  return item;
 }

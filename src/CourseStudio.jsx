@@ -21,7 +21,6 @@ import { createEmptyCourseCurriculum, createLessonDraft, createModuleDraft, crea
 import { CourseEditor, EditorHeader, ListField, LocalizedField, ModuleEditor, TextField } from "./components/CourseStudioFields.jsx";
 import LessonPreview from "./components/CourseStudioPreview.jsx";
 import { formatAnswer, formatChoices, moveItem, parseAnswer, parseChoices, updateLocaleObject } from "./courseStudioUtils.js";
-
 export default function CourseStudio({ locale = "fr" }) {
   const fr = locale === "fr";
   const [courses, setCourses] = useState([]);
@@ -68,7 +67,6 @@ export default function CourseStudio({ locale = "fr" }) {
         setMessage(error.message);
       });
   }, []);
-
   useEffect(() => {
     if (!selectedId) {
       setVersions([]);
@@ -76,7 +74,6 @@ export default function CourseStudio({ locale = "fr" }) {
     }
     listCourseVersions(selectedId).then(setVersions).catch(() => setVersions([]));
   }, [selectedId]);
-
   const createNewCourse = async () => {
     setStatus("saving");
     try {
@@ -94,7 +91,6 @@ export default function CourseStudio({ locale = "fr" }) {
       setMessage(error.message);
     }
   };
-
   const updateLocalCourse = (updater) => {
     editRevision.current += 1;
     setCourses((items) => items.map((course) => course.id === selectedId ? updater(structuredClone(course)) : course));
@@ -403,7 +399,7 @@ function LessonEditor({ lesson, locale, onChange, onMove, onRemove }) {
         <div className="grid gap-4 md:grid-cols-2">
           <LocalizedField label="Titre" value={lesson.title} onChange={(title) => onChange({ title })} />
           <LocalizedField label={fr ? "Consigne de l'exercice" : "Exercise brief"} value={lesson.brief} multiline onChange={(brief) => onChange({ brief })} />
-          <label className="grid gap-2 text-sm font-bold">Type<select value={lesson.type} onChange={(event) => onChange({ type: event.target.value })} className="form-control">{["html", "css", "js", "dom", "typescript", "react", "node", "sql", "terminal", "text", "quiz", "project"].map((type) => <option key={type}>{type}</option>)}</select></label>
+          <label className="grid gap-2 text-sm font-bold">Type<select value={lesson.type} onChange={(event) => onChange({ type: event.target.value })} className="form-control">{["html", "css", "js", "dom", "typescript", "react", "node", "sql", "terminal", "text", "workstation", "quiz", "project"].map((type) => <option key={type}>{type}</option>)}</select></label>
           <label className="grid gap-2 text-sm font-bold">XP<input type="number" min="0" value={lesson.xp} onChange={(event) => onChange({ xp: Number(event.target.value) })} className="form-control" /></label>
           <label className="grid gap-2 text-sm font-bold">{fr ? "Durée estimée" : "Estimated duration"}<input type="number" min="1" value={lesson.durationMin} onChange={(event) => onChange({ durationMin: Number(event.target.value) })} className="form-control" /></label>
           <ListField label={fr ? "Compétences" : "Skills"} value={lesson.skills || []} onChange={(skills) => onChange({ skills })} />
@@ -413,8 +409,8 @@ function LessonEditor({ lesson, locale, onChange, onMove, onRemove }) {
           <legend className="px-2 font-display text-xl font-bold">{fr ? "Cours avant la pratique" : "Course before practice"}</legend>
           <TextField label={fr ? "Introduction accessible" : "Accessible introduction"} value={courseFr.introduction || ""} multiline onChange={(introduction) => onChange({ course: updateLocaleObject(lesson.course, "fr", { introduction }) })} />
           <ListField label={fr ? "Objectifs précis" : "Precise objectives"} value={courseFr.objectives || []} onChange={(objectives) => onChange({ course: updateLocaleObject(lesson.course, "fr", { objectives }) })} />
-          <ListField label={fr ? "Vocabulaire (terme : définition)" : "Vocabulary"} value={courseFr.vocabulary || []} onChange={(vocabulary) => onChange({ course: updateLocaleObject(lesson.course, "fr", { vocabulary }) })} />
-          <ListField label={fr ? "Étapes d'explication" : "Explanation steps"} value={courseFr.sections || []} onChange={(sections) => onChange({ course: updateLocaleObject(lesson.course, "fr", { sections }) })} />
+          <ListField label={fr ? "Vocabulaire (terme : définition)" : "Vocabulary"} value={courseFr.vocabulary || []} format="vocabulary" onChange={(vocabulary) => onChange({ course: updateLocaleObject(lesson.course, "fr", { vocabulary }) })} />
+          <ListField label={fr ? "Étapes d'explication (un objet JSON par ligne)" : "Explanation steps (one JSON object per line)"} value={courseFr.sections || []} format="json" onChange={(sections) => onChange({ course: updateLocaleObject(lesson.course, "fr", { sections }) })} />
           <ListField label={fr ? "Règles à retenir" : "Rules to remember"} value={courseFr.rules || []} onChange={(rules) => onChange({ course: updateLocaleObject(lesson.course, "fr", { rules }) })} />
           <ListField label="Checklist" value={courseFr.checklist || []} onChange={(checklist) => onChange({ course: updateLocaleObject(lesson.course, "fr", { checklist }) })} />
           <TextField label={fr ? "Synthèse" : "Summary"} value={courseFr.summary || ""} multiline onChange={(summary) => onChange({ course: updateLocaleObject(lesson.course, "fr", { summary }) })} />

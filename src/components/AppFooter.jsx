@@ -2,7 +2,7 @@ import { deploymentInfo } from "../deploymentInfo.js";
 import { openPrivacySettings } from "../privacyConsent.js";
 
 const socialLinks = [
-  { id: "discord", label: "Discord", href: "https://discord.gg/pnAdQQggUg" },
+  { id: "discord", label: "Discord", href: "https://discord.gg/K4sXatdzzt" },
   { id: "tiktok", label: "TikTok", href: "https://www.tiktok.com/@pulsateach" },
   { id: "instagram", label: "Instagram", href: "https://www.instagram.com/pulsateach_/" },
   { id: "x", label: "X", href: "https://x.com/pulsateach" }

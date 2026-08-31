@@ -1,12 +1,10 @@
 import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";
-
+import { checkSupabaseReadiness as checkReadiness, getSupabaseStatus as getStatus } from "./supabaseStatus.js";
 const supabaseUrl = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
 export const supabaseEnabled = Boolean(supabaseUrl && serviceRoleKey);
 export const requireSupabaseStorage = process.env.PULSATEACH_STORAGE === "supabase-strict";
-
 export const supabaseAdmin = supabaseEnabled
   ? createClient(supabaseUrl, serviceRoleKey, {
       auth: {
@@ -24,42 +22,11 @@ export async function getUserFromAccessToken(token) {
 }
 
 export async function getSupabaseStatus() {
-  if (!supabaseAdmin) {
-    return {
-      enabled: false,
-      mode: "json",
-      message: "Supabase env vars are not configured. PulsaTeach is using local JSON storage."
-    };
-  }
-
-  const tables = ["profiles", "progress", "attempts", "submissions", "enrollments", "lesson_drafts", "course_drafts", "course_versions", "issued_certificates", "learning_events", "quiz_sessions"];
-  const checks = await Promise.all(tables.map(async (table) => {
-    const { count, error } = await supabaseAdmin.from(table).select("*", { count: "exact", head: true });
-    return {
-      table,
-      ok: !error,
-      count: count ?? 0,
-      error: error?.message || null
-    };
-  }));
-
-  return {
-    enabled: true,
-    mode: "supabase",
-    ok: checks.every((check) => check.ok),
-    checks
-  };
+  return getStatus(supabaseAdmin);
 }
 
 export async function checkSupabaseReadiness() {
-  if (!supabaseAdmin) return { ok: false, latencyMs: 0, error: "Supabase is not configured." };
-  const startedAt = Date.now();
-  const { error } = await supabaseAdmin.from("profiles").select("id", { head: true, count: "exact" }).limit(1);
-  return {
-    ok: !error,
-    latencyMs: Date.now() - startedAt,
-    error: error?.message || null
-  };
+  return checkReadiness(supabaseAdmin);
 }
 
 export async function readSupabaseStore(storeName, fallback) {

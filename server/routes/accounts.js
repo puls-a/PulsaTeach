@@ -207,15 +207,27 @@ export function registerAccountsRoutes(app, context) {
   app.get("/api/account/export", requireAuthenticatedRequest, async (request, response) => {
     if (!requireAuthenticatedWrite(request, response)) return;
     const userId = request.authUserId;
-    const [progress, submissions, attempts, users, issuedCertificates, learningEvents, quizSessions] = await Promise.all([
+    const [progress, submissions, attempts, users, issuedCertificates, learningEvents, quizSessions, discordLink, verifiedTracks, legalAcceptances] = await Promise.all([
       readProgressStore(),
       readJsonStore(submissionsFile, []),
       readJsonStore(attemptsFile, []),
       readJsonStore(usersFile, {}),
       listIssuedCertificatesForUser(userId),
       readJsonStore(learningEventsFile, []),
-      readJsonStore(quizSessionsFile, [])
+      readJsonStore(quizSessionsFile, []),
+      supabaseAdmin && request.authUser?.id
+        ? supabaseAdmin.from("discord_links").select("discord_id,discord_username,linked_at").eq("user_id", request.authUser.id).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      supabaseAdmin
+        ? supabaseAdmin.from("verified_track_completions").select("track_id,completed_at").eq("user_id", userId)
+        : Promise.resolve({ data: [], error: null }),
+      supabaseAdmin && request.authUser?.id
+        ? supabaseAdmin.from("legal_acceptances").select("document,version,method,accepted_at").eq("user_id", request.authUser.id)
+        : Promise.resolve({ data: [], error: null })
     ]);
+    for (const result of [discordLink, verifiedTracks, legalAcceptances]) {
+      if (result.error) throw result.error;
+    }
     response.json({
       exportedAt: new Date().toISOString(),
       account: {
@@ -228,7 +240,10 @@ export function registerAccountsRoutes(app, context) {
       attempts: attempts.filter((item) => item.userId === userId),
       certificates: issuedCertificates,
       learningEvents: learningEvents.filter((item) => item.userId === userId),
-      quizSessions: quizSessions.filter((item) => item.userId === userId)
+      quizSessions: quizSessions.filter((item) => item.userId === userId),
+      discord: discordLink.data,
+      verifiedTrackCompletions: verifiedTracks.data || [],
+      legalAcceptances: legalAcceptances.data || []
     });
   });
 

@@ -3,6 +3,7 @@ import { ArrowRight, Award, BookOpen, Check, Clock3, Code2, Flag, GraduationCap,
 import { useSupabaseSession } from "../../authState.js";
 import { useLearningTracks } from "../../useLearningTracks.js";
 import { getLearnerItem } from "../../learnerStorage.js";
+import { findPublicTrack } from "../../content/publicTrackCatalog.js";
 
 // Utility for reading progress from localStorage if offline or getting it from Supabase context
 function readProgress() {
@@ -19,21 +20,19 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
   const progress = useMemo(readProgress, []);
 
   useEffect(() => {
-    if (!trackId) return;
+    if (!trackId || !findPublicTrack(trackId)) return;
     loadTrack(trackId).catch(() => {});
   }, [trackId, loadTrack]);
 
-  const track = tracks.find(t => t.id === trackId);
-  const retryLoad = () => loadTrack(trackId).catch(() => {});
+  const track = findPublicTrack(trackId) ? tracks.find(t => t.id === trackId) : null;
 
   if (error && (!track || track.isSummary)) {
     return (
       <section className="app-page grid min-h-screen place-items-center bg-slate-50">
         <div className="surface max-w-xl text-center">
-          <p className="eyebrow">{locale === "fr" ? "Indisponible" : "Unavailable"}</p>
-          <h1 className="mt-3 font-display text-3xl font-black text-ink">{locale === "fr" ? "Impossible de charger la formation" : "Unable to load this course"}</h1>
-          <p className="mt-3 leading-7 text-slate-600">{locale === "fr" ? "Réessaie dans un instant ou retourne au catalogue." : "Try again in a moment or return to the catalog."}</p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3"><button type="button" onClick={retryLoad} className="primary-button">{locale === "fr" ? "Réessayer" : "Try again"}</button><a href="/catalog" className="secondary-button">{locale === "fr" ? "Voir le catalogue" : "View catalog"}</a></div>
+          <p className="eyebrow">Erreur</p>
+          <h1 className="mt-3 font-display text-3xl font-black text-ink">Impossible de charger la formation</h1>
+          <p className="mt-3 leading-7 text-slate-600">{error.message}</p>
         </div>
       </section>
     );

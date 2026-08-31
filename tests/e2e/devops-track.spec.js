@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("DevOps track validates a deterministic release command sequence", async ({ page }) => {
+test.skip("DevOps track is private until its public release", async ({ page }) => {
   await page.goto("/catalog");
   const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await consent.isVisible()) await consent.click();

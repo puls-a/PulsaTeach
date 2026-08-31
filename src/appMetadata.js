@@ -79,7 +79,7 @@ const routeMetadata = {
   }
 };
 
-const noIndexRoutes = new Set(["admin", "author", "analytics", "settings", "profile", "dashboard", "review", "signup", "login", "not-found"]);
+const noIndexRoutes = new Set(["admin", "analytics", "author", "auth", "dashboard", "discord", "login", "not-found", "onboarding", "profile", "recovery", "review", "roadmap", "settings", "signup", "studio"]);
 
 export function updatePageMetadata(route, locale, fallbackTitle, courseOverride = null) {
   const language = locale === "fr" ? "fr" : "en";
@@ -97,7 +97,7 @@ export function updatePageMetadata(route, locale, fallbackTitle, courseOverride 
   document.documentElement.lang = language;
   document.title = title;
   setMeta("description", description);
-  setMeta("robots", noIndexRoutes.has(route) ? "noindex,nofollow" : "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1");
+  setMeta("robots", noIndexRoutes.has(route) || isHiddenLearningRoute(route) ? "noindex,nofollow" : "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1");
   setMeta("author", "PulsaTeach");
   setPropertyMeta("og:type", route === "learn" ? "article" : "website");
   setPropertyMeta("og:site_name", "PulsaTeach");
@@ -113,7 +113,7 @@ export function updatePageMetadata(route, locale, fallbackTitle, courseOverride 
   setMeta("twitter:description", description);
   setMeta("twitter:image", SOCIAL_IMAGE);
   setCanonical(canonical);
-  updateHreflang(canonical);
+  removeInvalidHreflang();
   updateStructuredData(route, language, title, description, course || formation);
   if (route === "learn" || route === "formations") updateLearnMetadataFromCatalog(language, canonical, courseOverride);
 }
@@ -204,6 +204,8 @@ function updateStructuredData(route, language, title, description, courseMetadat
       "@type": "Organization",
       "@id": `${SITE_URL}/#organization`,
       name: "PulsaTeach",
+      alternateName: "PulsaTeach - cours de développement web gratuits",
+      description: "Plateforme gratuite pour apprendre le développement web par la pratique.",
       url: `${SITE_URL}/`,
       logo: BRAND_ICON
     },
@@ -211,6 +213,7 @@ function updateStructuredData(route, language, title, description, courseMetadat
       "@type": "WebSite",
       "@id": `${SITE_URL}/#website`,
       name: "PulsaTeach",
+      alternateName: "Cours de développement web gratuits",
       url: `${SITE_URL}/`,
       inLanguage: ["fr", "en"],
       publisher: { "@id": `${SITE_URL}/#organization` },
@@ -318,18 +321,14 @@ function setCanonical(href) {
   element.setAttribute("href", href);
 }
 
-function updateHreflang(canonicalUrl) {
-  const base = SITE_URL;
-  const path = canonicalUrl.replace(base, "") || "/";
+function removeInvalidHreflang() {
+  document.head.querySelectorAll('link[rel="alternate"][hreflang]').forEach((element) => element.remove());
+}
 
-  ["fr", "en", "x-default"].forEach((lang) => {
-    const existing = document.querySelector(`link[rel="alternate"][hreflang="${lang}"]`);
-    const el = existing || document.createElement("link");
-    el.setAttribute("rel", "alternate");
-    el.setAttribute("hreflang", lang);
-    el.setAttribute("href", `${base}${path}`);
-    if (!existing) document.head.appendChild(el);
-  });
+function isHiddenLearningRoute(route) {
+  if (route !== "learn" && route !== "formations") return false;
+  const match = window.location.pathname.match(/^\/(?:learn|formations)\/([^/]+)/);
+  return Boolean(match && !findPublicTrack(match[1]));
 }
 
 function setMeta(name, content) {

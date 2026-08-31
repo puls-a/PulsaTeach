@@ -8,6 +8,7 @@ import { normalizeQuizLesson } from "../../src/features/quizzes/quizEngine.js";
 import { getQuestionSetVersion } from "../../src/features/quizzes/examPolicy.js";
 import { certificates } from "../../server/certificateCatalog.js";
 import { encodeProtectedExamResponses } from "../../server/publicContent.js";
+import { createHmac } from "node:crypto";
 
 const testDataDir = path.join(process.cwd(), "test-results", "api-security-data");
 let app;
@@ -19,7 +20,35 @@ beforeAll(async () => {
   process.env.PULSATEACH_DATA_DIR = testDataDir;
   process.env.PULSATEACH_ADMIN_KEY = "test-admin-key";
   process.env.PULSATEACH_EXAM_SECRET = "test-exam-secret";
+  process.env.PULSATEACH_WEBHOOK_SECRET = "test-discord-secret";
+  process.env.PULSABOT_API_KEY = "test-pulsabot-api-key";
   ({ default: app } = await import("../../server/index.js"));
+});
+
+describe("Discord API security boundaries", () => {
+  test("verifies link signatures before requiring a learner session", async () => {
+    await request(app).get("/api/discord/link?state=invalid.token").expect(404);
+    const invalid = await request(app).post("/api/discord/link").send({ state: "invalid.token" }).expect(400);
+    expect(invalid.body.error.code).toBe("DISCORD_LINK_INVALID_SIGNATURE");
+
+    const payload = Buffer.from(JSON.stringify({
+      discordId: "123456789012345678",
+      nonce: "api-anonymous-nonce",
+      issuedAt: Date.now() - 1000,
+      expiresAt: Date.now() + 60_000
+    })).toString("base64url");
+    const signature = createHmac("sha256", "test-pulsabot-api-key").update(payload).digest("base64url");
+    const anonymous = await request(app).post("/api/discord/link").send({ state: `${payload}.${signature}` }).expect(401);
+    expect(anonymous.body.error.code).toBe("AUTH_REQUIRED");
+  });
+
+  test("rejects PulsaBot progression requests before touching storage", async () => {
+    const denied = await request(app)
+      .get("/api/discord/progression/123456789012345678")
+      .set("Authorization", "Bearer wrong")
+      .expect(401);
+    expect(denied.body.error.code).toBe("PULSABOT_UNAUTHORIZED");
+  });
 });
 
 afterAll(async () => {

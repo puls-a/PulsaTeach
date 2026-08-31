@@ -344,6 +344,7 @@ export function AuthorPage({ locale }) {
 export function AdminPage({ locale }) {
   const [submissions, setSubmissions] = useState([]);
   const [users, setUsers] = useState([]);
+  const [reviewForms, setReviewForms] = useState({});
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -362,31 +363,30 @@ export function AdminPage({ locale }) {
     }
   };
 
+  const updateReviewForm = (submission, field, value) => {
+    setReviewForms((forms) => ({
+      ...forms,
+      [submission.id]: { ...forms[submission.id], [field]: value }
+    }));
+  };
+
   const review = async (submission, status) => {
-    const score = status === "approved" ? 88 : 55;
-    const feedback =
-      status === "approved"
-        ? "Strong structure, readable code, and responsive behavior validated."
-        : "Rework accessibility, responsive spacing, and explain your JavaScript decisions.";
+    const form = reviewForms[submission.id] || {};
+    const score = form.score === "" || form.score === undefined ? null : Number(form.score);
+    if (status === "approved" && !Number.isFinite(score)) {
+      setMessage(locale === "fr" ? "Un score entre 0 et 100 est requis pour approuver." : "A score between 0 and 100 is required to approve.");
+      return;
+    }
     try {
       const updated = await reviewSubmission(submission.id, {
         status,
         score,
-        feedback,
+        feedback: form.feedback || "",
         expectedVersion: submission.version,
-        expectedReviewRevision: submission.reviewRevision ?? 0,
-        rubric: {
-          accessibility: status === "approved" ? 90 : 50,
-          responsiveness: status === "approved" ? 86 : 58,
-          codeQuality: status === "approved" ? 88 : 56
-        },
-        contextualComments: {
-          accessibility: status === "approved" ? "Keyboard and semantics validated." : "Document focus order and fix labels.",
-          responsiveness: status === "approved" ? "Mobile and desktop layouts validated." : "Correct narrow viewport overflow.",
-          codeQuality: status === "approved" ? "Readable structure and naming." : "Explain architecture choices."
-        }
+        expectedReviewRevision: submission.reviewRevision ?? 0
       });
       setSubmissions((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+      setReviewForms((forms) => ({ ...forms, [submission.id]: {} }));
       setMessage(locale === "fr" ? "Revue enregistrée." : "Review saved.");
     } catch (error) {
       if (error.code === "SUBMISSION_REVIEW_REVISION_CONFLICT") {
@@ -457,14 +457,19 @@ export function AdminPage({ locale }) {
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h2 className="font-display text-3xl font-bold">{submission.title}</h2>
-                  <p className="mt-1 text-sm font-bold text-indigoPop">{submission.projectId}</p>
-                  <p className="mt-2 font-bold text-ink/65">{submission.description}</p>
-                  {submission.feedback && <p className="mt-3 rounded-2xl bg-cloud p-3 font-bold text-ink/70 clay-soft">{submission.feedback}</p>}
-                  <p className="mt-2 text-xs font-bold text-slate-500">v{submission.version || 1} · {submission.reviewLog?.length || 0} {locale === "fr" ? "décisions" : "decisions"}</p>
-                </div>
-                <span className="status-badge status-warning">{submission.status}</span>
-              </div>
-              <div className="mt-5 flex flex-wrap gap-3">
+                   <p className="mt-1 text-sm font-bold text-indigoPop">{submission.projectId}</p>
+                   <p className="mt-2 font-bold text-ink/65">{submission.description}</p>
+                   {submission.deliverables?.length > 0 && <p className="mt-2 text-sm text-slate-600"><strong>{locale === "fr" ? "Livrables :" : "Deliverables:"}</strong> {submission.deliverables.join(" · ")}</p>}
+                   {submission.feedback && <p className="mt-3 rounded-2xl bg-cloud p-3 font-bold text-ink/70 clay-soft">{submission.feedback}</p>}
+                   <p className="mt-2 text-xs font-bold text-slate-500">v{submission.version || 1} · {submission.reviewLog?.length || 0} {locale === "fr" ? "décisions" : "decisions"}</p>
+                 </div>
+                 <StatusBadge status={submission.status} locale={locale} />
+               </div>
+               <div className="mt-5 grid gap-3 rounded-2xl bg-slate-50 p-4 sm:grid-cols-2">
+                 <label className="grid gap-2 text-sm font-semibold text-slate-700">{locale === "fr" ? "Score / 100" : "Score / 100"}<input type="number" min="0" max="100" value={reviewForms[submission.id]?.score ?? ""} onChange={(event) => updateReviewForm(submission, "score", event.target.value)} className="form-control" /></label>
+                 <label className="grid gap-2 text-sm font-semibold text-slate-700 sm:col-span-2">{locale === "fr" ? "Feedback pour l'apprenant" : "Feedback for learner"}<textarea value={reviewForms[submission.id]?.feedback ?? ""} onChange={(event) => updateReviewForm(submission, "feedback", event.target.value)} className="form-control min-h-24 py-3" /></label>
+               </div>
+               <div className="mt-5 flex flex-wrap gap-3">
                 <button type="button" onClick={() => review(submission, "in_review")} className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-3 text-sm font-bold text-white hover:bg-indigo-700">
                   <ClipboardCheck className="size-5" />
                   {locale === "fr" ? "Prendre en review" : "Start review"}

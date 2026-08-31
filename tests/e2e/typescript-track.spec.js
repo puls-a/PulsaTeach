@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("TypeScript track loads on demand and validates a typed contract", async ({ page }) => {
+test.skip("TypeScript track is private until its public release", async ({ page }) => {
   await page.goto("/catalog");
   const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await consent.isVisible()) await consent.click();

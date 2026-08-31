@@ -83,21 +83,15 @@ test("legacy hash links migrate to clean URLs", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /Choisis une formation|Choose a course/ })).toBeVisible();
 });
 
-test("tools lesson opens without guide rendering errors", async ({ page }, testInfo) => {
+test("tools lesson opens without workstation rendering errors", async ({ page }) => {
   const pageErrors = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
   await page.goto("/learn/tools/tools-setup/tools-01-vscode");
   await acceptPrivacy(page);
   await expect(page.getByRole("heading", { name: /Choisir son espace de travail|Choose your workspace/ }).first()).toBeVisible();
-  if (testInfo.project.name === "mobile-chromium") await page.getByRole("tab", { name: /Comprendre|Learn/ }).click();
-  await expect(page.getByText(/Un éditeur sert à lire|An editor reads/)).toBeVisible();
   await expect(page.getByText("<img", { exact: false })).toHaveCount(0);
-  await page.getByRole("button", { name: /Indice 1|Next hint/ }).click();
-  await page.getByRole("button", { name: /Indice 2|Next hint/ }).click();
-  const hints = page.getByRole("heading", { name: /Indices débloqués progressivement|Progressive hints/ }).locator("xpath=ancestor::section[1]");
-  await expect(hints.locator("li")).toHaveCount(2);
-  await expect(hints).toContainText(/classe ou l'identifiant|class or identifier/i);
-  await expect(hints).toContainText(/fichier observé|observed file/i);
+  await page.getByRole("button", { name: /Créer le dossier|Create folder/ }).click();
+  await expect(page.getByRole("button", { name: /Créer index.html|Create index.html/ })).toBeEnabled();
   expect(pageErrors).toEqual([]);
 });
 

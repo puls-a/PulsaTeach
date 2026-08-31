@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("React track loads on demand and validates a semantic component", async ({ page }) => {
+test.skip("React track is private until its public release", async ({ page }) => {
   await page.goto("/catalog");
   const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await consent.isVisible()) await consent.click();

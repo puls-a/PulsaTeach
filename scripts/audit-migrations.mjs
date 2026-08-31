@@ -31,6 +31,11 @@ for (const requirement of [
   "save_quiz_draft_atomic",
   "submit_quiz_session_atomic",
   "issue_certificate_atomic",
+  "create table if not exists public.discord_links",
+  "create table if not exists public.used_link_nonces",
+  "consume_discord_link",
+  "alter table public.discord_links enable row level security",
+  "alter table public.used_link_nonces enable row level security",
   "pg_advisory_xact_lock",
   "enable row level security"
 ]) {
