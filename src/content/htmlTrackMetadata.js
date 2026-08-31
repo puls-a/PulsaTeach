@@ -4,8 +4,8 @@ export const htmlTrackMetadata = {
   color: "orange",
   title: { fr: "HTML interactif", en: "Interactive HTML" },
   summary: {
-    fr: "Structure, sémantique, formulaires, accessibilité et SEO avec tests DOM.",
-    en: "Structure, semantics, forms, accessibility, and SEO with DOM tests."
+    fr: "Construisez le document PulsaConf cumulatif : structure, sémantique, formulaires, accessibilité et SEO avec tests DOM.",
+    en: "Build one cumulative PulsaConf document: structure, semantics, forms, accessibility, and SEO with DOM tests."
   },
   level: { fr: "Débutant", en: "Beginner" },
   prerequisites: { fr: ["Aucun prérequis", "Savoir utiliser un navigateur et un clavier"], en: ["No prerequisites", "Know how to use a browser and keyboard"] },
