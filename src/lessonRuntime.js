@@ -1,5 +1,5 @@
 import { runJavaScriptConsoleSandbox, runJavaScriptExpressionSandbox } from "./jsSandboxClient.js";
-import { createPreviewCspMeta } from "./security/sandboxPolicy.js";
+import { createComputedStyleBridge, createPreviewCspMeta } from "./security/sandboxPolicy.js";
 import { resolveLocaleValue } from "./localeValue.js";
 
 export function createPreview(lesson, code, locale = "fr") {
@@ -14,8 +14,8 @@ export function createPreview(lesson, code, locale = "fr") {
       .toolbar button { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; background: white; font-weight: 700; }
       .gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 20px; }
       .gallery span { display: block; min-height: 70px; border-radius: 10px; border: 1px solid #cbd5e1; background: #e0e7ff; }
-      ${code}
-    </style></head><body>${resolveLocaleValue(lesson.previewHtml, locale) || defaultCssPreview(locale)}</body></html>`;
+      ${escapeStyleContent(code)}
+    </style></head><body>${resolveLocaleValue(lesson.previewHtml, locale) || defaultCssPreview(locale)}${createComputedStyleBridge()}</body></html>`;
   }
 
   if (kind === "dom") {
@@ -84,7 +84,7 @@ function createJavaScriptPreview() {
   return `<!doctype html><html><head>${createPreviewCspMeta()}</head><body></body></html>`;
 }
 
-export async function validateLesson(lesson, code, locale = "fr") {
+export async function validateLesson(lesson, code, locale = "fr", renderedStyles = []) {
   const activeCode = stripCodeComments(code);
   const results = [];
   for (const sourceItem of lesson.tests) {
@@ -120,9 +120,17 @@ export async function validateLesson(lesson, code, locale = "fr") {
     if (item.type === "cssDeclaration") {
       pass = hasCssDeclaration(code, item.value.selector, item.value.property);
     }
+    if (item.type === "computedStyle") {
+      const result = renderedStyles.find((entry) => entry.selector === item.value.selector && entry.property === item.value.property);
+      pass = result?.value === item.value.equals;
+    }
     results.push({ ...item, pass });
   }
   return results;
+}
+
+function escapeStyleContent(value) {
+  return String(value).replace(/<\/style/gi, "<\\/style");
 }
 
 function hasCssDeclaration(code, selector, property) {
@@ -149,10 +157,12 @@ export function testFailureHelp(check, locale) {
   if (locale !== "fr") {
     if (check.type === "jsExpression") return "The code runs, but the produced result does not match this scenario.";
     if (check.type === "cssDeclaration") return "Check the selector and the exact CSS property.";
+    if (check.type === "computedStyle") return "Check that the browser applies the requested style in the preview.";
     return "Check the requested syntax and make sure it is active code, not a comment.";
   }
   if (check.type === "jsExpression") return "Le code s'exécute, mais le résultat produit ne correspond pas encore à ce scénario.";
   if (check.type === "cssDeclaration") return "Vérifie le sélecteur ciblé et la propriété CSS exacte.";
+  if (check.type === "computedStyle") return "Vérifie que le navigateur applique réellement le style demandé dans l'aperçu.";
   if (check.type === "selector" || check.type === "minSelector") return "Vérifie la structure HTML et le nombre d'éléments demandés.";
   return "Vérifie la syntaxe demandée et assure-toi qu'elle se trouve dans du code actif, pas dans un commentaire.";
 }
@@ -162,6 +172,7 @@ export function displayTestLabel(check, locale) {
   if (locale !== "fr") return localized.label;
   check = localized;
   if (check.type === "cssDeclaration") return `La propriété « ${check.value.property} » est déclarée sur « ${check.value.selector} »`;
+  if (check.type === "computedStyle") return `Le navigateur applique « ${check.value.property}: ${check.value.equals} » sur « ${check.value.selector} »`;
   if (check.type === "attributeEquals") return `L’attribut « ${check.value.attribute} » de « ${check.value.selector} » vaut « ${check.value.expected} »`;
   if (check.type === "exactSelector") return `Exactement ${check.amount || 1} élément(s) correspondent à « ${check.value} »`;
   if (check.type === "minSelector") return `Au moins ${check.amount || 1} éléments correspondent à « ${check.value} »`;

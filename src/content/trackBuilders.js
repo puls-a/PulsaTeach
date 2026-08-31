@@ -135,7 +135,8 @@ function cssLesson(id, title, brief, starterCode, target, checks, xp) {
       test("contains", "target selector", target),
       ...checks.map((check) => isCssConceptCheck(id, check)
         ? test("contains", check, check)
-        : test("cssDeclaration", check, { selector: target, property: check }))
+        : test("cssDeclaration", check, { selector: target, property: check })),
+      ...(id === "css-04-grid" ? [test("computedStyle", "rendered grid", { selector: ".gallery", property: "display", equals: "grid" })] : [])
     ],
     hint: { fr: "Regarde le sélecteur demandé puis ajoute chaque propriété attendue.", en: "Look at the required selector, then add each expected property." },
     xp

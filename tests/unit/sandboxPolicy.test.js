@@ -29,6 +29,7 @@ describe("preview sandbox policy", () => {
   test("accepts preview messages only from the controlled iframe window", () => {
     const iframeWindow = {};
     expect(isAllowedPreviewMessage({ source: iframeWindow, data: { type: "pulsateach-preview-ready" } }, iframeWindow)).toBe(true);
+    expect(isAllowedPreviewMessage({ source: iframeWindow, data: { type: "pulsateach-computed-style-result" } }, iframeWindow)).toBe(true);
     expect(isAllowedPreviewMessage({ source: {}, data: { type: "pulsateach-preview-ready" } }, iframeWindow)).toBe(false);
     expect(isAllowedPreviewMessage({ source: iframeWindow, data: { type: "unknown" } }, iframeWindow)).toBe(false);
   });

@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Bookmark, BookmarkCheck, BookOpen, CheckCircle2, Code2, Copy, Download, Eye, FileCode2, GitMerge, Lightbulb, Play, RotateCcw, Terminal, XCircle } from "lucide-react";
 import { recordAttempt, recordLearningEvent } from "../../apiClient.js";
 import { createPreview, displayTestLabel, getPreviewKind, runJavaScriptWithConsole, testFailureHelp, validateLesson } from "../../lessonRuntime.js";
-import { PREVIEW_IFRAME_SANDBOX } from "../../security/sandboxPolicy.js";
+import { isAllowedPreviewMessage, PREVIEW_IFRAME_SANDBOX } from "../../security/sandboxPolicy.js";
 import { resolveLocaleValue } from "../../localeValue.js";
 import { copyLessonLink } from "./learningState.js";
 import { ActionButton, CompletionBanner, difficultyLabel, NotesPanel, SkillChips } from "./LearningShared.jsx";
@@ -37,6 +37,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
   const fullscreenButtonRef = useRef(null);
   const resizeRef = useRef(null);
   const executionRef = useRef(null);
+  const previewFrameRef = useRef(null);
   const { panelWidths, fontSize, lineWrapping, setDividerPosition, setFontSize, setLineWrapping } = useStudioPreferences();
 
   useEffect(() => {
@@ -119,6 +120,25 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
     URL.revokeObjectURL(href);
   };
 
+  const readComputedStyles = (tests) => {
+    const checks = tests.filter((test) => test.type === "computedStyle").map((test) => test.value);
+    const frame = previewFrameRef.current;
+    if (!checks.length) return Promise.resolve([]);
+    if (!frame?.contentWindow) return Promise.resolve([]);
+    const requestId = crypto.randomUUID();
+    return new Promise((resolve) => {
+      const timeout = window.setTimeout(() => { window.removeEventListener("message", receive); resolve([]); }, 800);
+      const receive = (event) => {
+        if (!isAllowedPreviewMessage(event, frame.contentWindow) || event.data?.type !== "pulsateach-computed-style-result" || event.data.requestId !== requestId) return;
+        window.clearTimeout(timeout);
+        window.removeEventListener("message", receive);
+        resolve(event.data.results || []);
+      };
+      window.addEventListener("message", receive);
+      frame.contentWindow.postMessage({ type: "pulsateach-computed-style-request", requestId, checks }, "*");
+    });
+  };
+
   const runTests = async (source = code) => {
     if (executionRef.current) return;
     const execution = {};
@@ -126,16 +146,17 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
     setExecutionStatus("running");
     setResult(null);
     setExecutionError("");
-    setWorkspacePanel("tests");
-    setFocusPanel("results");
     window.requestAnimationFrame(() => {
       const resultsTab = document.getElementById("lesson-tab-results");
       if (resultsTab?.offsetParent) resultsTab.focus();
     });
     recordLearningEvent({ eventType: "tests_run", lessonId: lesson.id, trackId: activeTrack.id, payload: { testCount: lesson.tests.length } }).catch(() => {});
     try {
-      const checks = await validateLesson(lesson, source, locale);
+      const renderedStyles = await readComputedStyles(lesson.tests);
+      const checks = await validateLesson(lesson, source, locale, renderedStyles);
       if (executionRef.current !== execution) return;
+      setWorkspacePanel("tests");
+      setFocusPanel("results");
       if (source !== code) setCode(source);
       setResult(checks);
       const passedCount = checks.filter((check) => check.pass).length;
@@ -224,7 +245,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
         </section>
         <ResizeHandle index={1} locale={locale} position={panelWidths[0] + panelWidths[1]} min={panelWidths[0] + 28} max={80} onPointerDown={beginResize} onPointerMove={resizePanels} onPointerUp={endResize} onPositionChange={setDividerPosition} />
         <section id="lesson-panel-results" role="tabpanel" aria-labelledby="lesson-tab-results" tabIndex={0} className={`${focusPanel === "results" ? "flex" : "hidden"} min-h-[600px] min-w-0 flex-col bg-[#f7f7fc] xl:flex xl:min-h-0`}>
-          <OutputWorkbench lesson={lesson} locale={locale} code={code} preview={preview} previewKind={previewKind} consoleOutput={consoleOutput} executionError={executionError} result={result} tests={lesson.tests} total={total} passed={passed} allPassed={allPassed} showCorrection={showCorrection} selectedPanel={workspacePanel} isRunning={executionStatus === "running"} onSelectPanel={setWorkspacePanel} onRunTests={runTests} onNext={onNext} hasNext={hasNext} onLoadSolution={() => { setCode(solution); setFocusPanel("code"); }} />
+          <OutputWorkbench lesson={lesson} locale={locale} code={code} preview={preview} previewKind={previewKind} previewFrameRef={previewFrameRef} consoleOutput={consoleOutput} executionError={executionError} result={result} tests={lesson.tests} total={total} passed={passed} allPassed={allPassed} showCorrection={showCorrection} selectedPanel={workspacePanel} isRunning={executionStatus === "running"} onSelectPanel={setWorkspacePanel} onRunTests={runTests} onNext={onNext} hasNext={hasNext} onLoadSolution={() => { setCode(solution); setFocusPanel("code"); }} />
         </section>
       </div>
     </section>
@@ -324,7 +345,7 @@ function EditorWorkbench({ code, documentKey, editorRef, fileName, fontSize, lan
   );
 }
 
-function OutputWorkbench({ lesson, locale, code, preview, previewKind, consoleOutput, executionError, result, tests, total, passed, allPassed, showCorrection, selectedPanel, isRunning, onSelectPanel, onRunTests, onNext, hasNext, onLoadSolution }) {
+function OutputWorkbench({ lesson, locale, code, preview, previewKind, previewFrameRef, consoleOutput, executionError, result, tests, total, passed, allPassed, showCorrection, selectedPanel, isRunning, onSelectPanel, onRunTests, onNext, hasNext, onLoadSolution }) {
   const tabs = ["preview", "tests"];
   const selectTab = (nextPanel) => {
     onSelectPanel(nextPanel);
@@ -346,7 +367,7 @@ function OutputWorkbench({ lesson, locale, code, preview, previewKind, consoleOu
         </div>
       </div>
       <div id={`lesson-output-${selectedPanel}`} role="tabpanel" aria-labelledby={`lesson-output-tab-${selectedPanel}`} className="h-full min-h-0 flex-1 overflow-y-auto" tabIndex={0}>
-        {selectedPanel === "preview" && <Preview lesson={lesson} locale={locale} code={code} preview={preview} previewKind={previewKind} consoleOutput={consoleOutput} />}
+        {selectedPanel === "preview" && <Preview lesson={lesson} locale={locale} code={code} preview={preview} previewKind={previewKind} previewFrameRef={previewFrameRef} consoleOutput={consoleOutput} />}
         {selectedPanel === "tests" && <div className="p-3">{executionError && <p className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-900" role="alert">{executionError}</p>}{allPassed && <CompletionBanner locale={locale} onNext={onNext} hasNext={hasNext} projectId={lesson.type === "project" ? lesson.id : ""} />}<TestPanel locale={locale} result={result} tests={tests} total={total} passed={passed} isRunning={isRunning} onRunTests={() => onRunTests(code)} />{(showCorrection || allPassed) && <ExplainedCorrection lesson={lesson} locale={locale} onLoadSolution={onLoadSolution} />}</div>}
       </div>
     </div>
@@ -372,8 +393,8 @@ function PracticeComparison({ comparison, locale }) {
   return <div className="mt-5 grid gap-3 md:grid-cols-2">{cards.map(([item, label]) => <article className="min-w-0 border border-white/15 bg-[#0a0a23] p-3" key={label}><h4 className="text-xs font-black uppercase tracking-[.1em] text-indigo-200">{label}</h4><p className="mt-2 text-sm font-bold text-white">{item.title}</p><pre tabIndex={0} className="mt-3 overflow-x-auto bg-white/5 p-3 font-mono text-xs leading-6 text-indigo-100">{resolveLocaleValue(item.code, locale) || ""}</pre><p className="mt-3 text-sm leading-6 text-slate-300">{item.explanation}</p></article>)}</div>;
 }
 
-function Preview({ lesson, locale, code, preview, previewKind, consoleOutput }) {
-  return <div className="h-full min-h-full overflow-hidden bg-slate-50">{previewKind === "javascript" ? <div><div className="min-h-[220px] p-5 text-sm text-slate-500">{locale === "fr" ? "Exécute le code pour afficher ses sorties dans la console." : "Run the code to display its output in the console."}</div><pre tabIndex={0} aria-label={locale === "fr" ? "Sortie console scrollable" : "Scrollable console output"} className="min-h-40 overflow-auto bg-ink p-4 font-mono text-sm text-indigo-100">{consoleOutput || "Console"}</pre></div> : previewKind === "terminal" ? <CodePreview icon={Terminal} title={locale === "fr" ? "Terminal simulé" : "Simulated terminal"} code={`$ ${code || "…"}`} /> : ["typescript", "react", "node", "sql"].includes(previewKind) ? <CodePreview icon={Code2} title={codePreviewTitle(previewKind, locale)} code={code} /> : previewKind === "text" ? <CodePreview icon={BookOpen} title={locale === "fr" ? "Réponse structurée" : "Structured response"} code={code} light /> : <iframe key={`${lesson.id}-${preview}`} title="PulsaTeach preview" srcDoc={preview} sandbox={PREVIEW_IFRAME_SANDBOX} referrerPolicy="no-referrer" className="h-full min-h-[520px] w-full bg-white" />}</div>;
+function Preview({ lesson, locale, code, preview, previewKind, previewFrameRef, consoleOutput }) {
+  return <div className="h-full min-h-full overflow-hidden bg-slate-50">{previewKind === "javascript" ? <div><div className="min-h-[220px] p-5 text-sm text-slate-500">{locale === "fr" ? "Exécute le code pour afficher ses sorties dans la console." : "Run the code to display its output in the console."}</div><pre tabIndex={0} aria-label={locale === "fr" ? "Sortie console scrollable" : "Scrollable console output"} className="min-h-40 overflow-auto bg-ink p-4 font-mono text-sm text-indigo-100">{consoleOutput || "Console"}</pre></div> : previewKind === "terminal" ? <CodePreview icon={Terminal} title={locale === "fr" ? "Terminal simulé" : "Simulated terminal"} code={`$ ${code || "…"}`} /> : ["typescript", "react", "node", "sql"].includes(previewKind) ? <CodePreview icon={Code2} title={codePreviewTitle(previewKind, locale)} code={code} /> : previewKind === "text" ? <CodePreview icon={BookOpen} title={locale === "fr" ? "Réponse structurée" : "Structured response"} code={code} light /> : <iframe key={`${lesson.id}-${preview}`} title="PulsaTeach preview" srcDoc={preview} sandbox={PREVIEW_IFRAME_SANDBOX} ref={previewFrameRef} referrerPolicy="no-referrer" className="h-full min-h-[520px] w-full bg-white" />}</div>;
 }
 
 function TestPanel({ locale, result, tests, total, passed, isRunning, onRunTests }) {

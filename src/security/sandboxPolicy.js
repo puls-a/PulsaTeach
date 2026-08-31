@@ -39,10 +39,28 @@ export function createPreviewErrorBridge(parentOrigin) {
   </script>`;
 }
 
+export function createComputedStyleBridge(parentOrigin) {
+  const targetOrigin = JSON.stringify(parentOrigin || "*");
+  return `<script>
+    (function () {
+      const targetOrigin = ${targetOrigin};
+      window.addEventListener("message", function (event) {
+        const data = event.data;
+        if (data?.type !== "pulsateach-computed-style-request" || !Array.isArray(data.checks)) return;
+        const results = data.checks.slice(0, 20).map(function (check) {
+          const element = document.querySelector(check.selector);
+          return { selector: check.selector, property: check.property, value: element ? getComputedStyle(element).getPropertyValue(check.property).trim() : null };
+        });
+        parent.postMessage({ type: "pulsateach-computed-style-result", requestId: data.requestId, results: results }, targetOrigin);
+      });
+    })();
+  </script>`;
+}
+
 export function isAllowedPreviewMessage(event, iframeWindow) {
   if (!iframeWindow || event.source !== iframeWindow) return false;
   const type = event.data?.type;
-  return type === "pulsateach-preview-error" || type === "pulsateach-preview-ready";
+  return type === "pulsateach-preview-error" || type === "pulsateach-preview-ready" || type === "pulsateach-computed-style-result";
 }
 
 export function normalizePreviewErrorMessage(value) {
