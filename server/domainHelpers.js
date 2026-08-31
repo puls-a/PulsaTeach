@@ -169,7 +169,7 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
 
       return {
         ...certificate,
-        certificateVersion: 1,
+        certificateVersion: certificate.version || 1,
         eligible,
         issued: issuedCertificates.find((item) => item.userId === userId && item.certificateId === certificate.id && !item.revokedAt) || null,
         progress: {
@@ -184,7 +184,7 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
           projectsRequired: certificate.requiredProjects.length
         },
         evidence: {
-          certificateVersion: 1,
+          certificateVersion: certificate.version || 1,
           trackVersions,
           skills: demonstratedSkills,
           exams: {

@@ -78,6 +78,10 @@ export function registerCertificateRoutes(app, context) {
         sendApiError(response, request, 404, "CERTIFICATE_NOT_FOUND", "Certificate not found.");
         return;
       }
+      if (!evaluation.available) {
+        sendApiError(response, request, 409, "CERTIFICATE_NOT_AVAILABLE", "Certificate is not available for issuance yet.");
+        return;
+      }
       if (!evaluation.eligible) {
         sendApiError(response, request, 409, "CERTIFICATE_REQUIREMENTS_INCOMPLETE", "Certificate requirements are not complete.", { progress: evaluation.progress });
         return;

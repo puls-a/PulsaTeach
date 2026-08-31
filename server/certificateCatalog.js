@@ -2,16 +2,20 @@ export const legacyProjectAliases = {
   "html-09-final-project-pulsaconf": ["html-12-final-project"],
   "js-capstone-lab": ["js-07-final-project"]
 };
-export const projectLessonIds = ["html-09-final-project-pulsaconf", "css-06-final-project", "js-capstone-lab"];
-export const certificates = [
+export const projectLessonIds = ["tools-06-workstation-project", "html-09-final-project-pulsaconf", "css-06-final-project"];
+// Certificates only become issuable once every required track is publicly released and independently assessed.
+const publishedCertificateIds = new Set(["frontend-foundations"]);
+
+const certificateDefinitions = [
   {
     id: "frontend-foundations",
     title: { fr: "Frontend Foundations", en: "Frontend Foundations" },
     description: {
-      fr: "Valide les bases HTML, CSS et JavaScript avec des exercices et projets portfolio.",
-      en: "Validate HTML, CSS, and JavaScript foundations through exercises and portfolio projects."
+      fr: "Valide un flux de travail, HTML et CSS avec des évaluations serveur et trois projets revus.",
+      en: "Validate a development workflow, HTML, and CSS through server-graded assessments and three reviewed projects."
     },
-    requiredTracks: ["html", "css", "javascript"],
+    version: 2,
+    requiredTracks: ["tools", "html", "css"],
     requiredProjects: projectLessonIds,
     minProjectScore: 70
   },
@@ -126,3 +130,8 @@ export const certificates = [
     minProjectScore: 70
   }
 ];
+
+export const certificates = certificateDefinitions.map((certificate) => ({
+  ...certificate,
+  available: publishedCertificateIds.has(certificate.id)
+}));

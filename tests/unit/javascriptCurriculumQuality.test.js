@@ -3,8 +3,6 @@ import { javascriptTrack } from "../../src/content/javascriptTrack.js";
 import { worldZones } from "../../src/gameContent.js";
 import { evaluateQuestion } from "../../src/features/quizzes/quizEngine.js";
 import { getNextLesson } from "../../src/features/learn/learningState.js";
-import { projectLessonIds } from "../../server/certificateCatalog.js";
-import { buildCertificatesForUser } from "../../server/domainHelpers.js";
 
 const modules = javascriptTrack.modules;
 const lessons = modules.flatMap((module) => module.lessons);
@@ -104,26 +102,11 @@ describe("active JavaScript curriculum quality", () => {
     expect(getNextLesson(javascriptTrack, module.id, "js-functions-scope-pure-helper")).toEqual({ moduleId: module.id, lessonId: "js-functions-scope-quiz" });
   });
 
-  test("keeps JavaScript product links and certificate evidence on active lessons", () => {
+  test("keeps JavaScript product links on active lessons", () => {
     const lessonIds = new Set(lessons.map((lesson) => lesson.id));
-    expect(projectLessonIds).toContain("html-09-final-project-pulsaconf");
-    expect(projectLessonIds).not.toContain("html-12-final-project");
-    expect(projectLessonIds).toContain("js-capstone-lab");
-    expect(projectLessonIds).not.toContain("js-07-final-project");
     for (const zone of worldZones.filter((item) => item.href.startsWith("/learn/javascript/"))) {
       expect(lessonIds.has(zone.href.split("/").at(-1)), zone.id).toBe(true);
     }
-  });
-
-  test("accepts legacy JavaScript project evidence for the canonical capstone", () => {
-    const submissions = [
-      { id: "html-proof", projectId: "html-12-final-project", status: "approved", score: 100 },
-      { id: "css-proof", projectId: "css-06-final-project", status: "approved", score: 100 },
-      { id: "js-proof", projectId: "js-07-final-project", status: "approved", score: 100 }
-    ];
-    const certificate = buildCertificatesForUser("legacy-learner", { completed: {} }, submissions).certificates.find((item) => item.id === "frontend-foundations");
-    expect(certificate.progress.projectPercent).toBe(100);
-    expect(certificate.evidence.projects.find((project) => project.projectId === "js-capstone-lab")).toMatchObject({ submissionId: "js-proof", score: 100 });
   });
 });
 

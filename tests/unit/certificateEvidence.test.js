@@ -2,9 +2,18 @@ import { describe, expect, test } from "vitest";
 import { buildCertificatesForUser } from "../../server/domainHelpers.js";
 import { certificates } from "../../server/certificateCatalog.js";
 import { learningTracks } from "../../src/content/allTrackRegistry.js";
+import { publicTrackCatalog } from "../../src/content/publicTrackCatalog.js";
 import { getQuestionSetVersion } from "../../src/features/quizzes/examPolicy.js";
 
 describe("certificate evidence", () => {
+  test("only publishes certificates backed by public tracks", () => {
+    const publicTrackIds = new Set(publicTrackCatalog.map((track) => track.id));
+
+    for (const certificate of certificates.filter((item) => item.available)) {
+      expect(certificate.requiredTracks.every((trackId) => publicTrackIds.has(trackId)), certificate.id).toBe(true);
+    }
+  });
+
   test("requires only active project lessons", () => {
     const projectLessons = new Set(learningTracks.flatMap((track) => track.modules.flatMap((module) => module.lessons
       .filter((lesson) => lesson.type === "project")

@@ -617,6 +617,15 @@ describe("API security boundaries", () => {
     expect(reissue.body.error.code).toBe("CERTIFICATE_REVOKED");
   });
 
+  test("blocks issuance for certificates without a public assessed path", async () => {
+    const response = await request(app)
+      .post("/api/certificates/git-github-practitioner/issue")
+      .set({ "X-PulsaTeach-User-Id": "certificate-unavailable-user" })
+      .expect(409);
+
+    expect(response.body.error.code).toBe("CERTIFICATE_NOT_AVAILABLE");
+  });
+
   test("publishes minimal certificate evidence and exposes revocation status", async () => {
     await mkdir(testDataDir, { recursive: true });
     await writeFile(path.join(testDataDir, "issued-certificates.json"), JSON.stringify([{

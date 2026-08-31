@@ -14,4 +14,8 @@ test("Workstation persists a real edit through save and preview reload", async (
   const preview = page.frameLocator('iframe[title="Aperçu index.html"]');
   await expect(preview.getByRole("heading", { name: "Preuve réelle" })).toBeVisible();
   await expect(page.getByText(/Observer le résultat|Observe result/).first().locator("..")).toHaveClass(/emerald/);
+
+  await page.reload();
+  await expect(page.getByRole("textbox", { name: "index.html" })).toHaveValue("<main><h1>Preuve réelle</h1></main>");
+  await expect(page.frameLocator('iframe[title="Aperçu index.html"]').getByRole("heading", { name: "Preuve réelle" })).toBeVisible();
 });

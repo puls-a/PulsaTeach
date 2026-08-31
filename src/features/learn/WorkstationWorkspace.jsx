@@ -12,11 +12,13 @@ export default function WorkstationWorkspace({ lesson, locale, onComplete, onNex
   const starterCode = resolveLocaleValue(lesson.starterCode, locale) || "<main>\n  <h1>Mon espace de travail</h1>\n</main>";
   const [state, setState] = useState(initialState);
   const [code, setCode] = useState(starterCode);
+  const [savedCode, setSavedCode] = useState("");
   const [preview, setPreview] = useState("");
   const [command, setCommand] = useState("pwd");
   const [output, setOutput] = useState("");
   const [diagnosis, setDiagnosis] = useState({ symptom: "", hypothesis: "", check: "", result: "" });
   const [notes, setNotes] = useState("");
+  const [hydratedKey, setHydratedKey] = useState("");
   const completedRef = useRef(false);
   const required = lesson.workstation?.required || [];
   const complete = required.every((key) => Boolean(state[key]));
@@ -25,24 +27,37 @@ export default function WorkstationWorkspace({ lesson, locale, onComplete, onNex
   useEffect(() => {
     const saved = getLearnerItem(storageKey);
     if (!saved) {
-      setState(initialState); setCode(starterCode); setPreview(""); setCommand("pwd"); setOutput(""); setDiagnosis({ symptom: "", hypothesis: "", check: "", result: "" }); setNotes("");
+      setState(initialState); setCode(starterCode); setSavedCode(""); setPreview(""); setCommand("pwd"); setOutput(""); setDiagnosis({ symptom: "", hypothesis: "", check: "", result: "" }); setNotes("");
     } else {
       try {
         const parsed = JSON.parse(saved);
-        setState({ ...initialState, ...parsed.state }); setCode(parsed.code || starterCode); setPreview(parsed.preview || ""); setDiagnosis(parsed.diagnosis || { symptom: "", hypothesis: "", check: "", result: "" }); setNotes(parsed.notes || "");
-      } catch { setState(initialState); }
+        setState({ ...initialState, ...parsed.state }); setCode(parsed.code || starterCode); setSavedCode(parsed.savedCode || ""); setPreview(parsed.preview || ""); setDiagnosis(parsed.diagnosis || { symptom: "", hypothesis: "", check: "", result: "" }); setNotes(parsed.notes || "");
+      } catch { setState(initialState); setCode(starterCode); setSavedCode(""); setPreview(""); }
     }
+    setHydratedKey(storageKey);
     completedRef.current = false;
   }, [starterCode, storageKey]);
 
-  useEffect(() => { setLearnerItem(storageKey, JSON.stringify({ state, code, preview, diagnosis, notes })); }, [code, diagnosis, notes, preview, state, storageKey]);
+  useEffect(() => {
+    if (hydratedKey !== storageKey) return;
+    setLearnerItem(storageKey, JSON.stringify({ state, code, savedCode, preview, diagnosis, notes }));
+  }, [code, diagnosis, hydratedKey, notes, preview, savedCode, state, storageKey]);
   useEffect(() => { if (complete && !completedRef.current) { completedRef.current = true; onComplete(lesson, required.length); } }, [complete, lesson, onComplete, required.length]);
 
   const updateState = (patch) => setState((current) => ({ ...current, ...patch }));
   const createFolder = () => updateState({ folder: true });
   const createFile = () => updateState({ file: true });
-  const saveFile = () => updateState({ save: true, reload: false, observe: false });
-  const reloadPreview = () => { setPreview(code); updateState({ reload: true, observe: true }); };
+  const hasRealEdit = code.trim() && code !== starterCode;
+  const saveFile = () => {
+    if (!hasRealEdit) return;
+    setSavedCode(code);
+    updateState({ save: true, reload: false, observe: false });
+  };
+  const reloadPreview = () => {
+    if (!savedCode) return;
+    setPreview(savedCode);
+    updateState({ reload: true, observe: true });
+  };
 
   const runCommand = () => {
     const normalized = command.trim().toLowerCase();
@@ -65,7 +80,7 @@ export default function WorkstationWorkspace({ lesson, locale, onComplete, onNex
 
     <div className="mt-4 grid gap-4 xl:grid-cols-[.8fr_1.2fr]">
       <section className="rounded-2xl border border-slate-200 bg-white p-4"><h3 className="font-display text-lg font-bold">{fr ? "Fichiers du projet" : "Project files"}</h3><pre className="mt-4 min-h-24 rounded-xl bg-slate-950 p-4 font-mono text-sm text-slate-100">{state.folder ? "v atelier-outils" : "> atelier-outils"}{state.folder && `\n  ${state.file ? "index.html" : "(vide)"}`}</pre><div className="mt-4 flex flex-wrap gap-2"><button type="button" onClick={createFolder} className="secondary-button" aria-pressed={state.folder}><FolderPlus className="size-4" />{fr ? "Créer le dossier" : "Create folder"}</button><button type="button" disabled={!state.folder} onClick={createFile} className="secondary-button disabled:opacity-50" aria-pressed={state.file}><FilePlus2 className="size-4" />{fr ? "Créer index.html" : "Create index.html"}</button></div>{required.includes("environment") && <label className="mt-5 block text-sm font-bold">{fr ? "Environnement choisi" : "Selected environment"}<select value={state.environment} onChange={(event) => updateState({ environment: event.target.value })} className="form-control mt-2"><option value="">{fr ? "Choisir une option" : "Choose an option"}</option><option value="built-in">{fr ? "Éditeur et aperçu intégrés" : "Built-in editor and preview"}</option><option value="local">{fr ? "Éditeur local et navigateur" : "Local editor and browser"}</option></select></label>}</section>
-      <section className="rounded-2xl border border-slate-200 bg-white p-4"><h3 className="font-display text-lg font-bold">{fr ? "Éditer index.html" : "Edit index.html"}</h3><textarea disabled={!state.file} value={code} onChange={(event) => { setCode(event.target.value); updateState({ save: false, reload: false, observe: false }); }} spellCheck="false" className="code-editor mt-4 min-h-56 w-full disabled:opacity-50" aria-label="index.html" /><div className="mt-3 flex flex-wrap gap-2"><button type="button" disabled={!state.file} onClick={saveFile} className="primary-button disabled:opacity-50"><Save className="size-4" />{fr ? "Enregistrer" : "Save"}</button><button type="button" disabled={!state.save} onClick={reloadPreview} className="secondary-button disabled:opacity-50"><RefreshCw className="size-4" />{fr ? "Recharger l'aperçu" : "Reload preview"}</button></div><div className="mt-4 overflow-hidden rounded-xl border border-slate-200"><p className="border-b bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600">{fr ? "Aperçu observé" : "Observed preview"}</p>{preview ? <iframe title={fr ? "Aperçu index.html" : "index.html preview"} srcDoc={preview} className="h-40 w-full bg-white" sandbox="" /> : <p className="p-4 text-sm text-slate-500">{fr ? "Enregistre puis recharge pour observer le fichier." : "Save and reload to observe the file."}</p>}</div></section>
+      <section className="rounded-2xl border border-slate-200 bg-white p-4"><h3 className="font-display text-lg font-bold">{fr ? "Éditer index.html" : "Edit index.html"}</h3><textarea disabled={!state.file} value={code} onChange={(event) => { setCode(event.target.value); updateState({ save: false, reload: false, observe: false }); }} spellCheck="false" className="code-editor mt-4 min-h-56 w-full disabled:opacity-50" aria-label="index.html" /><div className="mt-3 flex flex-wrap gap-2"><button type="button" disabled={!state.file || !hasRealEdit} onClick={saveFile} className="primary-button disabled:opacity-50"><Save className="size-4" />{fr ? "Enregistrer" : "Save"}</button><button type="button" disabled={!state.save || !savedCode} onClick={reloadPreview} className="secondary-button disabled:opacity-50"><RefreshCw className="size-4" />{fr ? "Recharger l'aperçu" : "Reload preview"}</button></div><p className="mt-2 text-xs font-semibold text-slate-500" role="status">{state.file && !hasRealEdit ? (fr ? "Modifie le fichier avant de l'enregistrer." : "Edit the file before saving it.") : code !== savedCode ? (fr ? "Modifications non enregistrées." : "Unsaved changes.") : (fr ? "Dernière version enregistrée." : "Latest version saved.")}</p><div className="mt-4 overflow-hidden rounded-xl border border-slate-200"><p className="border-b bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600">{fr ? "Aperçu observé" : "Observed preview"}</p>{preview ? <iframe title={fr ? "Aperçu index.html" : "index.html preview"} srcDoc={preview} className="h-40 w-full bg-white" sandbox="" /> : <p className="p-4 text-sm text-slate-500">{fr ? "Enregistre puis recharge pour observer le fichier." : "Save and reload to observe the file."}</p>}</div></section>
       {required.includes("terminal") && <section className="rounded-2xl border border-slate-200 bg-white p-4"><h3 className="font-display text-lg font-bold">{fr ? "Terminal du projet" : "Project terminal"}</h3><label className="mt-4 block text-sm font-semibold">{fr ? "Commande" : "Command"}<div className="mt-2 flex gap-2"><input value={command} onChange={(event) => setCommand(event.target.value)} className="form-control min-w-0 font-mono" /><button type="button" onClick={runCommand} className="primary-button"><TerminalSquare className="size-4" />{fr ? "Exécuter" : "Run"}</button></div></label><pre aria-live="polite" className="mt-4 min-h-16 overflow-auto rounded-xl bg-slate-950 p-3 text-xs text-emerald-300">{output || "$ _"}</pre></section>}
       {required.some((key) => evidenceKeys.includes(key)) && <section className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4"><h3 className="font-display text-lg font-bold text-indigo-950">{fr ? "Preuves observables" : "Observable evidence"}</h3>{required.includes("notes") && <label className="mt-3 block text-sm font-bold text-indigo-950">{fr ? "Note la commande ou la voie graphique utilisée" : "Record the command or graphical route used"}<textarea value={notes} onChange={(event) => { setNotes(event.target.value); updateState({ notes: event.target.value.trim().length >= 16 }); }} className="form-control mt-2 min-h-20" /></label>}{required.includes("privacy") && <label className="mt-4 flex items-start gap-3 text-sm font-bold text-indigo-950"><input type="checkbox" checked={state.privacy} onChange={(event) => updateState({ privacy: event.target.checked })} className="mt-1 size-4" />{fr ? "J'ai retiré chemins personnels, mots de passe et jetons de ma preuve." : "I removed personal paths, passwords, and tokens from my evidence."}</label>}{required.includes("path") && <p className="mt-3 text-sm text-indigo-900">{state.path ? (fr ? "Chemin vérifié dans le terminal." : "Path verified in the terminal.") : (fr ? "Utilise pwd, ls ou dir pour vérifier le dossier." : "Use pwd, ls, or dir to verify the folder.")}</p>}</section>}
       {required.includes("diagnosis") && <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4 xl:col-span-2"><h3 className="font-display text-lg font-bold text-amber-950">{fr ? "Diagnostic 404 réel" : "Real 404 diagnosis"}</h3><p className="mt-2 text-sm text-amber-900">{fr ? "L'aperçu demande images/logo.svg, mais ce fichier n'existe pas dans l'arborescence." : "Preview requests images/logo.svg, but that file does not exist in the tree."}</p><div className="mt-4 grid gap-3 sm:grid-cols-2">{[["symptom", fr ? "Symptôme (inclure 404)" : "Symptom (include 404)"], ["hypothesis", fr ? "Hypothèse liée au chemin" : "Path-related hypothesis"], ["check", fr ? "Contrôle (ls, dir ou arborescence)" : "Check (ls, dir, or tree)"], ["result", fr ? "Résultat (inclure logo.svg ou chemin)" : "Result (include logo.svg or path)"]].map(([field, label]) => <label key={field} className="grid gap-1 text-sm font-bold text-amber-950">{label}<input value={diagnosis[field]} onChange={(event) => updateDiagnosis(field, event.target.value)} className="form-control" /></label>)}</div></section>}

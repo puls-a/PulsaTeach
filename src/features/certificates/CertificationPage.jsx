@@ -10,6 +10,7 @@ export default function CertificationPage({ locale }) {
   const [status, setStatus] = useState("loading");
   const [issuingId, setIssuingId] = useState("");
   const certificates = data?.certificates || [];
+  const visibleCertificates = certificates.filter((certificate) => certificate.available || certificate.issued);
 
   useEffect(() => {
     getCertificates().then((nextData) => {
@@ -42,10 +43,10 @@ export default function CertificationPage({ locale }) {
           title={fr ? "Des compétences prouvées, pas seulement déclarées." : "Skills proven, not merely claimed."}
           description={fr ? "Chaque certificat relie tes examens notés serveur et tes projets approuvés à une preuve publique vérifiable." : "Each certificate connects server-graded exams and approved projects to verifiable public evidence."}
           status={status === "loading" ? (fr ? "Évaluation en cours" : "Evaluating") : status === "error" ? (fr ? "Connexion requise" : "Sign-in required") : (fr ? "Preuves actualisées" : "Evidence updated")}
-          action={{ href: "#certificats", label: fr ? "Voir mes objectifs" : "View my goals" }}
+          action={{ href: "#certificats", label: fr ? "Voir mes certificats" : "View my certificates" }}
         >
           <div className="grid grid-cols-2 gap-3 sm:max-w-xl">
-            <MetricCard icon={CheckCircle2} label={fr ? "Prêts à délivrer" : "Ready to issue"} value={certificates.filter((item) => item.eligible && !item.issued).length} />
+            <MetricCard icon={CheckCircle2} label={fr ? "Prêts à délivrer" : "Ready to issue"} value={visibleCertificates.filter((item) => item.available && item.eligible && !item.issued).length} />
             <MetricCard icon={ShieldCheck} label={fr ? "Déjà délivrés" : "Already issued"} value={certificates.filter((item) => item.issued).length} tone="reward" />
           </div>
         </LearnerPageHero>
@@ -53,7 +54,8 @@ export default function CertificationPage({ locale }) {
           <div className="grid gap-5">
             {status === "loading" && <p className="empty-state" role="status">{fr ? "Évaluation des preuves..." : "Evaluating evidence..."}</p>}
             {status === "error" && <p className="empty-state">{fr ? "Connecte-toi pour évaluer et délivrer tes certificats." : "Sign in to evaluate and issue your certificates."}</p>}
-            {certificates.map((certificate) => <CertificateCard key={certificate.id} certificate={certificate} locale={locale} busy={Boolean(issuingId)} issuing={issuingId === certificate.id} onIssue={() => issue(certificate.id)} />)}
+            {status === "ready" && !visibleCertificates.length && <p className="empty-state" role="status">{fr ? "Les certifications sont en préparation : elles seront publiées avec des parcours et des évaluations vérifiables." : "Certifications are in preparation and will launch with verifiable learning paths and assessments."}</p>}
+            {visibleCertificates.map((certificate) => <CertificateCard key={certificate.id} certificate={certificate} locale={locale} busy={Boolean(issuingId)} issuing={issuingId === certificate.id} onIssue={() => issue(certificate.id)} />)}
             {status === "issued" && <p className="status-success rounded-xl p-3" role="status">{fr ? "Certificat délivré. Sa page publique est prête." : "Certificate issued. Its public page is ready."}</p>}
             {status && !["loading", "ready", "error", "issued"].includes(status) && <p className="status-error rounded-xl p-3" role="alert">{status}</p>}
           </div>
