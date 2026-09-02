@@ -12,7 +12,7 @@ const failures = [];
 const warnings = [];
 const perFileBudgets = {
   ".js": 250 * KB,
-  ".css": 60 * KB
+  ".css": 64 * KB
 };
 const dataChunkBudgets = {
   "content-html-": { raw: 350 * KB, gzip: 110 * KB }

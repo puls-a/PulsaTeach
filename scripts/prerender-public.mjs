@@ -11,7 +11,7 @@ const publicTracks = learningTracks.filter((track) => publicTrackIds.has(track.i
 
 await renderPage("", {
   title: "PulsaTeach : apprendre le développement web gratuitement",
-  description: "Formations gratuites en HTML, CSS, JavaScript, React, TypeScript, Node.js, SQL, Git, tests, accessibilité, sécurité et performance web.",
+  description: "Formations gratuites pour préparer son poste de travail et apprendre HTML et CSS par la pratique.",
   body: `<main><h1>Apprendre le développement web en construisant</h1><p>PulsaTeach propose ${publicTracks.length} formations gratuites, ${lessonTotal()} leçons bilingues, des quiz, des projets, des révisions et des certificats vérifiables.</p><p><a href="/catalog">Voir les formations gratuites</a> <a href="/learn/html/html-getting-started/html-00-what-html-does">Essayer une leçon HTML</a></p><section><h2>Formations disponibles</h2>${publicTracks.map(trackCard).join("")}</section><section><h2>Pourquoi PulsaTeach ?</h2><p>Chaque parcours relie théorie, vocabulaire, pratique guidée, validation, projet final et certification. L’objectif est de comprendre, construire et prouver sa progression.</p></section></main>`,
   schema: homeSchema()
 });
@@ -25,12 +25,12 @@ await renderPage("about", {
 
 await renderPage("catalog", {
   title: "Formations développement web gratuites | PulsaTeach",
-  description: "Apprends HTML, CSS, JavaScript, React, TypeScript, Node.js, SQL, Git, les tests, la sécurité et la performance avec des parcours gratuits, quiz, projets et certificats.",
+  description: "Apprends à préparer ton poste de travail, HTML et CSS avec des parcours gratuits, quiz et projets pratiques.",
   body: `<main><h1>Formations gratuites en développement web</h1><p>Apprends par la pratique avec ${lessonTotal()} leçons bilingues, des quiz approfondis, des exercices guidés, des mini-projets, des examens et des certificats vérifiables.</p><section><h2>Parcours disponibles</h2>${publicTracks.map(trackCard).join("")}</section><section><h2>Comment apprendre sur PulsaTeach ?</h2><p>Chaque parcours combine contexte professionnel, vocabulaire, exemples, erreurs fréquentes, quiz multi-types, révision et projets. Les cours sont pensés pour progresser depuis les bases jusqu’à un livrable démontrable.</p></section></main>`,
   schema: collectionSchema()
 });
 
-const glossary = buildGlossaryIndex(learningTracks);
+const glossary = buildGlossaryIndex(publicTracks);
 await renderPage("glossary", {
   title: "Glossaire du développement web | PulsaTeach",
   description: `${glossary.length} définitions bilingues reliées aux cours HTML, CSS, JavaScript et aux technologies web modernes.`,
@@ -150,8 +150,8 @@ function collectionSchema() {
       {
         "@type": "ItemList",
         name: "Formations PulsaTeach",
-        numberOfItems: learningTracks.length,
-        itemListElement: learningTracks.map((track, index) => ({
+        numberOfItems: publicTracks.length,
+        itemListElement: publicTracks.map((track, index) => ({
           "@type": "ListItem",
           position: index + 1,
           name: track.title.fr,
@@ -162,7 +162,7 @@ function collectionSchema() {
         "@type": "FAQPage",
         mainEntity: [
           faq("PulsaTeach est-il gratuit ?", "Oui. Les parcours, quiz, projets et révisions sont accessibles gratuitement."),
-          faq("Quels langages apprendre sur PulsaTeach ?", "PulsaTeach couvre HTML, CSS, JavaScript, TypeScript, React, Node.js, SQL, Git, tests, sécurité, accessibilité, performance et déploiement."),
+          faq("Quels langages apprendre sur PulsaTeach ?", "PulsaTeach propose actuellement des parcours pour préparer son poste de travail, apprendre HTML et CSS."),
           faq("Les cours sont-ils adaptés aux mobiles ?", "Oui. Les pages critiques sont testées en mobile et desktop, avec navigation clavier et contraintes d’accessibilité.")
         ]
       }
@@ -197,8 +197,8 @@ function homeSchema() {
       {
         "@type": "ItemList",
         name: "Formations gratuites PulsaTeach",
-        numberOfItems: learningTracks.length,
-        itemListElement: learningTracks.map((track, index) => ({
+        numberOfItems: publicTracks.length,
+        itemListElement: publicTracks.map((track, index) => ({
           "@type": "ListItem",
           position: index + 1,
           name: track.title.fr,

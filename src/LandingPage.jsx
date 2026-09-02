@@ -16,10 +16,11 @@ import {
 } from "lucide-react";
 import { publicLearningStats, publicTrackCatalog } from "./content/publicTrackCatalog.js";
 
-const featuredTrackIds = ["html", "css", "javascript", "react", "typescript", "node-api"];
+const featuredTrackIds = publicTrackCatalog.map((track) => track.id);
 const trackVisuals = {
   html: { label: "HTML", tone: "from-orange-500 to-amber-400" },
   css: { label: "CSS", tone: "from-sky-500 to-cyan-400" },
+  tools: { label: "OUTILS", tone: "from-violet-500 to-fuchsia-400" },
   javascript: { label: "JS", tone: "from-yellow-400 to-orange-400" },
   react: { label: "React", tone: "from-cyan-400 to-indigo-500" },
   typescript: { label: "TS", tone: "from-blue-600 to-indigo-500" },
@@ -85,8 +86,8 @@ export default function LandingPage({ locale = "fr" }) {
             </p>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
               {fr
-                ? "PulsaTeach est une plateforme gratuite pour apprendre le développement web : cours HTML, CSS, JavaScript, React, TypeScript, Node.js et projets pratiques directement dans le navigateur."
-                : "PulsaTeach is a free platform for learning web development through HTML, CSS, JavaScript, React, TypeScript, Node.js, and hands-on browser-based projects."}
+                ? "PulsaTeach est une plateforme gratuite pour apprendre le développement web : poste de travail, HTML, CSS et projets pratiques directement dans le navigateur."
+                : "PulsaTeach is a free platform for learning web development through workstation setup, HTML, CSS, and hands-on browser-based projects."}
             </p>
 
             <div className="mt-6 grid max-w-3xl grid-cols-2 gap-2.5 sm:mt-7 sm:gap-3">

@@ -52,7 +52,7 @@ export function auditCurriculumDepth(tracks, floors = trackFloors, baseline = de
       reportDuplicate(seenModuleIds, module.id, `${track.id}/${module.id}`, "module", failures);
       if (floor?.stage !== "primer") {
         if (!module.lessons.some((lesson) => !isQuiz(lesson))) failures.push(`${track.id}/${module.id}: module has no practice lesson`);
-        if (!module.lessons.some(isQuiz)) failures.push(`${track.id}/${module.id}: module has no quiz or assessment`);
+        if (!module.lessons.some((lesson) => isQuiz(lesson) || isProject(lesson))) failures.push(`${track.id}/${module.id}: module has no quiz or assessment`);
       }
       for (const lesson of module.lessons) reportDuplicate(seenLessonIds, lesson.id, `${track.id}/${module.id}/${lesson.id}`, "lesson", failures, baseline, debt);
       reportNearDuplicatePrompts(track.id, module, debt);

@@ -15,8 +15,8 @@ const allTrackCatalog = [
     label: "HTML",
     title: { fr: "HTML interactif", en: "Interactive HTML" },
     summary: { fr: "Structure, sémantique, formulaires, accessibilité et SEO avec tests DOM.", en: "Structure, semantics, forms, accessibility, and SEO with DOM tests." },
-    modules: 10,
-    lessons: 79,
+    modules: 11,
+    lessons: 83,
     firstHref: "/learn/html/html-getting-started/html-00-what-html-does"
   },
   {

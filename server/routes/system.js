@@ -113,7 +113,7 @@ export function registerSystemRoutes(app, context) {
     response.status(ready ? 200 : 503).json({
       ...healthPayload(),
       ok: ready,
-      checks: { database: { ok: database.ok, latencyMs: database.latencyMs } }
+      checks: { database: { ok: database.ok, latencyMs: database.latencyMs, ...(database.failedCheck ? { failedCheck: database.failedCheck } : {}) } }
     });
   });
 

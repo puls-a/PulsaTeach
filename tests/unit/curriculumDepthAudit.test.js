@@ -53,7 +53,7 @@ describe("curriculum depth audit", () => {
 
   test("rejects duplicate IDs, missing assessment progression, and repeated prompts", () => {
     const track = validTrack();
-    track.modules[0].lessons[1] = lesson("demo-practice", "Model a stable contract", "Implement explicit states and verify each transition", { type: "project" });
+    track.modules[0].lessons[1] = lesson("demo-practice", "Model a stable contract", "Implement explicit states and verify each transition");
     track.modules[0].lessons = track.modules[0].lessons.slice(0, 2);
     const failures = auditCurriculumDepth([track], floor).failures.join("\n");
     expect(failures).toContain("duplicate lesson ID");

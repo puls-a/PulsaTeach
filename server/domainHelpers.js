@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { learningTracks } from "../src/content/allTrackRegistry.js";
+import { publicTrackCatalog } from "../src/content/publicTrackCatalog.js";
 import { getQuestionSetVersion } from "../src/features/quizzes/examPolicy.js";
 import { certificates, legacyProjectAliases } from "./certificateCatalog.js";
 
@@ -165,7 +166,7 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
       const lessonPercent = requiredLessons.length ? Math.round((completedRequiredLessons.length / requiredLessons.length) * 100) : 0;
       const projectPercent = certificate.requiredProjects.length ? Math.round((approvedProjects.length / certificate.requiredProjects.length) * 100) : 0;
       const examPercent = requiredExams.length ? Math.round((completedExams.length / requiredExams.length) * 100) : 100;
-      const eligible = examPercent === 100 && projectPercent === 100;
+      const eligible = lessonPercent === 100 && examPercent === 100 && projectPercent === 100;
 
       return {
         ...certificate,
@@ -323,10 +324,11 @@ function buildProfileSummary(progress, submissions, attempts) {
   };
 }
 
-function buildStudyPlan(progress, attempts) {
+function buildStudyPlan(progress, attempts, goal = "frontend-foundations") {
   const completed = isObject(progress?.completed) ? progress.completed : {};
   const completedIds = new Set(Object.keys(completed));
-  const allLessons = learningTracks.flatMap((track) =>
+  const publicTrackIds = new Set(publicTrackCatalog.map((track) => track.id));
+  const allLessons = learningTracks.filter((track) => publicTrackIds.has(track.id)).flatMap((track) =>
     track.modules.flatMap((module) =>
       module.lessons.map((lesson) => ({
         ...lesson,
@@ -347,7 +349,11 @@ function buildStudyPlan(progress, attempts) {
     }, {});
   const weakTrackId = Object.entries(recentFailures).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
   const weakTrackLessons = weakTrackId ? pending.filter((lesson) => lesson.trackId === weakTrackId).slice(0, 2) : [];
-  const nextLessons = [...weakTrackLessons, ...pending.filter((lesson) => lesson.trackId !== weakTrackId)].slice(0, 6);
+  const goalTrackIds = goal === "portfolio-ready" ? ["html", "css", "tools"] : goal === "job-ready" ? ["tools", "html", "css"] : ["tools", "html", "css"];
+  const preferredLessons = pending.filter((lesson) => goalTrackIds.includes(lesson.trackId));
+  const nextLessons = [...weakTrackLessons, ...preferredLessons.filter((lesson) => lesson.trackId !== weakTrackId), ...pending.filter((lesson) => lesson.trackId !== weakTrackId && !goalTrackIds.includes(lesson.trackId))]
+    .filter((lesson, index, lessons) => lessons.findIndex((candidate) => candidate.id === lesson.id) === index)
+    .slice(0, 6);
   const weeklyPlan = nextLessons.map((lesson, index) => ({
     day: index + 1,
     lessonId: lesson.id,
@@ -362,7 +368,7 @@ function buildStudyPlan(progress, attempts) {
     completed: completedIds.size,
     total: allLessons.length,
     percent: allLessons.length ? Math.round((completedIds.size / allLessons.length) * 100) : 0,
-    focusTrack: weakTrackId || pending[0]?.trackId || null,
+    focusTrack: weakTrackId || preferredLessons[0]?.trackId || pending[0]?.trackId || null,
     nextLessons: nextLessons.map((lesson) => ({
       id: lesson.id,
       trackId: lesson.trackId,

@@ -22,6 +22,7 @@ beforeAll(async () => {
   process.env.PULSATEACH_EXAM_SECRET = "test-exam-secret";
   process.env.PULSATEACH_WEBHOOK_SECRET = "test-discord-secret";
   process.env.PULSABOT_API_KEY = "test-pulsabot-api-key";
+  process.env.PULSABOT_LINK_SIGNING_SECRET = "test-pulsabot-link-secret";
   ({ default: app } = await import("../../server/index.js"));
 });
 
@@ -37,7 +38,7 @@ describe("Discord API security boundaries", () => {
       issuedAt: Date.now() - 1000,
       expiresAt: Date.now() + 60_000
     })).toString("base64url");
-    const signature = createHmac("sha256", "test-pulsabot-api-key").update(payload).digest("base64url");
+    const signature = createHmac("sha256", "test-pulsabot-link-secret").update(payload).digest("base64url");
     const anonymous = await request(app).post("/api/discord/link").send({ state: `${payload}.${signature}` }).expect(401);
     expect(anonymous.body.error.code).toBe("AUTH_REQUIRED");
   });

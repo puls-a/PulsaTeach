@@ -111,7 +111,7 @@ export async function validateLesson(lesson, code, locale = "fr", renderedStyles
     if (item.type === "notContainsAny") {
       pass = asValues(item.value).every((value) => !normalize(activeCode).includes(normalize(value)));
     }
-    if (["referenceExists", "nonEmptyAttribute", "attributeIncludes", "domOrder", "labelForControl", "allMatch", "noneMatch", "uniqueIds", "validFragmentTargets", "labelsAssociated", "formControlsNamed", "documentSanity"].includes(item.type)) {
+    if (["referenceExists", "nonEmptyAttribute", "attributeIncludes", "domOrder", "labelForControl", "allMatch", "noneMatch", "uniqueIds", "validFragmentTargets", "labelsAssociated", "formControlsNamed", "documentSanity", "meaningfulAlt", "validJsonLd", "safeBlankLinks"].includes(item.type)) {
       pass = checkHtmlSemanticAssertion(code, item);
     }
     if (item.type === "jsExpression") {
@@ -222,7 +222,7 @@ export const HTML_TEST_TYPES = new Set([
   "contains", "containsAny", "doctype", "notContains", "notContainsAny", "selector", "minSelector", "exactSelector",
   "attributeEquals", "referenceExists", "nonEmptyAttribute", "attributeIncludes",
   "domOrder", "labelForControl", "allMatch", "noneMatch", "uniqueIds", "validFragmentTargets",
-  "labelsAssociated", "formControlsNamed", "documentSanity"
+  "labelsAssociated", "formControlsNamed", "documentSanity", "meaningfulAlt", "validJsonLd", "safeBlankLinks"
 ]);
 
 function checkHtmlSemanticAssertion(code, test) {
@@ -231,6 +231,24 @@ function checkHtmlSemanticAssertion(code, test) {
     const value = test.value || {};
 
     if (test.type === "documentSanity") return hasSaneDocument(code, doc);
+    if (test.type === "meaningfulAlt") return [...doc.querySelectorAll(value.selector || "img")].every((image) => {
+      const alt = image.getAttribute("alt")?.trim().toLowerCase() || "";
+      return alt.length >= 8 && !["image", "photo", "picture", "img"].includes(alt);
+    });
+    if (test.type === "safeBlankLinks") return [...doc.querySelectorAll("a[target='_blank']")].every((link) => {
+      const tokens = (link.getAttribute("rel") || "").split(/\s+/);
+      return tokens.includes("noopener") && tokens.includes("noreferrer");
+    });
+    if (test.type === "validJsonLd") {
+      const required = Array.isArray(value.required) ? value.required : [];
+      return [...doc.querySelectorAll("script[type='application/ld+json']")].some((script) => {
+        try {
+          const data = JSON.parse(script.textContent || "");
+          const entries = Array.isArray(data) ? data : data["@graph"] || [data];
+          return entries.some((entry) => entry?.["@context"] === "https://schema.org" && (!value.type || entry["@type"] === value.type) && required.every((field) => Boolean(entry[field])));
+        } catch { return false; }
+      });
+    }
     if (test.type === "uniqueIds") return [...doc.querySelectorAll("[id]")].every((element) => element.id.trim() && hasUniqueId(doc, element.id));
     if (test.type === "validFragmentTargets") return [...doc.querySelectorAll("a[href^='#']")].every((link) => {
       const ids = referencedIds(link, "href");

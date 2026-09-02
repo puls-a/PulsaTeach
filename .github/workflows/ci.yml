@@ -34,7 +34,7 @@ jobs:
   supabase-e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && vars.PULSATEACH_E2E_SUPABASE == 'enabled' }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -49,8 +49,22 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          E2E_SUPABASE_ALLOWED_URL: ${{ vars.PULSATEACH_E2E_SUPABASE_URL }}
       - uses: actions/upload-artifact@v5
         if: failure()
         with:
           name: supabase-playwright-report
           path: playwright-report-supabase
+
+  supabase-migrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Apply migrations on an isolated local Supabase stack
+        run: |
+          npx --yes supabase@latest start
+          npx --yes supabase@latest db reset --local
+      - name: Stop local Supabase stack
+        if: always()
+        run: npx --yes supabase@latest stop

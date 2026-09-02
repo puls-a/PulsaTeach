@@ -1,5 +1,6 @@
--- PulsaTeach Supabase bootstrap schema.
--- Run this in the Supabase SQL Editor before setting SUPABASE_URL and keys.
+-- Historical PulsaTeach schema snapshot.
+-- Do not use this file to bootstrap an environment. Apply the ordered files in
+-- supabase/migrations/ with the Supabase CLI instead.
 
 create extension if not exists "pgcrypto";
 

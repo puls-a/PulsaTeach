@@ -13,7 +13,7 @@ Default API URL: `http://127.0.0.1:4174`
 ## Supabase Setup
 
 1. Create a Supabase project.
-2. Open the SQL Editor and run `supabase/schema.sql`.
+2. Apply the complete ordered migration history from `supabase/migrations/`. For a linked project, run `npx --yes supabase@latest db push`; for local development, run `npx --yes supabase@latest start` then `npx --yes supabase@latest db reset --local`.
 3. Copy `.env.example` to `.env`.
 4. Fill:
 
@@ -185,6 +185,8 @@ schedule, publish, archive, and roll back. Every save or transition increments
 the version and records an immutable snapshot. Clients send `expectedVersion`
 to reject stale writes with `409 COURSE_VERSION_CONFLICT`.
 
+Versioned migrations are the canonical schema source. `supabase/schema.sql` is
+historical reference only and must not be used to bootstrap an environment.
 Apply every file in `supabase/migrations/` before deploying code that consumes
 new columns. Never deploy the Course Studio workflow release against an older
 production schema.

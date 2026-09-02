@@ -67,6 +67,16 @@ describe("HTML semantic lesson validation", () => {
     expect(await check("documentSanity", null, '<!doctype html><html lang="en"><head></head><body></body></html>')).toBe(false);
   });
 
+  test("validates meaningful alternatives, JSON-LD, and safe new-tab links", async () => {
+    expect(await check("meaningfulAlt", { selector: "img" }, '<img alt="Photo">')).toBe(false);
+    expect(await check("meaningfulAlt", { selector: "img" }, '<img alt="Lectrice utilisant une lampe Atlas">')).toBe(true);
+    const jsonLd = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Event","name":"PulsaConf","startDate":"2026-09-18"}</script>';
+    expect(await check("validJsonLd", { type: "Event", required: ["name", "startDate"] }, jsonLd)).toBe(true);
+    expect(await check("validJsonLd", { type: "Event", required: ["name"] }, '<script type="application/ld+json">{bad}</script>')).toBe(false);
+    expect(await check("safeBlankLinks", null, '<a href="https://example.com" target="_blank" rel="noopener noreferrer">Read</a>')).toBe(true);
+    expect(await check("safeBlankLinks", null, '<a href="https://example.com" target="_blank">Read</a>')).toBe(false);
+  });
+
   test("supports non-vacuous all and none selector predicates", async () => {
     expect(await check("allMatch", { selector: "nav a", matches: "[href]" }, '<nav><a href="/a">A</a><a href="/b">B</a></nav>')).toBe(true);
     expect(await check("allMatch", { selector: "nav a", matches: "[href]" }, "<nav><!-- <a href='/a'> --></nav>")).toBe(false);

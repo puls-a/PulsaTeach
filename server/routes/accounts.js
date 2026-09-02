@@ -93,10 +93,10 @@ export function registerAccountsRoutes(app, context) {
     if (!authorizeUserParam(request, response)) return;
     const userId = request.authUserId || request.params.userId;
     const progressStore = await readProgressStore();
-    const attempts = await readJsonStore(attemptsFile, []);
+    const [attempts, users] = await Promise.all([readJsonStore(attemptsFile, []), readJsonStore(usersFile, {})]);
     const progress = progressStore[userId] || {};
     const userAttempts = attempts.filter((item) => item.userId === userId);
-    response.json(buildStudyPlan(progress, userAttempts));
+    response.json(buildStudyPlan(progress, userAttempts, users[userId]?.goal));
   });
 
   app.get("/api/profile/:userId", async (request, response) => {

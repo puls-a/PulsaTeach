@@ -103,6 +103,22 @@ export function registerLearningRoutes(app, context) {
     response.json(projectCatalog);
   });
 
+  app.post("/api/pulsaconf/register", sensitiveRateLimit(10), async (request, response) => {
+    const fullName = String(request.body?.fullName || "").trim();
+    const email = String(request.body?.email || "").trim().toLowerCase();
+    const workshop = String(request.body?.workshop || "").trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || (workshop && !["html", "forms"].includes(workshop))) {
+      response.status(400).json({ accepted: false, error: "Provide a valid email and, when selected, a supported workshop." });
+      return;
+    }
+    const enrollments = await readJsonStore(enrollmentsFile, []);
+    if (!enrollments.some((entry) => entry.email === email && entry.source === "pulsaconf")) {
+      enrollments.unshift({ id: `enr-${randomUUID()}`, email, locale: "fr", source: "pulsaconf", status: "active", createdAt: new Date().toISOString() });
+      await writeJsonStore(enrollmentsFile, enrollments.slice(0, 2000));
+    }
+    response.status(201).json({ accepted: true, workshop });
+  });
+
   app.get("/api/progress/:userId", async (request, response) => {
     if (!authorizeUserParam(request, response)) return;
     const userId = request.authUserId || request.params.userId;

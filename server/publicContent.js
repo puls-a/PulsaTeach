@@ -2,7 +2,7 @@ import { createHmac, randomBytes } from "node:crypto";
 import { normalizeQuizLesson } from "../src/features/quizzes/quizEngine.js";
 import { getQuestionSetVersion, isProtectedExamLesson } from "../src/features/quizzes/examPolicy.js";
 
-export function projectPublicTrack(track, examTokenSecret = "pulsateach-local-exam-token") {
+export function projectPublicTrack(track, examTokenSecret) {
   return {
     ...track,
     modules: (track.modules || []).map((module) => ({

@@ -60,7 +60,7 @@ export function createDiscordIntegration({
   supabaseAdmin,
   learningTracks,
   fetchImpl = globalThis.fetch,
-  linkSecret = process.env.PULSABOT_LINK_SIGNING_SECRET || process.env.PULSABOT_API_KEY,
+  linkSecret = process.env.PULSABOT_LINK_SIGNING_SECRET,
   apiKey = process.env.PULSABOT_API_KEY,
   apiUrl = process.env.PULSABOT_API_URL,
   webhookSecret = process.env.PULSATEACH_WEBHOOK_SECRET

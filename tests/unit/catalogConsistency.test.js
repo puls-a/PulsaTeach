@@ -23,7 +23,7 @@ const expectedTrackIds = [
 describe("catalog consistency", () => {
   test("published registry exposes every public course", () => {
     expect(learningTracks.map((track) => track.id)).toEqual(expectedTrackIds);
-    expect(learningTracks.reduce((total, track) => total + track.modules.reduce((sum, module) => sum + module.lessons.length, 0), 0)).toBe(874);
+    expect(learningTracks.reduce((total, track) => total + track.modules.reduce((sum, module) => sum + module.lessons.length, 0), 0)).toBe(878);
   });
 
   test("every catalog first lesson route resolves in the published registry", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { learningTracks } from "../../src/content/allTrackRegistry.js";
-import { protectedExamIds, sanitizeProgressExamEvidence } from "../../src/features/quizzes/examPolicy.js";
+import { getQuestionSetVersion, protectedExamIds, sanitizeProgressExamEvidence } from "../../src/features/quizzes/examPolicy.js";
 import { normalizeQuizLesson } from "../../src/features/quizzes/quizEngine.js";
 import { scheduleQuizReview } from "../../src/features/review/spacedRepetition.js";
 import { decodeProtectedExamResponses, projectPublicTrack } from "../../server/publicContent.js";
@@ -16,7 +16,7 @@ describe("protected exam privacy", () => {
     for (const exam of exams) {
       const source = learningTracks.flatMap((track) => track.modules.flatMap((module) => module.lessons)).find((lesson) => lesson.id === exam.id);
       const canonical = normalizeQuizLesson(source, { expand: false });
-      expect(exam.questionSetVersion).toBe(`${exam.id}:2`);
+      expect(exam.questionSetVersion).toBe(getQuestionSetVersion(source));
       expect(exam.tests).toEqual([]);
       expect(exam.questions.map((question) => question.id)).toEqual(canonical.questions.map((question) => question.id));
       const publicJson = JSON.stringify({ ...exam, questions: exam.questions.map(({ choices: _choices, ...question }) => question) });

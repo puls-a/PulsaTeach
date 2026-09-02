@@ -32,8 +32,9 @@ const issuedCertificatesFile = path.join(dataDir, "issued-certificates.json");
 const learningEventsFile = path.join(dataDir, "learning-events.json");
 const quizSessionsFile = path.join(dataDir, "quiz-sessions.json");
 const port = process.env.PORT || 4174;
+validateRuntimeConfig();
 const adminAccessKey = localIdentityEnabled ? process.env.PULSATEACH_ADMIN_KEY || "dev-admin-key" : "";
-const examTokenSecret = process.env.PULSATEACH_EXAM_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || adminAccessKey || "pulsateach-local-exam-token";
+const examTokenSecret = process.env.PULSATEACH_EXAM_SECRET || (process.env.NODE_ENV === "test" ? "test-exam-secret" : "");
 const supabaseRetryDelayMs = 5 * 60 * 1000;
 let supabaseFallbackUntil = 0;
 const localWriteQueues = new Map();
@@ -53,16 +54,13 @@ import { createDiscordIntegration } from "./discordIntegration.js";
 import { registerDiscordRoutes } from "./routes/discord.js";
 import { rolesFromUser } from "./authRoles.js";
 import { createAuthService } from "./authService.js";
+import { validateRuntimeConfig } from "./runtimeConfig.js";
 
 const app = express();
-const productionRuntime = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
 const discordIntegration = createDiscordIntegration({ supabaseAdmin, learningTracks });
 
 if (requireSupabaseStorage && !supabaseEnabled) {
   throw new Error("Supabase storage is required. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.");
-}
-if (productionRuntime && !requireSupabaseStorage) {
-  throw new Error("Production requires PULSATEACH_STORAGE=supabase-strict.");
 }
 
 const {
@@ -85,6 +83,7 @@ app.use(attachRequestContext);
 applySecurity(app);
 app.use("/api/account/avatar", express.json({ limit: "1200kb", strict: true }));
 app.use(express.json({ limit: "256kb", strict: true }));
+app.use(express.urlencoded({ extended: false, limit: "32kb" }));
 app.use(attachAuthUser);
 
 const routeContext = {

@@ -3,6 +3,7 @@ import { cssFoundationModuleIds, cssResponsiveModuleIds, getCssNextDeferredGroup
 import { getTrack } from "../apiClient.js";
 
 const loadRemoteTrack = (trackId) => getTrack(trackId).then((response) => response.track);
+let allPublicTracksPromise;
 
 const trackLoaders = {
   tools: () => import("./toolsTrack.js").then((module) => module.toolsTrack),
@@ -55,7 +56,13 @@ async function loadHtmlTrack() {
 }
 
 export async function loadAllLocalTracks() {
-  return Promise.all(publicTrackCatalog.map((track) => loadLocalTrack(track.id)));
+  if (!allPublicTracksPromise) {
+    allPublicTracksPromise = Promise.all(publicTrackCatalog.map((track) => loadLocalTrack(track.id))).catch((error) => {
+      allPublicTracksPromise = null;
+      throw error;
+    });
+  }
+  return allPublicTracksPromise;
 }
 
 async function loadCssTrack(options = {}) {

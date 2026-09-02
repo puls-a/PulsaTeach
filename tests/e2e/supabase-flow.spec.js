@@ -10,7 +10,9 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
   const url = process.env.SUPABASE_URL;
   const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const allowedUrl = process.env.E2E_SUPABASE_ALLOWED_URL;
   test.skip(!url || !anonKey || !serviceKey, "Missing Supabase environment variables.");
+  if (!allowedUrl || url !== allowedUrl) throw new Error("Supabase E2E requires an explicitly allowlisted isolated project URL.");
 
   const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const anon = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -57,7 +59,7 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
       issuedAt: Date.now() - 1000,
       expiresAt: Date.now() + 60_000
     })).toString("base64url");
-    const stateSignature = createHmac("sha256", "ci-test-pulsabot-key").update(statePayload).digest("base64url");
+    const stateSignature = createHmac("sha256", "ci-test-discord-link-secret").update(statePayload).digest("base64url");
     const discordLink = await request.post("http://127.0.0.1:4190/api/discord/link", { headers, data: { state: `${statePayload}.${stateSignature}` } });
     expect(discordLink.status()).toBe(403);
     expect((await discordLink.json()).error.code).toBe("DISCORD_OAUTH_REQUIRED");

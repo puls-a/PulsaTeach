@@ -13,8 +13,9 @@ Supabase (Auth + PostgreSQL)
 ```
 
 La production refuse de démarrer sans `PULSATEACH_STORAGE=supabase-strict`.
-Les migrations versionnées de `supabase/migrations/` sont appliquées avant la
-release applicative.
+Les migrations versionnées de `supabase/migrations/` sont la source de vérité et
+sont appliquées avant la release applicative. `supabase/schema.sql` ne sert pas
+à initialiser un environnement.
 
 ## Monitoring
 
@@ -87,7 +88,7 @@ sauvegarde de base complète.
 6. `npm run test:e2e:supabase`
 7. `npm run smoke:full`
 8. `npm run audit:lighthouse`
-9. appliquer les migrations ;
+9. appliquer les migrations sur un environnement isolé, puis en production ;
 10. déployer l’artefact validé ;
 11. `npm run smoke:production`.
 

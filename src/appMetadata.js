@@ -6,8 +6,8 @@ const BRAND_ICON = `${SITE_URL}/assets/logo_horizontale_optimized.webp`;
 
 const routeMetadata = {
   home: {
-    fr: ["PulsaTeach : Apprendre le Développement Web Gratuitement (HTML, CSS, JS, React...)", "Cours gratuits, quiz, ateliers guidés, éditeur en ligne, projets portfolio et certificats pour progresser concrètement en développement web."],
-    en: ["PulsaTeach: Learn Web Development for Free (HTML, CSS, JS, React...)", "Free courses, quizzes, guided workshops, an online editor, portfolio projects, and certificates to make concrete progress in web development."]
+    fr: ["PulsaTeach : Apprendre le Développement Web Gratuitement (HTML, CSS)", "Cours gratuits, quiz, ateliers guidés, éditeur en ligne et projets portfolio pour progresser concrètement en développement web."],
+    en: ["PulsaTeach: Learn Web Development for Free (HTML, CSS)", "Free courses, quizzes, guided workshops, an online editor, and portfolio projects to make concrete progress in web development."]
   },
   about: {
     fr: ["À propos de PulsaTeach | Projet gratuit pour apprendre le web", "Découvre la méthode PulsaTeach : cours gratuits, pratique guidée, sécurité, accessibilité, transparence et progression vérifiable."],

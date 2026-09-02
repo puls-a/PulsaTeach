@@ -16,7 +16,7 @@ export default function GlossaryPage({ locale = "fr" }) {
   const [loadError, setLoadError] = useState("");
   const [selectedSlug, setSelectedSlug] = useState(readSelectedSlug);
   const selectedTerm = selectedSlug ? getGlossaryTerm(terms, selectedSlug) : null;
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(readSearchQuery);
   const [track, setTrack] = useState("all");
   const [category, setCategory] = useState("all");
   const [bilingual, setBilingual] = useState(false);
@@ -43,7 +43,10 @@ export default function GlossaryPage({ locale = "fr" }) {
   }, [fr]);
 
   useEffect(() => {
-    const update = () => setSelectedSlug(readSelectedSlug());
+    const update = () => {
+      setSelectedSlug(readSelectedSlug());
+      setQuery(readSearchQuery());
+    };
     window.addEventListener("hashchange", update);
     window.addEventListener("popstate", update);
     return () => {
@@ -180,4 +183,8 @@ function remember(slug) {
 function readSelectedSlug() {
   const [route, slug] = currentPathSegments();
   return route === "glossary" ? slug || "" : "";
+}
+
+function readSearchQuery() {
+  return new URLSearchParams(window.location.search).get("q") || "";
 }
