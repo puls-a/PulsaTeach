@@ -1,11 +1,9 @@
-const productionRuntime = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
-
 export function validateRuntimeConfig(env = process.env) {
-  if (!productionRuntime) return;
+  if (!isProductionRuntime(env)) return;
 
   const missing = [];
   if (env.PULSATEACH_STORAGE !== "supabase-strict") missing.push("PULSATEACH_STORAGE=supabase-strict");
-  for (const name of ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "PULSATEACH_ALLOWED_ORIGINS", "PULSATEACH_EXAM_SECRET", "CRON_SECRET"]) {
+  for (const name of ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "PULSATEACH_ALLOWED_ORIGINS", "PULSATEACH_EXAM_SECRET"]) {
     if (!String(env[name] || "").trim()) missing.push(name);
   }
   if (missing.length) throw new Error(`Production configuration is incomplete: ${missing.join(", ")}.`);
@@ -38,4 +36,8 @@ function isHttpsOrigin(value) {
   } catch {
     return false;
   }
+}
+
+function isProductionRuntime(env) {
+  return env.NODE_ENV === "production" || Boolean(env.VERCEL);
 }
