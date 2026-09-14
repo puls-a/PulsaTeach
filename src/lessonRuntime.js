@@ -1,5 +1,5 @@
 import { runJavaScriptConsoleSandbox, runJavaScriptExpressionSandbox } from "./jsSandboxClient.js";
-import { createComputedStyleBridge, createPreviewCspMeta } from "./security/sandboxPolicy.js";
+import { createComputedStyleBridge, createPreviewCspMeta, createPreviewNavigationBridge, createPreviewFormBridge } from "./security/sandboxPolicy.js";
 import { resolveLocaleValue } from "./localeValue.js";
 
 export function createPreview(lesson, code, locale = "fr") {
@@ -54,7 +54,7 @@ function createHtmlPreview(code, locale) {
     body { margin: 0; min-height: 100vh; }
     .pulsateach-empty-preview { min-height: 100vh; display: grid; place-items: center; padding: 24px; box-sizing: border-box; background: #f8fafc; color: #64748b; text-align: center; }
     .pulsateach-empty-preview strong { display: block; margin-bottom: 8px; color: #172033; }
-  </style>`;
+  </style>${createPreviewNavigationBridge()}${createPreviewFormBridge(locale)}`;
   const emptyState = locale === "fr"
     ? `<div class="pulsateach-empty-preview"><p><strong>Body vide</strong>Ajoute un élément visible dans &lt;body&gt; pour le voir ici.</p></div>`
     : `<div class="pulsateach-empty-preview"><p><strong>Empty body</strong>Add a visible element inside &lt;body&gt; to see it here.</p></div>`;
@@ -231,12 +231,15 @@ function checkHtmlSemanticAssertion(code, test) {
     const value = test.value || {};
 
     if (test.type === "documentSanity") return hasSaneDocument(code, doc);
-    if (test.type === "meaningfulAlt") return [...doc.querySelectorAll(value.selector || "img")].every((image) => {
-      const alt = image.getAttribute("alt")?.trim().toLowerCase() || "";
-      return alt.length >= 8 && !["image", "photo", "picture", "img"].includes(alt);
-    });
-    if (test.type === "safeBlankLinks") return [...doc.querySelectorAll("a[target='_blank']")].every((link) => {
-      const tokens = (link.getAttribute("rel") || "").split(/\s+/);
+    if (test.type === "meaningfulAlt") {
+      const images = [...doc.querySelectorAll(value.selector || "img")];
+      return images.length > 0 && images.every((image) => {
+        const alt = image.getAttribute("alt")?.trim().toLowerCase() || "";
+        return alt.length >= 8 && !/^(image|photo|picture|img)(\s*\d+)?$/.test(alt);
+      });
+    }
+    if (test.type === "safeBlankLinks") return [...doc.querySelectorAll("a[target='_blank' i]")].every((link) => {
+      const tokens = (link.getAttribute("rel") || "").toLowerCase().split(/\s+/);
       return tokens.includes("noopener") && tokens.includes("noreferrer");
     });
     if (test.type === "validJsonLd") {
@@ -244,8 +247,14 @@ function checkHtmlSemanticAssertion(code, test) {
       return [...doc.querySelectorAll("script[type='application/ld+json']")].some((script) => {
         try {
           const data = JSON.parse(script.textContent || "");
-          const entries = Array.isArray(data) ? data : data["@graph"] || [data];
-          return entries.some((entry) => entry?.["@context"] === "https://schema.org" && (!value.type || entry["@type"] === value.type) && required.every((field) => Boolean(entry[field])));
+          const entries = Array.isArray(data) ? data : data?.["@graph"] || [data];
+          return Array.isArray(entries) && entries.some((entry) => {
+            const context = entry?.["@context"] ?? data?.["@context"];
+            const types = Array.isArray(entry?.["@type"]) ? entry["@type"] : [entry?.["@type"]];
+            return ["https://schema.org", "https://schema.org/"].includes(context)
+              && (!value.type || types.includes(value.type))
+              && required.every((field) => typeof entry?.[field] === "string" ? entry[field].trim().length > 0 : entry?.[field] != null);
+          });
         } catch { return false; }
       });
     }

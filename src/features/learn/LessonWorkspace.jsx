@@ -45,7 +45,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
     const projectDocument = lesson.projectThreadId
       ? loadProjectThreadDocument(lesson.projectThreadId, locale) || initializeProjectThreadDocument(lesson.projectThreadId, locale, starterCode)
       : null;
-    const initialCode = projectDocument?.code || getLearnerItem(`pulsateach-code-${lesson.id}-${locale}`) || legacyCode || starterCode;
+    const initialCode = projectDocument?.code ?? getLearnerItem(`pulsateach-code-${lesson.id}-${locale}`) ?? legacyCode ?? starterCode;
     initialCodeRef.current = initialCode;
     setCode(initialCode);
     setProjectVersion(projectDocument?.version ?? null);

@@ -26,7 +26,7 @@ test("lesson modes and CodeMirror support keyboard work without trapping focus",
   await editor.press("Control+s");
   await expect.poll(() => page.evaluate(() => {
     const owner = localStorage.getItem("pulsateach-user-id");
-    return localStorage.getItem(`pulsateach-code-js-functions-scope-declare-function-fr:owner:${encodeURIComponent(owner)}`);
+    return JSON.parse(localStorage.getItem(`pulsateach-project-thread-pulsaconf-ticket-quote:owner:${encodeURIComponent(owner)}`))?.documents?.fr?.code;
   })).toContain("getCurrencyLabel");
 
   await editor.focus();
@@ -58,6 +58,20 @@ test("curriculum lesson links open the editor and preserve browser history", asy
   await expect(page.getByRole("heading", { level: 1, name: /1\. Choisir une couleur de texte lisible|1\. Choose a readable text color/ })).toBeVisible();
 });
 
+test("an intentionally empty project remains empty after reload", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium");
+  await page.goto(pilotRoute, { waitUntil: "networkidle" });
+  const editor = page.getByRole("textbox", { name: /Éditeur de code PulsaTeach|PulsaTeach code editor/ });
+  await editor.fill("");
+  await editor.press("Control+s");
+  await expect.poll(() => page.evaluate(() => {
+    const owner = localStorage.getItem("pulsateach-user-id");
+    return JSON.parse(localStorage.getItem(`pulsateach-project-thread-pulsaconf-ticket-quote:owner:${encodeURIComponent(owner)}`))?.documents?.fr?.code;
+  })).toBe("");
+  await page.reload({ waitUntil: "networkidle" });
+  await expect(editor).toHaveText("");
+});
+
 test("the JavaScript flagship exposes continuity and common traps", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "chromium");
   await page.goto(pilotRoute, { waitUntil: "networkidle" });
@@ -85,8 +99,10 @@ test("the functions pilot starts with a real failure and ends with behavioral pr
   await editor.fill("function getCurrencyLabel(code) {\n  if (code === 'EUR') return String.fromCharCode(8364);\n  return code;\n}");
   await expect.poll(() => page.evaluate(() => {
     const owner = localStorage.getItem("pulsateach-user-id");
-    return localStorage.getItem(`pulsateach-code-js-functions-scope-declare-function-fr:owner:${encodeURIComponent(owner)}`);
+    return JSON.parse(localStorage.getItem(`pulsateach-project-thread-pulsaconf-ticket-quote:owner:${encodeURIComponent(owner)}`))?.documents?.fr?.code;
   })).toContain("if (code === 'EUR')");
+  await page.reload({ waitUntil: "networkidle" });
+  await expect(editor).toContainText("String.fromCharCode(8364)");
   await page.getByRole("button", { name: /Vérifier mon code|Check my code/ }).click();
   await expect(page.getByText("3/3", { exact: true })).toBeVisible();
   await expect(page.getByText(/C'est validé|Passed\. XP/)).toBeVisible();

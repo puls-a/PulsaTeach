@@ -42,6 +42,15 @@ describe("curriculum depth audit", () => {
     expect(auditCurriculumDepth([validTrack()], floor).failures).toEqual([]);
   });
 
+  test("recognizes project assessment only with tests and bilingual review criteria", () => {
+    const track = validTrack();
+    const project = track.modules[0].lessons[1];
+    track.modules.push({ id: "transfer", lessons: [{ ...project, id: "transfer-project", tests: [{}, {}, {}], rubric: { fr: ["A", "B", "C"], en: ["A", "B", "C"] } }] });
+    expect(auditCurriculumDepth([track], floor).failures.join("\n")).not.toContain("transfer: module has no quiz or assessment");
+    delete track.modules[1].lessons[0].rubric.en;
+    expect(auditCurriculumDepth([track], floor).failures.join("\n")).toContain("transfer: module has no quiz or assessment");
+  });
+
   test("reports unsupported tracks and actionable floor gaps", () => {
     const weak = validTrack();
     weak.id = "unknown";
@@ -53,7 +62,7 @@ describe("curriculum depth audit", () => {
 
   test("rejects duplicate IDs, missing assessment progression, and repeated prompts", () => {
     const track = validTrack();
-    track.modules[0].lessons[1] = lesson("demo-practice", "Model a stable contract", "Implement explicit states and verify each transition");
+    track.modules[0].lessons[1] = lesson("demo-practice", "Model a stable contract", "Implement explicit states and verify each transition", { type: "project" });
     track.modules[0].lessons = track.modules[0].lessons.slice(0, 2);
     const failures = auditCurriculumDepth([track], floor).failures.join("\n");
     expect(failures).toContain("duplicate lesson ID");

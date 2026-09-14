@@ -68,6 +68,7 @@ describe("HTML semantic lesson validation", () => {
   });
 
   test("validates meaningful alternatives, JSON-LD, and safe new-tab links", async () => {
+    expect(await check("meaningfulAlt", { selector: "img" }, '<main>No image</main>')).toBe(false);
     expect(await check("meaningfulAlt", { selector: "img" }, '<img alt="Photo">')).toBe(false);
     expect(await check("meaningfulAlt", { selector: "img" }, '<img alt="Lectrice utilisant une lampe Atlas">')).toBe(true);
     const jsonLd = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Event","name":"PulsaConf","startDate":"2026-09-18"}</script>';
@@ -75,6 +76,10 @@ describe("HTML semantic lesson validation", () => {
     expect(await check("validJsonLd", { type: "Event", required: ["name"] }, '<script type="application/ld+json">{bad}</script>')).toBe(false);
     expect(await check("safeBlankLinks", null, '<a href="https://example.com" target="_blank" rel="noopener noreferrer">Read</a>')).toBe(true);
     expect(await check("safeBlankLinks", null, '<a href="https://example.com" target="_blank">Read</a>')).toBe(false);
+    expect(await check("safeBlankLinks", null, '<a href="https://example.com" target="_BLANK">Read</a>')).toBe(false);
+    expect(await check("safeBlankLinks", null, '<a href="https://example.com" target="_BLANK" rel="NOOPENER NOREFERRER">Read</a>')).toBe(true);
+    expect(await check("validJsonLd", { type: "Event", required: ["name"] }, '<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":["Event"],"name":"PulsaConf"}]}</script>')).toBe(true);
+    expect(await check("validJsonLd", { type: "Event", required: ["name"] }, '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Event","name":"   "}</script>')).toBe(false);
   });
 
   test("supports non-vacuous all and none selector predicates", async () => {

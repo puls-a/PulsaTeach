@@ -18,6 +18,8 @@
   a { color: inherit; text-decoration: none; }
   img, svg, video, canvas { display: block; max-width: 100%; }
   a, button { transition: color .18s ease, background-color .18s ease, border-color .18s ease, opacity .18s ease, transform .18s ease; }
+  /* Switching selected tabs must not pass through low-contrast color pairs. */
+  button[role="tab"] { transition: border-color .18s ease, transform .18s ease; }
   :focus-visible { outline: 3px solid rgba(79, 70, 229, .35); outline-offset: 3px; }
 }
 

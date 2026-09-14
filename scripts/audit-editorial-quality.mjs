@@ -73,7 +73,7 @@ if (failures.length) {
   process.exit(1);
 }
 
-const warningLimit = Number(process.env.EDITORIAL_WARNING_LIMIT || 260);
+const warningLimit = Number(process.env.EDITORIAL_WARNING_LIMIT ?? 0);
 if (warnings.length > warningLimit) {
   console.error(`Editorial quality audit failed: ${warnings.length} warnings, limit is ${warningLimit}.`);
   console.error(warnings.slice(0, 80).join("\n"));

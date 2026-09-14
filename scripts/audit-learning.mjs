@@ -2,6 +2,7 @@ import { learningTracks } from "../src/content/allTrackRegistry.js";
 import { normalizeQuizLesson } from "../src/features/quizzes/quizEngine.js";
 import { JSDOM } from "jsdom";
 import { HTML_TEST_TYPES, validateLesson } from "../src/lessonRuntime.js";
+import { resolveLocaleValue } from "../src/localeValue.js";
 
 globalThis.DOMParser = new JSDOM("").window.DOMParser;
 
@@ -97,9 +98,11 @@ for (const lesson of htmlTrack.modules.flatMap((module) => module.lessons).filte
   for (const test of unsupported) failures.push(`${lesson.id}: unsupported HTML test type "${test.type}"`);
   if (unsupported.length) continue;
 
-  const results = await validateLesson(lesson, lesson.solution);
-  for (const result of results) {
-    if (!result.pass) failures.push(`${lesson.id}: solution fails "${result.label}"`);
+  for (const locale of ["fr", "en"]) {
+    const results = await validateLesson(lesson, resolveLocaleValue(lesson.solution, locale), locale);
+    for (const result of results) {
+      if (!result.pass) failures.push(`${lesson.id} (${locale}): solution fails "${result.label}"`);
+    }
   }
 }
 

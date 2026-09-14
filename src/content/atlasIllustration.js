@@ -1,0 +1,2 @@
+// Embedded so the isolated preview needs no external image permissions.
+export const atlasIllustration = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360"><rect width="640" height="360" fill="#f1f5f9"/><path d="M100 302h440" stroke="#64748b" stroke-width="8"/><path d="M260 290h120M320 290V155l75-60" fill="none" stroke="#334155" stroke-width="16" stroke-linecap="round"/><path d="m390 72-58 80h116l-38-80Z" fill="#0f766e"/><ellipse cx="390" cy="153" rx="58" ry="10" fill="#fde68a"/></svg>')}`;
