@@ -104,7 +104,7 @@ export default function CurriculumHub({ locale = "fr" }) {
 function CourseCard({ track, locale }) {
   const presentation = trackPresentation[track.id] || { icon: BookOpen, tone: "bg-slate-100 text-slate-700" };
   const Icon = presentation.icon;
-  const modules = Array.isArray(track.modules) ? track.modules.length : Number(track.modules || 0);
+  const modules = track.isSummary ? Number(track.moduleCount || 0) : Array.isArray(track.modules) ? track.modules.length : Number(track.modules || 0);
   const lessons = countLessons(track);
   return (
     <article className="group flex min-h-full flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-indigo-200 hover:shadow-xl sm:p-6">

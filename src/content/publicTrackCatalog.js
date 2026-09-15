@@ -141,6 +141,7 @@ export const publicLearningStats = {
 
 export const publicTrackSummaries = publicTrackCatalog.map((track) => ({
   ...track,
+  moduleCount: track.modules,
   isSummary: true,
   modules: []
 }));

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import { learningTracks } from "../../src/content/allTrackRegistry.js";
 import { publicTrackCatalog } from "../../src/content/publicTrackCatalog.js";
+import { publicTrackSummaries } from "../../src/content/publicTrackCatalog.js";
 
 const expectedTrackIds = [
   "tools",
@@ -37,6 +38,14 @@ describe("catalog consistency", () => {
       expect(track, `${entry.firstHref} should reference an active track`).toBeDefined();
       expect(module, `${entry.firstHref} should reference an active module`).toBeDefined();
       expect(module?.lessons.some((lesson) => lesson.id === lessonId), `${entry.firstHref} should reference an active lesson`).toBe(true);
+    }
+  });
+
+  test("public summaries retain module counts without loading module lessons", () => {
+    for (const summary of publicTrackSummaries) {
+      const catalog = publicTrackCatalog.find((track) => track.id === summary.id);
+      expect(summary.modules).toEqual([]);
+      expect(summary.moduleCount).toBe(catalog.modules);
     }
   });
 
