@@ -37,3 +37,7 @@ pulsateach_social_bot/assets/x_*_exception.png
 .vercel
 supabase/.temp/
 .supabase-db-password.tmp
+docs/media/pulsateach-*.mp4
+docs/media/v2/
+docs/media/reels-v3/
+video/v2/public/

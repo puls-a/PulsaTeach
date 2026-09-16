@@ -67,6 +67,46 @@ for (const arena of arenas) {
   });
 }
 
+test("the playground starts as a real mission and unlocks its badge once", async ({ page }) => {
+  await page.addInitScript(() => localStorage.clear());
+  await page.goto("/playground", { waitUntil: "networkidle" });
+  await dismissConsent(page);
+
+  const validate = page.getByRole("button", { name: /Valider|Validate/ });
+  await expect(validate).toBeEnabled();
+  await validate.click();
+  await expect(page.getByRole("status")).toContainText(/échouent|failing/);
+
+  await page.getByRole("tab", { name: "CSS" }).click();
+  await page.getByRole("tab", { name: "CSS" }).press("ArrowRight");
+  await expect(page.getByRole("tab", { name: "JS" })).toBeFocused();
+  await expect(page.getByRole("tab", { name: "JS" })).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("tab", { name: "CSS" }).click();
+  await page.getByRole("tabpanel").fill(".hero-card { background: #facc15; }");
+  await page.getByRole("tab", { name: "JS" }).click();
+  await page.getByRole("tabpanel").fill(`const output = document.querySelector("#xp");
+document.querySelector("#boost").addEventListener("click", () => {
+  output.textContent = "XP: 10";
+});`);
+  await expect(validate).toBeEnabled();
+  await validate.click();
+  await expect(page.getByRole("status")).toContainText(/débloqué|unlocked/);
+  await validate.click();
+  await expect(page.getByRole("status")).toContainText(/déjà acquis|already collected/);
+});
+
+test("the world distinguishes locked and unlocked badges", async ({ page }) => {
+  await page.addInitScript(() => localStorage.clear());
+  await page.goto("/world", { waitUntil: "networkidle" });
+  await dismissConsent(page);
+  await page.getByRole("button", { name: /Voir les badges|View badges/ }).click();
+
+  const dialog = page.getByRole("dialog", { name: /Badges de défis|Challenge badges/ });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText(/Verrouillé|Locked/)).toHaveCount(3);
+  await expect(dialog.getByText(/Débloqué|Unlocked/)).toHaveCount(0);
+});
+
 async function dismissConsent(page) {
   const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await consent.isVisible()) await consent.click();

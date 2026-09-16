@@ -9,7 +9,8 @@ import { getReviewStats } from "../review/spacedRepetition.js";
 import { computeSkillProgress } from "../skills/skillIndex.js";
 import { useLearningTracks } from "../../useLearningTracks.js";
 import { buildDailyDashboard } from "./dashboardModel.js";
-import { getLearnerItem, setLearnerItem } from "../../learnerStorage.js";
+import { gameBadges, readGameProgress, refreshGameProgressFromRemote } from "../../gameContent.js";
+import { getLearnerItem, learnerStorageOwnerEvent, setLearnerItem } from "../../learnerStorage.js";
 
 const progressKey = "pulsateach-learning-progress";
 
@@ -17,6 +18,7 @@ export default function DashboardPage({ locale }) {
   const fr = locale === "fr";
   const { tracks } = useLearningTracks({ mode: "summary" });
   const [progress, setProgress] = useState(readLocalProgress);
+  const [gameProgress, setGameProgress] = useState(readGameProgress);
   const [skills, setSkills] = useState([]);
   const [skillsLoading, setSkillsLoading] = useState(true);
   const [skillsError, setSkillsError] = useState(false);
@@ -37,6 +39,17 @@ export default function DashboardPage({ locale }) {
     plannedLessons,
     lessons
   }), [lessons, plannedLessons, profile, progress]);
+
+  useEffect(() => {
+    const refreshGameProgress = (event) => setGameProgress(event.detail?.xp === undefined ? readGameProgress() : event.detail);
+    window.addEventListener("pulsateach-game-progress", refreshGameProgress);
+    window.addEventListener(learnerStorageOwnerEvent, refreshGameProgress);
+    refreshGameProgressFromRemote().catch(() => {});
+    return () => {
+      window.removeEventListener("pulsateach-game-progress", refreshGameProgress);
+      window.removeEventListener(learnerStorageOwnerEvent, refreshGameProgress);
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -128,8 +141,9 @@ export default function DashboardPage({ locale }) {
 
         <DailyPlan dailyGoal={dailyDashboard.dailyGoal} recommendedLesson={dailyDashboard.recommendedLesson} reviewStats={reviewStats} fr={fr} />
 
-        <section className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3" aria-label={fr ? "Résumé de progression" : "Progress summary"}>
-          <MetricCard icon={Trophy} label="XP" value={progress.xp || 0} detail={fr ? "expérience gagnée" : "experience earned"} reward />
+        <section className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" aria-label={fr ? "Résumé de progression" : "Progress summary"}>
+          <MetricCard icon={Trophy} label={fr ? "XP des cours" : "Course XP"} value={progress.xp || 0} detail={fr ? "leçons et quiz" : "lessons and quizzes"} reward />
+          <MetricCard icon={Award} label={fr ? "XP des défis" : "Challenge XP"} value={gameProgress.xp || 0} detail={`${Object.keys(gameProgress.badges || {}).length}/${gameBadges.length} badges`} href="/world" />
           <MetricCard icon={BookOpenCheck} label={fr ? "Progression" : "Progress"} value={`${progressPercent}%`} detail={`${completed}/${total} ${fr ? "leçons" : "lessons"}`} />
           <MetricCard icon={Flame} label={fr ? "Série" : "Streak"} value={fr ? `${streak.count} j` : `${streak.count}d`} detail={fr ? `record ${streak.longest} j` : `best ${streak.longest}d`} />
         </section>
@@ -237,7 +251,7 @@ function SkillsPanel({ skills, loading, error, locale }) {
           return (
             <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4" key={skill.id}>
               <div className="flex min-w-0 items-center justify-between gap-3"><h3 className="min-w-0 truncate font-bold">{skill.label}</h3><span className="shrink-0 text-sm font-black text-indigoPop">{percent}%</span></div>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-indigoPop" style={{ width: `${percent}%` }} /></div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label={skill.label} aria-valuemin="0" aria-valuemax="100" aria-valuenow={percent}><div className="h-full rounded-full bg-indigoPop" style={{ width: `${percent}%` }} /></div>
               <p className="mt-2 text-xs font-semibold text-slate-600">{skill.completedLessons}/{skill.totalLessons} {fr ? "leçons" : "lessons"} · {skill.quizEvidence} quiz · {skill.reviewEvidence} {fr ? "révisions" : "reviews"}</p>
             </article>
           );
@@ -304,7 +318,10 @@ function ActivityFeed({ activity, locale }) {
         {activity.slice(0, 6).map((item) => (
           <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4" key={`${item.id}-${item.at}`}>
             <div className="min-w-0"><p className="break-words font-bold text-ink">{item.title?.[locale] || item.id}</p>{formatActivityDate(item.at, fr) && <time className="mt-1 block text-xs font-semibold text-slate-500" dateTime={item.at}>{formatActivityDate(item.at, fr)}</time>}</div>
-            <span className="shrink-0 rounded-full bg-slate-950 px-3 py-2 text-xs font-black text-emerald-300">+{item.xp || 0} XP</span>
+            <div className="shrink-0 text-right">
+              <span className="inline-flex rounded-full bg-slate-950 px-3 py-2 text-xs font-black text-emerald-300">+{Number(item.xp || 0) + Number(item.bonusXp || 0)} XP</span>
+              {Number(item.bonusXp) > 0 && <p className="mt-1 text-[11px] font-bold text-slate-500">{fr ? `dont +${item.bonusXp} bonus quotidien` : `includes +${item.bonusXp} daily bonus`}</p>}
+            </div>
           </div>
         ))}
       </div>

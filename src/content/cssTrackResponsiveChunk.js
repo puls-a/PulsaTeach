@@ -249,7 +249,7 @@ function pedagogyLocale(title, brief, course, guide, solution) {
 function previewHtml() {
   return `<main class="demo-surface">
   <section class="panel">
-    <article class="card course-card"><img alt="" src="/assets/og-image.svg" />Long content that should wrap correctly.</article>
+    <article class="card course-card"><img alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Crect width='16' height='9' fill='%234f46e5'/%3E%3C/svg%3E" />Long content that should wrap correctly.</article>
     <article class="card course-card">CSS Lab</article>
     <article class="card course-card">JS Arena</article>
   </section>

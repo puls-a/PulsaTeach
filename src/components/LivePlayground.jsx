@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, Code2, Eye, FileCode2, Info, Paintbrush, RotateCcw, TestTube2, TriangleAlert } from "lucide-react";
-import { awardGameMission } from "../gameContent.js";
+import { awardGameMission, gameMissionIds } from "../gameContent.js";
 import MissionModal from "./MissionModal.jsx";
 import { PREVIEW_IFRAME_SANDBOX, createPreviewCspMeta, createPreviewErrorBridge, isAllowedPreviewMessage, normalizePreviewErrorMessage } from "../security/sandboxPolicy.js";
 
@@ -19,16 +19,15 @@ const starter = {
   padding: 32px;
   border: 4px solid #1e1b4b;
   border-radius: 28px;
-  background: #facc15;
+  /* TODO: add a visible background */
   color: #1e1b4b;
   font-family: system-ui, sans-serif;
 }`,
   js: `let xp = 0;
 const output = document.querySelector("#xp");
-document.querySelector("#boost").addEventListener("click", () => {
-  xp += 10;
-  output.textContent = "XP: " + xp;
-});`
+const button = document.querySelector("#boost");
+
+// TODO: listen for a click, add 10 XP, then update output.`
 };
 
 const labels = {
@@ -47,6 +46,8 @@ const labels = {
     noErrors: "No runtime error detected.",
     ready: "Preview rendered",
     pass: "Mission passed. XP awarded.",
+    replay: "Mission passed again. XP was already collected.",
+    complete: "Mission passed. Live Builder badge unlocked.",
     fail: "Some tests are still failing.",
     goals: ["Create a main card", "Style it with a visible background", "Add a button interaction in JavaScript"]
   },
@@ -65,6 +66,8 @@ const labels = {
     noErrors: "Aucune erreur d'exécution détectée.",
     ready: "Aperçu rendu",
     pass: "Mission réussie. XP attribué.",
+    replay: "Mission réussie à nouveau. Les XP étaient déjà acquis.",
+    complete: "Mission réussie. Badge Builder Live débloqué.",
     fail: "Certains tests échouent encore.",
     goals: ["Créer une carte main", "La styliser avec un arrière-plan visible", "Ajouter une interaction JavaScript sur un bouton"]
   }
@@ -138,19 +141,23 @@ export default function LivePlayground({ locale = "en" }) {
       pass: /background\s*:/i.test(css)
     },
     {
-      label: locale === "fr" ? "Le JS écoute un clic ou sélectionne le DOM" : "JS listens for a click or selects the DOM",
-      pass: /addEventListener|querySelector|getElementById/i.test(js)
+      label: locale === "fr" ? "Le JS écoute le clic et met à jour les XP" : "JS listens for the click and updates XP",
+      pass: /addEventListener\s*\(\s*["']click["']/i.test(js) && /output\.textContent/i.test(js)
     },
     {
       label: locale === "fr" ? "Aucune erreur runtime détectée" : "No runtime error detected",
-      pass: !runtimeError
+      pass: previewReady && !runtimeError
     }
-  ], [css, html, js, locale, runtimeError]);
+  ], [css, html, js, locale, previewReady, runtimeError]);
 
   const validate = () => {
     const passed = tests.every((test) => test.pass);
-    setResult(passed ? "pass" : "fail");
-    if (passed) awardGameMission("live-playground-hero-card", 25, "first-preview");
+    if (!passed) {
+      setResult({ status: "fail" });
+      return;
+    }
+    const award = awardGameMission("live-playground-hero-card", 25, "first-preview", gameMissionIds.playground);
+    setResult({ status: "pass", ...award });
   };
 
   const reset = () => {
@@ -167,13 +174,22 @@ export default function LivePlayground({ locale = "en" }) {
     js: { label: copy.js, icon: Code2, value: js, onChange: setJs }
   };
   const ActiveIcon = files[activeFile].icon;
+  const selectFileWithKeyboard = (event) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    const tabs = [...event.currentTarget.parentElement.querySelectorAll('[role="tab"]')];
+    const currentIndex = tabs.indexOf(event.currentTarget);
+    const nextIndex = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (currentIndex + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+    tabs[nextIndex].focus();
+    setActiveFile(tabs[nextIndex].dataset.file);
+  };
 
   return (
     <section className="lab-shell">
       <div className="grid min-h-[680px] xl:grid-cols-[minmax(0,1fr)_minmax(360px,.82fr)]">
       <div className="flex min-w-0 flex-col bg-ink">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b-[3px] border-white/15 p-3">
-          <div className="flex gap-2">
+          <div className="flex gap-2" role="tablist" aria-label={locale === "fr" ? "Fichiers de la mission" : "Mission files"}>
             {Object.entries(files).map(([id, file]) => {
               const Icon = file.icon;
               return (
@@ -181,6 +197,13 @@ export default function LivePlayground({ locale = "en" }) {
                   key={id}
                   type="button"
                   onClick={() => setActiveFile(id)}
+                  onKeyDown={selectFileWithKeyboard}
+                  role="tab"
+                  id={`playground-tab-${id}`}
+                  data-file={id}
+                  tabIndex={activeFile === id ? 0 : -1}
+                  aria-selected={activeFile === id}
+                  aria-controls="playground-editor"
                   className={`lab-toolbar-button ${activeFile === id ? "!bg-white !text-ink" : ""}`}
                 >
                   <Icon className="size-4" />
@@ -198,7 +221,7 @@ export default function LivePlayground({ locale = "en" }) {
               <RotateCcw className="size-4" />
               {copy.reset}
             </button>
-            <button type="button" onClick={validate} className="lab-primary-button">
+            <button type="button" onClick={validate} disabled={!previewReady} className="lab-primary-button disabled:cursor-wait disabled:opacity-50">
               <TestTube2 className="size-4" />
               {copy.validate}
             </button>
@@ -210,6 +233,9 @@ export default function LivePlayground({ locale = "en" }) {
             {files[activeFile].label}
           </span>
           <textarea
+            id="playground-editor"
+            role="tabpanel"
+            aria-labelledby={`playground-tab-${activeFile}`}
             value={files[activeFile].value}
             onChange={(event) => files[activeFile].onChange(event.target.value)}
             spellCheck="false"
@@ -217,8 +243,8 @@ export default function LivePlayground({ locale = "en" }) {
           />
         </label>
         {result && (
-          <div className={`border-t border-white/15 px-4 py-3 text-sm font-bold ${result === "pass" ? "bg-green-700 text-white" : "bg-amber-100 text-amber-900"}`}>
-            {result === "pass" ? copy.pass : copy.fail}
+          <div role="status" aria-live="polite" className={`border-t border-white/15 px-4 py-3 text-sm font-bold ${result.status === "pass" ? "bg-green-700 text-white" : "bg-amber-100 text-amber-900"}`}>
+            {result.status === "pass" ? (result.badgeAwarded ? copy.complete : result.awarded ? copy.pass : copy.replay) : copy.fail}
           </div>
         )}
       </div>

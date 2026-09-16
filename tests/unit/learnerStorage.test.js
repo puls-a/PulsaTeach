@@ -74,6 +74,40 @@ describe("learner storage", () => {
       completed: { account: { xp: 100 }, guest: { xp: 25 } }
     });
   });
+
+  test("preserves account and guest game missions when signing in", () => {
+    setLearnerStorageOwner("learner-a");
+    setLearnerItem("pulsateach-game-progress", JSON.stringify({ xp: 20, missions: { "flexbox-arena-center": true } }));
+    setLearnerStorageOwner("guest-session");
+    setLearnerItem("pulsateach-game-progress", JSON.stringify({ xp: 30, missions: { "flexbox-arena-right-center": true } }));
+    setLearnerStorageOwner("learner-a");
+    expect(JSON.parse(getLearnerItem("pulsateach-game-progress"))).toMatchObject({
+      xp: 50,
+      missions: { "flexbox-arena-center": 20, "flexbox-arena-right-center": 30 },
+      badges: {}
+    });
+  });
+
+  test("does not replace detailed account evidence with a guest boolean", () => {
+    const evidence = { passedAt: "2026-09-16T10:00:00.000Z", xp: 30, passedTests: 3 };
+    setLearnerStorageOwner("learner-a");
+    setLearnerItem("pulsateach-learning-progress", JSON.stringify({ completed: { lesson: evidence } }));
+    setLearnerStorageOwner("guest-session");
+    setLearnerItem("pulsateach-learning-progress", JSON.stringify({ completed: { lesson: true } }));
+    setLearnerStorageOwner("learner-a");
+    expect(JSON.parse(getLearnerItem("pulsateach-learning-progress")).completed.lesson).toEqual(evidence);
+  });
+
+  test("does not replace recent account quiz evidence with stale guest data", () => {
+    const newer = { attemptedAt: "2026-09-16T10:00:00.000Z", percent: 90, passed: true };
+    const older = { attemptedAt: "2026-09-15T10:00:00.000Z", percent: 40, passed: false };
+    setLearnerStorageOwner("learner-a");
+    setLearnerItem("pulsateach-learning-progress", JSON.stringify({ quizEvidence: { quiz: newer } }));
+    setLearnerStorageOwner("guest-session");
+    setLearnerItem("pulsateach-learning-progress", JSON.stringify({ quizEvidence: { quiz: older } }));
+    setLearnerStorageOwner("learner-a");
+    expect(JSON.parse(getLearnerItem("pulsateach-learning-progress")).quizEvidence.quiz).toEqual(newer);
+  });
 });
 
 function createStorage() {

@@ -179,12 +179,14 @@ export function streakStatus(streak = createEmptyProgress().streak, now = new Da
   yesterdayDate.setDate(yesterdayDate.getDate() - 1);
   const activeToday = normalized.lastDate === today;
   const atRisk = !activeToday && normalized.lastDate === getLocalDateKey(yesterdayDate) && normalized.count > 0;
+  const count = activeToday || atRisk ? Number(normalized.count || 0) : 0;
   const milestones = [3, 7, 14, 30, 60, 100];
   return {
     ...normalized,
+    count,
     activeToday,
     atRisk,
-    nextMilestone: milestones.find((value) => value > Number(normalized.count || 0)) || null
+    nextMilestone: milestones.find((value) => value > count) || null
   };
 }
 
@@ -194,7 +196,7 @@ export function getLocalDateKey(date) {
 }
 
 export function mergeProgress(local = createEmptyProgress(), remote = createEmptyProgress()) {
-  const completed = { ...local.completed, ...remote.completed };
+  const completed = mergeCompletedRecords(local.completed, remote.completed);
   const activity = [...(remote.activity || []), ...(local.activity || [])]
     .filter((item, index, list) => list.findIndex((candidate) => candidate.id === item.id && candidate.at === item.at) === index)
     .slice(0, 8);
@@ -205,19 +207,49 @@ export function mergeProgress(local = createEmptyProgress(), remote = createEmpt
     xp: Math.max(local.xp || 0, remote.xp || 0),
     completed,
     activity,
-    streak: {
-      ...createEmptyProgress().streak,
-      ...(local.streak || {}),
-      ...(remote.streak || {}),
-      count: Math.max(Number(local.streak?.count) || 0, Number(remote.streak?.count) || 0),
-      longest: Math.max(Number(local.streak?.longest) || 0, Number(remote.streak?.longest) || 0),
-      totalActiveDays: Math.max(Number(local.streak?.totalActiveDays) || 0, Number(remote.streak?.totalActiveDays) || 0),
-      recentDates: [...new Set([...(local.streak?.recentDates || []), ...(remote.streak?.recentDates || [])])].sort().slice(-30)
-    },
-    review: { ...(local.review || {}), ...(remote.review || {}), items: sanitizeProtectedReviewItems({ ...(local.review?.items || {}), ...(remote.review?.items || {}) }) },
-    quizEvidence: { ...(local.quizEvidence || {}), ...(remote.quizEvidence || {}) },
+    streak: mergeStreak(local.streak, remote.streak),
+    review: { ...(local.review || {}), ...(remote.review || {}), items: sanitizeProtectedReviewItems(mergeTimestampedRecords(local.review?.items, remote.review?.items)) },
+    quizEvidence: mergeTimestampedRecords(local.quizEvidence, remote.quizEvidence),
     lastOpenedLesson: latestOpenedLesson(local.lastOpenedLesson, remote.lastOpenedLesson),
     daily: mergeDailyProgress(local.daily, remote.daily)
+  };
+}
+
+function mergeCompletedRecords(left, right) {
+  const result = { ...(left || {}) };
+  for (const [id, value] of Object.entries(right || {})) {
+    if (!value) continue;
+    const current = result[id];
+    if (!current || current === true || (value !== true && timestampOf(value) >= timestampOf(current))) result[id] = value;
+  }
+  return result;
+}
+
+function mergeTimestampedRecords(left, right) {
+  const result = { ...(left || {}) };
+  for (const [id, value] of Object.entries(right || {})) {
+    if (!result[id] || timestampOf(value) >= timestampOf(result[id])) result[id] = value;
+  }
+  return result;
+}
+
+function timestampOf(value) {
+  for (const field of ["updatedAt", "lastReviewedAt", "qualifiedAt", "gradedAt", "passedAt", "attemptedAt", "at"]) {
+    const timestamp = Date.parse(value?.[field] || "");
+    if (Number.isFinite(timestamp)) return timestamp;
+  }
+  return 0;
+}
+
+function mergeStreak(local = {}, remote = {}) {
+  const newest = String(local.lastDate || "") >= String(remote.lastDate || "") ? local : remote;
+  return {
+    ...createEmptyProgress().streak,
+    ...newest,
+    count: Number(newest.count) || 0,
+    longest: Math.max(Number(local.longest) || 0, Number(remote.longest) || 0),
+    totalActiveDays: Math.max(Number(local.totalActiveDays) || 0, Number(remote.totalActiveDays) || 0),
+    recentDates: [...new Set([...(local.recentDates || []), ...(remote.recentDates || [])])].sort().slice(-30)
   };
 }
 

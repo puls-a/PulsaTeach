@@ -107,11 +107,15 @@ export function updatePageMetadata(route, locale, fallbackTitle, courseOverride 
   setPropertyMeta("og:description", description);
   setPropertyMeta("og:url", canonical);
   setPropertyMeta("og:image", SOCIAL_IMAGE);
+  setPropertyMeta("og:image:secure_url", SOCIAL_IMAGE);
+  setPropertyMeta("og:image:width", "1536");
+  setPropertyMeta("og:image:height", "1024");
   setPropertyMeta("og:image:alt", language === "fr" ? "PulsaTeach, plateforme gratuite d’apprentissage du code" : "PulsaTeach, free coding learning platform");
   setMeta("twitter:card", "summary_large_image");
   setMeta("twitter:title", title);
   setMeta("twitter:description", description);
   setMeta("twitter:image", SOCIAL_IMAGE);
+  setMeta("twitter:image:alt", language === "fr" ? "PulsaTeach, plateforme gratuite d’apprentissage du code" : "PulsaTeach, free coding learning platform");
   setCanonical(canonical);
   removeInvalidHreflang();
   updateStructuredData(route, language, title, description, course || formation);
@@ -127,15 +131,15 @@ function readCourseMetadata(language, override = null) {
   const lessonName = override?.lessonName || (lessonId ? humanize(lessonId) : null);
   const subject = lessonName || moduleName || trackName;
   const title = language === "fr"
-    ? `${subject} — ${trackName} gratuit | PulsaTeach`
-    : `${subject} — Free ${trackName} course | PulsaTeach`;
+    ? `${subject} | Cours ${trackName} gratuit`
+    : `${subject} | Free ${trackName} course`;
   const description = sentence(
     override?.description || (language === "fr"
       ? `Apprends ${trackName} avec une leçon pratique, des exemples, un quiz et une progression sauvegardée gratuitement.`
       : `Learn ${trackName} with a practical lesson, examples, a quiz, and free saved progress.`
     )
   );
-  return [title, description, { trackId, trackName, moduleName, lessonName, lessonId }];
+  return [title, description, { trackId, trackName, moduleName, lessonName, lessonId, durationMin: override?.durationMin, skills: override?.skills }];
 }
 
 function readFormationMetadata(language) {
@@ -164,8 +168,8 @@ function updateLearnMetadataFromCatalog(language, expectedCanonical, override = 
   const lessonName = override?.lessonName || (lessonId ? humanize(lessonId) : null);
   const subject = lessonName || moduleName || trackName;
   const title = language === "fr"
-    ? `${subject} — ${trackName} gratuit | PulsaTeach`
-    : `${subject} — Free ${trackName} course | PulsaTeach`;
+    ? `${subject} | Cours ${trackName} gratuit`
+    : `${subject} | Free ${trackName} course`;
   const description = sentence(
     override?.description
       || localized(track.summary, language)
@@ -173,7 +177,7 @@ function updateLearnMetadataFromCatalog(language, expectedCanonical, override = 
         ? `Apprends ${trackName} avec une leçon pratique, des exemples, un quiz et une progression sauvegardée gratuitement.`
         : `Learn ${trackName} with a practical lesson, examples, a quiz, and free saved progress.`)
   );
-  const course = [title, description, { trackId, trackName, moduleName, lessonName, lessonId }];
+  const course = [title, description, { trackId, trackName, moduleName, lessonName, lessonId, durationMin: override?.durationMin, skills: override?.skills }];
   document.title = title;
   setMeta("description", description);
   setPropertyMeta("og:title", title);
@@ -201,7 +205,7 @@ function updateStructuredData(route, language, title, description, courseMetadat
   const pageType = route === "catalog" || route === "glossary" || route === "formations" ? "CollectionPage" : "WebPage";
   const graph = [
     {
-      "@type": "Organization",
+      "@type": "EducationalOrganization",
       "@id": `${SITE_URL}/#organization`,
       name: "PulsaTeach",
       alternateName: "PulsaTeach - cours de développement web gratuits",
@@ -251,8 +255,8 @@ function updateStructuredData(route, language, title, description, courseMetadat
   if ((route === "learn" || route === "formations") && courseMetadata?.[2]) {
     const details = courseMetadata[2];
     graph.push({
-      "@type": "Course",
-      "@id": `${pageUrl}#course`,
+      "@type": route === "learn" ? "LearningResource" : "Course",
+      "@id": `${pageUrl}#learning-resource`,
       name: `${details.trackName}${details.lessonName ? ` — ${details.lessonName}` : ""}`,
       description,
       url: pageUrl,
@@ -260,7 +264,14 @@ function updateStructuredData(route, language, title, description, courseMetadat
       isAccessibleForFree: true,
       educationalLevel: "Beginner to intermediate",
       provider: { "@id": `${SITE_URL}/#organization` },
-      offers: { "@type": "Offer", price: 0, priceCurrency: "EUR", availability: "https://schema.org/InStock" }
+      ...(route === "learn" ? {
+        learningResourceType: "Interactive lesson",
+        educationalUse: "Practice",
+        teaches: details.skills || [],
+        timeRequired: `PT${Number(details.durationMin) || 30}M`
+      } : {
+        offers: { "@type": "Offer", price: 0, priceCurrency: "EUR", availability: "https://schema.org/InStock" }
+      })
     });
   }
 
@@ -276,7 +287,6 @@ function breadcrumbs(language) {
   if (segments[0] === "learn" || segments[0] === "formations") {
     items.push({ name: labels.catalog, url: `${SITE_URL}/catalog` });
     if (segments[1]) items.push({ name: humanize(segments[1]), url: `${SITE_URL}/formations/${segments[1]}` });
-    if (segments[2]) items.push({ name: humanize(segments[2]), url: `${SITE_URL}/learn/${segments[1]}/${segments[2]}` });
     if (segments[3]) items.push({ name: humanize(segments[3]), url: `${SITE_URL}/learn/${segments[1]}/${segments[2]}/${segments[3]}` });
   } else if (segments[0] === "catalog") {
     items.push({ name: labels.catalog, url: `${SITE_URL}/catalog` });

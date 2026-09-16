@@ -1,0 +1,17 @@
+1
+00:00:00,000 --> 00:00:05,000
+Un changement. Un résultat immédiat.
+
+2
+00:00:05,000 --> 00:00:10,000
+Écris du HTML et du CSS.
+Observe le rendu.
+
+3
+00:00:10,000 --> 00:00:15,000
+Essaie. Vois. Ajuste.
+
+4
+00:00:15,000 --> 00:00:20,000
+Teste ton idée maintenant.
+pulsateach.vercel.app

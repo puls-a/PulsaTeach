@@ -38,6 +38,14 @@ describe("learning streak", () => {
     expect(status).toMatchObject({ count: 6, atRisk: true, activeToday: false, nextMilestone: 7 });
   });
 
+  test("does not display an expired streak as current", () => {
+    const status = streakStatus(
+      { count: 8, longest: 8, lastDate: "2026-06-20", totalActiveDays: 8, recentDates: ["2026-06-20"] },
+      new Date(2026, 5, 23, 12, 0)
+    );
+    expect(status).toMatchObject({ count: 0, longest: 8, atRisk: false, activeToday: false, nextMilestone: 3 });
+  });
+
   test("credits daily minutes once and does not extend a streak by repeating a lesson", () => {
     const first = markLessonCompleted(createEmptyProgress(), lesson, 1, new Date(2026, 5, 20, 9, 0));
     const repeated = markLessonCompleted(first, lesson, 1, new Date(2026, 5, 21, 9, 0));
@@ -55,5 +63,35 @@ describe("learning streak", () => {
       lastOpenedLesson: { lessonId: "lesson-2" },
       daily: { lessonMinutes: { "lesson-1": 18, "lesson-2": 12 } }
     });
+  });
+
+  test("keeps the streak count paired with its newest date", () => {
+    const local = { ...createEmptyProgress(), streak: { count: 10, longest: 10, lastDate: "2026-06-01", totalActiveDays: 10, recentDates: ["2026-06-01"] } };
+    const remote = { ...createEmptyProgress(), streak: { count: 2, longest: 4, lastDate: "2026-06-22", totalActiveDays: 6, recentDates: ["2026-06-22"] } };
+    expect(mergeProgress(local, remote).streak).toMatchObject({ count: 2, lastDate: "2026-06-22", longest: 10, totalActiveDays: 10 });
+  });
+
+  test("keeps the richest and newest completion evidence while syncing", () => {
+    const local = { ...createEmptyProgress(), completed: {
+      rich: { passedAt: "2026-06-22T10:00:00.000Z", xp: 30, passedTests: 3 },
+      stale: { passedAt: "2026-06-22T10:00:00.000Z", xp: 20 }
+    } };
+    const remote = { ...createEmptyProgress(), completed: {
+      rich: true,
+      stale: { passedAt: "2026-06-21T10:00:00.000Z", xp: 10 },
+      remote: { passedAt: "2026-06-23T10:00:00.000Z", xp: 40 }
+    } };
+    expect(mergeProgress(local, remote).completed).toEqual({
+      rich: local.completed.rich,
+      stale: local.completed.stale,
+      remote: remote.completed.remote
+    });
+  });
+
+  test("keeps the newest quiz evidence while syncing", () => {
+    const newer = { attemptedAt: "2026-09-16T10:00:00.000Z", percent: 90, passed: true };
+    const older = { attemptedAt: "2026-09-15T10:00:00.000Z", percent: 40, passed: false };
+    const merged = mergeProgress({ ...createEmptyProgress(), quizEvidence: { quiz: newer } }, { ...createEmptyProgress(), quizEvidence: { quiz: older } });
+    expect(merged.quizEvidence.quiz).toEqual(newer);
   });
 });

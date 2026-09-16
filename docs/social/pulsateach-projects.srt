@@ -1,0 +1,16 @@
+1
+00:00:00,000 --> 00:00:05,000
+Un portfolio ne commence pas par un template.
+
+2
+00:00:05,000 --> 00:00:10,000
+Il commence par un problème réel.
+
+3
+00:00:10,000 --> 00:00:15,000
+Construis une réalisation que tu peux expliquer.
+
+4
+00:00:15,000 --> 00:00:20,000
+Passe de l'exercice au projet.
+pulsateach.vercel.app

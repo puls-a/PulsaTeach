@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { learningTracks } from "../src/content/allTrackRegistry.js";
 import { publicTrackCatalog } from "../src/content/publicTrackCatalog.js";
 import { getQuestionSetVersion } from "../src/features/quizzes/examPolicy.js";
+import { mergeGameProgress } from "../src/gameProgress.js";
 import { certificates, legacyProjectAliases } from "./certificateCatalog.js";
 
 function isObject(value) {
@@ -224,23 +225,19 @@ function mergeProgress(remoteProgress, localProgress) {
     .slice(0, 100);
   const localStreak = isObject(local.streak) ? local.streak : {};
   const remoteStreak = isObject(remote.streak) ? remote.streak : {};
+  const newestStreak = String(localStreak.lastDate || "") >= String(remoteStreak.lastDate || "") ? localStreak : remoteStreak;
   return {
     ...remote,
     ...local,
     xp: Math.max(Number(local.xp) || 0, Number(remote.xp) || 0),
     streak: {
-      ...localStreak,
-      ...remoteStreak,
-      count: Math.max(Number(localStreak.count) || 0, Number(remoteStreak.count) || 0),
+      ...newestStreak,
+      count: Number(newestStreak.count) || 0,
       longest: Math.max(Number(localStreak.longest) || 0, Number(remoteStreak.longest) || 0),
       totalActiveDays: Math.max(Number(localStreak.totalActiveDays) || 0, Number(remoteStreak.totalActiveDays) || 0),
       recentDates: [...new Set([...(localStreak.recentDates || []), ...(remoteStreak.recentDates || [])])].sort().slice(-30)
     },
-    completed: Object.fromEntries(
-      [...new Set([...Object.keys(remote.completed || {}), ...Object.keys(local.completed || {})])]
-        .filter((id) => Boolean(remote.completed?.[id]) || Boolean(local.completed?.[id]))
-        .map((id) => [id, true])
-    ),
+    completed: mergeCompletedRecords(remote.completed, local.completed),
     review: {
       ...(remote.review || {}),
       ...(local.review || {}),
@@ -249,8 +246,19 @@ function mergeProgress(remoteProgress, localProgress) {
     },
     quizEvidence: mergeTimestampedRecords(remote.quizEvidence, local.quizEvidence),
     lastOpenedLesson: latestObject(remote.lastOpenedLesson, local.lastOpenedLesson, "openedAt"),
+    game: mergeGameProgress(remote.game, local.game),
     activity
   };
+}
+
+function mergeCompletedRecords(left, right) {
+  const result = { ...(isObject(left) ? left : {}) };
+  for (const [id, value] of Object.entries(isObject(right) ? right : {})) {
+    if (!value) continue;
+    const current = result[id];
+    if (!current || current === true || (isObject(value) && timestampOf(value) >= timestampOf(current))) result[id] = value;
+  }
+  return result;
 }
 
 function mergeTimestampedRecords(left, right) {
@@ -265,7 +273,7 @@ function mergeTimestampedRecords(left, right) {
 }
 
 function timestampOf(value) {
-  for (const field of ["updatedAt", "lastReviewedAt", "qualifiedAt", "gradedAt", "at"]) {
+  for (const field of ["updatedAt", "lastReviewedAt", "qualifiedAt", "gradedAt", "passedAt", "attemptedAt", "at"]) {
     const timestamp = Date.parse(value?.[field] || "");
     if (Number.isFinite(timestamp)) return timestamp;
   }

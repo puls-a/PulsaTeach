@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { migrateLocalProgress, recordLearningEvent, saveUserSettings } from "./apiClient.js";
+import { hasGameProgress, normalizeGameProgress } from "./gameProgress.js";
 import { getSupabaseClient, isSupabaseBrowserConfigured } from "./supabaseClient.js";
 import { getLearnerItem, resetLearnerStorageOwner, setLearnerItem, setLearnerStorageOwner } from "./learnerStorage.js";
 
 const localSessionKey = "pulsateach-local-session";
 const localAuthEvent = "pulsateach-local-auth";
 const learningProgressKey = "pulsateach-learning-progress";
-const migrationKeyPrefix = "pulsateach-progress-migrated:";
+const gameProgressKey = "pulsateach-game-progress";
+const migrationKeyPrefix = "pulsateach-progress-migrated:v2:";
 const useLocalAuth = import.meta.env.VITE_AUTH_MODE === "local";
 
 export function getSessionUserId(session) {
@@ -157,20 +159,35 @@ async function migrateProgressForSession(session) {
   const migrationKey = `${migrationKeyPrefix}${session.user.id}`;
   if (localStorage.getItem(migrationKey)) return;
   let localProgress;
+  let localGameProgress;
   try {
     localProgress = JSON.parse(getLearnerItem(learningProgressKey));
   } catch {
     localProgress = null;
   }
-  if (!localProgress || !Object.keys(localProgress.completed || {}).length) {
+  try {
+    localGameProgress = normalizeGameProgress(JSON.parse(getLearnerItem(gameProgressKey)));
+  } catch {
+    localGameProgress = normalizeGameProgress();
+  }
+  const hasLearningProgress = Boolean(localProgress && (
+    Number(localProgress.xp) > 0
+    || Object.keys(localProgress.completed || {}).length
+    || Object.keys(localProgress.review?.items || {}).length
+    || localProgress.lastOpenedLesson
+  ));
+  if (!hasLearningProgress && !hasGameProgress(localGameProgress)) {
     localStorage.setItem(migrationKey, new Date().toISOString());
     return;
   }
   try {
-    const result = await migrateLocalProgress(localProgress);
-    setLearnerItem(learningProgressKey, JSON.stringify(result.progress));
+    const result = await migrateLocalProgress({ ...(localProgress || {}), game: localGameProgress });
+    const { game, ...learningProgress } = result.progress;
+    setLearnerItem(learningProgressKey, JSON.stringify(learningProgress));
+    setLearnerItem(gameProgressKey, JSON.stringify(normalizeGameProgress(game)));
     localStorage.setItem(migrationKey, new Date().toISOString());
-    window.dispatchEvent(new CustomEvent("pulsateach-progress-synced", { detail: result.progress }));
+    window.dispatchEvent(new CustomEvent("pulsateach-progress-synced", { detail: learningProgress }));
+    window.dispatchEvent(new CustomEvent("pulsateach-game-progress", { detail: normalizeGameProgress(game) }));
     recordLearningEvent({
       eventType: "progress_migrated",
       payload: { completedLessons: Object.keys(result.progress.completed || {}).length }

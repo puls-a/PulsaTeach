@@ -76,8 +76,8 @@ export function LoadingState({ label }) {
 }
 
 function scrollToAction(event, href) {
-  if (!href.startsWith("#")) return;
-  const target = document.querySelector(href);
+  if (!href.startsWith("#") || href.startsWith("#/")) return;
+  const target = document.getElementById(href.slice(1));
   if (!target) return;
   event.preventDefault();
   window.history.pushState(null, "", href);

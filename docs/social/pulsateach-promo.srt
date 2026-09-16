@@ -1,0 +1,31 @@
+1
+00:00:00,000 --> 00:00:04,600
+Tu n'apprends pas en regardant.
+
+2
+00:00:04,600 --> 00:00:09,300
+Tu écris. Tu testes. Tu corriges.
+
+3
+00:00:04,667 --> 00:00:09,300
+Puis tu construis quelque chose de réel.
+
+4
+00:00:09,333 --> 00:00:14,000
+Commence par faire.
+
+5
+00:00:14,000 --> 00:00:18,667
+Écris. Vérifie. Corrige.
+
+6
+00:00:18,667 --> 00:00:23,333
+Chaque étape laisse une trace.
+
+7
+00:00:23,333 --> 00:00:28,000
+Arrête de regarder. Commence à faire.
+
+8
+00:00:23,333 --> 00:00:28,000
+pulsateach.vercel.app

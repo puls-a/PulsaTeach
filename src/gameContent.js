@@ -1,3 +1,9 @@
+import { getLearnerItem, setLearnerItem } from "./learnerStorage.js";
+import { getUserId, loadRemoteProgress, saveRemoteProgress } from "./apiClient.js";
+import { gameMissionIds, mergeGameProgress, normalizeGameProgress } from "./gameProgress.js";
+
+export { gameMissionIds } from "./gameProgress.js";
+
 export const assetPaths = {
   arrow: "/assets/icons/arrow.svg",
   badge: "/assets/icons/badge-xp.svg",
@@ -12,7 +18,7 @@ export const worldZones = [
     id: "html-forge",
     href: "/learn/html/html-getting-started/html-00-what-html-does",
     tone: "bg-orangePop",
-    badge: "Markup Smith",
+    badge: { en: "Markup Smith", fr: "Forgeron du balisage" },
     levels: 15,
     title: { en: "HTML Forge", fr: "HTML Forge" },
     text: {
@@ -24,7 +30,7 @@ export const worldZones = [
     id: "css-garden",
     href: "/learn/css/css-selectors/css-01-selectors",
     tone: "bg-mintPop",
-    badge: "Style Sprinter",
+    badge: { en: "Style Sprinter", fr: "Sprinteur du style" },
     levels: 16,
     title: { en: "CSS Garden", fr: "CSS Garden" },
     text: {
@@ -36,7 +42,7 @@ export const worldZones = [
     id: "flexbox-arena",
     href: "/flexbox-arena",
     tone: "bg-aquaPop",
-    badge: "Alignment Ace",
+    badge: { en: "Alignment Ace", fr: "As de l'alignement" },
     levels: 4,
     title: { en: "Flexbox Arena", fr: "Flexbox Arena" },
     text: {
@@ -48,7 +54,7 @@ export const worldZones = [
     id: "grid-kingdom",
     href: "/learn/css/css-grid/css-04-grid",
     tone: "bg-lemonPop",
-    badge: "Grid Builder",
+    badge: { en: "Grid Builder", fr: "Architecte Grid" },
     levels: 5,
     title: { en: "Grid Kingdom", fr: "Grid Kingdom" },
     text: {
@@ -60,7 +66,7 @@ export const worldZones = [
     id: "javascript-lab",
     href: "/js-arena",
     tone: "bg-rosePop",
-    badge: "Logic Shooter",
+    badge: { en: "Logic Shooter", fr: "Tireur logique" },
     levels: 4,
     title: { en: "JavaScript Lab", fr: "JavaScript Lab" },
     text: {
@@ -72,7 +78,7 @@ export const worldZones = [
     id: "dom-tower",
     href: "/learn/javascript/js-dom-events/js-04-events-manual",
     tone: "bg-indigoPop",
-    badge: "DOM Climber",
+    badge: { en: "DOM Climber", fr: "Grimpeur du DOM" },
     levels: 5,
     title: { en: "DOM Tower", fr: "DOM Tower" },
     text: {
@@ -84,7 +90,7 @@ export const worldZones = [
     id: "api-harbor",
     href: "/learn/javascript/js-storage-async/js-05-fetch-manual",
     tone: "bg-aquaPop",
-    badge: "API Navigator",
+    badge: { en: "API Navigator", fr: "Navigateur API" },
     levels: 4,
     title: { en: "API Harbor", fr: "API Harbor" },
     text: {
@@ -96,7 +102,7 @@ export const worldZones = [
     id: "final-project-district",
     href: "/projects",
     tone: "bg-orangePop",
-    badge: "Portfolio Maker",
+    badge: { en: "Portfolio Maker", fr: "Créateur de portfolio" },
     levels: 6,
     title: { en: "Final Project District", fr: "Final Project District" },
     text: {
@@ -107,31 +113,51 @@ export const worldZones = [
 ];
 
 export const gameBadges = [
-  { id: "first-preview", label: { en: "Live Builder", fr: "Builder Live" }, xp: 25 },
-  { id: "flexbox-clear", label: { en: "Alignment Ace", fr: "As de l'alignement" }, xp: 40 },
-  { id: "arrow-clear", label: { en: "Logic Shooter", fr: "Tireur logique" }, xp: 50 }
+  { id: "first-preview", label: { en: "Live Builder", fr: "Builder Live" }, description: { en: "Complete the live editor mission.", fr: "Termine la mission de l'éditeur live." }, missions: gameMissionIds.playground, totalXp: 25 },
+  { id: "flexbox-clear", label: { en: "Alignment Ace", fr: "As de l'alignement" }, description: { en: "Clear all four Flexbox levels.", fr: "Réussis les quatre niveaux Flexbox." }, missions: gameMissionIds.flexbox, totalXp: 120 },
+  { id: "arrow-clear", label: { en: "Logic Shooter", fr: "Tireur logique" }, description: { en: "Clear all four JavaScript levels.", fr: "Réussis les quatre niveaux JavaScript." }, missions: gameMissionIds.javascript, totalXp: 140 }
 ];
 
 export function readGameProgress() {
   try {
-    return JSON.parse(getLearnerItem("pulsateach-game-progress")) || { xp: 0, badges: {}, missions: {} };
+    return normalizeGameProgress(JSON.parse(getLearnerItem("pulsateach-game-progress")) || {});
   } catch {
-    return { xp: 0, badges: {}, missions: {} };
+    return normalizeGameProgress();
   }
 }
 
-export function awardGameMission(missionId, xp, badgeId) {
+export function awardGameMission(missionId, xp, badgeId, requiredMissionIds = []) {
   const progress = readGameProgress();
-  if (progress.missions?.[missionId]) return progress;
+  const awarded = !progress.missions?.[missionId];
+  const missions = { ...(progress.missions || {}), [missionId]: xp };
+  const arenaComplete = requiredMissionIds.length > 0 && requiredMissionIds.every((id) => missions[id]);
+  const badgeAwarded = Boolean(badgeId && arenaComplete && !progress.badges?.[badgeId]);
+  const next = normalizeGameProgress({ missions });
 
-  const next = {
-    xp: (progress.xp || 0) + xp,
-    missions: { ...(progress.missions || {}), [missionId]: true },
-    badges: badgeId ? { ...(progress.badges || {}), [badgeId]: true } : { ...(progress.badges || {}) }
-  };
-
-  setLearnerItem("pulsateach-game-progress", JSON.stringify(next));
-  window.dispatchEvent(new CustomEvent("pulsateach-game-progress", { detail: next }));
-  return next;
+  if (awarded || badgeAwarded) {
+    persistGameProgress(next);
+    syncGameProgress(next);
+  }
+  return { progress: next, awarded, badgeAwarded, arenaComplete };
 }
-import { getLearnerItem, setLearnerItem } from "./learnerStorage.js";
+
+export async function refreshGameProgressFromRemote() {
+  if (!getUserId().startsWith("supabase-")) return readGameProgress();
+  const remote = await loadRemoteProgress();
+  const merged = mergeGameProgress(readGameProgress(), remote?.game);
+  persistGameProgress(merged);
+  if (JSON.stringify(merged) !== JSON.stringify(normalizeGameProgress(remote?.game))) syncGameProgress(merged);
+  return merged;
+}
+
+function persistGameProgress(progress) {
+  setLearnerItem("pulsateach-game-progress", JSON.stringify(progress));
+  window.dispatchEvent(new CustomEvent("pulsateach-game-progress", { detail: progress }));
+}
+
+function syncGameProgress(progress) {
+  if (!getUserId().startsWith("supabase-")) return;
+  saveRemoteProgress({ game: progress })
+    .then((remote) => persistGameProgress(mergeGameProgress(readGameProgress(), remote?.game)))
+    .catch(() => window.dispatchEvent(new CustomEvent("pulsateach-game-sync", { detail: "offline" })));
+}

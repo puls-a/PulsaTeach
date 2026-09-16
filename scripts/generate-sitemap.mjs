@@ -15,6 +15,8 @@ const staticRoutePriority = {
   "/world": "0.8",
   "/flexbox-arena": "0.8",
   "/js-arena": "0.8",
+  "/projects": "0.7",
+  "/certification": "0.7",
   "/privacy": "0.3",
   "/cookies": "0.3",
   "/terms": "0.3",

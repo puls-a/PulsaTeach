@@ -1,3 +1,5 @@
+import { mergeGameProgress } from "./gameProgress.js";
+
 const userIdKey = "pulsateach-user-id";
 const ownerSeparator = ":owner:";
 const learnerExactKeys = new Set([
@@ -114,19 +116,22 @@ function mergeGuestValue(key, accountValue, guestValue) {
       ...account,
       ...guest,
       xp: Math.max(Number(account.xp) || 0, Number(guest.xp) || 0),
-      completed: { ...(account.completed || {}), ...(guest.completed || {}) },
+      completed: mergeCompletedRecords(account.completed, guest.completed),
       activity: uniqueActivity([...(guest.activity || []), ...(account.activity || [])]),
       streak: {
-        ...(account.streak || {}),
-        ...(guest.streak || {}),
-        count: Math.max(Number(account.streak?.count) || 0, Number(guest.streak?.count) || 0),
+        ...newestStreak(account.streak, guest.streak),
         longest: Math.max(Number(account.streak?.longest) || 0, Number(guest.streak?.longest) || 0),
         totalActiveDays: Math.max(Number(account.streak?.totalActiveDays) || 0, Number(guest.streak?.totalActiveDays) || 0),
         recentDates: [...new Set([...(account.streak?.recentDates || []), ...(guest.streak?.recentDates || [])])].sort().slice(-30)
       },
-      review: { ...(account.review || {}), ...(guest.review || {}), items: { ...(account.review?.items || {}), ...(guest.review?.items || {}) } },
-      quizEvidence: { ...(account.quizEvidence || {}), ...(guest.quizEvidence || {}) }
+      review: { ...(account.review || {}), ...(guest.review || {}), items: mergeTimestampedRecords(account.review?.items, guest.review?.items) },
+      quizEvidence: mergeTimestampedRecords(account.quizEvidence, guest.quizEvidence)
     });
+  }
+  if (key === "pulsateach-game-progress") {
+    const account = parseJson(accountValue, {});
+    const guest = parseJson(guestValue, {});
+    return JSON.stringify(mergeGameProgress(account, guest));
   }
   if (["pulsateach-course-drafts", "pulsateach-glossary-favorites", "pulsateach-glossary-history", "pulsateach-learning-bookmarks"].includes(key)) {
     const account = parseJson(accountValue, []);
@@ -137,12 +142,47 @@ function mergeGuestValue(key, accountValue, guestValue) {
   return guestValue;
 }
 
+function mergeCompletedRecords(account, guest) {
+  const result = { ...(account || {}) };
+  for (const [id, value] of Object.entries(guest || {})) {
+    if (!value) continue;
+    const current = result[id];
+    if (!current || current === true || (value !== true && completionTimestamp(value) >= completionTimestamp(current))) result[id] = value;
+  }
+  return result;
+}
+
+function completionTimestamp(value) {
+  const timestamp = Date.parse(value?.passedAt || value?.at || "");
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function mergeTimestampedRecords(account, guest) {
+  const result = { ...(account || {}) };
+  for (const [id, value] of Object.entries(guest || {})) {
+    if (!result[id] || recordTimestamp(value) >= recordTimestamp(result[id])) result[id] = value;
+  }
+  return result;
+}
+
+function recordTimestamp(value) {
+  for (const field of ["updatedAt", "lastReviewedAt", "qualifiedAt", "gradedAt", "passedAt", "attemptedAt", "at"]) {
+    const timestamp = Date.parse(value?.[field] || "");
+    if (Number.isFinite(timestamp)) return timestamp;
+  }
+  return 0;
+}
+
 function parseJson(value, fallback) {
   try {
     return JSON.parse(value) ?? fallback;
   } catch {
     return fallback;
   }
+}
+
+function newestStreak(first = {}, second = {}) {
+  return String(first?.lastDate || "") >= String(second?.lastDate || "") ? first || {} : second || {};
 }
 
 function uniqueActivity(items) {

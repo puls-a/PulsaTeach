@@ -98,6 +98,15 @@ export const userSettingsSchema = z.object({
   onboardingCompleted: z.boolean().optional()
 }).strict();
 
+const gameProgressSchema = z.object({
+  version: z.literal(1).optional(),
+  xp: z.coerce.number().int().min(0).max(1000).optional(),
+  missions: z.record(z.string().max(160), z.union([z.boolean(), z.coerce.number().int().min(0).max(1000)]))
+    .refine((items) => Object.keys(items).length <= 50, "Too many game missions").optional(),
+  badges: z.record(z.string().max(160), z.boolean())
+    .refine((items) => Object.keys(items).length <= 20, "Too many game badges").optional()
+}).strict();
+
 export const progressSchema = z.object({
   xp: z.coerce.number().int().min(0).max(10_000_000).optional(),
   completed: z.record(z.string(), z.unknown()).optional(),
@@ -123,7 +132,8 @@ export const progressSchema = z.object({
   daily: z.object({
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
     lessonMinutes: z.record(z.string(), z.coerce.number().int().min(1).max(1440)).refine((items) => Object.keys(items).length <= 500, "Too many daily lessons")
-  }).strict().optional()
+  }).strict().optional(),
+  game: gameProgressSchema.optional()
 }).passthrough();
 
 export const progressMigrationSchema = z.object({

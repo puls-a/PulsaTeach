@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Crosshair, Info, RotateCcw, TestTube2, TriangleAlert } from "lucide-react";
-import { assetPaths, awardGameMission } from "../gameContent.js";
+import { assetPaths, awardGameMission, gameMissionIds } from "../gameContent.js";
 import { runAimFunctionSandbox } from "../jsSandboxClient.js";
 import MissionModal from "./MissionModal.jsx";
 
@@ -79,6 +79,7 @@ const text = {
     expected: "Expected",
     returned: "Returned",
     pass: "Level cleared. XP awarded.",
+    replay: "Level cleared again. XP was already collected.",
     complete: "Arena cleared. Logic badge unlocked.",
     fail: "Some targets missed. Read the failed cases and adjust your conditions.",
     tests: "Target cases",
@@ -98,6 +99,7 @@ const text = {
     expected: "Attendu",
     returned: "Retourné",
     pass: "Niveau réussi. XP attribué.",
+    replay: "Niveau réussi à nouveau. Les XP étaient déjà acquis.",
     complete: "Arène terminée. Badge logique débloqué.",
     fail: "Certaines cibles sont ratées. Lis les cas en erreur et ajuste tes conditions.",
     tests: "Cas testés",
@@ -117,10 +119,22 @@ export default function ArrowTargetGame({ locale = "en" }) {
   const [results, setResults] = useState(null);
   const [message, setMessage] = useState(null);
   const [missionOpen, setMissionOpen] = useState(false);
+  const boardRef = useRef(null);
+  const [boardSize, setBoardSize] = useState({ width: 0, height: 0 });
 
   const focusCase = level.cases[level.focusIndex] || level.cases[0];
   const visibleResult = results?.find((item) => item.x === focusCase.x && item.y === focusCase.y);
-  const beam = useMemo(() => beamStyle(focusCase), [focusCase]);
+  const projectile = projectileGeometry(focusCase, boardSize.width, boardSize.height);
+
+  useLayoutEffect(() => {
+    const board = boardRef.current;
+    if (!board) return undefined;
+    const updateSize = () => setBoardSize({ width: board.clientWidth, height: board.clientHeight });
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(board);
+    return () => observer.disconnect();
+  }, []);
 
   const resetLevel = (nextIndex = levelIndex) => {
     setLevelIndex(nextIndex);
@@ -141,12 +155,16 @@ export default function ArrowTargetGame({ locale = "en" }) {
     }
     setResults(nextResults);
     const ok = nextResults.every((item) => item.pass);
-    setMessage(ok ? "pass" : "fail");
-    if (ok) awardGameMission(`arrow-target-${level.id}`, level.xp, levelIndex === jsArenaLevels.length - 1 ? "arrow-clear" : null);
+    if (!ok) {
+      setMessage({ status: "fail" });
+      return;
+    }
+    const award = awardGameMission(`arrow-target-${level.id}`, level.xp, "arrow-clear", gameMissionIds.javascript);
+    setMessage({ status: "pass", ...award });
   };
 
   const nextLevel = () => {
-    if (message === "pass") resetLevel((levelIndex + 1) % jsArenaLevels.length);
+    if (message?.status === "pass" && levelIndex < jsArenaLevels.length - 1) resetLevel(levelIndex + 1);
   };
 
   return (
@@ -162,7 +180,11 @@ export default function ArrowTargetGame({ locale = "en" }) {
               <button type="button" onClick={() => setMissionOpen(true)} className="lab-toolbar-button"><Info className="size-4" />{copy.mission}</button>
               <button type="button" onClick={() => { setCode(starterCode); setResults(null); setMessage(null); }} className="lab-toolbar-button"><RotateCcw className="size-4" />{copy.reset}</button>
               <button type="button" onClick={fire} className="lab-primary-button"><TestTube2 className="size-4" />{copy.validate}</button>
-              <button type="button" onClick={nextLevel} disabled={message !== "pass"} className="lab-toolbar-button disabled:cursor-not-allowed disabled:opacity-45">{copy.next}<ArrowRight className="size-4" /></button>
+              {levelIndex === jsArenaLevels.length - 1 && message?.status === "pass" ? (
+                <a href="/world" className="lab-toolbar-button">{locale === "fr" ? "Retour au monde" : "Back to world"}<ArrowRight className="size-4" /></a>
+              ) : (
+                <button type="button" onClick={nextLevel} disabled={message?.status !== "pass"} className="lab-toolbar-button disabled:cursor-not-allowed disabled:opacity-50">{copy.next}<ArrowRight className="size-4" /></button>
+              )}
             </div>
           </div>
           <label className="flex min-h-0 flex-1 flex-col">
@@ -170,15 +192,15 @@ export default function ArrowTargetGame({ locale = "en" }) {
             <textarea value={code} onChange={(event) => { setCode(event.target.value); setResults(null); setMessage(null); }} spellCheck="false" className="code-editor min-h-[300px] sm:min-h-[420px] lg:min-h-[540px]" />
           </label>
           {message && (
-            <p role="status" aria-live="polite" className={`mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold ${message === "pass" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-900"}`}>
-              {message === "pass" ? <CheckCircle2 className="size-5" /> : <TriangleAlert className="size-5" />}
-              {message === "pass" ? (levelIndex === jsArenaLevels.length - 1 ? copy.complete : copy.pass) : copy.fail}
+            <p role="status" aria-live="polite" className={`mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold ${message.status === "pass" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-900"}`}>
+              {message.status === "pass" ? <CheckCircle2 className="size-5" /> : <TriangleAlert className="size-5" />}
+              {message.status === "pass" ? (message.badgeAwarded ? copy.complete : message.awarded ? copy.pass : copy.replay) : copy.fail}
             </p>
           )}
         </div>
 
         <div className="grid gap-3 bg-white p-3">
-          <div className="relative min-h-[390px] overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-indigo-50 via-rose-50 to-amber-50 p-5">
+          <div ref={boardRef} className="relative min-h-[390px] overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-indigo-50 via-rose-50 to-amber-50 p-5">
             <div className="relative z-20 flex flex-wrap items-center justify-between gap-3">
               <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold">
                 <Crosshair className="size-5 text-orangePop" />
@@ -187,9 +209,11 @@ export default function ArrowTargetGame({ locale = "en" }) {
               <span className="rounded-full bg-white px-3 py-1 text-xs font-black uppercase tracking-[.12em] text-indigoPop">+{level.xp} XP</span>
             </div>
 
+            <svg className="pointer-events-none absolute inset-0 z-10 size-full" viewBox={`0 0 ${Math.max(1, boardSize.width)} ${Math.max(1, boardSize.height)}`} aria-hidden="true">
+              <line x1={projectile.start.x} y1={projectile.start.y} x2={projectile.end.x} y2={projectile.end.y} stroke={visibleResult?.pass ? "#22c55e" : results ? "#f59e0b" : "#6366f1"} strokeWidth="8" strokeLinecap="round" className="transition-all duration-500" />
+              <polygon points={projectile.arrowPoints} fill="#f97316" stroke="#1e1b4b" strokeWidth="5" strokeLinejoin="round" className="transition-all duration-500" />
+            </svg>
             <div className="absolute left-1/2 top-1/2 z-10 size-16 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-indigo-200 bg-indigoPop shadow-xl" />
-            <div className={`absolute left-1/2 top-1/2 z-0 h-2 origin-left rounded-full transition-all duration-500 ${visibleResult?.pass ? "bg-green-500" : results ? "bg-amber-500" : "bg-indigo-400"}`} style={{ width: beam.width, transform: `rotate(${beam.rotate}deg)` }} />
-            <img src={assetPaths.arrow} alt="" className="absolute left-1/2 top-1/2 z-10 h-10 w-28 origin-left -translate-y-1/2 transition-transform duration-500" style={{ transform: `rotate(${beam.rotate}deg) translateY(-50%)` }} />
             <img src={assetPaths.target} alt={copy.target} className="absolute z-20 size-24 -translate-x-1/2 -translate-y-1/2" style={{ left: `${focusCase.x}%`, top: `${focusCase.y}%` }} />
             {visibleResult?.pass && <img src={assetPaths.spark} alt="" className="absolute z-30 size-20 -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ left: `${focusCase.x}%`, top: `${focusCase.y}%` }} />}
             <div className="absolute bottom-4 left-4 z-20 rounded-xl border border-white/70 bg-white/85 p-3 text-xs font-bold text-slate-600 shadow-sm">
@@ -247,13 +271,24 @@ export function expectedDirection(target, deadZone = 8) {
   return [horizontal, vertical].filter(Boolean).join("-") || "center";
 }
 
-function beamStyle(target) {
-  const dx = target.x - 50;
-  const dy = target.y - 50;
-  const length = Math.sqrt(dx * dx + dy * dy);
-  const rotate = Math.atan2(dy, dx) * (180 / Math.PI);
+export function projectileGeometry(target, width, height) {
+  const center = { x: width / 2, y: height / 2 };
+  const targetCenter = { x: width * target.x / 100, y: height * target.y / 100 };
+  const dx = targetCenter.x - center.x;
+  const dy = targetCenter.y - center.y;
+  const distance = Math.hypot(dx, dy) || 1;
+  const unit = { x: dx / distance, y: dy / distance };
+  const perpendicular = { x: -unit.y, y: unit.x };
+  const startOffset = Math.min(34, distance * 0.2);
+  const targetOffset = Math.min(42, distance * 0.25);
+  const start = { x: center.x + unit.x * startOffset, y: center.y + unit.y * startOffset };
+  const end = { x: targetCenter.x - unit.x * targetOffset, y: targetCenter.y - unit.y * targetOffset };
+  const arrowBase = { x: end.x - unit.x * 22, y: end.y - unit.y * 22 };
+  const left = { x: arrowBase.x + perpendicular.x * 12, y: arrowBase.y + perpendicular.y * 12 };
+  const right = { x: arrowBase.x - perpendicular.x * 12, y: arrowBase.y - perpendicular.y * 12 };
   return {
-    width: `${Math.max(4, length)}%`,
-    rotate
+    start,
+    end,
+    arrowPoints: `${end.x},${end.y} ${left.x},${left.y} ${right.x},${right.y}`
   };
 }

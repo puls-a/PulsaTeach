@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { CheckCircle2, ChevronRight, Info, RotateCcw, Target, TestTube2, TriangleAlert } from "lucide-react";
-import { assetPaths, awardGameMission } from "../gameContent.js";
+import { assetPaths, awardGameMission, gameMissionIds } from "../gameContent.js";
 import MissionModal from "./MissionModal.jsx";
 
 export const flexboxLevels = [
@@ -66,6 +66,7 @@ const copyMap = {
     validate: "Validate",
     next: "Next level",
     passed: "Target reached. XP awarded.",
+    replay: "Target reached again. XP was already collected.",
     complete: "Arena cleared. Alignment badge unlocked.",
     failed: "Not yet. The visual target and the tests now ask for the same position.",
     code: "CSS mission code",
@@ -84,6 +85,7 @@ const copyMap = {
     validate: "Valider",
     next: "Niveau suivant",
     passed: "Cible atteinte. XP attribué.",
+    replay: "Cible atteinte à nouveau. Les XP étaient déjà acquis.",
     complete: "Arène terminée. Badge d’alignement débloqué.",
     failed: "Pas encore. La cible visuelle et les tests demandent maintenant la même position.",
     code: "Code CSS de mission",
@@ -116,14 +118,16 @@ export default function FlexboxArena({ locale = "en" }) {
   };
 
   const validate = () => {
-    setStatus(passed ? "passed" : "failed");
-    if (passed) {
-      awardGameMission(`flexbox-arena-${level.id}`, level.xp, levelIndex === flexboxLevels.length - 1 ? "flexbox-clear" : null);
+    if (!passed) {
+      setStatus({ state: "failed" });
+      return;
     }
+    const award = awardGameMission(`flexbox-arena-${level.id}`, level.xp, "flexbox-clear", gameMissionIds.flexbox);
+    setStatus({ state: "passed", ...award });
   };
 
   const nextLevel = () => {
-    if (status === "passed") resetLevel((levelIndex + 1) % flexboxLevels.length);
+    if (status?.state === "passed" && levelIndex < flexboxLevels.length - 1) resetLevel(levelIndex + 1);
   };
 
   return (
@@ -139,7 +143,11 @@ export default function FlexboxArena({ locale = "en" }) {
               <button type="button" onClick={() => setMissionOpen(true)} className="lab-toolbar-button"><Info className="size-4" />{copy.mission}</button>
               <button type="button" onClick={() => resetLevel()} className="lab-toolbar-button"><RotateCcw className="size-4" />{copy.reset}</button>
               <button type="button" onClick={validate} className="lab-primary-button"><TestTube2 className="size-4" />{copy.validate}</button>
-              <button type="button" onClick={nextLevel} disabled={status !== "passed"} className="lab-toolbar-button disabled:cursor-not-allowed disabled:opacity-45">{copy.next}<ChevronRight className="size-4" /></button>
+              {levelIndex === flexboxLevels.length - 1 && status?.state === "passed" ? (
+                <a href="/world" className="lab-toolbar-button">{locale === "fr" ? "Retour au monde" : "Back to world"}<ChevronRight className="size-4" /></a>
+              ) : (
+                <button type="button" onClick={nextLevel} disabled={status?.state !== "passed"} className="lab-toolbar-button disabled:cursor-not-allowed disabled:opacity-50">{copy.next}<ChevronRight className="size-4" /></button>
+              )}
             </div>
           </div>
           <label className="flex min-h-0 flex-1 flex-col">
@@ -147,8 +155,8 @@ export default function FlexboxArena({ locale = "en" }) {
             <textarea value={code} onChange={(event) => { setCode(event.target.value); setStatus(null); }} spellCheck="false" className="code-editor min-h-[300px] sm:min-h-[420px] lg:min-h-[540px]" />
           </label>
           {status && (
-            <p role="status" aria-live="polite" className={`mt-3 rounded-lg px-3 py-2 text-sm font-bold ${status === "passed" ? "bg-green-600 text-white" : "bg-amber-100 text-amber-900"}`}>
-              {status === "passed" ? (levelIndex === flexboxLevels.length - 1 ? copy.complete : copy.passed) : copy.failed}
+            <p role="status" aria-live="polite" className={`mt-3 rounded-lg px-3 py-2 text-sm font-bold ${status.state === "passed" ? "bg-green-600 text-white" : "bg-amber-100 text-amber-900"}`}>
+              {status.state === "passed" ? (status.badgeAwarded ? copy.complete : status.awarded ? copy.passed : copy.replay) : copy.failed}
             </p>
           )}
         </div>

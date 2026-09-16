@@ -26,7 +26,7 @@ export default function LearningShell({ locale = "en", kicker, title, descriptio
             </div>
           </div>
 
-          <nav className="mt-4 flex gap-1 overflow-x-auto border-t border-slate-100 pt-3" aria-label="Espace d'apprentissage">
+          <nav className="mt-4 flex gap-1 overflow-x-auto border-t border-slate-100 pt-3" aria-label={locale === "fr" ? "Espace d'apprentissage" : "Learning workspace"}>
             {workspaceLinks.map(({ href, icon: Icon, label }) => (
               <a key={href} href={href} className="inline-flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 hover:text-indigoPop">
                 <Icon className="size-4" />{label[locale]}

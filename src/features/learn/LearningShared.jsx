@@ -4,7 +4,8 @@ import { setLearnerItem } from "../../learnerStorage.js";
 
 export function SkillChips({ skills = [] }) {
   if (!skills.length) return null;
-  return <div className="mt-4 flex flex-wrap gap-2">{skills.map((skill) => <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigoPop" key={skill}>{skill}</span>)}</div>;
+  const uniqueSkills = [...new Set(skills)];
+  return <div className="mt-4 flex flex-wrap gap-2">{uniqueSkills.map((skill) => <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigoPop" key={skill}>{skill}</span>)}</div>;
 }
 
 export function NotesPanel({ lessonId, locale, note, setNote }) {

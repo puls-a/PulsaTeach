@@ -73,7 +73,7 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
   useEffect(() => {
     if (!activeTrack || !activeModule || !activeLesson || trackLoading) return;
     window.history.replaceState(null, "", `/learn/${activeTrackId}/${activeModuleId}/${activeLessonId}`);
-    updatePageMetadata("learn", locale, "PulsaTeach", { trackName: localize(activeTrack.title, locale), moduleName: localize(activeModule.title, locale), lessonName: localize(activeLesson.title, locale), description: localize(activeLesson.brief, locale) || localize(activeTrack.summary, locale) });
+    updatePageMetadata("learn", locale, "PulsaTeach", { trackName: localize(activeTrack.title, locale), moduleName: localize(activeModule.title, locale), lessonName: localize(activeLesson.title, locale), description: localize(activeLesson.brief, locale) || localize(activeTrack.summary, locale), durationMin: activeLesson.durationMin, skills: activeLesson.skills });
     setProgress((current) => {
       const next = markLessonOpened(current, { trackId: activeTrackId, moduleId: activeModuleId, lessonId: activeLessonId });
       setLearnerItem(progressKey, JSON.stringify(next));

@@ -333,6 +333,24 @@ describe("API security boundaries", () => {
     expect(progress.body.review.items).toEqual({});
   });
 
+  test("merges trusted challenge rewards without losing lesson evidence", async () => {
+    const userId = "game-progress-user";
+    const headers = { "X-PulsaTeach-User-Id": userId };
+    await request(app).put(`/api/progress/${userId}`).set(headers).send({
+      completed: { lesson: { passedAt: "2026-09-15T10:00:00.000Z", xp: 25, passedTests: 2 } },
+      game: { xp: 999, missions: { "flexbox-arena-center": true } }
+    }).expect(200);
+    const second = await request(app).put(`/api/progress/${userId}`).set(headers).send({
+      completed: { lesson: true },
+      game: { missions: { "flexbox-arena-right-center": 999 } }
+    }).expect(200);
+    expect(second.body.completed.lesson).toMatchObject({ passedAt: "2026-09-15T10:00:00.000Z", xp: 25 });
+    expect(second.body.game).toMatchObject({
+      xp: 50,
+      missions: { "flexbox-arena-center": 20, "flexbox-arena-right-center": 30 }
+    });
+  });
+
   test("keeps role routes protected and accepts the development admin key", async () => {
     await request(app).get("/api/lesson-drafts").expect(401);
     await request(app)

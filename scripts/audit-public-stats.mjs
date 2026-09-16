@@ -14,7 +14,7 @@ const trackCount = publicTracks.length;
 const lessonCount = publicTracks.reduce((total, track) => total + track.modules.reduce((sum, module) => sum + module.lessons.length, 0), 0);
 const glossaryCount = buildGlossaryIndex(learningTracks).length;
 const sitemapCount = (sitemap.match(/<url>/g) || []).length;
-const expectedSitemapCount = 12 + trackCount + lessonCount;
+const expectedSitemapCount = 14 + trackCount + lessonCount;
 
 expectEqual(publicLearningStats.tracks, trackCount, "publicLearningStats.tracks");
 expectEqual(publicLearningStats.lessons, lessonCount, "publicLearningStats.lessons");

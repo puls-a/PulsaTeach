@@ -3,7 +3,8 @@ import { BookOpen, Brain, CheckCircle2, Clock3, RotateCcw } from "lucide-react";
 import { loadRemoteProgress, recordLearningEvent, saveRemoteProgress } from "../../apiClient.js";
 import { LearnerPageHero, MetricCard } from "../../components/LearnerUI.jsx";
 import { evaluateQuestion } from "../quizzes/quizEngine.js";
-import { sanitizeProgressExamEvidence, sanitizeProtectedReviewItems } from "../quizzes/examPolicy.js";
+import { sanitizeProgressExamEvidence } from "../quizzes/examPolicy.js";
+import { mergeProgress } from "../learn/learningState.js";
 import { applyReviewRating, buildReviewSession, getReviewStats, reviewSessionSizes } from "./spacedRepetition.js";
 import { getLearnerItem, setLearnerItem } from "../../learnerStorage.js";
 
@@ -226,10 +227,6 @@ function readProgress() {
   } catch {
     return { completed: {}, review: { items: {} } };
   }
-}
-
-function mergeProgress(local, remote) {
-  return { ...local, ...remote, completed: { ...(local.completed || {}), ...(remote.completed || {}) }, review: { ...(local.review || {}), ...(remote.review || {}), items: sanitizeProtectedReviewItems({ ...(local.review?.items || {}), ...(remote.review?.items || {}) }) } };
 }
 
 function localize(value, locale) {
