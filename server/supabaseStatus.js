@@ -11,16 +11,11 @@ export async function getSupabaseStatus(supabaseAdmin) {
 export async function checkSupabaseReadiness(supabaseAdmin) {
   if (!supabaseAdmin) return { ok: false, latencyMs: 0, error: "Supabase is not configured." };
   const startedAt = Date.now();
-  const checks = await Promise.all([
-    supabaseAdmin.from("profiles").select("id", { head: true }).limit(1),
-    supabaseAdmin.from("legal_acceptances").select("id", { head: true }).limit(1),
-    supabaseAdmin.from("discord_outbox").select("id", { head: true }).limit(1)
-  ]);
-  const failedIndex = checks.findIndex((result) => result.error);
+  const { error } = await supabaseAdmin.from("profiles").select("id", { head: true }).limit(1);
   return {
-    ok: failedIndex === -1,
+    ok: !error,
     latencyMs: Date.now() - startedAt,
-    error: failedIndex === -1 ? null : checks[failedIndex].error.message,
-    failedCheck: failedIndex === -1 ? null : ["profiles", "legal_acceptances", "discord_outbox"][failedIndex]
+    error: error?.message || null,
+    failedCheck: error ? "profiles" : null
   };
 }

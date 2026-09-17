@@ -19,7 +19,7 @@ describe("Supabase readiness", () => {
     const result = await checkSupabaseReadiness(supabase);
 
     expect(result.ok).toBe(true);
-    expect(probes).toHaveLength(3);
+    expect(probes).toHaveLength(1);
     expect(probes.every((probe) => probe.columns === "id" && probe.options.head === true && probe.limit === 1)).toBe(true);
     expect(supabase.rpc).not.toHaveBeenCalled();
   });
