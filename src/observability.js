@@ -48,7 +48,7 @@ function reportVital(name, value, rating) {
   });
 }
 
-async function reportClientError(name, source) {
+export async function reportClientError(name, source) {
   const fingerprint = await sha256(`${name}:${source}`);
   if (sentErrors.has(fingerprint)) return;
   sentErrors.add(fingerprint);

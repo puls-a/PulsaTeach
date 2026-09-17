@@ -61,14 +61,14 @@ export function ProfilePage({ locale }) {
           eyebrow={locale === "fr" ? "Profil apprenant" : "Learner profile"}
           title={profile?.displayName || "PulsaTeach Learner"}
           description={profile?.user?.bio || (locale === "fr" ? "Ton identité d’apprentissage, tes preuves et tes réalisations au même endroit." : "Your learning identity, evidence, and achievements in one place.")}
-          status={status === "loading" ? (locale === "fr" ? "Chargement" : "Loading") : status === "error" ? (locale === "fr" ? "Données locales" : "Local data") : (locale === "fr" ? "Profil à jour" : "Profile up to date")}
+          status={status === "loading" ? (locale === "fr" ? "Chargement" : "Loading") : status === "error" ? (locale === "fr" ? "Données indisponibles" : "Data unavailable") : (locale === "fr" ? "Profil à jour" : "Profile up to date")}
           action={{ href: "/settings", label: locale === "fr" ? "Modifier mon profil" : "Edit profile" }}
         >
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <MetricCard icon={Trophy} label="XP" value={summary.xp ?? 0} tone="reward" />
-            <MetricCard icon={BookOpenCheck} label={locale === "fr" ? "Leçons validées" : "Lessons passed"} value={summary.completedLessons ?? 0} />
-            <MetricCard icon={CheckCircle2} label={locale === "fr" ? "Projets approuvés" : "Approved projects"} value={summary.approvedProjects ?? 0} />
-            <MetricCard icon={Award} label={locale === "fr" ? "Certificats prêts" : "Certificates ready"} value={certificates.filter((item) => item.eligible).length} />
+            <MetricCard icon={Trophy} label="XP" value={status === "ready" ? summary.xp ?? 0 : "—"} tone="reward" />
+            <MetricCard icon={BookOpenCheck} label={locale === "fr" ? "Leçons validées" : "Lessons passed"} value={status === "ready" ? summary.completedLessons ?? 0 : "—"} />
+            <MetricCard icon={CheckCircle2} label={locale === "fr" ? "Projets approuvés" : "Approved projects"} value={status === "ready" ? summary.approvedProjects ?? 0 : "—"} />
+            <MetricCard icon={Award} label={locale === "fr" ? "Certificats prêts" : "Certificates ready"} value={status === "ready" ? certificates.filter((item) => item.eligible && !item.issued).length : "—"} />
           </div>
         </LearnerPageHero>
 
@@ -76,7 +76,8 @@ export function ProfilePage({ locale }) {
           <section className="surface rounded-3xl">
             <div className="flex items-center gap-3"><Activity className="size-6 text-indigoPop" /><h2 className="font-display text-2xl font-black">{locale === "fr" ? "Activité technique" : "Technical activity"}</h2></div>
             <div className="mt-5 grid gap-3">
-              {attempts.length === 0 && (
+              {status === "error" && <p className="status-error rounded-2xl p-4" role="alert">{locale === "fr" ? "Impossible de charger ton activité. Tes compteurs ne sont pas remplacés par des zéros." : "Unable to load your activity. Your counters have not been replaced with zeros."}</p>}
+              {status === "ready" && attempts.length === 0 && (
                 <p className="rounded-2xl bg-slate-100 p-4 font-bold text-slate-700">
                   {locale === "fr" ? "Lance des tests dans le lab pour alimenter cette timeline." : "Run tests in the lab to fill this timeline."}
                 </p>
@@ -143,9 +144,9 @@ export function PathPage({ locale }) {
           status={status === "loading" ? (locale === "fr" ? "Calcul en cours" : "Calculating") : status === "error" ? (locale === "fr" ? "Plan indisponible" : "Plan unavailable") : (locale === "fr" ? "Plan actualisé" : "Plan updated")}
           action={{ href: nextLessons[0]?.href || "/catalog", label: nextLessons.length ? (locale === "fr" ? "Continuer" : "Continue") : (locale === "fr" ? "Explorer" : "Explore") }}
         >
-          <div className="max-w-2xl rounded-2xl border border-white/10 bg-white/10 p-4">
+          {status === "ready" && <div className="max-w-2xl rounded-2xl border border-white/10 bg-white/10 p-4">
             <ProgressMeter label={locale === "fr" ? "Progression globale" : "Overall progress"} value={plan?.percent ?? 0} detail={locale === "fr" ? `${plan?.completed ?? 0}/${plan?.total ?? 0} leçons validées` : `${plan?.completed ?? 0}/${plan?.total ?? 0} lessons passed`} tone="emerald" />
-          </div>
+          </div>}
         </LearnerPageHero>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[.72fr_1.28fr]">
@@ -167,7 +168,8 @@ export function PathPage({ locale }) {
               <h2 className="font-display text-3xl font-bold">{locale === "fr" ? "Prochaines leçons" : "Next lessons"}</h2>
             </div>
             <div className="mt-5 grid gap-3 md:grid-cols-2">
-              {nextLessons.length === 0 && (
+              {status === "error" && <p className="status-error rounded-2xl p-4 md:col-span-2" role="alert">{locale === "fr" ? "Impossible de calculer ton plan pour le moment. Réessaie plus tard ou ouvre le catalogue." : "Unable to calculate your plan right now. Try again later or open the catalog."}</p>}
+              {status === "ready" && nextLessons.length === 0 && (
                 <p className="rounded-2xl bg-cloud p-4 font-extrabold text-ink/70 clay-soft">
                   {locale === "fr" ? "Tout est validé pour le moment." : "Everything is passed for now."}
                 </p>

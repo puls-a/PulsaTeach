@@ -6,6 +6,13 @@ dist
 !.env.example
 test-results
 playwright-report
+playwright-report-supabase
 coverage
 .cache
 *.log
+data
+supabase/.temp
+pulsateach_social_bot
+docs/media
+video/v2/public
+public/video-captures

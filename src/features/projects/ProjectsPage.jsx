@@ -20,22 +20,34 @@ export default function ProjectsPage({ locale }) {
   const [submissions, setSubmissions] = useState([]);
   const [projects, setProjects] = useState([]);
   const [form, setForm] = useState(() => ({ ...emptyForm, projectId: new URLSearchParams(window.location.search).get("projectId") || emptyForm.projectId }));
-  const [loadStatus, setLoadStatus] = useState("loading");
+  const [submissionsStatus, setSubmissionsStatus] = useState("loading");
+  const [projectsStatus, setProjectsStatus] = useState("loading");
   const [status, setStatus] = useState("idle");
   const updateForm = (event) => setForm({ ...form, [event.target.name]: event.target.value });
 
   useEffect(() => {
-    Promise.all([listSubmissions(), listProjectCatalog()])
-      .then(([nextSubmissions, nextProjects]) => {
+    listSubmissions()
+      .then((nextSubmissions) => {
         setSubmissions(nextSubmissions);
+        setSubmissionsStatus("ready");
+      })
+      .catch(() => setSubmissionsStatus("error"));
+    listProjectCatalog()
+      .then((nextProjects) => {
         setProjects(nextProjects);
         setForm((current) => nextProjects.some((project) => project.id === current.projectId) || !nextProjects[0]
           ? current
           : { ...current, projectId: nextProjects[0].id });
-        setLoadStatus("ready");
+        setProjectsStatus("ready");
       })
-      .catch(() => setLoadStatus("error"));
+      .catch(() => setProjectsStatus("error"));
   }, []);
+
+  const loadStatus = submissionsStatus === "loading" || projectsStatus === "loading"
+    ? "loading"
+    : submissionsStatus === "error" && projectsStatus === "error"
+      ? "error"
+      : submissionsStatus === "error" || projectsStatus === "error" ? "partial" : "ready";
 
   const submit = async (event) => {
     event.preventDefault();
@@ -62,12 +74,12 @@ export default function ProjectsPage({ locale }) {
           eyebrow={fr ? "Projets portfolio" : "Portfolio projects"}
           title={fr ? "Transforme tes acquis en preuves concrètes." : "Turn your learning into concrete proof."}
           description={fr ? "Publie une version, reçois une revue et améliore ton projet sans perdre son historique." : "Publish a version, get a review, and improve your project without losing its history."}
-          status={loadStatus === "loading" ? (fr ? "Chargement" : "Loading") : loadStatus === "error" ? (fr ? "Connexion requise" : "Sign-in required") : (fr ? "Portfolio prêt" : "Portfolio ready")}
+          status={loadStatus === "loading" ? (fr ? "Chargement" : "Loading") : loadStatus === "error" ? (fr ? "Portfolio indisponible" : "Portfolio unavailable") : loadStatus === "partial" ? (fr ? "Données partielles" : "Partial data") : (fr ? "Portfolio prêt" : "Portfolio ready")}
           action={{ href: "#nouvelle-soumission", label: fr ? "Soumettre un projet" : "Submit a project" }}
         >
           <div className="grid grid-cols-2 gap-3 sm:max-w-xl">
-            <MetricCard icon={FolderKanban} label={fr ? "Versions soumises" : "Submitted versions"} value={submissions.length} />
-            <MetricCard icon={CheckCircle2} label={fr ? "Projets approuvés" : "Approved projects"} value={submissions.filter((item) => item.status === "approved").length} />
+            <MetricCard icon={FolderKanban} label={fr ? "Versions soumises" : "Submitted versions"} value={submissionsStatus === "ready" ? submissions.length : "—"} />
+            <MetricCard icon={CheckCircle2} label={fr ? "Projets approuvés" : "Approved projects"} value={submissionsStatus === "ready" ? submissions.filter((item) => item.status === "approved").length : "—"} />
           </div>
         </LearnerPageHero>
         <div className="mt-8 grid gap-6 lg:grid-cols-[.85fr_1.15fr]">
@@ -82,7 +94,8 @@ export default function ProjectsPage({ locale }) {
               <Field multiline name="deliverables" label={fr ? "Livrables, un par ligne" : "Deliverables, one per line"} value={form.deliverables} onChange={updateForm} />
               <Field multiline name="selfAssessment" label={fr ? "Auto-évaluation" : "Self-assessment"} value={form.selfAssessment} onChange={updateForm} />
               <label className="grid gap-2 text-sm font-semibold text-slate-700">{fr ? "Visibilité portfolio" : "Portfolio visibility"}<select name="visibility" value={form.visibility} onChange={updateForm} className="form-control"><option value="private">{fr ? "Privé" : "Private"}</option><option value="unlisted">{fr ? "Non listé" : "Unlisted"}</option><option value="public">Public</option></select></label>
-              <button type="submit" disabled={loadStatus !== "ready" || status === "saving"} className="primary-button disabled:cursor-wait disabled:opacity-60"><Send className="size-5" />{status === "saving" ? (fr ? "Envoi..." : "Saving...") : (fr ? "Soumettre" : "Submit")}</button>
+              {projectsStatus === "error" && <p className="status-error rounded-xl p-3 text-sm font-semibold" role="alert">{fr ? "Le catalogue de projets est indisponible. Tes soumissions existantes restent consultables." : "The project catalog is unavailable. Your existing submissions remain visible."}</p>}
+              <button type="submit" disabled={projectsStatus !== "ready" || status === "saving"} className="primary-button disabled:cursor-wait disabled:opacity-60"><Send className="size-5" />{status === "saving" ? (fr ? "Envoi..." : "Saving...") : (fr ? "Soumettre" : "Submit")}</button>
               {status === "error" && <p className="status-error rounded-xl p-3 text-sm font-semibold" role="alert">{fr ? "La soumission a échoué. Vérifie ta connexion et réessaie." : "Submission failed. Check your connection and try again."}</p>}
               {status === "saved" && <p className="status-success rounded-xl p-3 text-sm font-semibold" role="status">{fr ? "Projet soumis." : "Project submitted."}</p>}
             </div>
@@ -90,9 +103,9 @@ export default function ProjectsPage({ locale }) {
           <section className="surface rounded-3xl">
             <h2 className="font-display text-2xl font-black">{fr ? "Mes soumissions" : "My submissions"}</h2>
             <div className="mt-5 grid gap-3">
-              {loadStatus === "loading" && <p className="empty-state" role="status">{fr ? "Chargement des soumissions..." : "Loading submissions..."}</p>}
-              {loadStatus === "error" && <p className="empty-state">{fr ? "Connecte-toi pour retrouver tes soumissions." : "Sign in to view your submissions."}</p>}
-              {loadStatus === "ready" && !submissions.length && <p className="empty-state">{fr ? "Aucun projet soumis pour le moment." : "No submitted projects yet."}</p>}
+              {submissionsStatus === "loading" && <p className="empty-state" role="status">{fr ? "Chargement des soumissions..." : "Loading submissions..."}</p>}
+              {submissionsStatus === "error" && <p className="empty-state" role="alert">{fr ? "Impossible de charger tes soumissions pour le moment." : "Unable to load your submissions right now."}</p>}
+              {submissionsStatus === "ready" && !submissions.length && <p className="empty-state">{fr ? "Aucun projet soumis pour le moment." : "No submitted projects yet."}</p>}
               {submissions.map((submission) => <SubmissionCard key={submission.id} submission={submission} locale={locale} />)}
             </div>
           </section>

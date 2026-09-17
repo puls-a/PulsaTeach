@@ -10,6 +10,7 @@ const [indexHtml, robots, sitemap, metadata] = await Promise.all([
 ]);
 const prerenderedCatalog = await readFile(new URL("../dist/catalog/index.html", import.meta.url), "utf8").catch(() => "");
 const prerenderedLesson = await readFile(new URL("../dist/learn/html/html-modern-document/html-01-doctype-standard-mode/index.html", import.meta.url), "utf8").catch(() => "");
+const prerenderedNotFound = await readFile(new URL("../dist/404.html", import.meta.url), "utf8").catch(() => "");
 
 const publicTrackIds = new Set(publicTrackCatalog.map((track) => track.id));
 const expectedLessonCount = learningTracks.filter((track) => publicTrackIds.has(track.id)).reduce(
@@ -18,9 +19,14 @@ const expectedLessonCount = learningTracks.filter((track) => publicTrackIds.has(
 );
 const sitemapPaths = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => new URL(match[1]).pathname);
 const missingPrerenders = [];
+const emptyLessonObjectives = [];
 for (const path of sitemapPaths) {
   const file = path === "/" ? new URL("../dist/index.html", import.meta.url) : new URL(`../dist${path}/index.html`, import.meta.url);
   await access(file).catch(() => missingPrerenders.push(path));
+  if (path.startsWith("/learn/") && !missingPrerenders.includes(path)) {
+    const html = await readFile(file, "utf8");
+    if (html.includes("<h2>Objectifs de la leçon</h2><ul></ul>")) emptyLessonObjectives.push(path);
+  }
 }
 const checks = [
   [indexHtml.includes('name="description"'), "base meta description"],
@@ -36,9 +42,13 @@ const checks = [
   [prerenderedCatalog.includes("<h1>Formations gratuites"), "prerendered catalog content"],
   [prerenderedLesson.includes('"@type":"LearningResource"'), "prerendered lesson learning-resource schema"],
   [prerenderedLesson.includes('"learningResourceType":"Interactive lesson"'), "prerendered lesson resource type"],
+  [!prerenderedLesson.includes("<h2>Objectifs de la leçon</h2><ul></ul>"), "prerendered lesson objectives are not empty"],
   [!prerenderedLesson.includes('hreflang="en"'), "no same-URL hreflang"],
   [!prerenderedLesson.includes("Le contrat de la solution"), "prerendered lesson does not expose the solution contract example"],
-  [missingPrerenders.length === 0, `every sitemap URL is prerendered${missingPrerenders.length ? ` (${missingPrerenders.join(", ")})` : ""}`]
+  [missingPrerenders.length === 0, `every sitemap URL is prerendered${missingPrerenders.length ? ` (${missingPrerenders.join(", ")})` : ""}`],
+  [emptyLessonObjectives.length === 0, `every lesson has prerendered objectives${emptyLessonObjectives.length ? ` (${emptyLessonObjectives.slice(0, 5).join(", ")})` : ""}`],
+  [prerenderedNotFound.includes('content="noindex,nofollow"'), "404 page is noindex"],
+  [!prerenderedNotFound.includes('rel="canonical"'), "404 page has no canonical"]
 ];
 
 const failures = checks.filter(([passed]) => !passed).map(([, label]) => label);

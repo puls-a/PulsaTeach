@@ -47,6 +47,13 @@ test("lesson routes expose unique learning resource metadata", async ({ page }) 
   ]));
 });
 
+test("SPA navigation moves keyboard focus to the new main content", async ({ page }) => {
+  await gotoRoute(page, "/catalog");
+  await page.locator('a[href="/about"]').first().click();
+  await expect(page).toHaveURL(/\/about$/);
+  await expect(page.locator("#main-content")).toBeFocused();
+});
+
 test("canonical CSS intro route opens the requested lesson", async ({ page }) => {
   await gotoRoute(page, "/learn/css/css-getting-started/css-00-what-css-does");
   await expect(page.getByRole("heading", { level: 1, name: /Ce que CSS fait vraiment|What CSS really does/ })).toBeVisible();

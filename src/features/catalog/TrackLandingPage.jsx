@@ -57,9 +57,13 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
   const moduleCount = track.modules.length;
   const certification = track.certification?.[locale] || [];
   
-  const firstModule = track.modules[0];
-  const firstLesson = firstModule?.lessons?.[0];
-  const startHref = firstModule && firstLesson ? `/learn/${track.id}/${firstModule.id}/${firstLesson.id}` : "/catalog";
+  const resumeTarget = getTrackResumeTarget(track, progress);
+  const startHref = resumeTarget.href;
+  const primaryLabel = resumeTarget.complete
+    ? (locale === "fr" ? "Voir mes certifications" : "View my certifications")
+    : completed
+      ? (locale === "fr" ? "Continuer la formation" : "Continue course")
+      : (locale === "fr" ? "Commencer gratuitement" : "Start for free");
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24 pt-20 sm:pt-24">
@@ -89,7 +93,7 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
             )}
             <div className="mt-8 flex flex-wrap gap-3">
               <a href={startHref} className="primary-button text-base sm:text-lg">
-                {completed ? (locale === "fr" ? "Continuer la formation" : "Continue course") : (locale === "fr" ? "Commencer gratuitement" : "Start for free")}
+                {primaryLabel}
                 <ArrowRight className="size-5" />
               </a>
               <a href="#programme" className="secondary-button text-base">
@@ -194,7 +198,7 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
             <h2 className="mt-3 font-display text-3xl font-black">{locale === "fr" ? "Commence par la première leçon, valide par les tests." : "Start with the first lesson, validate through tests."}</h2>
           </div>
           <a href={startHref} className="primary-button mt-6 shrink-0 md:mt-0">
-            {locale === "fr" ? "Démarrer maintenant" : "Start now"}
+            {resumeTarget.complete ? (locale === "fr" ? "Voir mes certificats" : "View certificates") : completed ? (locale === "fr" ? "Reprendre maintenant" : "Resume now") : (locale === "fr" ? "Démarrer maintenant" : "Start now")}
             <ArrowRight className="size-5" />
           </a>
         </section>
@@ -202,6 +206,15 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
       </div>
     </div>
   );
+}
+
+export function getTrackResumeTarget(track, progress) {
+  for (const module of track.modules || []) {
+    const lesson = (module.lessons || []).find((item) => !progress.completed?.[item.id]);
+    if (lesson) return { href: `/learn/${track.id}/${module.id}/${lesson.id}`, complete: false };
+  }
+  const hasLessons = (track.modules || []).some((module) => module.lessons?.length);
+  return { href: hasLessons ? "/certification" : "/catalog", complete: hasLessons };
 }
 
 function ProofStat({ value, label }) {

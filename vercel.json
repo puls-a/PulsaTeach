@@ -92,11 +92,95 @@
       "destination": "/glossary/index.html"
     },
     {
+      "source": "/glossary/:term",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/formations/:track",
+      "destination": "/formations/:track/index.html"
+    },
+    {
+      "source": "/formations",
+      "destination": "/index.html"
+    },
+    {
       "source": "/learn/:track/:module/:lesson",
       "destination": "/learn/:track/:module/:lesson/index.html"
     },
     {
-      "source": "/(.*)",
+      "source": "/learn",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/auth",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/signup",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/onboarding",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/recovery",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/discord/link",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/discord",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/verify/:code",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/verify",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/studio",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/review",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/path",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/profile",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/settings",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/analytics",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/author",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/roadmap",
       "destination": "/index.html"
     }
   ]

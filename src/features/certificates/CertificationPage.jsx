@@ -8,6 +8,7 @@ export default function CertificationPage({ locale }) {
   const fr = locale === "fr";
   const [data, setData] = useState(null);
   const [status, setStatus] = useState("loading");
+  const [issueError, setIssueError] = useState("");
   const [issuingId, setIssuingId] = useState("");
   const certificates = data?.certificates || [];
   const visibleCertificates = certificates.filter((certificate) => certificate.available || certificate.issued);
@@ -22,12 +23,14 @@ export default function CertificationPage({ locale }) {
   const issue = async (certificateId) => {
     setIssuingId(certificateId);
     setStatus("ready");
+    setIssueError("");
     try {
       const issued = await issueCertificate(certificateId);
       setData((current) => ({ ...current, certificates: current.certificates.map((certificate) => certificate.id === certificateId ? { ...certificate, issued } : certificate) }));
       setStatus("issued");
     } catch (error) {
-      setStatus(error.message);
+      setStatus("issue-error");
+      setIssueError(error.message);
     } finally {
       setIssuingId("");
     }
@@ -42,7 +45,7 @@ export default function CertificationPage({ locale }) {
           eyebrow={fr ? "Certifications" : "Certifications"}
           title={fr ? "Des compétences prouvées, pas seulement déclarées." : "Skills proven, not merely claimed."}
           description={fr ? "Chaque certificat relie tes examens notés serveur et tes projets approuvés à une preuve publique vérifiable." : "Each certificate connects server-graded exams and approved projects to verifiable public evidence."}
-          status={status === "loading" ? (fr ? "Évaluation en cours" : "Evaluating") : status === "error" ? (fr ? "Connexion requise" : "Sign-in required") : (fr ? "Preuves actualisées" : "Evidence updated")}
+          status={status === "loading" ? (fr ? "Évaluation en cours" : "Evaluating") : status === "error" ? (fr ? "Preuves indisponibles" : "Evidence unavailable") : status === "issue-error" ? (fr ? "Délivrance interrompue" : "Issuance interrupted") : (fr ? "Preuves actualisées" : "Evidence updated")}
           action={{ href: "#certificats", label: fr ? "Voir mes certificats" : "View my certificates" }}
         >
           <div className="grid grid-cols-2 gap-3 sm:max-w-xl">
@@ -53,11 +56,11 @@ export default function CertificationPage({ locale }) {
         <div id="certificats" className="mt-8 grid gap-6 lg:grid-cols-[1fr_.72fr]">
           <div className="grid gap-5">
             {status === "loading" && <p className="empty-state" role="status">{fr ? "Évaluation des preuves..." : "Evaluating evidence..."}</p>}
-            {status === "error" && <p className="empty-state">{fr ? "Connecte-toi pour évaluer et délivrer tes certificats." : "Sign in to evaluate and issue your certificates."}</p>}
+            {status === "error" && <p className="empty-state" role="alert">{fr ? "Impossible de charger les preuves. Vérifie ta connexion ou reconnecte-toi, puis réessaie." : "Unable to load evidence. Check your connection or sign in again, then retry."}</p>}
             {status === "ready" && !visibleCertificates.length && <p className="empty-state" role="status">{fr ? "Les certifications sont en préparation : elles seront publiées avec des parcours et des évaluations vérifiables." : "Certifications are in preparation and will launch with verifiable learning paths and assessments."}</p>}
             {visibleCertificates.map((certificate) => <CertificateCard key={certificate.id} certificate={certificate} locale={locale} busy={Boolean(issuingId)} issuing={issuingId === certificate.id} onIssue={() => issue(certificate.id)} />)}
             {status === "issued" && <p className="status-success rounded-xl p-3" role="status">{fr ? "Certificat délivré. Sa page publique est prête." : "Certificate issued. Its public page is ready."}</p>}
-            {status && !["loading", "ready", "error", "issued"].includes(status) && <p className="status-error rounded-xl p-3" role="alert">{status}</p>}
+            {status === "issue-error" && <p className="status-error rounded-xl p-3" role="alert">{issueError || (fr ? "Le certificat n’a pas pu être délivré." : "The certificate could not be issued.")}</p>}
           </div>
           <aside className="order-first rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:order-none lg:sticky lg:top-24 lg:self-start">
             <Star className="size-9 text-indigoPop" />
@@ -75,10 +78,15 @@ export default function CertificationPage({ locale }) {
 }
 function CertificateCard({ certificate, locale, busy, issuing, onIssue }) {
   const fr = locale === "fr";
+  const badge = certificate.issued
+    ? { label: fr ? "Délivré" : "Issued", className: "bg-emerald-100 text-emerald-800" }
+    : certificate.eligible
+      ? { label: fr ? "Prêt à délivrer" : "Ready to issue", className: "bg-emerald-100 text-emerald-800" }
+      : { label: fr ? "En progression" : "In progress", className: "bg-indigo-50 text-indigo-800" };
   return (
     <article className="surface rounded-3xl">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div><div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold ${certificate.eligible ? "bg-emerald-100 text-emerald-800" : "bg-indigo-50 text-indigo-800"}`}><Award className="size-5" />{certificate.eligible ? (fr ? "Prêt à délivrer" : "Ready to issue") : (fr ? "En progression" : "In progress")}</div><h2 className="mt-4 font-display text-3xl font-black sm:text-4xl">{certificate.title[locale] || certificate.title.fr || certificate.title.en}</h2><p className="mt-3 max-w-2xl font-semibold leading-7 text-ink/70">{certificate.description[locale] || certificate.description.fr || certificate.description.en}</p></div>
+        <div><div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold ${badge.className}`}><Award className="size-5" />{badge.label}</div><h2 className="mt-4 font-display text-3xl font-black sm:text-4xl">{certificate.title[locale] || certificate.title.fr || certificate.title.en}</h2><p className="mt-3 max-w-2xl font-semibold leading-7 text-ink/70">{certificate.description[locale] || certificate.description.fr || certificate.description.en}</p></div>
         <ShieldCheck className="size-12 text-indigoPop" />
       </div>
       <div className="mt-6 grid gap-4 rounded-2xl bg-slate-50 p-4 md:grid-cols-2"><ProgressMeter label={fr ? "Examens réussis" : "Exams passed"} value={certificate.progress.examPercent} detail={`${certificate.progress.examsCompleted}/${certificate.progress.examsRequired}`} /><ProgressMeter label={fr ? "Projets approuvés" : "Approved projects"} value={certificate.progress.projectPercent} detail={`${certificate.progress.projectsApproved}/${certificate.progress.projectsRequired}`} /></div>

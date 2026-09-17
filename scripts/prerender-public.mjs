@@ -60,14 +60,14 @@ for (const [route, title, description, heading, text, type] of staticPages) {
 await renderPage("certification", {
   title: "Certificats de progression web | PulsaTeach",
   description: "Valide tes parcours avec des projets, examens et certificats partageables.",
-  body: `<main><h1>Certifications PulsaTeach</h1><p>Prouve tes compétences web avec nos certificats gratuits.</p></main>`,
+  body: `<main><h1>Certifications PulsaTeach</h1><p>Transforme ta progression en preuve vérifiable grâce à des examens notés côté serveur et des projets relus selon des critères explicites.</p><section><h2>Une validation fondée sur des preuves</h2><ul><li>Réussir les examens requis avec le score minimal.</li><li>Faire approuver les projets du parcours.</li><li>Conserver les compétences, versions et résultats dans une attestation vérifiable.</li></ul></section><section><h2>Ce que le certificat atteste</h2><p>Chaque page publique confirme l’authenticité de l’émission, le parcours évalué et les preuves enregistrées. Un certificat PulsaTeach atteste une progression interne : il ne remplace pas un diplôme reconnu par l’État.</p></section><p><a href="/catalog">Choisir une formation</a> <a href="/certification">Consulter mes certifications</a></p></main>`,
   schema: publicPageSchema("CollectionPage", "Certificats de progression web", "certification", "Valide tes parcours avec des projets, examens et certificats partageables.")
 });
 
 await renderPage("projects", {
   title: "Projets web et portfolio | PulsaTeach",
   description: "Construis, soumets et améliore des projets web vérifiables pour prouver tes compétences.",
-  body: `<main><h1>Projets et Portfolio</h1><p>Crée et partage des projets complets.</p></main>`,
+  body: `<main><h1>Projets web et portfolio</h1><p>Construis des livrables complets, soumets une version vérifiable et améliore-la à partir de critères de revue transparents.</p><section><h2>Du cours à une réalisation démontrable</h2><ul><li>Un cahier des charges relié aux compétences du parcours.</li><li>Une URL de démonstration ou de dépôt que tu contrôles.</li><li>Une grille d’évaluation et un historique des versions soumises.</li><li>Une visibilité privée, non listée ou publique choisie par l’apprenant.</li></ul></section><section><h2>Préparer une soumission</h2><p>Vérifie le responsive, le clavier, les erreurs visibles, les tests et la documentation avant d’envoyer ton projet. Une nouvelle version ne remplace jamais silencieusement la précédente.</p></section><p><a href="/catalog">Découvrir les parcours</a> <a href="/projects">Ouvrir mes projets</a></p></main>`,
   schema: publicPageSchema("CollectionPage", "Projets web et portfolio", "projects", "Construis, soumets et améliore des projets web vérifiables pour prouver tes compétences.")
 });
 
@@ -99,6 +99,8 @@ for (const track of publicTracks) {
   }
 }
 
+await renderNotFoundPage();
+
 console.log(`Prerendered ${lessonTotal() + publicTracks.length + 6 + staticPages.length} public pages.`);
 
 async function renderPage(route, page) {
@@ -119,6 +121,18 @@ async function renderPage(route, page) {
   await writeFile(new URL("index.html", directory), html, "utf8");
 }
 
+async function renderNotFoundPage() {
+  const title = "Page introuvable | PulsaTeach";
+  const description = "Cette page n’existe pas ou a été déplacée. Retrouve les formations gratuites PulsaTeach.";
+  const html = template
+    .replace(/<title>.*?<\/title>/s, `<title>${title}</title>`)
+    .replace("</title>", '</title>\n    <meta name="robots" content="noindex,nofollow" />')
+    .replace(/<link rel="canonical" href="[^"]*"\s*\/>/, "")
+    .replace(/<meta\s+name="description"\s+content="[^"]*"\s*\/>/s, `<meta name="description" content="${description}" />`)
+    .replace('<div id="root"></div>', '<div id="root" data-prerendered="true"><main><h1>Page introuvable</h1><p>Cette adresse ne correspond à aucune page publique PulsaTeach.</p><p><a href="/catalog">Retour aux formations</a></p></main></div>');
+  await writeFile(new URL("404.html", distUrl), html, "utf8");
+}
+
 function trackCard(track) {
   const firstModule = track.modules[0];
   const firstLesson = firstModule.lessons[0];
@@ -128,11 +142,15 @@ function trackCard(track) {
 }
 
 function lessonBody(track, module, lesson) {
-  const course = lesson.course?.fr || {};
+  const course = lesson.course?.fr || lesson.course || {};
+  const guide = lesson.guide?.fr || lesson.guide || {};
+  const pedagogy = lesson.pedagogy?.fr || {};
   const vocabulary = (course.vocabulary || []).slice(0, 5).map((entry) => `<li><strong>${escapeHtml(entry[0])}</strong> — ${escapeHtml(entry[1])}</li>`).join("");
   const sections = (course.sections || []).map((section) => `<section><h2>${escapeHtml(section.title)}</h2>${(section.paragraphs || []).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}</section>`).join("");
-  const objectives = (course.objectives || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
-  const checks = (course.check || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const objectiveItems = course.objectives || guide.objectives || pedagogy.objectives || [lesson.brief?.fr].filter(Boolean);
+  const checkItems = course.check || course.checklist || pedagogy.correction || [];
+  const objectives = objectiveItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const checks = checkItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
   return `<main><nav><a href="/catalog">Formations</a> / ${escapeHtml(track.title.fr)} / ${escapeHtml(module.title.fr)}</nav><article><h1>${escapeHtml(lesson.title.fr)}</h1><p>${escapeHtml(lesson.brief?.fr || "")}</p><section><h2>Objectifs de la leçon</h2><ul>${objectives}</ul></section>${sections}<section><h2>Vocabulaire lié</h2><ul>${vocabulary}</ul></section><section><h2>Validation</h2><ul>${checks}</ul><p>${escapeHtml(course.summary || "")}</p></section><p><a href="/learn/${track.id}/${module.id}/${lesson.id}">Ouvrir la leçon interactive</a></p></article></main>`;
 }
 

@@ -46,8 +46,8 @@ Le produit combine une expérience apprenant publique, un catalogue pédagogique
 | Indicateur | État actuel |
 | --- | --- |
 | Curriculum source | 14 parcours web et outillage |
-| Catalogue public | 3 parcours, 208 leçons pré-rendues et indexées |
-| URLs publiques | 223 URLs dans le sitemap |
+| Catalogue public | 3 parcours, 212 leçons pré-rendues et indexées |
+| URLs publiques | 229 URLs dans le sitemap |
 | Tests automatisés | Vitest, Supertest, Playwright, Supabase E2E, Lighthouse |
 | Glossaire | 586 termes bilingues reliés au catalogue |
 | Qualité | `npm run validate` bloque lint, tests, audits, build, SEO et bundle |
@@ -130,7 +130,7 @@ $env:VITE_ADMIN_ACCESS_KEY="dev-admin-key"
 
 `npm run validate` est la commande de référence avant livraison. Elle exécute lint, tests, audit architecture, cohérence catalogue, audit pédagogique, qualité éditoriale, glossaire, i18n, migrations, build, SEO et budgets bundle.
 
-La CI ajoute les E2E navigateur, les E2E Supabase et Lighthouse. Un workflow séparé vérifie régulièrement la production, le sitemap, les headers et `/api/health/ready`.
+La CI ajoute les E2E navigateur, les migrations Supabase locales, Lighthouse et un audit des secrets versionnés. Les E2E Supabase complets restent déclenchables manuellement. Un workflow séparé vérifie régulièrement la production, le sitemap, les headers et `/api/health/ready`.
 
 ## Architecture
 

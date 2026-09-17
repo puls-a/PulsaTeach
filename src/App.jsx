@@ -109,11 +109,13 @@ const navGroups = [
 function App() {
   const [locale, setLocale] = useState(() => localStorage.getItem("pulsateach-locale") || "fr");
   const [storageOwnerVersion, setStorageOwnerVersion] = useState(0);
+  const mainRef = useRef(null);
   const { user, loading: authLoading } = useSupabaseSession();
   const [route, setRoute] = useState(() => {
     migrateLegacyHashRoute();
     return getPageRoute();
   });
+  const previousRoute = useRef(route);
   const copy = languages[locale];
 
   useLayoutEffect(() => {
@@ -127,6 +129,12 @@ function App() {
     window.addEventListener(learnerStorageOwnerEvent, handleOwnerChange);
     return () => window.removeEventListener(learnerStorageOwnerEvent, handleOwnerChange);
   }, []);
+
+  useEffect(() => {
+    if (previousRoute.current === route) return;
+    previousRoute.current = route;
+    window.requestAnimationFrame(() => mainRef.current?.focus({ preventScroll: true }));
+  }, [route]);
 
   useEffect(() => {
     const handleNavigation = (event) => {
@@ -159,7 +167,7 @@ function App() {
     <div className="flex min-h-screen flex-col">
       <a href="#main-content" className="skip-link">{locale === "fr" ? "Aller au contenu principal" : "Skip to main content"}</a>
       <Header user={user} locale={locale} route={route} onLanguageToggle={() => setLocale(locale === "fr" ? "en" : "fr")} />
-      <main id="main-content" className="flex-1" tabIndex={-1} key={storageOwnerVersion}><Suspense fallback={<RouteFallback locale={locale} />}>{authLoading ? <RouteFallback locale={locale} /> : renderRoute(route, locale)}</Suspense></main>
+      <main ref={mainRef} id="main-content" className="flex-1" tabIndex={-1} key={storageOwnerVersion}><Suspense fallback={<RouteFallback locale={locale} />}>{authLoading ? <RouteFallback locale={locale} /> : renderRoute(route, locale)}</Suspense></main>
       {route !== "learn" && <AppFooter locale={locale} />}
       <CookieConsent locale={locale} />
     </div>

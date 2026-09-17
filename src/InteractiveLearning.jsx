@@ -15,7 +15,7 @@ import { getLearnerItem, removeLearnerItem, setLearnerItem } from "./learnerStor
 
 const progressKey = "pulsateach-learning-progress";
 const bookmarksKey = "pulsateach-learning-bookmarks";
-export default function InteractiveLearning({ locale, tracks = [], onRequireTrack }) {
+export default function InteractiveLearning({ locale, tracks = [], onRequireTrack, initialLoadError = "" }) {
   const initialRoute = readLessonRoute();
   const requestedRoute = useRef(initialRoute);
   const [activeTrackId, setActiveTrackId] = useState(initialRoute.trackId);
@@ -29,12 +29,12 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
   const [trackLoadError, setTrackLoadError] = useState("");
   const selectLesson = useLessonRouteSync({ locale, onRequireTrack, requestedRoute, setActiveTrackId, setActiveModuleId, setActiveLessonId, setTrackLoadError });
 
+  useEffect(() => { if (initialLoadError) setTrackLoadError(initialLoadError); }, [initialLoadError]);
   const selectedTrack = tracks.find((track) => track.id === activeTrackId);
   const trackLoading = Boolean(selectedTrack?.isSummary);
   const activeTrack = (!selectedTrack?.isSummary ? selectedTrack : null) ?? tracks.find((track) => !track.isSummary) ?? null;
   const activeModule = activeTrack?.modules.find((module) => module.id === activeModuleId) ?? activeTrack?.modules[0] ?? null;
   const activeLesson = activeModule?.lessons.find((lesson) => lesson.id === activeLessonId) ?? activeModule?.lessons[0] ?? null;
-
   useEffect(() => {
     if (!activeTrack) return;
     const requestedTrack = tracks.find((track) => track.id === requestedRoute.current.trackId);
@@ -66,7 +66,6 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
       setActiveLessonId(firstModule.lessons[0].id);
     }
   }, [activeModuleId, activeTrack, trackLoading]);
-
   const activeTrackCompleted = activeTrack?.modules.reduce((sum, module) => sum + module.lessons.filter((lesson) => progress.completed[lesson.id]).length, 0) ?? 0;
   const activeTrackTotal = activeTrack?.modules.reduce((sum, module) => sum + module.lessons.length, 0) ?? 0;
 
@@ -209,6 +208,11 @@ export default function InteractiveLearning({ locale, tracks = [], onRequireTrac
   };
 
   if (!activeTrack || !activeModule || !activeLesson) {
+    if (trackLoadError) {
+      return (
+        <section className="grid min-h-screen place-items-center bg-slate-100 px-4 pt-24"><div className="rounded-2xl border border-rose-200 bg-white p-6 text-center shadow-sm" role="alert"><p className="font-display text-xl font-bold text-ink">{locale === "fr" ? "Leçon introuvable" : "Lesson unavailable"}</p><p className="mt-2 text-sm text-slate-600">{trackLoadError}</p><a href="/catalog" className="primary-button mt-5">{locale === "fr" ? "Retour aux formations" : "Back to courses"}</a></div></section>
+      );
+    }
     return (
       <section className="grid min-h-screen place-items-center bg-slate-100 px-4 pt-24">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm" role="status">
