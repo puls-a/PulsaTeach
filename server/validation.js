@@ -188,11 +188,21 @@ export const enrollmentSchema = z.object({
   source: z.string().trim().min(1).max(80).optional().default("landing")
 }).strict();
 
+const eventPayloadValue = z.union([
+  z.string().max(500),
+  z.number().finite(),
+  z.boolean(),
+  z.null(),
+  z.array(z.string().max(500)).max(50)
+]);
+
 export const eventSchema = z.object({
   eventType: z.enum(["lesson_opened", "tests_run", "tests_failed", "lesson_completed", "hint_opened", "progress_migrated", "review_started", "review_answered", "review_completed"]),
   lessonId: z.string().max(160).optional(),
   trackId: z.string().max(160).optional(),
-  payload: z.record(z.string(), z.unknown()).optional().default({})
+  payload: z.record(z.string().max(80), eventPayloadValue)
+    .refine((payload) => Object.keys(payload).length <= 20, "Too many event payload fields")
+    .optional().default({})
 }).strict();
 
 export const telemetrySchema = z.object({

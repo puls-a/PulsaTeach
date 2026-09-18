@@ -14,7 +14,7 @@ const certificateDefinitions = [
       fr: "Valide un flux de travail, HTML et CSS avec des évaluations serveur et trois projets revus.",
       en: "Validate a development workflow, HTML, and CSS through server-graded assessments and three reviewed projects."
     },
-    version: 2,
+    version: 3,
     requiredTracks: ["tools", "html", "css"],
     requiredProjects: projectLessonIds,
     minProjectScore: 70

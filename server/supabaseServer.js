@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";
 import { checkSupabaseReadiness as checkReadiness, getSupabaseStatus as getStatus } from "./supabaseStatus.js";
+import { fromSupabaseProfileRow, readSupabasePages, tableForStore, toSupabaseProfileRow } from "./supabaseStoreHelpers.js";
 const supabaseUrl = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 export const supabaseEnabled = Boolean(supabaseUrl && serviceRoleKey);
@@ -24,7 +25,6 @@ export async function getUserFromAccessToken(token) {
 export async function getSupabaseStatus() {
   return getStatus(supabaseAdmin);
 }
-
 export async function checkSupabaseReadiness() {
   return checkReadiness(supabaseAdmin);
 }
@@ -46,19 +46,7 @@ export async function readSupabaseStore(storeName, fallback) {
     if (error) throw error;
     return Object.fromEntries((data || []).filter((row) => row.local_user_id).map((row) => [
       row.local_user_id,
-      {
-        userId: row.local_user_id,
-        displayName: row.display_name,
-        goal: row.goal,
-        weeklyMinutes: row.weekly_minutes,
-        locale: row.locale,
-        bio: row.bio || "",
-        avatarUrl: row.avatar_url || "",
-        onboardingCompleted: Boolean(row.onboarding_completed),
-        roles: row.roles || [],
-        createdAt: row.created_at,
-        updatedAt: row.updated_at
-      }
+      fromSupabaseProfileRow(row)
     ]));
   }
 
@@ -87,19 +75,7 @@ export async function writeSupabaseStore(storeName, store) {
   }
 
   if (storeName === "users.json") {
-    const rows = Object.values(store || {}).map((user) => ({
-      local_user_id: user.userId,
-      display_name: user.displayName || "PulsaTeach Learner",
-      goal: user.goal || "frontend-foundations",
-      weekly_minutes: user.weeklyMinutes || 120,
-      locale: user.locale || "en",
-      bio: user.bio || "",
-      avatar_url: user.avatarUrl || "",
-      onboarding_completed: Boolean(user.onboardingCompleted),
-      roles: user.roles || [],
-      created_at: user.createdAt || new Date().toISOString(),
-      updated_at: user.updatedAt || new Date().toISOString()
-    }));
+    const rows = Object.values(store || {}).map(toSupabaseProfileRow);
     if (rows.length === 0) return true;
     const { error } = await supabaseAdmin.from("profiles").upsert(rows, { onConflict: "local_user_id" });
     if (error) throw error;
@@ -124,6 +100,43 @@ export async function readSupabaseProgressForUser(userId) {
     .maybeSingle();
   if (error) throw error;
   return data ? { ...(data.payload || {}), userId, updatedAt: data.updated_at, revision: Number(data.revision || 0) } : null;
+}
+
+export async function readSupabaseProfileForUser(userId) {
+  if (!supabaseAdmin) return null;
+  const { data, error } = await supabaseAdmin.from("profiles").select("*").eq("local_user_id", userId).maybeSingle();
+  if (error) throw error;
+  return data ? fromSupabaseProfileRow(data) : null;
+}
+export async function saveSupabaseProfileForUser(user) {
+  if (!supabaseAdmin) throw new Error("Supabase profile storage is unavailable.");
+  const { data, error } = await supabaseAdmin.from("profiles")
+    .upsert(toSupabaseProfileRow(user), { onConflict: "local_user_id" })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return fromSupabaseProfileRow(data);
+}
+export async function listSupabaseStoreForUser(storeName, userId) {
+  if (!supabaseAdmin) return [];
+  const table = tableForStore(storeName);
+  if (!table || !["attempts", "submissions", "learning_events", "quiz_sessions"].includes(table)) return [];
+  const orderColumn = table === "quiz_sessions" ? "updated_at" : "created_at";
+  const rows = await readSupabasePages((from, to) => supabaseAdmin.from(table)
+    .select("*")
+    .eq("user_id", userId)
+    .order(orderColumn, { ascending: false })
+    .range(from, to));
+  return rows.map((row) => fromSupabaseRow(table, row));
+}
+
+export async function insertSupabaseStoreItem(storeName, item) {
+  if (!supabaseAdmin) throw new Error("Supabase storage is unavailable.");
+  const table = tableForStore(storeName);
+  if (!table) throw new Error(`Unsupported Supabase store: ${storeName}`);
+  const { data, error } = await supabaseAdmin.from(table).insert(toSupabaseRow(table, item)).select("*").single();
+  if (error) throw error;
+  return fromSupabaseRow(table, data);
 }
 
 export async function saveSupabaseProgressAtomic(userId, incomingProgress, mergeProgress, sanitizeProgress) {
@@ -172,20 +185,6 @@ export async function deleteSupabaseRecord(storeName, id) {
   const { error } = await supabaseAdmin.from(table).delete().eq("id", id);
   if (error) throw error;
   return true;
-}
-
-function tableForStore(storeName) {
-  return {
-    "attempts.json": "attempts",
-    "submissions.json": "submissions",
-    "enrollments.json": "enrollments",
-    "lesson-drafts.json": "lesson_drafts",
-    "course-drafts.json": "course_drafts",
-    "course-versions.json": "course_versions",
-    "issued-certificates.json": "issued_certificates",
-    "learning-events.json": "learning_events",
-    "quiz-sessions.json": "quiz_sessions"
-  }[storeName];
 }
 
 function fromSupabaseRow(table, row) {

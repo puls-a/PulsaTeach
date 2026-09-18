@@ -30,6 +30,7 @@ describe("certificate evidence", () => {
     }, []).certificates.find((item) => item.id === "git-github-practitioner");
 
     expect(certificate.progress.lessonsCompleted).toBe(0);
+    expect(certificate.progress.lessonProgressKind).toBe("browser-reported");
   });
 
   test("requires a server-graded passing session for completed exams", () => {
@@ -86,7 +87,38 @@ describe("certificate evidence", () => {
       .certificates.find((item) => item.id === definition.id);
     expect(evaluation.progress.lessonPercent).toBeGreaterThan(0);
     expect(evaluation.progress.examPercent).toBe(0);
+    expect(evaluation.evidence).not.toHaveProperty("progress");
+    expect(evaluation.evidence.qualificationMethod).toBe("server-assessed");
     expect(evaluation.eligible).toBe(false);
+  });
+
+  test("qualifies from server-assessed evidence without browser lesson completion", () => {
+    const definition = certificates.find((item) => item.id === "git-github-practitioner");
+    const lessons = learningTracks.find((track) => track.id === "git").modules.flatMap((module) => module.lessons);
+    const exams = lessons.filter((lesson) => lesson.purpose === "exam" || /final-exam|exam/i.test(lesson.id));
+    const sessions = exams.map((exam) => ({
+      userId: "learner",
+      quizId: exam.id,
+      status: "completed",
+      gradingVersion: 1,
+      gradedAt: "2026-09-17T12:00:00.000Z",
+      questionSetVersion: getQuestionSetVersion(exam),
+      score: { percent: 90, passed: true }
+    }));
+    const submissions = definition.requiredProjects.map((projectId) => ({
+      id: `submission-${projectId}`,
+      projectId,
+      version: 1,
+      status: "approved",
+      score: definition.minProjectScore
+    }));
+
+    const evaluation = buildCertificatesForUser("learner", { completed: {} }, submissions, [], sessions)
+      .certificates.find((item) => item.id === definition.id);
+    expect(evaluation.progress.lessonPercent).toBe(0);
+    expect(evaluation.progress.examPercent).toBe(100);
+    expect(evaluation.progress.projectPercent).toBe(100);
+    expect(evaluation.eligible).toBe(true);
   });
 
   test("requires the latest project version to meet the certificate score", () => {

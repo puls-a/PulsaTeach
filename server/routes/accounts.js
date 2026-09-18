@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+import { removeStorageFolderFiles } from "../storageHelpers.js";
 export function registerAccountsRoutes(app, context) {
   const {
     learningTracks,
@@ -57,6 +58,10 @@ export function registerAccountsRoutes(app, context) {
     writeJsonStore,
     withStoreMutation,
     listIssuedCertificatesForUser,
+    listSupabaseStoreForUser,
+    readSupabaseProfileForUser,
+    readSupabaseProgressForUser,
+    saveSupabaseProfileForUser,
     authorizeUserParam,
     authorizePayloadUser,
     requireAuthenticatedWrite,
@@ -83,35 +88,57 @@ export function registerAccountsRoutes(app, context) {
     publishDueScheduledCourses,
     deleteLocalAccountData,
     shouldTrySupabase,
+    shouldUseSupabaseMutations,
     markSupabaseUnavailable,
     rolesFromUser,
     randomUUID,
     createHash
   } = context;
 
+  const readUserProfile = async (userId) => {
+    if (shouldUseSupabaseMutations()) return (await readSupabaseProfileForUser(userId)) || createDefaultUser(userId);
+    const users = await readJsonStore(usersFile, {});
+    return users[userId] || createDefaultUser(userId);
+  };
+  const saveUserProfile = async (user) => {
+    if (shouldUseSupabaseMutations()) return saveSupabaseProfileForUser(user);
+    const users = await readJsonStore(usersFile, {});
+    users[user.userId] = user;
+    await writeJsonStore(usersFile, users);
+    return user;
+  };
+  const listUserRecords = async (storeName, file, userId) => {
+    if (shouldUseSupabaseMutations()) return listSupabaseStoreForUser(storeName, userId);
+    return (await readJsonStore(file, [])).filter((item) => item.userId === userId);
+  };
+  const readUserProgress = async (userId) => {
+    if (shouldUseSupabaseMutations()) return readSupabaseProgressForUser(userId);
+    const progress = await readProgressStore();
+    return progress[userId] || null;
+  };
+
   app.get("/api/path/:userId", async (request, response) => {
     if (!authorizeUserParam(request, response)) return;
     const userId = request.authUserId || request.params.userId;
-    const progressStore = await readProgressStore();
-    const [attempts, users] = await Promise.all([readJsonStore(attemptsFile, []), readJsonStore(usersFile, {})]);
-    const progress = progressStore[userId] || {};
-    const userAttempts = attempts.filter((item) => item.userId === userId);
-    response.json(buildStudyPlan(progress, userAttempts, users[userId]?.goal));
+    const [progress, attempts, user] = await Promise.all([
+      readUserProgress(userId),
+      listUserRecords("attempts.json", attemptsFile, userId),
+      readUserProfile(userId)
+    ]);
+    response.json(buildStudyPlan(progress || {}, attempts, user.goal));
   });
 
   app.get("/api/profile/:userId", async (request, response) => {
     if (!authorizeUserParam(request, response)) return;
     const userId = request.authUserId || request.params.userId;
-    const progressStore = await readProgressStore();
-    const submissions = await readJsonStore(submissionsFile, []);
-    const attempts = await readJsonStore(attemptsFile, []);
-    const issuedCertificates = await listIssuedCertificatesForUser(userId);
-    const quizSessions = await readJsonStore(quizSessionsFile, []);
-    const users = await readJsonStore(usersFile, {});
-    const progress = progressStore[userId] || null;
-    const userSubmissions = submissions.filter((item) => item.userId === userId);
-    const userAttempts = attempts.filter((item) => item.userId === userId);
-    const user = users[userId] || createDefaultUser(userId);
+    const [progress, userSubmissions, userAttempts, issuedCertificates, quizSessions, user] = await Promise.all([
+      readUserProgress(userId),
+      listUserRecords("submissions.json", submissionsFile, userId),
+      listUserRecords("attempts.json", attemptsFile, userId),
+      listIssuedCertificatesForUser(userId),
+      listUserRecords("quiz-sessions.json", quizSessionsFile, userId),
+      readUserProfile(userId)
+    ]);
 
     response.json({
       userId,
@@ -128,8 +155,7 @@ export function registerAccountsRoutes(app, context) {
   app.get("/api/users/:userId", async (request, response) => {
     if (!authorizeUserParam(request, response)) return;
     const userId = request.authUserId || request.params.userId;
-    const users = await readJsonStore(usersFile, {});
-    response.json(users[userId] || createDefaultUser(userId));
+    response.json(await readUserProfile(userId));
   });
 
   app.put("/api/users/:userId", requireAuthenticatedRequest, validateBody(userSettingsSchema), async (request, response) => {
@@ -141,8 +167,7 @@ export function registerAccountsRoutes(app, context) {
       response.status(400).json({ error: "User payload must be an object." });
       return;
     }
-    const users = await readJsonStore(usersFile, {});
-    const current = users[userId] || createDefaultUser(userId);
+    const current = await readUserProfile(userId);
     const completedOnboardingNow = !current.onboardingCompleted && Boolean(payload.onboardingCompleted);
     const next = {
       ...current,
@@ -156,8 +181,7 @@ export function registerAccountsRoutes(app, context) {
       roles: current.roles || [],
       updatedAt: new Date().toISOString()
     };
-    users[userId] = next;
-    await writeJsonStore(usersFile, users);
+    const saved = await saveUserProfile(next);
     if (completedOnboardingNow && request.authUser?.email) {
       sendWelcomeEmail({
         email: request.authUser.email,
@@ -170,7 +194,7 @@ export function registerAccountsRoutes(app, context) {
         error: error.message
       })));
     }
-    response.json(users[userId]);
+    response.json(saved);
   });
 
   app.post("/api/account/avatar", sensitiveRateLimit(20), requireAuthenticatedRequest, validateBody(avatarUploadSchema), async (request, response) => {
@@ -184,37 +208,36 @@ export function registerAccountsRoutes(app, context) {
       response.status(400).json({ error: "Avatar must be a JPEG, PNG, or WebP data URL under 1 MB.", requestId: request.requestId });
       return;
     }
-    const extension = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[parsed.mime];
-    const objectPath = `${request.authUser.id}/avatar-${Date.now()}.${extension}`;
-    const { error: uploadError } = await supabaseAdmin.storage.from("avatars").upload(objectPath, parsed.buffer, {
+    const avatarBucket = supabaseAdmin.storage.from("avatars");
+    const objectPath = `${request.authUser.id}/avatar`;
+    const { error: uploadError } = await avatarBucket.upload(objectPath, parsed.buffer, {
       contentType: parsed.mime,
       upsert: true,
       cacheControl: "3600"
     });
     if (uploadError) throw uploadError;
-    const { data } = supabaseAdmin.storage.from("avatars").getPublicUrl(objectPath);
-    const users = await readJsonStore(usersFile, {});
+    await removeStorageFolderFiles(avatarBucket, request.authUser.id, ["avatar"]);
+    const { data } = avatarBucket.getPublicUrl(objectPath);
     const userId = request.authUserId;
-    users[userId] = {
-      ...(users[userId] || createDefaultUser(userId)),
-      avatarUrl: data.publicUrl,
+    const user = await saveUserProfile({
+      ...await readUserProfile(userId),
+      avatarUrl: `${data.publicUrl}?v=${Date.now()}`,
       updatedAt: new Date().toISOString()
-    };
-    await writeJsonStore(usersFile, users);
-    response.status(201).json({ avatarUrl: data.publicUrl });
+    });
+    response.status(201).json({ avatarUrl: user.avatarUrl });
   });
 
   app.get("/api/account/export", requireAuthenticatedRequest, async (request, response) => {
     if (!requireAuthenticatedWrite(request, response)) return;
     const userId = request.authUserId;
-    const [progress, submissions, attempts, users, issuedCertificates, learningEvents, quizSessions, discordLink, verifiedTracks, legalAcceptances] = await Promise.all([
-      readProgressStore(),
-      readJsonStore(submissionsFile, []),
-      readJsonStore(attemptsFile, []),
-      readJsonStore(usersFile, {}),
+    const [progress, submissions, attempts, user, issuedCertificates, learningEvents, quizSessions, discordLink, verifiedTracks, legalAcceptances] = await Promise.all([
+      readUserProgress(userId),
+      listUserRecords("submissions.json", submissionsFile, userId),
+      listUserRecords("attempts.json", attemptsFile, userId),
+      readUserProfile(userId),
       listIssuedCertificatesForUser(userId),
-      readJsonStore(learningEventsFile, []),
-      readJsonStore(quizSessionsFile, []),
+      listUserRecords("learning-events.json", learningEventsFile, userId),
+      listUserRecords("quiz-sessions.json", quizSessionsFile, userId),
       supabaseAdmin && request.authUser?.id
         ? supabaseAdmin.from("discord_links").select("discord_id,discord_username,linked_at").eq("user_id", request.authUser.id).maybeSingle()
         : Promise.resolve({ data: null, error: null }),
@@ -233,14 +256,14 @@ export function registerAccountsRoutes(app, context) {
       account: {
         userId,
         email: request.authUser?.email,
-        profile: users[userId] || createDefaultUser(userId)
+        profile: user
       },
-      progress: progress[userId] || null,
-      submissions: submissions.filter((item) => item.userId === userId),
-      attempts: attempts.filter((item) => item.userId === userId),
+      progress,
+      submissions,
+      attempts,
       certificates: issuedCertificates,
-      learningEvents: learningEvents.filter((item) => item.userId === userId),
-      quizSessions: quizSessions.filter((item) => item.userId === userId),
+      learningEvents,
+      quizSessions,
       discord: discordLink.data,
       verifiedTrackCompletions: verifiedTracks.data || [],
       legalAcceptances: legalAcceptances.data || []
@@ -255,12 +278,7 @@ export function registerAccountsRoutes(app, context) {
     }
     const userId = request.authUserId;
     if (supabaseAdmin && request.authUser?.id) {
-      const { data: avatarFiles, error: listError } = await supabaseAdmin.storage.from("avatars").list(request.authUser.id);
-      if (listError) throw listError;
-      if (avatarFiles?.length) {
-        const { error: removeError } = await supabaseAdmin.storage.from("avatars").remove(avatarFiles.map((file) => `${request.authUser.id}/${file.name}`));
-        if (removeError) throw removeError;
-      }
+      await removeStorageFolderFiles(supabaseAdmin.storage.from("avatars"), request.authUser.id);
       const { error: purgeError } = await supabaseAdmin.rpc("purge_application_user_data", {
         p_auth_user_id: request.authUser.id,
         p_local_user_id: userId

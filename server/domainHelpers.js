@@ -137,15 +137,19 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
       const requiredLessons = getLessonsForTracks(certificate.requiredTracks);
       const requiredExams = requiredLessons.filter((lesson) => lesson.purpose === "exam" || /final-exam|exam/i.test(lesson.id));
       const requiredExamIds = new Set(requiredExams.map((lesson) => lesson.id));
-      const completedRequiredLessons = requiredLessons.filter((lesson) => requiredExamIds.has(lesson.id)
-        ? verifiedQuizSessions.has(lesson.id)
-        : completedLessonIds.has(lesson.id));
-      const completedExams = requiredExams.filter((lesson) => completedRequiredLessons.includes(lesson));
-      const demonstratedSkills = [...new Set(requiredLessons.flatMap((lesson) => lesson.skills || []))].sort();
+      const completedLearningLessons = requiredLessons.filter((lesson) => completedLessonIds.has(lesson.id));
+      const completedExams = requiredExams.filter((lesson) => verifiedQuizSessions.has(lesson.id));
+      const assessedLessonIds = new Set([...requiredExamIds, ...certificate.requiredProjects]);
+      const demonstratedSkills = [...new Set(requiredLessons
+        .filter((lesson) => assessedLessonIds.has(lesson.id))
+        .flatMap((lesson) => lesson.skills || []))].sort();
       const projectEvidence = certificate.requiredProjects.map((projectId) => {
         const latestSubmission = userSubmissions
           .filter((item) => matchesProjectId(projectId, item.projectId))
-          .sort((left, right) => Number(right.version || 1) - Number(left.version || 1))[0];
+          .sort((left, right) => Number(right.projectId === projectId) - Number(left.projectId === projectId)
+            || Number(right.version || 1) - Number(left.version || 1)
+            || String(right.updatedAt || right.createdAt || "").localeCompare(String(left.updatedAt || left.createdAt || ""))
+            || String(right.id || "").localeCompare(String(left.id || "")))[0];
         const submission = latestSubmission?.status === "approved" && (latestSubmission.score ?? 0) >= certificate.minProjectScore
           ? latestSubmission
           : null;
@@ -164,10 +168,10 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
         const track = learningTracks.find((item) => item.id === trackId);
         return [trackId, track?.version || "2026.06"];
       }));
-      const lessonPercent = requiredLessons.length ? Math.round((completedRequiredLessons.length / requiredLessons.length) * 100) : 0;
+      const lessonPercent = requiredLessons.length ? Math.round((completedLearningLessons.length / requiredLessons.length) * 100) : 0;
       const projectPercent = certificate.requiredProjects.length ? Math.round((approvedProjects.length / certificate.requiredProjects.length) * 100) : 0;
       const examPercent = requiredExams.length ? Math.round((completedExams.length / requiredExams.length) * 100) : 100;
-      const eligible = lessonPercent === 100 && examPercent === 100 && projectPercent === 100;
+      const eligible = examPercent === 100 && projectPercent === 100;
 
       return {
         ...certificate,
@@ -176,9 +180,10 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
         issued: issuedCertificates.find((item) => item.userId === userId && item.certificateId === certificate.id && !item.revokedAt) || null,
         progress: {
           lessonPercent,
+          lessonProgressKind: "browser-reported",
           examPercent,
           projectPercent,
-          lessonsCompleted: completedRequiredLessons.length,
+          lessonsCompleted: completedLearningLessons.length,
           lessonsRequired: requiredLessons.length,
           examsCompleted: completedExams.length,
           examsRequired: requiredExams.length,
@@ -187,6 +192,7 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
         },
         evidence: {
           certificateVersion: certificate.version || 1,
+          qualificationMethod: "server-assessed",
           trackVersions,
           skills: demonstratedSkills,
           exams: {
@@ -199,13 +205,7 @@ function buildCertificatesForUser(userId, progress, userSubmissions, issuedCerti
               return { quizId: lesson.id, percent: qualifiedScore.percent, gradedAt: session.qualifiedAt || session.gradedAt };
             })
           },
-          projects: projectEvidence,
-          progress: {
-            lessonsCompleted: completedRequiredLessons.length,
-            lessonsRequired: requiredLessons.length,
-            projectsApproved: approvedProjects.length,
-            projectsRequired: certificate.requiredProjects.length
-          }
+          projects: projectEvidence
         }
       };
     })
@@ -316,8 +316,14 @@ function parseImageDataUrl(value) {
   const match = String(value || "").match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
   if (!match) return null;
   const buffer = Buffer.from(match[2], "base64");
-  if (!buffer.length || buffer.length > 1024 * 1024) return null;
+  if (!buffer.length || buffer.length > 1024 * 1024 || !hasImageSignature(buffer, match[1])) return null;
   return { mime: match[1], buffer };
+}
+
+function hasImageSignature(buffer, mime) {
+  if (mime === "image/jpeg") return buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  if (mime === "image/png") return buffer.length >= 8 && buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  return buffer.length >= 12 && buffer.subarray(0, 4).toString("ascii") === "RIFF" && buffer.subarray(8, 12).toString("ascii") === "WEBP";
 }
 
 function buildProfileSummary(progress, submissions, attempts) {

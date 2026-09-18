@@ -108,7 +108,7 @@ export function ProfilePage({ locale }) {
               {certificates.map((certificate) => (
                 <article className="rounded-2xl bg-white p-4 text-ink clay-soft" key={certificate.id}>
                   <h3 className="font-display text-xl font-bold">{certificate.title[locale] || certificate.title.fr || certificate.title.en}</h3>
-                  <p className="mt-2 font-semibold text-slate-600">{certificate.progress.lessonPercent}% {locale === "fr" ? "leçons" : "lessons"} · {certificate.progress.projectPercent}% {locale === "fr" ? "projets" : "projects"}</p>
+                  <p className="mt-2 font-semibold text-slate-600">{certificate.progress.examPercent}% {locale === "fr" ? "examens" : "exams"} · {certificate.progress.projectPercent}% {locale === "fr" ? "projets" : "projects"}</p>
                 </article>
               ))}
             </div>

@@ -150,12 +150,17 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
       p_id: randomUUID(),
       p_verification_code: `success${stamp}`,
       p_certificate_id: `ci-certificate-success-${stamp}`,
-      p_evidence: { exams: { scores: [{ quizId: certificateQuizId, percent: 1 }] } },
+      p_evidence: {
+        exams: { scores: [{ quizId: certificateQuizId, percent: 1 }] },
+        progress: { lessonsCompleted: 999, lessonsRequired: 1 }
+      },
       p_required_exams: [{ quizId: certificateQuizId, questionSetVersion: `${certificateQuizId}:2` }]
     };
     const { data: issuedCertificate, error: issueCertificateError } = await admin.rpc("issue_certificate_atomic", successfulCertificatePayload);
     if (issueCertificateError) throw issueCertificateError;
     expect(issuedCertificate).toMatchObject({ created: true, certificate: { evidence: { exams: { scores: [{ quizId: certificateQuizId, percent: 88 }] } } } });
+    expect(issuedCertificate.certificate.evidence).toMatchObject({ qualificationMethod: "server-assessed" });
+    expect(issuedCertificate.certificate.evidence).not.toHaveProperty("progress");
     const { data: replayedCertificate, error: replayCertificateError } = await admin.rpc("issue_certificate_atomic", successfulCertificatePayload);
     if (replayCertificateError) throw replayCertificateError;
     expect(replayedCertificate).toMatchObject({ created: false, certificate: { id: successfulCertificatePayload.p_id } });
@@ -253,11 +258,34 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
     });
     expect(approved.ok()).toBeTruthy();
     const approvedCourse = await approved.json();
-    const published = await request.patch(`http://127.0.0.1:4190/api/courses/${course.id}`, {
+    const scheduledAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    const scheduled = await request.patch(`http://127.0.0.1:4190/api/courses/${course.id}`, {
       headers,
-      data: { status: "published", expectedVersion: approvedCourse.version }
+      data: { status: "scheduled", scheduledAt, expectedVersion: approvedCourse.version }
     });
-    expect(published.ok()).toBeTruthy();
+    expect(scheduled.ok()).toBeTruthy();
+
+    const publishAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+    const publications = await Promise.all(Array.from({ length: 5 }, () => admin.rpc("publish_due_courses_atomic", { p_now: publishAt })));
+    for (const publication of publications) {
+      if (publication.error) throw publication.error;
+    }
+    expect(publications.reduce((total, publication) => total + publication.data.published, 0)).toBe(1);
+    const { data: publishedCourse, error: publishedCourseError } = await admin.from("course_drafts")
+      .select("status,version,scheduled_at,workflow_log")
+      .eq("id", course.id)
+      .single();
+    if (publishedCourseError) throw publishedCourseError;
+    expect(publishedCourse).toMatchObject({ status: "published", version: approvedCourse.version + 2, scheduled_at: null });
+    expect(publishedCourse.workflow_log.filter((entry) => entry.comment === "Scheduled publication")).toHaveLength(1);
+    const { count: publicationVersionCount, error: publicationVersionError } = await admin.from("course_versions")
+      .select("id", { count: "exact", head: true })
+      .eq("course_id", course.id)
+      .eq("status", "published");
+    if (publicationVersionError) throw publicationVersionError;
+    expect(publicationVersionCount).toBe(1);
+    const { error: forbiddenPublishRpc } = await anon.rpc("publish_due_courses_atomic", { p_now: publishAt });
+    expect(forbiddenPublishRpc).toBeTruthy();
 
     await page.goto("/studio");
     await expect(page.getByText("Formation CI dynamique").first()).toBeVisible();
@@ -310,6 +338,12 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
     expect(avatar.ok()).toBeTruthy();
     expect((await avatar.json()).avatarUrl).toContain("/avatars/");
 
+    const { error: completionError } = await admin.from("verified_track_completions").upsert({
+      user_id: localUserId,
+      track_id: "html"
+    });
+    if (completionError) throw completionError;
+
     const removedCourse = await request.delete(`http://127.0.0.1:4190/api/courses/${course.id}`, { headers });
     expect(removedCourse.ok()).toBeTruthy();
     courseId = null;
@@ -319,6 +353,17 @@ test("real Supabase account, profile, publication and catalog flow", async ({ pa
       data: { confirmation: "DELETE" }
     });
     expect(deletedAccount.ok()).toBeTruthy();
+    const { data: remainingCompletions, error: remainingCompletionsError } = await admin
+      .from("verified_track_completions").select("track_id").eq("user_id", localUserId);
+    const { data: remainingOutbox, error: remainingOutboxError } = await admin
+      .from("discord_outbox").select("id").eq("user_id", localUserId);
+    const { data: remainingAvatars, error: remainingAvatarsError } = await admin.storage.from("avatars").list(authUserId);
+    if (remainingCompletionsError || remainingOutboxError || remainingAvatarsError) {
+      throw remainingCompletionsError || remainingOutboxError || remainingAvatarsError;
+    }
+    expect(remainingCompletions).toEqual([]);
+    expect(remainingOutbox).toEqual([]);
+    expect(remainingAvatars).toEqual([]);
     authUserId = null;
     localUserId = null;
   } finally {

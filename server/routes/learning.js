@@ -56,6 +56,8 @@ export function registerLearningRoutes(app, context) {
     writeJsonStore,
     withStoreMutation,
     createSupabaseSubmission,
+    insertSupabaseStoreItem,
+    listSupabaseStoreForUser,
     reviewSupabaseSubmission,
     shouldUseSupabaseMutations,
     authorizeUserParam,
@@ -177,12 +179,14 @@ export function registerLearningRoutes(app, context) {
   });
 
   app.get("/api/submissions", async (request, response) => {
-    const store = await readJsonStore(submissionsFile, []);
     const userId = Array.isArray(request.query.userId) ? request.query.userId[0] : request.query.userId;
     const requestedUserId = typeof userId === "string" ? userId.trim() : "";
     const canReview = hasRole(request, "admin", "reviewer");
     if (canReview) {
-      response.json(requestedUserId ? store.filter((item) => item.userId === requestedUserId) : store);
+      const store = shouldUseSupabaseMutations() && requestedUserId
+        ? await listSupabaseStoreForUser("submissions.json", requestedUserId)
+        : await readJsonStore(submissionsFile, []);
+      response.json(requestedUserId && !shouldUseSupabaseMutations() ? store.filter((item) => item.userId === requestedUserId) : store);
       return;
     }
     if (!request.authUserId) {
@@ -193,7 +197,10 @@ export function registerLearningRoutes(app, context) {
       sendApiError(response, request, 403, "USER_ACCESS_DENIED", "Authenticated user cannot access another learner.");
       return;
     }
-    response.json(store.filter((item) => item.userId === request.authUserId));
+    const store = shouldUseSupabaseMutations()
+      ? await listSupabaseStoreForUser("submissions.json", request.authUserId)
+      : (await readJsonStore(submissionsFile, [])).filter((item) => item.userId === request.authUserId);
+    response.json(store);
   });
 
   app.post("/api/submissions", requireAuthenticatedRequest, validateBody(submissionSchema), async (request, response) => {
@@ -258,7 +265,6 @@ export function registerLearningRoutes(app, context) {
   });
 
   app.get("/api/attempts", async (request, response) => {
-    const store = await readJsonStore(attemptsFile, []);
     const userId = Array.isArray(request.query.userId) ? request.query.userId[0] : request.query.userId;
     const lessonId = Array.isArray(request.query.lessonId) ? request.query.lessonId[0] : request.query.lessonId;
     const requestedUserId = typeof userId === "string" ? userId.trim() : "";
@@ -273,6 +279,9 @@ export function registerLearningRoutes(app, context) {
     }
     const normalizedUserId = request.authUserId || requestedUserId;
     const normalizedLessonId = typeof lessonId === "string" ? lessonId.trim() : "";
+    const store = shouldUseSupabaseMutations() && normalizedUserId
+      ? await listSupabaseStoreForUser("attempts.json", normalizedUserId)
+      : await readJsonStore(attemptsFile, []);
     response.json(
       store.filter((item) =>
         (!normalizedUserId || item.userId === normalizedUserId) &&
@@ -291,7 +300,6 @@ export function registerLearningRoutes(app, context) {
     const userId = request.authUserId || payload.userId;
     if (!userId || !authorizePayloadUser(request, response, payload.userId)) return;
 
-    const store = await readJsonStore(attemptsFile, []);
     const passed = Number(payload.passed || 0);
     const total = Number(payload.total || 0);
     const attempt = {
@@ -305,6 +313,11 @@ export function registerLearningRoutes(app, context) {
       success: total > 0 && passed === total,
       createdAt: new Date().toISOString()
     };
+    if (shouldUseSupabaseMutations()) {
+      response.status(201).json(await insertSupabaseStoreItem("attempts.json", attempt));
+      return;
+    }
+    const store = await readJsonStore(attemptsFile, []);
     store.unshift(attempt);
     await writeJsonStore(attemptsFile, store.slice(0, 1000));
     response.status(201).json(attempt);
@@ -410,7 +423,6 @@ export function registerLearningRoutes(app, context) {
       response.status(400).json({ error: "Unsupported event type.", requestId: request.requestId });
       return;
     }
-    const store = await readJsonStore(learningEventsFile, []);
     const event = {
       id: randomUUID(),
       userId: request.authUserId,
@@ -421,6 +433,11 @@ export function registerLearningRoutes(app, context) {
       requestId: request.requestId,
       createdAt: new Date().toISOString()
     };
+    if (shouldUseSupabaseMutations()) {
+      response.status(201).json(await insertSupabaseStoreItem("learning-events.json", event));
+      return;
+    }
+    const store = await readJsonStore(learningEventsFile, []);
     store.unshift(event);
     const retentionStart = Date.now() - 180 * 24 * 60 * 60 * 1000;
     await writeJsonStore(learningEventsFile, store.filter((item) => new Date(item.createdAt).getTime() >= retentionStart).slice(0, 10000));

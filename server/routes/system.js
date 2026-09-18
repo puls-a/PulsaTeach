@@ -153,7 +153,6 @@ export function registerSystemRoutes(app, context) {
   });
 
   app.get("/api/catalog", async (_request, response) => {
-    await publishDueScheduledCourses();
     const courses = await readJsonStore(coursesFile, []);
     const publishedTracks = courses.filter((course) => course.status === "published").map(normalizePublishedCourse);
     response.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
@@ -163,7 +162,6 @@ export function registerSystemRoutes(app, context) {
   });
 
   app.get("/api/catalog/:trackId", async (request, response) => {
-    await publishDueScheduledCourses();
     const courses = await readJsonStore(coursesFile, []);
     const publishedTracks = courses.filter((course) => course.status === "published").map(normalizePublishedCourse);
     const track = [...learningTracks, ...publishedTracks].find((item) => item.id === request.params.trackId);

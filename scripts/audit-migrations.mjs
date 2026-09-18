@@ -31,6 +31,7 @@ for (const requirement of [
   "save_quiz_draft_atomic",
   "submit_quiz_session_atomic",
   "issue_certificate_atomic",
+  "publish_due_courses_atomic",
     "create table if not exists public.discord_links",
     "create table if not exists public.used_link_nonces",
     "create table if not exists public.legal_acceptances",

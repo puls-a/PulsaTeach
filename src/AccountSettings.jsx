@@ -69,7 +69,11 @@ export default function AccountSettings({ locale = "fr" }) {
     try {
       await deleteAccount(deleteConfirmation);
       clearLearnerStorage();
-      await signOutSupabase();
+      try {
+        await signOutSupabase();
+      } catch {
+        // The server has already deleted the identity; remote sign-out is best effort.
+      }
       navigate("/catalog");
     } catch {
       setStatus("delete-error");

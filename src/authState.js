@@ -109,11 +109,14 @@ export async function signOutSupabase() {
   }
   const supabase = await getSupabaseClient();
   if (!supabase) throw new Error("Authentication is unavailable.");
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
-  localStorage.removeItem(localSessionKey);
-  resetLearnerStorageOwner();
-  window.dispatchEvent(new Event(localAuthEvent));
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  } finally {
+    localStorage.removeItem(localSessionKey);
+    resetLearnerStorageOwner();
+    window.dispatchEvent(new Event(localAuthEvent));
+  }
 }
 
 export function createLocalSession(email) {

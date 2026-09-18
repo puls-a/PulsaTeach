@@ -23,6 +23,7 @@ beforeAll(async () => {
   process.env.PULSATEACH_WEBHOOK_SECRET = "test-discord-secret";
   process.env.PULSABOT_API_KEY = "test-pulsabot-api-key";
   process.env.PULSABOT_LINK_SIGNING_SECRET = "test-pulsabot-link-secret";
+  process.env.CRON_SECRET = "test-cron-secret";
   ({ default: app } = await import("../../server/index.js"));
 });
 
@@ -612,6 +613,8 @@ describe("API security boundaries", () => {
     const firstIssue = issueResponses[0];
     expect(new Set(issueResponses.map((result) => result.body.verificationCode)).size).toBe(1);
     expect(firstIssue.body.evidence.projects.every((project) => project.score === 85)).toBe(true);
+    expect(firstIssue.body.evidence).not.toHaveProperty("progress");
+    expect(firstIssue.body.evidence.qualificationMethod).toBe("server-assessed");
 
     const profile = await request(app).get(`/api/profile/${userId}`).set(learner).expect(200);
     expect(profile.body.certificates.find((certificate) => certificate.id === "frontend-foundations").issued.verificationCode)
@@ -619,6 +622,7 @@ describe("API security boundaries", () => {
     const publicCertificate = await request(app).get(`/api/certificates/public/${firstIssue.body.verificationCode}`).expect(200);
     expect(publicCertificate.body).toMatchObject({ valid: true, status: "valid" });
     expect(publicCertificate.body.certificate.evidence.projects).toEqual({ approved: definition.requiredProjects.length, required: definition.requiredProjects.length });
+    expect(publicCertificate.body.certificate.evidence.qualificationMethod).toBe("server-assessed");
     expect(JSON.stringify(publicCertificate.body)).not.toContain("submissionId");
 
     const revoked = await request(app)
@@ -728,5 +732,51 @@ describe("API security boundaries", () => {
       identifiersExposed: false,
       eventRetentionDays: 180
     });
+  });
+
+  test("publishes scheduled courses only through authenticated maintenance", async () => {
+    const headers = { "X-PulsaTeach-Admin-Key": "test-admin-key" };
+    const module = createModuleDraft(0);
+    module.title = { fr: "Fondations planifiées", en: "Scheduled foundations" };
+    module.description = { fr: "Comprendre la publication planifiée.", en: "Understand scheduled publishing." };
+    module.deliverable = { fr: "Une page publiée", en: "A published page" };
+    const lesson = createLessonDraft("html", 0);
+    lesson.title = { fr: "Leçon planifiée", en: "Scheduled lesson" };
+    lesson.brief = { fr: "Construis une structure publiable.", en: "Build a publishable structure." };
+    lesson.course.fr.introduction = "Une introduction complète pour la publication planifiée.";
+    lesson.tests = [{ type: "selector", label: "Titre principal", value: "h1", amount: 1 }];
+    module.lessons = [lesson];
+    const created = await request(app).post("/api/courses").set(headers).send({
+      title: { fr: "Formation planifiée", en: "Scheduled course" },
+      description: { fr: "Publication par maintenance.", en: "Published by maintenance." },
+      curriculum: { modules: [module] }
+    }).expect(201);
+    const review = await request(app).patch(`/api/courses/${created.body.id}`).set(headers)
+      .send({ status: "review", expectedVersion: created.body.version }).expect(200);
+    const approved = await request(app).patch(`/api/courses/${created.body.id}`).set(headers)
+      .send({ status: "approved", expectedVersion: review.body.version }).expect(200);
+    const scheduledAt = new Date(Date.now() + 100).toISOString();
+    const scheduled = await request(app).patch(`/api/courses/${created.body.id}`).set(headers)
+      .send({ status: "scheduled", scheduledAt, expectedVersion: approved.body.version }).expect(200);
+
+    const earlyCatalog = await request(app).get("/api/catalog").expect(200);
+    expect(earlyCatalog.body.tracks.some((track) => track.id === scheduled.body.slug)).toBe(false);
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    const maintenance = await request(app).get("/api/internal/maintenance")
+      .set("Authorization", "Bearer test-cron-secret").expect(200);
+    expect(maintenance.body.courses.published).toBe(1);
+    const catalog = await request(app).get("/api/catalog").expect(200);
+    expect(catalog.body.tracks.some((track) => track.id === scheduled.body.slug)).toBe(true);
+    await request(app).delete(`/api/courses/${created.body.id}`).set(headers).expect(200);
+  });
+
+  test("rejects oversized or nested learning-event payloads", async () => {
+    const headers = { "X-PulsaTeach-User-Id": "analytics-user" };
+    await request(app).post("/api/events").set(headers)
+      .send({ eventType: "tests_run", payload: { detail: { secret: "nested" } } })
+      .expect(400);
+    await request(app).post("/api/events").set(headers)
+      .send({ eventType: "tests_run", payload: Object.fromEntries(Array.from({ length: 21 }, (_, index) => [`field-${index}`, index])) })
+      .expect(400);
   });
 });

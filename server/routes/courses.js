@@ -89,7 +89,6 @@ export function registerCoursesRoutes(app, context) {
   } = context;
 
   app.get("/api/courses", async (request, response) => {
-    await publishDueScheduledCourses();
     const courses = await readJsonStore(coursesFile, []);
     const canReview = hasRole(request, "admin", "author", "reviewer");
     response.json(canReview ? courses : courses.filter((course) => course.status === "published"));

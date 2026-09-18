@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 
 export function registerDiscordRoutes(app, context) {
-  const { discordIntegration, getUserFromAccessToken, pulsaBotRateLimit, sendApiError, supabaseAdmin } = context;
+  const { discordIntegration, getUserFromAccessToken, publishDueScheduledCourses, pulsaBotRateLimit, sendApiError, supabaseAdmin } = context;
   app.post("/api/discord/link", async (request, response) => {
     const result = await discordIntegration.consumeLink({ state: request.body?.state, resolveAuthUser: () => getUserFromAccessToken(readBearerToken(request.headers.authorization)) });
     response.json(result);
@@ -15,9 +15,19 @@ export function registerDiscordRoutes(app, context) {
   app.get("/api/internal/maintenance", async (request, response) => {
     const token = readBearerToken(request.headers.authorization);
     if (!process.env.CRON_SECRET || !safeEqual(token, process.env.CRON_SECRET)) { sendApiError(response, request, 401, "MAINTENANCE_UNAUTHORIZED", "Maintenance authentication failed."); return; }
-    const [discord, purge] = await Promise.all([discordIntegration.processOutbox(10), supabaseAdmin.rpc("purge_expired_operational_data")]);
+    const purgeExpiredData = supabaseAdmin
+      ? supabaseAdmin.rpc("purge_expired_operational_data")
+      : Promise.resolve({ data: {}, error: null });
+    const processDiscordOutbox = supabaseAdmin
+      ? discordIntegration.processOutbox(10)
+      : Promise.resolve({ claimed: 0, delivered: 0, failed: 0 });
+    const [discord, courses, purge] = await Promise.all([
+      processDiscordOutbox,
+      publishDueScheduledCourses(),
+      purgeExpiredData
+    ]);
     if (purge.error) throw purge.error;
-    response.json({ ok: true, discord, purged: purge.data });
+    response.json({ ok: true, discord, courses, purged: purge.data });
   });
 }
 

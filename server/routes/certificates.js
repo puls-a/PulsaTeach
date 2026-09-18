@@ -18,7 +18,10 @@ export function registerCertificateRoutes(app, context) {
     findSupabaseIssuedCertificateByVerificationCode,
     issueSupabaseCertificateAtomic,
     listIssuedCertificatesForUser,
+    listSupabaseStoreForUser,
     listSupabaseQuizSessionsForUser,
+    readSupabaseProfileForUser,
+    readSupabaseProgressForUser,
     revokeSupabaseIssuedCertificate,
     shouldUseSupabaseMutations,
     randomUUID,
@@ -28,16 +31,20 @@ export function registerCertificateRoutes(app, context) {
   app.get("/api/certificates/:userId", async (request, response) => {
     if (!authorizeUserParam(request, response)) return;
     const userId = request.authUserId || request.params.userId;
-    const progressStore = await readProgressStore();
-    const submissions = await readJsonStore(submissionsFile, []);
+    const progress = shouldUseSupabaseMutations()
+      ? await readSupabaseProgressForUser(userId)
+      : (await readProgressStore())[userId] || {};
+    const submissions = shouldUseSupabaseMutations()
+      ? await listSupabaseStoreForUser("submissions.json", userId)
+      : (await readJsonStore(submissionsFile, [])).filter((item) => item.userId === userId);
     const quizSessions = shouldUseSupabaseMutations()
       ? await listSupabaseQuizSessionsForUser(userId)
       : await readJsonStore(quizSessionsFile, []);
     const issued = await listIssuedCertificatesForUser(userId);
     response.json(buildCertificatesForUser(
       userId,
-      progressStore[userId] || {},
-      submissions.filter((item) => item.userId === userId),
+      progress || {},
+      submissions,
       issued,
       quizSessions
     ));
@@ -61,16 +68,20 @@ export function registerCertificateRoutes(app, context) {
         return;
       }
 
-      const [progressStore, submissions, users, quizSessions] = await Promise.all([
-        readProgressStore(),
-        readJsonStore(submissionsFile, []),
-        readJsonStore(usersFile, {}),
+      const [progress, submissions, user, quizSessions] = await Promise.all([
+        useSupabase ? readSupabaseProgressForUser(userId) : readProgressStore().then((store) => store[userId] || {}),
+        useSupabase
+          ? listSupabaseStoreForUser("submissions.json", userId)
+          : readJsonStore(submissionsFile, []).then((items) => items.filter((item) => item.userId === userId)),
+        useSupabase
+          ? readSupabaseProfileForUser(userId)
+          : readJsonStore(usersFile, {}).then((users) => users[userId] || null),
         useSupabase ? listSupabaseQuizSessionsForUser(userId) : readJsonStore(quizSessionsFile, [])
       ]);
       const evaluation = buildCertificatesForUser(
         userId,
-        progressStore[userId] || {},
-        submissions.filter((item) => item.userId === userId),
+        progress || {},
+        submissions,
         issued,
         quizSessions
       ).certificates.find((item) => item.id === request.params.certificateId);
@@ -93,7 +104,7 @@ export function registerCertificateRoutes(app, context) {
         verificationCode: randomUUID().replaceAll("-", ""),
         userId,
         certificateId: evaluation.id,
-        learnerName: users[userId]?.displayName || request.authUser?.email || "PulsaTeach Learner",
+        learnerName: user?.displayName || request.authUser?.email || "PulsaTeach Learner",
         title: evaluation.title,
         certificateVersion: evaluation.certificateVersion,
         evidence: evaluation.evidence,
@@ -184,6 +195,7 @@ function projectPublicCertificateEvidence(evidence = {}) {
   const requiredProjects = hasProjectEvidence ? evidence.projects.length : evidence.progress?.projectsRequired;
   return {
     certificateVersion: evidence.certificateVersion || 1,
+    qualificationMethod: evidence.qualificationMethod || "legacy",
     trackVersions: evidence.trackVersions || {},
     skills: evidence.skills || [],
     exams: { completed: completedExams, required: requiredExams },

@@ -14,7 +14,7 @@ import { productRoadmap } from "./roadmap.js";
 import { decodeProtectedExamResponses, projectPublicTrack } from "./publicContent.js";
 import { sendWelcomeEmail, transactionalEmailEnabled } from "./emailService.js";
 import { applySecurity, localIdentityEnabled, pulsaBotRateLimit, sensitiveRateLimit } from "./security.js";
-import { checkSupabaseReadiness, deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, readSupabaseProgressForUser, readSupabaseStore, requireSupabaseStorage, saveSupabaseProgressAtomic, supabaseAdmin, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
+import { checkSupabaseReadiness, deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, insertSupabaseStoreItem, listSupabaseStoreForUser, readSupabaseProfileForUser, readSupabaseProgressForUser, readSupabaseStore, requireSupabaseStorage, saveSupabaseProfileForUser, saveSupabaseProgressAtomic, supabaseAdmin, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
 import { createSupabaseSubmission, findSupabaseIssuedCertificateByVerificationCode, findSupabaseQuizSession, issueSupabaseCertificateAtomic, listSupabaseIssuedCertificatesForUser, listSupabaseQuizSessionsForUser, reviewSupabaseSubmission, revokeSupabaseIssuedCertificate, saveSupabaseQuizDraft, submitSupabaseQuizSession } from "./supabaseSensitiveOperations.js";
 import { accountDeletionSchema, attemptSchema, avatarUploadSchema, certificateRevokeSchema, courseCreateSchema, courseRollbackSchema, courseUpdateSchema, enrollmentSchema, eventSchema, lessonDraftSchema, lessonDraftUpdateSchema, progressMigrationSchema, progressSchema, quizSessionSchema, quizSubmissionSchema, reviewSchema, roleUpdateSchema, submissionSchema, telemetrySchema, userSettingsSchema, validateBody } from "./validation.js";
 
@@ -113,7 +113,11 @@ const routeContext = {
   getSupabaseStatus,
   checkSupabaseReadiness,
   getUserFromAccessToken,
+  insertSupabaseStoreItem,
+  listSupabaseStoreForUser,
+  readSupabaseProfileForUser,
   readSupabaseProgressForUser,
+  saveSupabaseProfileForUser,
   saveSupabaseProgressAtomic,
   supabaseAdmin,
   supabaseEnabled,
@@ -361,35 +365,43 @@ function markSupabaseUnavailable() {
 }
 
 async function publishDueScheduledCourses(now = new Date()) {
-  await withStoreMutation("courses", async () => {
-  const courses = await readJsonStore(coursesFile, []);
-  const due = courses.filter((course) =>
-    course.status === "scheduled"
-    && course.scheduledAt
-    && new Date(course.scheduledAt).getTime() <= now.getTime()
-  );
-  if (!due.length) return;
-
-  const versions = await readJsonStore(courseVersionsFile, []);
-  for (const course of due) {
-    course.status = "published";
-    course.version = Number(course.version || 1) + 1;
-    course.publishedAt = course.publishedAt || now.toISOString();
-    course.scheduledAt = null;
-    course.updatedAt = now.toISOString();
-    course.workflowLog = appendWorkflowLog(course.workflowLog, {
-      from: "scheduled",
-      to: "published",
-      actor: "system",
-      comment: "Scheduled publication",
-      at: now.toISOString(),
-      kind: "transition"
-    });
-    versions.unshift(createCourseVersion(course, "system", "transition", "Scheduled publication", now));
+  if (shouldUseSupabaseMutations()) {
+    const { data, error } = await supabaseAdmin.rpc("publish_due_courses_atomic", { p_now: now.toISOString() });
+    if (error) throw error;
+    return data;
   }
-  await writeJsonStore(coursesFile, courses);
-  await writeJsonStore(courseVersionsFile, versions.slice(0, 5000));
+  let result = { published: 0, courses: [] };
+  await withStoreMutation("courses", async () => {
+    const courses = await readJsonStore(coursesFile, []);
+    const due = courses.filter((course) =>
+      course.status === "scheduled"
+      && course.scheduledAt
+      && new Date(course.scheduledAt).getTime() <= now.getTime()
+    );
+    if (!due.length) return;
+
+    const versions = await readJsonStore(courseVersionsFile, []);
+    for (const course of due) {
+      course.status = "published";
+      course.version = Number(course.version || 1) + 1;
+      course.publishedAt = course.publishedAt || now.toISOString();
+      course.scheduledAt = null;
+      course.updatedAt = now.toISOString();
+      course.workflowLog = appendWorkflowLog(course.workflowLog, {
+        from: "scheduled",
+        to: "published",
+        actor: "system",
+        comment: "Scheduled publication",
+        at: now.toISOString(),
+        kind: "transition"
+      });
+      versions.unshift(createCourseVersion(course, "system", "transition", "Scheduled publication", now));
+    }
+    await writeJsonStore(coursesFile, courses);
+    await writeJsonStore(courseVersionsFile, versions.slice(0, 5000));
+    result = { published: due.length, courses: due.map((course) => ({ id: course.id, version: course.version, publishedAt: course.publishedAt })) };
   });
+  return result;
 }
 
 async function deleteLocalAccountData(userId) {
