@@ -33,7 +33,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes("node_modules/@supabase/supabase-js")) return "supabase";
           if (id.includes("node_modules/@codemirror/state") || id.includes("node_modules/@codemirror/view")) return "codemirror-core";
           if (id.includes("node_modules/@codemirror/language") || id.includes("node_modules/@lezer/")) return "codemirror-language";
           if (id.includes("node_modules/react") || id.includes("node_modules/react-dom")) return "react";

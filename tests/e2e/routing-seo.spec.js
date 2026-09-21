@@ -72,6 +72,20 @@ test("unknown formation returns an explicit catalog 404", async ({ page }) => {
   await expect(page.getByRole("link", { name: /Retour aux formations|Back to courses/ })).toHaveAttribute("href", "/catalog");
 });
 
+test("same-route parameter navigation refreshes formation content", async ({ page }) => {
+  await page.goto("/formations/tools", { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /Premiers outils de développement|First development tools/ })).toBeVisible();
+
+  await page.evaluate(() => {
+    window.history.pushState(null, "", "/formations/unknown-track");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  });
+
+  await expect(page).toHaveURL(/\/formations\/unknown-track$/);
+  await expect(page.getByRole("heading", { name: /Formation introuvable|Course not found/ })).toBeVisible();
+  await expect(page.locator("#main-content")).toBeFocused();
+});
+
 test("legal pages are reachable and indexable", async ({ page }) => {
   for (const route of ["/privacy", "/cookies", "/terms", "/legal"]) {
     await gotoRoute(page, route);

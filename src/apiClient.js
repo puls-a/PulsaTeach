@@ -283,8 +283,8 @@ export async function updateLessonDraft(id, payload) {
   });
 }
 
-export async function deleteLessonDraft(id) {
-  return request(`/api/lesson-drafts/${encodeURIComponent(id)}`, {
+export async function deleteLessonDraft(id, expectedRevision) {
+  return request(`/api/lesson-drafts/${encodeURIComponent(id)}?expectedRevision=${encodeURIComponent(expectedRevision)}`, {
     method: "DELETE"
   });
 }

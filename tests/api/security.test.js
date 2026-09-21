@@ -360,6 +360,46 @@ describe("API security boundaries", () => {
       .expect(200);
   });
 
+  test("updates lesson drafts independently and rejects stale revisions", async () => {
+    const headers = { "X-PulsaTeach-Admin-Key": "test-admin-key" };
+    const create = (suffix) => request(app).post("/api/lesson-drafts").set(headers).send({
+      trackId: "html",
+      title: { fr: `Brouillon ${suffix}`, en: `Draft ${suffix}` }
+    }).expect(201);
+    const [first, second] = await Promise.all([create("A"), create("B")]);
+    expect(first.body.revision).toBe(1);
+    expect(second.body.revision).toBe(1);
+
+    const [updatedFirst, updatedSecond] = await Promise.all([
+      request(app).patch(`/api/lesson-drafts/${first.body.id}`).set(headers)
+        .send({ status: "review", expectedRevision: 1 }).expect(200),
+      request(app).patch(`/api/lesson-drafts/${second.body.id}`).set(headers)
+        .send({ status: "review", expectedRevision: 1 }).expect(200)
+    ]);
+    expect(updatedFirst.body).toMatchObject({ status: "review", revision: 2 });
+    expect(updatedSecond.body).toMatchObject({ status: "review", revision: 2 });
+
+    const competingUpdates = await Promise.all([
+      request(app).patch(`/api/lesson-drafts/${first.body.id}`).set(headers)
+        .send({ status: "published", expectedRevision: 2 }),
+      request(app).patch(`/api/lesson-drafts/${first.body.id}`).set(headers)
+        .send({ status: "draft", expectedRevision: 2 })
+    ]);
+    expect(competingUpdates.map((result) => result.status).sort()).toEqual([200, 409]);
+    const conflict = competingUpdates.find((result) => result.status === 409);
+    expect(conflict.body.error).toMatchObject({
+      code: "LESSON_DRAFT_CONFLICT",
+      details: { expectedRevision: 2, currentRevision: 3 }
+    });
+
+    const drafts = await request(app).get("/api/lesson-drafts").set(headers).expect(200);
+    expect(drafts.body.find((draft) => draft.id === second.body.id)).toMatchObject({ status: "review", revision: 2 });
+    const currentFirst = drafts.body.find((draft) => draft.id === first.body.id);
+    await request(app).delete(`/api/lesson-drafts/${first.body.id}?expectedRevision=2`).set(headers).expect(409);
+    await request(app).delete(`/api/lesson-drafts/${first.body.id}?expectedRevision=${currentFirst.revision}`).set(headers).expect(200);
+    await request(app).delete(`/api/lesson-drafts/${second.body.id}?expectedRevision=2`).set(headers).expect(200);
+  });
+
   test("versions, reviews, publishes and rolls back a Course Studio course", async () => {
     const headers = { "X-PulsaTeach-Admin-Key": "test-admin-key" };
     const module = createModuleDraft(0);

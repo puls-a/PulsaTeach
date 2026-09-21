@@ -67,6 +67,11 @@ const entryKeys = Object.entries(manifest)
 const initialAssets = collectAssets(entryKeys, manifest);
 const initialGzip = sumAssets(initialAssets, metrics, "gzip");
 checkBudget("Initial entry gzip", initialGzip, aggregateBudgets.initialGzip);
+const supabaseBrowserEntry = Object.entries(manifest)
+  .find(([key]) => key.includes("node_modules/@supabase/supabase-js/"))?.[1];
+if (supabaseBrowserEntry?.file && initialAssets.has(supabaseBrowserEntry.file)) {
+  failures.push("Supabase browser SDK must remain outside the initial asset graph");
+}
 
 const dynamicKeys = new Set(
   Object.values(manifest).flatMap((entry) => entry.dynamicImports || [])

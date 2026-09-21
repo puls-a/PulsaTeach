@@ -107,22 +107,27 @@ const navGroups = [
 ];
 
 function App() {
-  const [locale, setLocale] = useState(() => localStorage.getItem("pulsateach-locale") || "fr");
+  const [locale, setLocale] = useState(readInitialLocale);
   const [storageOwnerVersion, setStorageOwnerVersion] = useState(0);
   const mainRef = useRef(null);
-  const { user, loading: authLoading } = useSupabaseSession();
-  const [route, setRoute] = useState(() => {
+  const { user } = useSupabaseSession();
+  const [locationKey, setLocationKey] = useState(() => {
     migrateLegacyHashRoute();
-    return getPageRoute();
+    return getLocationKey();
   });
-  const previousRoute = useRef(route);
+  const route = getPageRoute();
+  const previousLocationKey = useRef(locationKey);
   const copy = languages[locale];
 
   useLayoutEffect(() => {
     document.documentElement.lang = locale;
     updatePageMetadata(route, locale, copy.metaTitle);
-    localStorage.setItem("pulsateach-locale", locale);
-  }, [copy.metaTitle, locale, route]);
+    try {
+      localStorage.setItem("pulsateach-locale", locale);
+    } catch {
+      // Storage can be unavailable in privacy-restricted browser contexts.
+    }
+  }, [copy.metaTitle, locale, locationKey, route]);
 
   useEffect(() => {
     const handleOwnerChange = () => setStorageOwnerVersion((version) => version + 1);
@@ -131,15 +136,15 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (previousRoute.current === route) return;
-    previousRoute.current = route;
+    if (previousLocationKey.current === locationKey) return;
+    previousLocationKey.current = locationKey;
     window.requestAnimationFrame(() => mainRef.current?.focus({ preventScroll: true }));
-  }, [route]);
+  }, [locationKey]);
 
   useEffect(() => {
     const handleNavigation = (event) => {
       migrateLegacyHashRoute();
-      setRoute(getPageRoute());
+      setLocationKey(getLocationKey());
       if (event?.type !== "hashchange") window.scrollTo({ top: 0, behavior: "instant" });
     };
     const handleInternalLink = (event) => {
@@ -167,7 +172,7 @@ function App() {
     <div className="flex min-h-screen flex-col">
       <a href="#main-content" className="skip-link">{locale === "fr" ? "Aller au contenu principal" : "Skip to main content"}</a>
       <Header user={user} locale={locale} route={route} onLanguageToggle={() => setLocale(locale === "fr" ? "en" : "fr")} />
-      <main ref={mainRef} id="main-content" className="flex-1" tabIndex={-1} key={storageOwnerVersion}><Suspense fallback={<RouteFallback locale={locale} />}>{authLoading ? <RouteFallback locale={locale} /> : renderRoute(route, locale)}</Suspense></main>
+      <main ref={mainRef} id="main-content" className="flex-1" tabIndex={-1} key={storageOwnerVersion}><Suspense fallback={<RouteFallback locale={locale} />}>{renderRoute(route, locale)}</Suspense></main>
       {route !== "learn" && <AppFooter locale={locale} />}
       <CookieConsent locale={locale} />
     </div>
@@ -455,6 +460,19 @@ function getPageRoute() {
   return knownRoutes.includes(route) ? route : "not-found";
 }
 
+function getLocationKey() {
+  return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+}
+
+function readInitialLocale() {
+  try {
+    const storedLocale = localStorage.getItem("pulsateach-locale");
+    return storedLocale && languages[storedLocale] ? storedLocale : "fr";
+  } catch {
+    return "fr";
+  }
+}
+
 function RouteFallback({ locale }) {
   return <div className="app-page min-h-screen"><p className="surface mx-auto max-w-xl text-center font-semibold text-slate-600">{locale === "fr" ? "Chargement de la page…" : "Loading page…"}</p></div>;
 }
@@ -464,7 +482,8 @@ function lazyNamed(loader, name) {
 }
 
 function AuthorGate({ locale, children }) {
-  const { user } = useSupabaseSession();
+  const { user, loading } = useSupabaseSession();
+  if (loading) return <RouteFallback locale={locale} />;
   if (canManageContent(user)) return children;
   return <NotFoundPage locale={locale} restricted />;
 }

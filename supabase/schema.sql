@@ -167,6 +167,7 @@ create table if not exists public.lesson_drafts (
   skills text[] not null default '{}',
   xp integer not null default 25,
   status text not null default 'draft',
+  revision integer not null default 1 check (revision >= 1),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

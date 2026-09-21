@@ -246,8 +246,11 @@ export const lessonDraftUpdateSchema = z.object({
   status: z.enum(["draft", "review", "published"]).optional(),
   title: localizedText.optional(),
   objective: localizedText.optional(),
-  prompt: localizedText.optional()
-}).strict();
+  prompt: localizedText.optional(),
+  expectedRevision: z.coerce.number().int().min(1)
+}).strict().refine((value) => value.status || value.title || value.objective || value.prompt, {
+  message: "At least one draft field must change."
+});
 
 export const avatarUploadSchema = z.object({
   dataUrl: z.string().max(1_500_000)

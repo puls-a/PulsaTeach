@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";
+import { deleteLessonDraftRow, fromLessonDraftRow, toLessonDraftRow, updateLessonDraftRow } from "./supabaseLessonDrafts.js";
 import { checkSupabaseReadiness as checkReadiness, getSupabaseStatus as getStatus } from "./supabaseStatus.js";
 import { fromSupabaseProfileRow, readSupabasePages, tableForStore, toSupabaseProfileRow } from "./supabaseStoreHelpers.js";
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -139,6 +140,14 @@ export async function insertSupabaseStoreItem(storeName, item) {
   return fromSupabaseRow(table, data);
 }
 
+export async function updateSupabaseLessonDraft(id, changes, expectedRevision) {
+  return fromSupabaseRow("lesson_drafts", await updateLessonDraftRow(supabaseAdmin, id, changes, expectedRevision));
+}
+
+export async function deleteSupabaseLessonDraft(id, expectedRevision) {
+  return deleteLessonDraftRow(supabaseAdmin, id, expectedRevision);
+}
+
 export async function saveSupabaseProgressAtomic(userId, incomingProgress, mergeProgress, sanitizeProgress) {
   if (!supabaseAdmin) throw new Error("Supabase progress storage is unavailable.");
   for (let attempt = 0; attempt < 5; attempt += 1) {
@@ -242,21 +251,7 @@ function fromSupabaseRow(table, row) {
     };
   }
   if (table === "lesson_drafts") {
-    return {
-      id: row.id,
-      trackId: row.track_id,
-      moduleId: row.module_id,
-      title: row.title,
-      objective: row.objective,
-      prompt: row.prompt,
-      type: row.type,
-      difficulty: row.difficulty,
-      skills: row.skills || [],
-      xp: row.xp,
-      status: row.status,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
-    };
+    return fromLessonDraftRow(row);
   }
   if (table === "course_drafts") {
     return {
@@ -396,21 +391,7 @@ function toSupabaseRow(table, item) {
     };
   }
   if (table === "lesson_drafts") {
-    return {
-      id: item.id,
-      track_id: item.trackId,
-      module_id: item.moduleId,
-      title: item.title,
-      objective: item.objective,
-      prompt: item.prompt,
-      type: item.type,
-      difficulty: item.difficulty,
-      skills: item.skills || [],
-      xp: item.xp,
-      status: item.status,
-      created_at: item.createdAt,
-      updated_at: item.updatedAt
-    };
+    return toLessonDraftRow(item);
   }
   if (table === "course_drafts") {
     return {

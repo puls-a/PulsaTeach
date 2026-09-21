@@ -253,22 +253,26 @@ export function AuthorPage({ locale }) {
 
   const changeStatus = async (draft, nextStatus) => {
     try {
-      const updated = await updateLessonDraft(draft.id, { status: nextStatus });
+      const updated = await updateLessonDraft(draft.id, { status: nextStatus, expectedRevision: draft.revision });
       setDrafts((items) => items.map((item) => (item.id === updated.id ? updated : item)));
-    } catch {
-      setStatus("error");
+    } catch (error) {
+      await recoverDraftMutation(error);
     }
   };
 
   const removeDraft = async (draft) => {
     try {
-      await deleteLessonDraft(draft.id);
+      await deleteLessonDraft(draft.id, draft.revision);
       setDrafts((items) => items.filter((item) => item.id !== draft.id));
-    } catch {
-      setStatus("error");
+    } catch (error) {
+      await recoverDraftMutation(error);
     }
   };
-
+  const recoverDraftMutation = async (error) => {
+    if (error.code !== "LESSON_DRAFT_CONFLICT") { setStatus("error"); return; }
+    setDrafts(await listLessonDrafts().catch(() => drafts));
+    setStatus("conflict");
+  };
   return (
     <section className="app-page">
       <div className="mx-auto max-w-7xl">
@@ -302,6 +306,7 @@ export function AuthorPage({ locale }) {
                 {status === "saving" ? (locale === "fr" ? "Création..." : "Creating...") : (locale === "fr" ? "Créer le draft" : "Create draft")}
               </button>
               {status === "saved" && <p className="status-success rounded-xl p-3 text-sm font-semibold" role="status">{locale === "fr" ? "Draft créé." : "Draft created."}</p>}
+              {status === "conflict" && <p className="status-error rounded-xl p-3 text-sm font-semibold" role="alert">{locale === "fr" ? "Ce brouillon a changé dans un autre onglet. La version récente a été rechargée." : "This draft changed in another tab. The latest version was reloaded."}</p>}
               {status === "error" && <p className="status-error rounded-xl p-3 text-sm font-semibold" role="alert">API unavailable.</p>}
             </div>
           </form>

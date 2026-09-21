@@ -14,7 +14,7 @@ import { productRoadmap } from "./roadmap.js";
 import { decodeProtectedExamResponses, projectPublicTrack } from "./publicContent.js";
 import { sendWelcomeEmail, transactionalEmailEnabled } from "./emailService.js";
 import { applySecurity, localIdentityEnabled, pulsaBotRateLimit, sensitiveRateLimit } from "./security.js";
-import { checkSupabaseReadiness, deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, insertSupabaseStoreItem, listSupabaseStoreForUser, readSupabaseProfileForUser, readSupabaseProgressForUser, readSupabaseStore, requireSupabaseStorage, saveSupabaseProfileForUser, saveSupabaseProgressAtomic, supabaseAdmin, supabaseEnabled, writeSupabaseStore } from "./supabaseServer.js";
+import { checkSupabaseReadiness, deleteSupabaseLessonDraft, deleteSupabaseRecord, getSupabaseStatus, getUserFromAccessToken, insertSupabaseStoreItem, listSupabaseStoreForUser, readSupabaseProfileForUser, readSupabaseProgressForUser, readSupabaseStore, requireSupabaseStorage, saveSupabaseProfileForUser, saveSupabaseProgressAtomic, supabaseAdmin, supabaseEnabled, updateSupabaseLessonDraft, writeSupabaseStore } from "./supabaseServer.js";
 import { createSupabaseSubmission, findSupabaseIssuedCertificateByVerificationCode, findSupabaseQuizSession, issueSupabaseCertificateAtomic, listSupabaseIssuedCertificatesForUser, listSupabaseQuizSessionsForUser, reviewSupabaseSubmission, revokeSupabaseIssuedCertificate, saveSupabaseQuizDraft, submitSupabaseQuizSession } from "./supabaseSensitiveOperations.js";
 import { accountDeletionSchema, attemptSchema, avatarUploadSchema, certificateRevokeSchema, courseCreateSchema, courseRollbackSchema, courseUpdateSchema, enrollmentSchema, eventSchema, lessonDraftSchema, lessonDraftUpdateSchema, progressMigrationSchema, progressSchema, quizSessionSchema, quizSubmissionSchema, reviewSchema, roleUpdateSchema, submissionSchema, telemetrySchema, userSettingsSchema, validateBody } from "./validation.js";
 
@@ -109,6 +109,7 @@ const routeContext = {
   transactionalEmailEnabled,
   sensitiveRateLimit,
   pulsaBotRateLimit,
+  deleteSupabaseLessonDraft,
   deleteSupabaseRecord,
   getSupabaseStatus,
   checkSupabaseReadiness,
@@ -119,6 +120,7 @@ const routeContext = {
   readSupabaseProgressForUser,
   saveSupabaseProfileForUser,
   saveSupabaseProgressAtomic,
+  updateSupabaseLessonDraft,
   supabaseAdmin,
   supabaseEnabled,
   requireSupabaseStorage,

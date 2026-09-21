@@ -14,11 +14,12 @@ export function registerAuthoringRoutes(app, context) {
     sendWelcomeEmail,
     transactionalEmailEnabled,
     sensitiveRateLimit,
-    deleteSupabaseRecord,
     getSupabaseStatus,
     supabaseAdmin,
     supabaseEnabled,
-    requireSupabaseStorage,
+    deleteSupabaseLessonDraft,
+    insertSupabaseStoreItem,
+    updateSupabaseLessonDraft,
     accountDeletionSchema,
     attemptSchema,
     avatarUploadSchema,
@@ -81,8 +82,7 @@ export function registerAuthoringRoutes(app, context) {
     buildStudyPlan,
     publishDueScheduledCourses,
     deleteLocalAccountData,
-    shouldTrySupabase,
-    markSupabaseUnavailable,
+    shouldUseSupabaseMutations,
     rolesFromUser,
     randomUUID,
     createHash
@@ -139,7 +139,6 @@ export function registerAuthoringRoutes(app, context) {
       return;
     }
 
-    const store = await readJsonStore(draftsFile, []);
     const now = new Date().toISOString();
     const draft = {
       id: `draft-${randomUUID()}`,
@@ -153,11 +152,19 @@ export function registerAuthoringRoutes(app, context) {
       skills: Array.isArray(payload.skills) ? payload.skills.map(String) : [],
       xp: Number.isFinite(Number(payload.xp)) ? Number(payload.xp) : 25,
       status: "draft",
+      revision: 1,
       createdAt: now,
       updatedAt: now
     };
-    store.unshift(draft);
-    await writeJsonStore(draftsFile, store.slice(0, 1000));
+    if (shouldUseSupabaseMutations()) {
+      response.status(201).json(await insertSupabaseStoreItem("lesson-drafts.json", draft));
+      return;
+    }
+    await withStoreMutation("lesson-drafts", async () => {
+      const currentStore = await readJsonStore(draftsFile, []);
+      currentStore.unshift(draft);
+      await writeJsonStore(draftsFile, currentStore.slice(0, 1000));
+    });
     response.status(201).json(draft);
   });
 
@@ -168,44 +175,62 @@ export function registerAuthoringRoutes(app, context) {
       return;
     }
 
-    const allowedStatuses = new Set(["draft", "review", "published"]);
-    const store = await readJsonStore(draftsFile, []);
-    const index = store.findIndex((item) => item.id === request.params.id);
-    if (index === -1) {
-      response.status(404).json({ error: "Lesson draft not found." });
-      return;
-    }
-
-    store[index] = {
-      ...store[index],
-      ...(payload.status && allowedStatuses.has(payload.status) ? { status: payload.status } : {}),
+    const changes = {
+      ...(payload.status ? { status: payload.status } : {}),
       ...(payload.title ? { title: normalizeLocalizedText(payload.title) } : {}),
       ...(payload.objective ? { objective: normalizeLocalizedText(payload.objective) } : {}),
-      ...(payload.prompt ? { prompt: normalizeLocalizedText(payload.prompt) } : {}),
-      updatedAt: new Date().toISOString()
+      ...(payload.prompt ? { prompt: normalizeLocalizedText(payload.prompt) } : {})
     };
-    await writeJsonStore(draftsFile, store);
-    response.json(store[index]);
+    if (shouldUseSupabaseMutations()) {
+      response.json(await updateSupabaseLessonDraft(request.params.id, changes, payload.expectedRevision));
+      return;
+    }
+    const updated = await withStoreMutation("lesson-drafts", async () => {
+      const store = await readJsonStore(draftsFile, []);
+      const index = store.findIndex((item) => item.id === request.params.id);
+      if (index === -1) throw lessonDraftError(404, "LESSON_DRAFT_NOT_FOUND", "Lesson draft not found.");
+      const currentRevision = Number(store[index].revision || 1);
+      if (currentRevision !== payload.expectedRevision) {
+        throw lessonDraftError(409, "LESSON_DRAFT_CONFLICT", "Lesson draft changed. Reload it before retrying.", {
+          expectedRevision: payload.expectedRevision,
+          currentRevision
+        });
+      }
+      store[index] = { ...store[index], ...changes, revision: currentRevision + 1, updatedAt: new Date().toISOString() };
+      await writeJsonStore(draftsFile, store);
+      return store[index];
+    });
+    response.json(updated);
   });
 
   app.delete("/api/lesson-drafts/:id", requireRole("admin", "author"), async (request, response) => {
-    const store = await readJsonStore(draftsFile, []);
-    const next = store.filter((item) => item.id !== request.params.id);
-    if (next.length === store.length) {
-      response.status(404).json({ error: "Lesson draft not found." });
+    const expectedRevision = Number(Array.isArray(request.query.expectedRevision) ? request.query.expectedRevision[0] : request.query.expectedRevision);
+    if (!Number.isInteger(expectedRevision) || expectedRevision < 1) {
+      sendApiError(response, request, 400, "VALIDATION_ERROR", "A valid expectedRevision query parameter is required.");
       return;
     }
-    if (shouldTrySupabase()) {
-      try {
-        await deleteSupabaseRecord("lesson-drafts.json", request.params.id);
-        response.json({ ok: true, id: request.params.id });
-        return;
-      } catch (error) {
-        if (requireSupabaseStorage) throw error;
-        markSupabaseUnavailable();
-      }
+    if (shouldUseSupabaseMutations()) {
+      await deleteSupabaseLessonDraft(request.params.id, expectedRevision);
+    } else {
+      await withStoreMutation("lesson-drafts", async () => {
+        const store = await readJsonStore(draftsFile, []);
+        const draft = store.find((item) => item.id === request.params.id);
+        if (!draft) throw lessonDraftError(404, "LESSON_DRAFT_NOT_FOUND", "Lesson draft not found.");
+        const currentRevision = Number(draft.revision || 1);
+        if (currentRevision !== expectedRevision) {
+          throw lessonDraftError(409, "LESSON_DRAFT_CONFLICT", "Lesson draft changed. Reload it before deleting.", {
+            expectedRevision,
+            currentRevision
+          });
+        }
+        const next = store.filter((item) => item.id !== request.params.id);
+        await writeJsonStore(draftsFile, next);
+      });
     }
-    await writeJsonStore(draftsFile, next);
     response.json({ ok: true, id: request.params.id });
   });
+}
+
+function lessonDraftError(status, code, message, details) {
+  return Object.assign(new Error(message), { status, code, details });
 }
