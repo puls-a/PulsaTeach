@@ -46,19 +46,19 @@ const featuredTracks = featuredTrackIds
   });
 
 const methodSteps = [
-  { icon: BookOpenCheck, title: { fr: "Comprendre", en: "Understand" }, text: { fr: "Une notion courte, reliée à un usage réel.", en: "One short concept tied to a real use case." } },
-  { icon: Code2, title: { fr: "Construire", en: "Build" }, text: { fr: "Du code guidé, puis une réalisation personnelle.", en: "Guided code, then a project of your own." } },
-  { icon: BrainCircuit, title: { fr: "Valider", en: "Validate" }, text: { fr: "Des tests, du feedback et des révisions ciblées.", en: "Tests, feedback, and focused review." } },
-  { icon: FileBadge, title: { fr: "Prouver", en: "Prove" }, text: { fr: "Un projet publiable et une progression traçable.", en: "A publishable project and traceable progress." } }
+  { icon: BookOpenCheck, title: { fr: "Comprendre", en: "Understand" }, text: { fr: "Découvre une notion et observe ce qu’elle change dans une page.", en: "Explore a concept and see what it changes on a page." } },
+  { icon: Code2, title: { fr: "Essayer", en: "Try" }, text: { fr: "Modifie le code dans l’exercice et compare le résultat à la consigne.", en: "Edit the exercise code and compare the result with the instructions." } },
+  { icon: BrainCircuit, title: { fr: "Corriger", en: "Improve" }, text: { fr: "Lance les tests, lis les retours et reprends ce qui ne fonctionne pas encore.", en: "Run the tests, read the feedback, and fix what is not working yet." } },
+  { icon: FileBadge, title: { fr: "Construire", en: "Build" }, text: { fr: "Réutilise ce que tu as appris dans un projet et explique tes choix.", en: "Apply what you have learned to a project and explain your choices." } }
 ];
 
 export default function LandingPage({ locale = "fr" }) {
   const fr = locale === "fr";
   const benefits = [
-    [Code2, fr ? "Coder tout de suite" : "Code right away", fr ? "Des objectifs courts, jamais de page blanche." : "Short goals, never a blank page."],
-    [BrainCircuit, fr ? "Comprendre vraiment" : "Understand deeply", fr ? "Chaque réponse demande un raisonnement." : "Every answer asks for reasoning."],
-    [Trophy, fr ? "Construire du concret" : "Build real work", fr ? "Des projets pensés pour ton portfolio." : "Projects designed for your portfolio."],
-    [Flame, fr ? "Garder le rythme" : "Keep momentum", fr ? "Une session claire, même sur mobile." : "One clear session, even on mobile."]
+    [Code2, fr ? "Un exercice pour commencer" : "An exercise to get started", fr ? "Une consigne et du code à modifier dans le navigateur." : "Instructions and code to edit in your browser."],
+    [BrainCircuit, fr ? "Des retours pour avancer" : "Feedback to help you progress", fr ? "Les tests t’aident à repérer ce qui reste à corriger." : "Tests help you find what still needs fixing."],
+    [Trophy, fr ? "Des projets à montrer" : "Projects you can show", fr ? "Assemble tes connaissances dans une réalisation personnelle." : "Bring your skills together in a project of your own."],
+    [Flame, fr ? "À ton rythme" : "At your own pace", fr ? "Reviens sur une notion ou poursuis la leçon suivante." : "Revisit a concept or move on to the next lesson."]
   ];
 
   return (
@@ -81,8 +81,8 @@ export default function LandingPage({ locale = "fr" }) {
             </h1>
             <p className="mt-5 max-w-2xl text-base font-semibold leading-7 text-slate-300 sm:mt-6 sm:text-xl sm:leading-8">
               {fr
-                ? "Pas de vidéos à collectionner. Tu codes, tu testes, tu expliques tes choix et tu termines chaque parcours avec un projet que tu peux montrer."
-                : "No videos to collect. You code, test, explain your choices, and finish every path with a project you can show."}
+                ? "Structure une page en HTML, mets-la en forme avec CSS et vérifie ton code dans des exercices guidés. Puis rassemble ce que tu as appris dans un projet à montrer."
+                : "Structure a page with HTML, style it with CSS, and check your code in guided exercises. Then bring what you have learned together in a project you can show."}
             </p>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
               {fr
@@ -130,8 +130,8 @@ export default function LandingPage({ locale = "fr" }) {
             <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-white/95 p-3 text-ink shadow-2xl shadow-slate-950/40 sm:p-5">
               <div className="flex min-w-0 items-center justify-between gap-3 rounded-2xl bg-slate-950 p-4 text-white sm:gap-4 sm:rounded-3xl">
                 <div className="min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-[.18em] text-emerald-300 sm:text-xs">Pulsa Session</p>
-                  <h2 className="mt-1 font-display text-xl font-black leading-tight sm:text-2xl">{fr ? "Quiz + projet + streak" : "Quiz + project + streak"}</h2>
+                  <p className="text-[10px] font-black uppercase tracking-[.18em] text-emerald-300 sm:text-xs">{fr ? "Exemple de session" : "Example session"}</p>
+                  <h2 className="mt-1 font-display text-xl font-black leading-tight sm:text-2xl">{fr ? "Du code au résultat" : "From code to result"}</h2>
                 </div>
                 <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-indigoPop text-white sm:size-14">
                   <Flame className="size-6 sm:size-7" />
@@ -141,19 +141,17 @@ export default function LandingPage({ locale = "fr" }) {
               <div className="mt-3 grid gap-3 sm:mt-5 sm:gap-4">
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:rounded-3xl sm:p-5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-sm font-black text-slate-500">{fr ? "Objectif du jour" : "Daily goal"}</p>
-                    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">+120 XP</span>
+                    <p className="text-sm font-black text-slate-500">{fr ? "Objectif de l’exercice" : "Exercise goal"}</p>
+                    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">HTML + CSS</span>
                   </div>
-                  <p className="mt-3 font-display text-xl font-black leading-tight text-ink sm:text-2xl">{fr ? "Construire une carte responsive" : "Build a responsive card"}</p>
-                  <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-200">
-                    <div className="h-full w-3/4 rounded-full bg-gradient-to-r from-indigoPop to-mintPop" />
-                  </div>
+                  <p className="mt-3 font-display text-xl font-black leading-tight text-ink sm:text-2xl">{fr ? "Une carte lisible sur petit écran" : "A card that works on a small screen"}</p>
+                  <p className="mt-4 text-sm leading-6 text-slate-600">{fr ? "Ajoute un titre, un texte et une image. Ajuste ensuite la mise en page quand la largeur diminue." : "Add a heading, text, and an image. Then adjust the layout as the screen gets narrower."}</p>
                 </div>
 
                 {[
-                  [CheckCircle2, fr ? "Question contextualisée avec explication demandée" : "Contextual question with required explanation"],
-                  [Layers3, fr ? "Exercice guidé avec rendu immédiat" : "Guided exercise with instant preview"],
-                  [Trophy, fr ? "Certificat vérifiable après projet final" : "Verifiable certificate after final project"]
+                  [CheckCircle2, fr ? "Lis la consigne et repère le résultat attendu." : "Read the instructions and identify the expected result."],
+                  [Layers3, fr ? "Modifie le code et observe l’aperçu." : "Edit the code and inspect the preview."],
+                  [Trophy, fr ? "Teste ta solution et explique tes choix." : "Test your solution and explain your choices."]
                 ].map(([Icon, text]) => (
                   <div key={text} className="flex min-w-0 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
                     <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigoPop sm:size-11 sm:rounded-2xl"><Icon className="size-5" /></span>
@@ -172,19 +170,19 @@ export default function LandingPage({ locale = "fr" }) {
             <div>
               <p className="eyebrow">{fr ? "Formations disponibles" : "Available courses"}</p>
               <h2 className="mt-3 font-display text-3xl font-black leading-tight tracking-tight text-ink sm:text-5xl">
-                {fr ? "Choisis une compétence, construis une preuve." : "Choose a skill, build proof."}
+                {fr ? "Des outils à ta première page web." : "From setting up your tools to your first web page."}
               </h2>
               <p className="mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-600">
                 {fr
-                  ? "Les parcours ne sont pas là pour gonfler un compteur : chaque module doit t’aider à comprendre, coder, corriger, expliquer puis publier quelque chose de vérifiable."
-                  : "The paths are not here to inflate a counter: every module should help you understand, code, fix, explain, then publish something verifiable."}
+                  ? "Tu débutes ? Prépare ton espace de travail, puis découvre HTML pour structurer une page et CSS pour sa présentation. Si tes outils sont déjà prêts, commence directement par HTML."
+                  : "New to web development? Set up your workspace, then explore HTML for page structure and CSS for presentation. If your tools are ready, start directly with HTML."}
               </p>
             </div>
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {[
                 [ShieldCheck, fr ? "Accessibilité & sécurité" : "Accessibility & security"],
                 [GraduationCap, fr ? "Progression par compétences" : "Skill-based progress"],
-                [BadgeCheck, fr ? "Certificats partageables" : "Shareable certificates"]
+                  [BadgeCheck, fr ? "Certification selon les critères du parcours" : "Certification subject to course requirements"]
               ].map(([Icon, text]) => (
                 <div key={text} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:rounded-3xl sm:p-4">
                   <Icon className="size-5 text-indigoPop sm:size-6" />
@@ -226,7 +224,7 @@ export default function LandingPage({ locale = "fr" }) {
               <div>
                 <p className="text-xs font-black uppercase tracking-[.18em] text-emerald-300">{fr ? "Commence maintenant" : "Start now"}</p>
                 <h2 className="mt-2 max-w-2xl font-display text-2xl font-black leading-tight sm:text-3xl">
-                  {fr ? "Ta prochaine preuve commence par une première ligne de code." : "Your next proof starts with one line of code."}
+                  {fr ? "Choisis ton point de départ. La première leçon te guide." : "Choose a starting point. The first lesson will guide you."}
                 </h2>
               </div>
               <a href="/catalog" className="inline-flex min-h-14 shrink-0 items-center justify-center gap-2 rounded-2xl bg-white px-6 font-black text-indigoPop hover:bg-indigo-50">

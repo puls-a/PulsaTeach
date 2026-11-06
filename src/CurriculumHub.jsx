@@ -5,6 +5,7 @@ import { canManageContent } from "./authRoles.js";
 import { LearnerPageHero, MetricCard, ProgressMeter } from "./components/LearnerUI.jsx";
 import { useLearningTracks } from "./useLearningTracks.js";
 import { getLearnerItem } from "./learnerStorage.js";
+import CatalogStartGuide from "./components/CatalogStartGuide.jsx";
 
 const trackPresentation = {
   tools: { icon: Laptop, tone: "bg-slate-100 text-slate-700" },
@@ -32,9 +33,10 @@ export default function CurriculumHub({ locale = "fr" }) {
   const completedCount = Object.keys(progress.completed || {}).length;
   const totalLessons = tracks.reduce((total, track) => total + countLessons(track), 0);
   const canCreateCourses = canManageContent(user);
+  const terms = normalizeSearch(query, locale).split(/\s+/).filter(Boolean);
   const filteredTracks = tracks.filter((track) => {
-    const haystack = `${localize(track.title, locale)} ${localize(track.summary, locale)} ${localize(track.level, locale)}`.toLocaleLowerCase(locale);
-    return haystack.includes(query.trim().toLocaleLowerCase(locale));
+    const haystack = normalizeSearch(`${track.id} ${localize(track.title, locale)} ${localize(track.summary, locale)} ${localize(track.level, locale)}`, locale);
+    return terms.every((term) => haystack.includes(term));
   });
 
   useEffect(() => {
@@ -50,8 +52,8 @@ export default function CurriculumHub({ locale = "fr" }) {
           icon={BookOpen}
           eyebrow={locale === "fr" ? "Catalogue PulsaTeach" : "PulsaTeach catalog"}
           title={user ? (locale === "fr" ? "Reprends là où tu t’es arrêté." : "Continue where you left off.") : (locale === "fr" ? "Choisis une formation et commence à coder." : "Choose a course and start coding.")}
-          description={locale === "fr" ? "Des parcours complets, des exercices interactifs et des projets évalués pour passer de la théorie à une vraie réalisation." : "Complete paths, interactive exercises, and assessed projects that turn theory into real work."}
-          action={{ href: user ? "/dashboard" : "/signup", label: user ? (locale === "fr" ? "Voir mon cockpit" : "View my dashboard") : (locale === "fr" ? "Créer mon compte" : "Create my account") }}
+          description={locale === "fr" ? "Prépare tes outils, découvre HTML pour structurer une page, puis CSS pour la mettre en forme. Chaque formation présente son programme et ses prérequis." : "Set up your tools, explore HTML to structure a page, then CSS to style it. Each course explains its curriculum and prerequisites."}
+          action={{ href: user ? "/dashboard" : "/signup", label: user ? (locale === "fr" ? "Voir ma progression" : "View my progress") : (locale === "fr" ? "Créer mon compte" : "Create my account") }}
         >
           <div className="grid grid-cols-2 gap-3 lg:max-w-2xl lg:grid-cols-3">
             <MetricCard label={locale === "fr" ? "Formations" : "Courses"} value={tracks.length} />
@@ -59,6 +61,8 @@ export default function CurriculumHub({ locale = "fr" }) {
             <MetricCard label={locale === "fr" ? "Validées" : "Completed"} value={completedCount} tone={completedCount ? "reward" : "default"} />
           </div>
         </LearnerPageHero>
+
+        <CatalogStartGuide tracks={tracks} locale={locale} />
 
         {user && (
           <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -71,13 +75,13 @@ export default function CurriculumHub({ locale = "fr" }) {
             <div>
               <p className="eyebrow">{locale === "fr" ? "Explorer" : "Explore"}</p>
               <h2 id="catalog-title" className="mt-3 font-display text-3xl font-black sm:text-4xl">{locale === "fr" ? "Formations disponibles" : "Available courses"}</h2>
-              <p className="mt-2 text-slate-600">{filteredTracks.length} {locale === "fr" ? "parcours pour progresser à ton rythme" : "paths to learn at your pace"}</p>
+              <p role="status" aria-live="polite" aria-atomic="true" className="mt-2 text-slate-600">{filteredTracks.length} {locale === "fr" ? "parcours pour progresser à ton rythme" : "paths to learn at your pace"}</p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <label className="relative block">
                 <span className="sr-only">{locale === "fr" ? "Rechercher une formation" : "Search courses"}</span>
                 <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
-                <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={locale === "fr" ? "Rechercher une formation" : "Search courses"} className="form-control min-w-64 pl-12" />
+                <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={locale === "fr" ? "Rechercher une formation" : "Search courses"} className="form-control min-w-0 pl-12" />
               </label>
               {canCreateCourses && <a href="/studio" className="secondary-button"><Plus className="size-4" />{locale === "fr" ? "Créer" : "Create"}</a>}
             </div>
@@ -88,7 +92,10 @@ export default function CurriculumHub({ locale = "fr" }) {
           <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {filteredTracks.map((track) => <CourseCard key={track.id} track={track} locale={locale} />)}
           </div>
-          {!loading && filteredTracks.length === 0 && <p className="empty-state mt-6">{locale === "fr" ? "Aucune formation ne correspond à cette recherche." : "No course matches this search."}</p>}
+          {!loading && filteredTracks.length === 0 && <div className="empty-state mt-6">
+            <p>{locale === "fr" ? "Aucune formation ne correspond à cette recherche." : "No course matches this search."}</p>
+            {query && <button type="button" onClick={() => setQuery("")} className="secondary-button mt-4">{locale === "fr" ? "Effacer la recherche" : "Clear search"}</button>}
+          </div>}
         </section>
 
         {canCreateCourses && courseDrafts.length > 0 && (
@@ -128,6 +135,10 @@ function CourseCard({ track, locale }) {
 function localize(value, locale) {
   if (value && typeof value === "object" && !Array.isArray(value)) return value[locale] || value.fr || value.en || "";
   return String(value || "");
+}
+
+function normalizeSearch(value, locale) {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase(locale).trim();
 }
 
 function countLessons(track) {

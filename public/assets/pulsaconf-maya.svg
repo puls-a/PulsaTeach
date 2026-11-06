@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Maya présente un atelier HTML</title>
+  <desc id="desc">Une intervenante montre la structure d'une page sur un grand écran.</desc>
+  <rect width="640" height="360" fill="#10182b"/>
+  <rect x="210" y="54" width="370" height="220" rx="16" fill="#f5f0e8"/>
+  <path d="M250 105h210M250 145h270M250 185h185" stroke="#6d4aff" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="118" cy="118" r="44" fill="#f2b28f"/>
+  <path d="M52 300c10-93 34-135 70-135s64 42 78 135" fill="#31c7a4"/>
+  <path d="m166 205 95-48" stroke="#f2b28f" stroke-width="20" stroke-linecap="round"/>
+</svg>

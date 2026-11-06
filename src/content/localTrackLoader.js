@@ -23,6 +23,7 @@ const trackLoaders = {
 };
 
 const cssModuleLoaders = {
+  "css-getting-started": () => import("./cssTrackFoundationChunk.js").then((module) => module.cssGettingStartedChunk),
   "css-selectors-colors": () => import("./cssTrackSelectorsColorsChunk.js").then((module) => module.cssTrackSelectorsColorsChunk),
   "css-box-type": () => import("./cssTrackBoxTypeChunk.js").then((module) => module.cssTrackBoxTypeChunk),
   "css-flex-layout": () => import("./cssTrackFlexLayoutChunk.js").then((module) => module.cssTrackFlexLayoutChunk),
@@ -67,7 +68,7 @@ export async function loadAllLocalTracks() {
 
 async function loadCssTrack(options = {}) {
   if (!options.moduleId) return loadFullCssTrack();
-  if (options.moduleId === "css-getting-started") return loadRemoteTrack("css");
+  if (resolveCssGroup(options.moduleId) === "foundation") return loadFullCssTrack();
   const load = cssModuleLoaders[options.moduleId];
   if (load) return load();
   return resolveCssGroup(options.moduleId) === "responsive"
@@ -77,6 +78,7 @@ async function loadCssTrack(options = {}) {
 
 async function loadFullCssTrack() {
   const tracks = await Promise.all([
+    cssModuleLoaders["css-getting-started"](),
     cssModuleLoaders["css-selectors-colors"](),
     cssModuleLoaders["css-box-type"](),
     cssModuleLoaders["css-flex-layout"](),

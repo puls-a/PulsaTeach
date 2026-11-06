@@ -1,5 +1,8 @@
 # PulsaTeach - Roadmap stratégique complète
 
+> Archive strategique. Les chiffres et diagnostics ci-dessous datent d'une
+> version anterieure. La source active est `docs/MASTER_EXECUTION_PLAN.md`.
+
 ## Priorités produit actuelles — 23 juin 2026
 
 ### P0 — Impact immédiat produit et confiance

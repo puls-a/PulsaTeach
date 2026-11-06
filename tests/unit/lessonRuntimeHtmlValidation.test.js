@@ -90,6 +90,15 @@ describe("HTML semantic lesson validation", () => {
     expect(await check("allMatch", { selector: "p", matches: ":::invalid" }, "<p>x</p>")).toBe(false);
   });
 
+  test("checks state snapshots inside one explicit template", async () => {
+    const html = '<template id="invalid-state"><input aria-invalid="true"><p role="alert">Invalid</p></template>';
+    expect(await check("templateSelector", { template: "#invalid-state", selector: "input[aria-invalid=\"true\"]" }, html)).toBe(true);
+    expect(await check("templateSelector", { template: "#invalid-state", selector: "[role=\"alert\"]" }, html)).toBe(true);
+    expect(await check("templateSelector", { template: "#missing", selector: "[role=\"alert\"]" }, html)).toBe(false);
+    expect(await check("templateSelector", { template: "#invalid-state", selector: "button" }, html)).toBe(false);
+    expect(await check("templateSelector", { template: "template", selector: "input", amount: 2 }, html)).toBe(false);
+  });
+
   test("resolves localized natural-language and nested semantic values", async () => {
     const lesson = { tests: [
       { type: "containsAny", label: { fr: "Salutation", en: "Greeting" }, value: { fr: ["Bonjour", "Salut"], en: ["Hello", "Hi"] } },

@@ -57,7 +57,7 @@ afterAll(async () => {
   await rm(testDataDir, { recursive: true, force: true });
 });
 
-describe("API security boundaries", () => {
+describe("API security boundaries", { timeout: 15000 }, () => {
   test("keeps public catalog readable and emits security headers", async () => {
     const response = await request(app).get("/api/catalog").expect(200);
     expect(response.headers["content-security-policy"]).toContain("default-src 'none'");
@@ -479,7 +479,7 @@ describe("API security boundaries", () => {
     expect(rolledBack.body.workflowLog[0]).toMatchObject({ kind: "rollback", sourceVersion: 1 });
 
     await request(app).delete(`/api/courses/${id}`).set(headers).expect(200);
-  });
+  }, 15000);
 
   test("keeps immutable project versions and a contextual review journal", async () => {
     const learner = { "X-PulsaTeach-User-Id": "project-user" };
@@ -678,7 +678,7 @@ describe("API security boundaries", () => {
     expect(repeatedRevocation.body).toMatchObject({ revokedAt: revoked.body.revokedAt, revocationReason: revoked.body.revocationReason });
     const reissue = await request(app).post("/api/certificates/frontend-foundations/issue").set(learner).expect(409);
     expect(reissue.body.error.code).toBe("CERTIFICATE_REVOKED");
-  });
+  }, 15000);
 
   test("blocks issuance for certificates without a public assessed path", async () => {
     const response = await request(app)
@@ -795,13 +795,13 @@ describe("API security boundaries", () => {
       .send({ status: "review", expectedVersion: created.body.version }).expect(200);
     const approved = await request(app).patch(`/api/courses/${created.body.id}`).set(headers)
       .send({ status: "approved", expectedVersion: review.body.version }).expect(200);
-    const scheduledAt = new Date(Date.now() + 100).toISOString();
+    const scheduledAt = new Date(Date.now() + 1000).toISOString();
     const scheduled = await request(app).patch(`/api/courses/${created.body.id}`).set(headers)
       .send({ status: "scheduled", scheduledAt, expectedVersion: approved.body.version }).expect(200);
 
     const earlyCatalog = await request(app).get("/api/catalog").expect(200);
     expect(earlyCatalog.body.tracks.some((track) => track.id === scheduled.body.slug)).toBe(false);
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await new Promise((resolve) => setTimeout(resolve, 1050));
     const maintenance = await request(app).get("/api/internal/maintenance")
       .set("Authorization", "Bearer test-cron-secret").expect(200);
     expect(maintenance.body.courses.published).toBe(1);

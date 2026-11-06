@@ -15,6 +15,7 @@ export function getPedagogy(id, context = {}) {
   const vocabulary = normalizeVocabulary(course.vocabulary, source.fr.vocabulary);
   const good = source.fr.comparison?.good || {};
   const bad = source.fr.comparison?.bad || {};
+  const englishExample = course.sections?.find((section) => section?.example)?.example;
 
   return {
     ...source,
@@ -29,7 +30,7 @@ export function getPedagogy(id, context = {}) {
       comparison: {
         good: {
           title: "Explicit and testable approach",
-          code: good.code || "",
+          code: englishExample || good.code || "",
           explanation: "This version keeps the intent visible, uses the appropriate native mechanism, and remains straightforward to verify."
         },
         bad: {
@@ -73,6 +74,7 @@ function createFallbackSource(context) {
     "Ajoute uniquement les éléments ou attributs demandés.",
     "Lance les tests, lis le premier échec, puis corrige sans repartir de zéro."
   ]);
+  const courseExample = course.sections?.find((section) => section?.example)?.example || "";
 
   return {
     fr: {
@@ -87,7 +89,7 @@ function createFallbackSource(context) {
       comparison: {
         good: {
           title: "Approche progressive et testable",
-          code: context.solution || "",
+          code: courseExample,
           explanation: "Cette version ajoute une seule capacité claire au projet, conserve l’intention visible dans le HTML et reste facile à valider."
         },
         bad: {

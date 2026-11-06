@@ -4,6 +4,8 @@ export function createCssModuleGroup(entries, startIndex = 0, projectModuleIds =
   const projectModules = new Set(projectModuleIds);
   return entries.map(([id, title, selector, checks], offset) => {
     const moduleIndex = startIndex + offset;
+    if (id === "css-selectors-colors") return selectorsColorsModule(title, moduleIndex, projectModules.has(id));
+    if (id === "css-box-type") return boxTypeModule(title, moduleIndex, projectModules.has(id));
     const profile = cssModuleProfile(id, title);
     const lessons = checks.map((check, index) => lessonFor(id, title, selector, check, index + 1, profile));
     lessons.push(quizFor(id, title, moduleIndex, profile, selector, checks));
@@ -22,6 +24,282 @@ export function createCssModuleGroup(entries, startIndex = 0, projectModuleIds =
       totalMinutes: lessons.reduce((sum, lesson) => sum + lesson.durationMin, 0)
     };
   });
+}
+
+const T = (fr, en) => ({ fr, en });
+const selectorsBase = `:root {
+  --accent: #4f46e5;
+  --surface: #ffffff;
+  --space: 1rem;
+}
+
+.demo-surface {
+  color: #1f2937;
+  background: #eef2ff;
+  font-family: system-ui, sans-serif;
+}
+
+.course-card {
+  color: #374151;
+  max-width: 100%;
+  padding: var(--space);
+  background: var(--surface);
+  border: 2px solid #c7d2fe;
+  border-radius: 1rem;
+}
+
+.stylesheet-status {
+  color: #166534;
+  font-weight: 700;
+}
+
+.hero-card.course-card {
+  color: #111827;
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.action:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 4px;
+}
+
+@media (min-width: 760px) {
+  .course-card {
+    max-width: 42rem;
+  }
+}`;
+
+const selectorsSteps = [
+  { slug: "color", title: T("1. Cibler le texte secondaire", "1. Target secondary text"), brief: T("Utilise un sélecteur descendant pour colorer uniquement le résumé de la carte.", "Use a descendant selector to color only the card summary."), selector: ".course-card .lead", property: "color", value: "#334155", rule: ".course-card .lead {\n  color: #334155;\n}", example: ".notice .summary { color: #475569; }" },
+  { slug: "background", title: T("2. Définir la surface de carte", "2. Define the card surface"), brief: T("Applique le fond à la carte sans toucher à toute la page.", "Apply the background to the card without affecting the whole page."), selector: ".course-card", property: "background", value: "#f8fafc", rule: ".course-card {\n  background: #f8fafc;\n}", example: ".notice { background: #fff7ed; }" },
+  { slug: "border-color", title: T("3. Créer une variante héro", "3. Create a hero variant"), brief: T("Surcharge seulement la bordure de la carte héro avec un sélecteur de variante.", "Override only the hero card border with a variant selector."), selector: ".hero-card.course-card", property: "border-color", value: "#4338ca", rule: ".hero-card.course-card {\n  border-color: #4338ca;\n}", example: ".featured.notice { border-color: #c2410c; }" },
+  { slug: "font-weight", title: T("4. Hiérarchiser l'eyebrow", "4. Emphasize the eyebrow"), brief: T("Renforce uniquement le libellé eyebrow, pas tout le contenu de la carte.", "Emphasize only the eyebrow label, not all card content."), selector: ".course-card .eyebrow", property: "font-weight", value: "800", rule: ".course-card .eyebrow {\n  font-weight: 800;\n}", example: ".notice .label { font-weight: 700; }" },
+  { slug: "text-decoration", title: T("5. Garder le lien reconnaissable", "5. Keep the link recognizable"), brief: T("Souligne l'action de la carte afin qu'elle ne dépende pas uniquement de sa couleur.", "Underline the card action so it does not rely on color alone."), selector: ".course-card .action", property: "text-decoration", value: "underline", rule: ".course-card .action {\n  text-decoration: underline;\n}", example: ".notice a { text-decoration: underline; }" },
+  { slug: "outline", title: T("6. Renforcer le focus clavier", "6. Strengthen keyboard focus"), brief: T("Ajoute un contour uniquement lorsque l'action reçoit le focus visible.", "Add an outline only when the action receives visible focus."), selector: ".course-card .action:focus-visible", property: "outline", value: "3px solid #4338ca", rule: ".course-card .action:focus-visible {\n  outline: 3px solid #4338ca;\n  outline-offset: 4px;\n}", example: ".notice a:focus-visible { outline: 2px solid #c2410c; }" },
+  { slug: "box-shadow", title: T("7. Limiter l'ombre à la variante", "7. Limit shadow to the variant"), brief: T("Réserve la profondeur visuelle à la carte héro plutôt qu'à toutes les cartes.", "Reserve visual depth for the hero card instead of every card."), selector: ".hero-card.course-card", property: "box-shadow", value: "0 10px 30px rgba(16, 23, 42, .12)", rule: ".hero-card.course-card {\n  box-shadow: 0 10px 30px rgba(16, 23, 42, .12);\n}", example: ".featured.notice { box-shadow: 0 4px 12px rgba(0, 0, 0, .1); }" },
+  { slug: "opacity", title: T("8. Atténuer une carte explicitement muted", "8. De-emphasize an explicit muted card"), brief: T("Réduis l'opacité uniquement sur la variante is-muted et conserve une valeur lisible.", "Reduce opacity only on the is-muted variant and keep a readable value."), selector: ".course-card.is-muted", property: "opacity", value: ".72", rule: ".course-card.is-muted {\n  opacity: .72;\n}", example: ".notice.is-archived { opacity: .8; }" }
+];
+
+const boxTypeSteps = [
+  { slug: "box-sizing", property: "box-sizing", selector: ".course-card", value: "border-box", title: T("1. Inclure bordure et padding dans la taille", "1. Include border and padding in the size"), brief: T("Stabilise la largeur de la carte quand son espace intérieur et sa bordure augmentent.", "Keep the card width stable when its inner spacing and border grow."), example: ".notice { box-sizing: border-box; }" },
+  { slug: "padding", property: "padding", selector: ".course-card", value: "1.5rem", title: T("2. Créer un espace intérieur respirant", "2. Create comfortable inner spacing"), brief: T("Éloigne le contenu des bords sans déplacer les cartes voisines.", "Move content away from the edges without shifting neighboring cards."), example: ".notice { padding: 1rem; }" },
+  { slug: "margin", property: "margin", selector: ".course-card", value: "1.5rem auto", title: T("3. Centrer et séparer la carte", "3. Center and separate the card"), brief: T("Combine une marge verticale visible et des marges horizontales automatiques.", "Combine visible vertical spacing with automatic horizontal margins."), example: ".notice { margin: 2rem auto; }" },
+  { slug: "max-width", property: "max-width", selector: ".course-card .lead", value: "60ch", title: T("4. Limiter la longueur de lecture", "4. Limit reading length"), brief: T("Contraints le paragraphe principal avec une unité liée à la largeur des caractères.", "Constrain the lead paragraph with a unit tied to character width."), example: ".notice__summary { max-width: 55ch; }" },
+  { slug: "line-height", property: "line-height", selector: ".course-card .lead", value: "1.65", title: T("5. Aérer les lignes de texte", "5. Give text lines breathing room"), brief: T("Utilise un interligne sans unité qui suit automatiquement la taille du texte.", "Use a unitless line height that automatically follows text size."), example: ".notice__summary { line-height: 1.6; }" },
+  { slug: "font-size", property: "font-size", selector: ".course-card h1", value: "clamp(2rem, 5vw, 3.5rem)", title: T("6. Construire une taille de titre fluide", "6. Build a fluid heading size"), brief: T("Encadre une valeur fluide entre une borne minimale et une borne maximale.", "Bound a fluid value between a minimum and maximum."), example: ".notice h2 { font-size: clamp(1.5rem, 4vw, 2.5rem); }" },
+  { slug: "overflow-wrap", property: "overflow-wrap", selector: ".course-card", value: "anywhere", title: T("7. Protéger la carte des mots longs", "7. Protect the card from long words"), brief: T("Autorise la coupure d'un identifiant extrême avant qu'il ne crée un débordement horizontal.", "Allow an extreme identifier to break before it causes horizontal overflow."), example: ".notice { overflow-wrap: anywhere; }" },
+  { slug: "border-radius", property: "border-radius", selector: ".course-card", value: "1.25rem", title: T("8. Adoucir la silhouette de la carte", "8. Soften the card silhouette"), brief: T("Termine le composant avec un rayon cohérent sans modifier sa géométrie interne.", "Finish the component with a consistent radius without changing its inner geometry."), example: ".notice { border-radius: 1rem; }" }
+];
+
+function selectorsColorsModule(title, moduleIndex, includeProject) {
+  const profile = cssModuleProfile("css-selectors-colors", title);
+  let current = selectorsBase;
+  const lessons = selectorsSteps.map((step, index) => {
+    const starterCode = current;
+    current = `${current}\n\n${step.rule}`;
+    return selectorsColorsLesson(step, index + 1, starterCode, current, profile);
+  });
+  lessons.push(selectorsColorsQuiz(title, moduleIndex, profile));
+  if (includeProject) lessons.push(selectorsColorsProject(title, current, profile));
+  return {
+    id: "css-selectors-colors",
+    title: { fr: "Sélecteurs, cascade et couleurs", en: title[1] },
+    description: { fr: profile.scene[0], en: profile.scene[1] },
+    deliverable: { fr: profile.project[0], en: profile.project[1] },
+    importance: T("Des sélecteurs précis empêchent une décision de couleur ou d'état de se propager à des composants sans rapport.", "Precise selectors prevent a color or state decision from spreading to unrelated components."),
+    prerequisites: T(["Avoir terminé l'introduction CSS", "Savoir lire une déclaration et une media query"], ["Complete the CSS introduction", "Know how to read a declaration and media query"]),
+    outcomes: T(["Cibler descendant, variante et état interactif", "Raisonner sur la cascade sans !important", "Conserver contraste, lien et focus identifiables"], ["Target descendants, variants, and interactive states", "Reason about the cascade without !important", "Keep contrast, links, and focus identifiable"]),
+    vocabulary: ["descendant", "variante", "cascade", "focus-visible", "contraste", "opacité"],
+    mastery: T(["Chaque règle vise le plus petit périmètre utile", "La variante gagne sans effets de bord", "Le focus et les liens restent visibles"], ["Every rule targets the smallest useful scope", "The variant wins without side effects", "Focus and links remain visible"]),
+    lessons,
+    totalMinutes: lessons.reduce((sum, lesson) => sum + lesson.durationMin, 0)
+  };
+}
+
+function boxTypeModule(title, moduleIndex, includeProject) {
+  const profile = cssModuleProfile("css-box-type", title);
+  let current = selectorsSteps.reduce((css, step) => `${css}\n\n${step.rule}`, selectorsBase);
+  const lessons = boxTypeSteps.map((step, index) => {
+    const starterCode = current;
+    current = `${current}\n\n${step.selector} {\n  ${step.property}: ${step.value};\n}`;
+    return boxTypeLesson(step, index + 1, starterCode, current, profile);
+  });
+  lessons.push(boxTypeQuiz(title, moduleIndex, profile));
+  if (includeProject) lessons.push(boxTypeProject(title, current, profile));
+  return {
+    id: "css-box-type",
+    title: T("Box model et typographie", "Box model and typography"),
+    description: T("Construis une carte stable, lisible et résistante aux contenus extrêmes.", "Build a stable, readable card that withstands extreme content."),
+    deliverable: T("Une carte PulsaConf centrée, fluide et sans débordement.", "A centered, fluid PulsaConf card without overflow."),
+    importance: T("Le box model relie largeur, espace et contenu : une valeur isolée peut sinon provoquer un débordement ou une lecture pénible.", "The box model connects width, spacing, and content: an isolated value can otherwise cause overflow or difficult reading."),
+    prerequisites: T(["Avoir terminé CSS 01", "Distinguer composant, descendant et variante"], ["Complete CSS 01", "Distinguish components, descendants, and variants"]),
+    outcomes: T(["Distinguer espace intérieur et extérieur", "Contraindre une ligne sans figer la carte", "Protéger le rendu contre les contenus extrêmes"], ["Distinguish inner and outer spacing", "Constrain a line without freezing the card", "Protect output against extreme content"]),
+    vocabulary: ["box-sizing", "padding", "margin", "ch", "line-height", "clamp", "overflow-wrap", "border-radius"],
+    mastery: T(["La carte reste dans son conteneur", "Le texte garde une mesure lisible", "Le titre et les identifiants résistent aux petites largeurs"], ["The card stays inside its container", "Text keeps a readable measure", "The heading and identifiers withstand narrow widths"]),
+    lessons,
+    totalMinutes: lessons.reduce((sum, lesson) => sum + lesson.durationMin, 0)
+  };
+}
+
+function boxTypeLesson(step, order, starterCode, solution, profile) {
+  const course = {
+    fr: { introduction: `${profile.scene[0]} ${step.brief.fr}`, sections: [{ title: "Modèle de boîte", paragraphs: ["Observe d'abord la largeur disponible, la bordure et la zone réellement occupée par le contenu.", "Modifie une seule relation à la fois pour distinguer taille, espace intérieur et espace extérieur."], example: step.example }, { title: "Texte réel", paragraphs: ["Relis la carte avec plusieurs lignes et un identifiant sans espace.", "Une valeur robuste doit rester utile quand la taille du viewport ou du texte change."], example: ".notice__copy { max-width: 55ch; line-height: 1.6; }" }, { title: "Preuve", paragraphs: ["Inspecte la valeur calculée plutôt que de juger seulement l'apparence.", "Compare 375 px et desktop sans supprimer les règles certifiées des modules précédents."], example: "DevTools > Computed > Box model" }], vocabulary: [[step.property, `Propriété travaillée avec la valeur ${step.value}.`], ["mesure", "Longueur confortable d'une ligne de texte."], ["contenu extrême", "Mot, URL ou identifiant plus long que le cas habituel."]], check: ["Je distingue la zone modifiée.", "Je conserve les règles cumulatives.", "Je vérifie contenu long et petite largeur."] },
+    en: { introduction: `${profile.scene[1]} ${step.brief.en}`, sections: [{ title: "Box model", paragraphs: ["First observe the available width, border, and area actually occupied by content.", "Change one relationship at a time to distinguish size, inner spacing, and outer spacing."], example: step.example }, { title: "Real text", paragraphs: ["Reread the card with multiple lines and an identifier without spaces.", "A robust value should remain useful when viewport or text size changes."], example: ".notice__copy { max-width: 55ch; line-height: 1.6; }" }, { title: "Evidence", paragraphs: ["Inspect the computed value instead of judging appearance alone.", "Compare 375 px and desktop without removing rules certified in previous modules."], example: "DevTools > Computed > Box model" }], vocabulary: [[step.property, `Property practiced with the value ${step.value}.`], ["measure", "Comfortable length of a text line."], ["extreme content", "A word, URL, or identifier longer than the usual case."]], check: ["I distinguish the changed area.", "I preserve cumulative rules.", "I verify long content and narrow width."] }
+  };
+  const guide = {
+    fr: { objectives: [step.brief.fr, `Appliquer ${step.property} au bon périmètre.`, "Conserver toutes les décisions CSS 00 et CSS 01."], prerequisites: ["Lire le composant PulsaConf.", "Ouvrir le box model dans DevTools.", "Comparer deux largeurs de viewport."], steps: ["Repérer la zone affectée.", "Ajouter la déclaration minimale.", "Vérifier valeur calculée et contenu extrême."], mistakes: [`Pour « ${step.title.fr} », modifier plusieurs dimensions avant d'identifier la cause.`, "Confondre padding et margin.", "Valider seulement sur un grand écran."] },
+    en: { objectives: [step.brief.en, `Apply ${step.property} to the correct scope.`, "Preserve every CSS 00 and CSS 01 decision."], prerequisites: ["Read the PulsaConf component.", "Open the box model in DevTools.", "Compare two viewport widths."], steps: ["Locate the affected area.", "Add the minimal declaration.", "Verify the computed value and extreme content."], mistakes: [`For “${step.title.en},” changing several dimensions before identifying the cause.`, "Confusing padding and margin.", "Validating only on a wide screen."] }
+  };
+  return {
+    id: `css-box-type-${step.slug}`, type: "css", title: step.title, brief: step.brief, theory: step.brief, course, guide,
+    pedagogy: createGeneratedCssPedagogy({ course, guide, title: step.title, brief: step.brief, solution: step.example, type: "css" }),
+    skills: ["css-box-type", step.property], difficulty: order <= 3 ? "easy" : order <= 6 ? "medium" : "hard", durationMin: 20,
+    starterCode, solution, previewHtml: boxTypePreview(), tests: boxTypeTests(boxTypeSteps.slice(0, order)),
+    hint: T(`Inspecte la zone concernée par ${step.property}, puis compare-la avant et après.`, `Inspect the area affected by ${step.property}, then compare it before and after.`), xp: 26 + order
+  };
+}
+
+function boxTypeTests(steps) {
+  return [
+    { type: "cssDeclaration", label: T("Conserve la couleur du résumé", "Preserve the summary color"), value: { selector: ".course-card .lead", property: "color", value: "#334155" } },
+    { type: "cssDeclaration", label: T("Conserve le lien identifiable", "Preserve the identifiable link"), value: { selector: ".course-card .action", property: "text-decoration", value: "underline" } },
+    { type: "cssMediaDeclaration", label: T("Conserve la largeur desktop conditionnelle", "Preserve the conditional desktop width"), value: { query: "(min-width: 760px)", selector: ".course-card", property: "max-width", value: "42rem" } },
+    ...steps.map((step) => ({ type: "cssDeclaration", label: T(`${step.property} utilise la bonne cible et la bonne valeur`, `${step.property} uses the correct target and value`), value: { selector: step.selector, property: step.property, value: step.value } })),
+    { type: "notContains", label: T("N'utilise pas important", "Do not use important"), value: "!important" }
+  ];
+}
+
+function boxTypePreview() {
+  return T(
+    `<main class="demo-surface"><p class="stylesheet-status">Feuille CSS chargée</p><section class="hero-card course-card"><p class="eyebrow">Atelier robuste</p><h1>Composer sans débordement</h1><p class="lead">Cette description volontairement longue permet de comparer la mesure, l'interligne et l'espace intérieur sur plusieurs largeurs.</p><p class="identifier">pulsaconf-css-box-model-session-2026-identifiant-extremement-long</p><a class="action" href="#archive">Voir l'archive</a></section><section class="course-card is-muted" id="archive"><p class="eyebrow">Archive</p><p class="lead">Une seconde carte rend la marge extérieure et le centrage observables.</p></section></main>`,
+    `<main class="demo-surface"><p class="stylesheet-status">CSS file loaded</p><section class="hero-card course-card"><p class="eyebrow">Robust workshop</p><h1>Compose without overflow</h1><p class="lead">This deliberately long description makes measure, line height, and inner spacing comparable across several widths.</p><p class="identifier">pulsaconf-css-box-model-session-2026-extremely-long-identifier</p><a class="action" href="#archive">View archive</a></section><section class="course-card is-muted" id="archive"><p class="eyebrow">Archive</p><p class="lead">A second card makes outer spacing and centering observable.</p></section></main>`
+  );
+}
+
+function boxTypeQuiz(title, moduleIndex, profile) {
+  const brief = T("Diagnostique taille, espacement et typographie à partir d'un rendu concret.", "Diagnose size, spacing, and typography from concrete output.");
+  const course = {
+    fr: { introduction: "Ce quiz vérifie les relations du box model plutôt que la mémorisation de propriétés isolées.", sections: [{ title: "Dimensions", paragraphs: ["Relie chaque symptôme à la zone de boîte concernée.", "Une carte trop large ne se corrige pas au hasard avec une marge négative."], example: ".notice { box-sizing: border-box; }" }, { title: "Lecture", paragraphs: ["Distingue largeur du composant et mesure du texte.", "Lis clamp dans l'ordre minimum, valeur fluide, maximum."], example: "clamp(1.5rem, 4vw, 2.5rem)" }, { title: "Contenu extrême", paragraphs: ["Teste une chaîne sans espace avant de conclure.", "Le correctif doit agir sans masquer ni tronquer l'information."], example: "overflow-wrap: anywhere;" }], vocabulary: [["boîte", "Contenu, padding, bordure et marge."], ["clamp", "Fonction bornant une valeur fluide."], ["mesure", "Longueur d'une ligne de texte."]], check: ["Je localise le symptôme.", "Je choisis la propriété adaptée.", "Je cite une preuve observable."] },
+    en: { introduction: "This quiz verifies box-model relationships rather than memorization of isolated properties.", sections: [{ title: "Dimensions", paragraphs: ["Connect each symptom to the affected box area.", "Do not randomly fix an oversized card with a negative margin."], example: ".notice { box-sizing: border-box; }" }, { title: "Reading", paragraphs: ["Distinguish component width from text measure.", "Read clamp in minimum, fluid value, maximum order."], example: "clamp(1.5rem, 4vw, 2.5rem)" }, { title: "Extreme content", paragraphs: ["Test a string without spaces before drawing a conclusion.", "The fix should work without hiding or truncating information."], example: "overflow-wrap: anywhere;" }], vocabulary: [["box", "Content, padding, border, and margin."], ["clamp", "Function bounding a fluid value."], ["measure", "Length of a text line."]], check: ["I locate the symptom.", "I choose the appropriate property.", "I cite observable evidence."] }
+  };
+  const guide = {
+    fr: { objectives: ["Distinguer padding et margin.", "Interpréter box-sizing et clamp.", "Choisir une correction contre le débordement."], prerequisites: ["Avoir terminé les huit exercices.", "Lire une règle CSS.", "Observer un rendu étroit."], steps: ["Lis le symptôme.", "Localise la zone concernée.", "Choisis la preuve la plus forte."], mistakes: ["Pour le quiz Box model, choisir une propriété au son de son nom.", "Confondre largeur de carte et longueur de ligne.", "Ignorer le contenu extrême."] },
+    en: { objectives: ["Distinguish padding and margin.", "Interpret box-sizing and clamp.", "Choose an overflow correction."], prerequisites: ["Complete all eight exercises.", "Read a CSS rule.", "Observe narrow output."], steps: ["Read the symptom.", "Locate the affected area.", "Choose the strongest evidence."], mistakes: ["For the box-model quiz, choosing a property by how its name sounds.", "Confusing card width and line length.", "Ignoring extreme content."] }
+  };
+  const explanation = T("La réponse relie un symptôme observable à la zone exacte du box model.", "The answer connects an observable symptom to the exact box-model area.");
+  const questions = [
+    { id: "css-box-type-quiz-single", type: "single", prompt: T("Quelle valeur empêche padding et bordure d'augmenter la largeur déclarée ?", "Which value prevents padding and border from increasing the declared width?"), choices: [{ id: "border-box", label: T("box-sizing: border-box", "box-sizing: border-box") }, { id: "content-box", label: T("box-sizing: content-box", "box-sizing: content-box") }, { id: "hidden", label: T("overflow: hidden", "overflow: hidden") }], answer: "border-box", explanation },
+    { id: "css-box-type-quiz-multiple", type: "multiple", prompt: T("Quelles décisions améliorent directement la lecture d'un paragraphe long ?", "Which decisions directly improve reading of a long paragraph?"), choices: [{ id: "measure", label: T("Limiter la mesure en ch", "Limit measure in ch") }, { id: "leading", label: T("Utiliser un interligne sans unité", "Use unitless line height") }, { id: "opacity", label: T("Réduire l'opacité", "Reduce opacity") }], answer: ["measure", "leading"], explanation },
+    { id: "css-box-type-quiz-tf", type: "true-false", prompt: T("Vrai ou faux : le padding crée l'espace entre deux cartes voisines.", "True or false: padding creates space between neighboring cards."), choices: [{ id: "true", label: T("Vrai", "True") }, { id: "false", label: T("Faux", "False") }], answer: "false", explanation },
+    { id: "css-box-type-quiz-order", type: "ordering", prompt: T("Lis clamp(2rem, 5vw, 3.5rem) dans le bon ordre.", "Read clamp(2rem, 5vw, 3.5rem) in the correct order."), choices: [{ id: "min", label: T("Minimum : 2rem", "Minimum: 2rem") }, { id: "fluid", label: T("Valeur fluide : 5vw", "Fluid value: 5vw") }, { id: "max", label: T("Maximum : 3.5rem", "Maximum: 3.5rem") }], answer: ["min", "fluid", "max"], explanation },
+    { id: "css-box-type-quiz-code", type: "code-reading", prompt: T("Un identifiant sans espace déborde de la carte. Quelle déclaration préserve tout le texte ?", "An identifier without spaces overflows the card. Which declaration preserves all text?"), choices: [{ id: "wrap", label: T("overflow-wrap: anywhere", "overflow-wrap: anywhere") }, { id: "hide", label: T("overflow: hidden", "overflow: hidden") }, { id: "nowrap", label: T("white-space: nowrap", "white-space: nowrap") }], answer: "wrap", explanation },
+    { id: "css-box-type-quiz-open", type: "short-open", prompt: T("Cite les deux zones qui distinguent espace intérieur et extérieur.", "Name the two areas distinguishing inner and outer spacing."), choices: [], answer: T(["padding", "margin"], ["padding", "margin"]), keywords: ["padding", "margin"], explanation }
+  ];
+  return {
+    id: "css-box-type-quiz", type: "quiz", title: T("Quiz Box model et typographie", "Box model and typography quiz"), brief, theory: brief, course, guide,
+    pedagogy: createGeneratedCssPedagogy({ course, guide, title: T("Quiz Box model", "Box model quiz"), brief, type: "quiz" }),
+    skills: ["css-box-type"], difficulty: "quiz", durationMin: 22, question: questions[0].prompt, options: questions[0].choices, answer: questions[0].answer,
+    explanation, questions, passingScore: 75, randomizeQuestions: true, feedbackMode: "immediate", starterCode: "", solution: "", tests: [{ type: "quiz", label: T("Réponse correcte", "Correct answer"), value: "border-box" }], xp: 55, order: moduleIndex + 1, profile
+  };
+}
+
+function boxTypeProject(title, solution, profile) {
+  const starterCode = selectorsSteps.reduce((css, step) => `${css}\n\n${step.rule}`, selectorsBase);
+  const brief = T("Livre une carte PulsaConf stable, lisible et résistante aux contenus extrêmes.", "Ship a stable, readable PulsaConf card that withstands extreme content.");
+  const course = {
+    fr: { introduction: "Le lab assemble les huit décisions du module sans perdre les sélecteurs, couleurs, états et règles responsive déjà certifiés.", sections: [{ title: "Diagnostiquer", paragraphs: ["Commence par observer la carte à 375 px avec son titre, son paragraphe long et son identifiant sans espace.", "Classe chaque symptôme dans la taille, l'espace intérieur, l'espace extérieur ou la typographie avant de modifier le CSS."], example: ".notice { box-sizing: border-box; padding: 1rem; }" }, { title: "Assembler", paragraphs: ["Ajoute les déclarations dans l'ordre du module afin que chaque étape conserve la précédente.", "Contraints le paragraphe plutôt que toute la carte lorsque le problème concerne uniquement la longueur de ligne."], example: ".notice__copy { max-width: 55ch; line-height: 1.6; }" }, { title: "Vérifier", paragraphs: ["Compare mobile et desktop, puis inspecte les valeurs calculées du titre, du paragraphe et de la carte.", "Le projet est terminé seulement si le contenu extrême reste visible sans défilement horizontal ni règle important."], example: "DevTools > Computed > Box model" }], vocabulary: [["box model", "Relation entre contenu, padding, bordure et marge."], ["mesure", "Longueur d'une ligne de lecture."], ["contenu extrême", "Cas plus long que le contenu habituel."]], check: ["Les huit décisions sont présentes.", "Les acquis précédents sont conservés.", "Mobile et contenu extrême restent robustes."] },
+    en: { introduction: "The lab combines all eight module decisions without losing previously certified selectors, colors, states, and responsive rules.", sections: [{ title: "Diagnose", paragraphs: ["Start by observing the card at 375 px with its heading, long paragraph, and identifier without spaces.", "Classify each symptom as size, inner spacing, outer spacing, or typography before changing CSS."], example: ".notice { box-sizing: border-box; padding: 1rem; }" }, { title: "Assemble", paragraphs: ["Add declarations in module order so that every step preserves the previous one.", "Constrain the paragraph rather than the whole card when the problem concerns only line length."], example: ".notice__copy { max-width: 55ch; line-height: 1.6; }" }, { title: "Verify", paragraphs: ["Compare mobile and desktop, then inspect computed values for the heading, paragraph, and card.", "The project is complete only when extreme content remains visible without horizontal scrolling or an important rule."], example: "DevTools > Computed > Box model" }], vocabulary: [["box model", "Relationship between content, padding, border, and margin."], ["measure", "Length of a reading line."], ["extreme content", "A case longer than usual content."]], check: ["All eight decisions are present.", "Previous outcomes are preserved.", "Mobile and extreme content remain robust."] }
+  };
+  const guide = {
+    fr: { objectives: [brief.fr, "Conserver CSS 00 et CSS 01.", "Prouver les huit valeurs sur leurs cibles exactes."], prerequisites: ["Avoir terminé les huit exercices.", "Tester à 375 px et desktop.", "Inspecter les valeurs calculées."], steps: ["Reproduire le contenu extrême.", "Ajouter les huit règles cumulatives.", "Relire chaque preuve avant livraison."], mistakes: ["Pour le lab Box model, repartir d'une feuille vide et perdre les acquis précédents.", "Cacher le débordement au lieu de traiter sa cause.", "Vérifier uniquement la carte héro."] },
+    en: { objectives: [brief.en, "Preserve CSS 00 and CSS 01.", "Prove all eight values on their exact targets."], prerequisites: ["Complete all eight exercises.", "Test at 375 px and desktop.", "Inspect computed values."], steps: ["Reproduce extreme content.", "Add all eight cumulative rules.", "Review every piece of evidence before delivery."], mistakes: ["For the box-model lab, starting from an empty stylesheet and losing previous outcomes.", "Hiding overflow instead of addressing its cause.", "Checking only the hero card."] }
+  };
+  return {
+    id: "css-box-type-lab", type: "project", title: T("Lab Box model et typographie", "Box model and typography lab"), brief, theory: brief, course, guide,
+    pedagogy: createGeneratedCssPedagogy({ course, guide, title: T("Lab Box model", "Box model lab"), brief, solution: ".notice { box-sizing: border-box; }", type: "project" }),
+    skills: ["css-box-type", "box-model", "typography"], difficulty: "project", durationMin: 100, starterCode, solution, previewHtml: boxTypePreview(),
+    tests: boxTypeTests(boxTypeSteps),
+    rubric: T(["Les huit déclarations ciblent la bonne zone.", "Les règles CSS 00 et CSS 01 restent actives.", "Le contenu long reste visible à 375 px.", "La feuille n'utilise ni masquage ni important."], ["All eight declarations target the correct area.", "CSS 00 and CSS 01 rules remain active.", "Long content remains visible at 375 px.", "The stylesheet uses neither hiding nor important."]),
+    hint: T("Pars du lab CSS 01 et traite d'abord taille, espace, puis texte long.", "Start from the CSS 01 lab and address size, spacing, then long text."), xp: 95, titleContext: title, profile
+  };
+}
+
+function selectorsColorsLesson(step, order, starterCode, solution, profile) {
+  const course = {
+    fr: { introduction: `${profile.scene[0]} ${step.brief.fr}`, sections: [{ title: "Portée", paragraphs: ["Lis le HTML avant de choisir le sélecteur.", "La règle doit viser le plus petit sous-ensemble utile."], example: step.example }, { title: "Cascade", paragraphs: ["Compare règle de base et variante avant d'ajouter une surcharge.", "Évite !important : rends la relation explicite."], example: ".notice { color: #475569; }\n.featured.notice { color: #7c2d12; }" }, { title: "Preuve", paragraphs: ["Inspecte la déclaration active et relis le composant avec son vrai contenu.", "Vérifie aussi lien et focus lorsque la cible est interactive."], example: "DevTools > Éléments > Styles" }], vocabulary: [["portée", "Ensemble exact d'éléments visés."], ["variante", "Classe qui modifie un composant de base."], ["cascade", "Mécanisme qui choisit la déclaration active."]], check: ["Je justifie le sélecteur.", "Je connais la règle gagnante.", "Je vérifie le rendu."] },
+    en: { introduction: `${profile.scene[1]} ${step.brief.en}`, sections: [{ title: "Scope", paragraphs: ["Read the HTML before choosing the selector.", "The rule should target the smallest useful subset."], example: step.example }, { title: "Cascade", paragraphs: ["Compare the base rule and variant before adding an override.", "Avoid !important: make the relationship explicit."], example: ".notice { color: #475569; }\n.featured.notice { color: #7c2d12; }" }, { title: "Evidence", paragraphs: ["Inspect the active declaration and reread the component with real content.", "Also verify links and focus when the target is interactive."], example: "DevTools > Elements > Styles" }], vocabulary: [["scope", "Exact set of targeted elements."], ["variant", "Class modifying a base component."], ["cascade", "Mechanism choosing the active declaration."]], check: ["I justify the selector.", "I know the winning rule.", "I verify the output."] }
+  };
+  const guide = {
+    fr: { objectives: [step.brief.fr, "Conserver les règles certifiées du module précédent.", "Prouver la valeur sur le bon sélecteur."], prerequisites: ["Avoir terminé CSS 00.", "Lire classes et descendants.", "Ouvrir la preview."], steps: ["Repérer la cible dans la preview.", "Ajouter la règle minimale.", "Inspecter la valeur active."], mistakes: [`Pour « ${step.title.fr} », cibler toute la page au lieu du composant.`, "Utiliser !important.", "Confondre présence du mot et déclaration valide."] },
+    en: { objectives: [step.brief.en, "Preserve the certified rules from the previous module.", "Prove the value on the correct selector."], prerequisites: ["Complete CSS 00.", "Read classes and descendants.", "Open the preview."], steps: ["Find the target in the preview.", "Add the minimal rule.", "Inspect the active value."], mistakes: [`For “${step.title.en},” targeting the whole page instead of the component.`, "Using !important.", "Confusing a word's presence with a valid declaration."] }
+  };
+  return {
+    id: `css-selectors-colors-${step.slug}`,
+    type: "css",
+    title: step.title,
+    brief: step.brief,
+    theory: step.brief,
+    course,
+    pedagogy: createGeneratedCssPedagogy({ course, guide, title: step.title, brief: step.brief, solution: step.example, type: "css" }),
+    guide,
+    skills: ["css-selectors-colors", step.property],
+    difficulty: order <= 3 ? "easy" : order <= 6 ? "medium" : "hard",
+    durationMin: 18,
+    starterCode,
+    solution,
+    previewHtml: selectorsColorsPreview(),
+    tests: [
+      { type: "cssDeclaration", label: T(`Déclare ${step.property} sur ${step.selector}`, `Declare ${step.property} on ${step.selector}`), value: { selector: step.selector, property: step.property, value: step.value } },
+      { type: "cssMediaDeclaration", label: T("Conserve la largeur desktop certifiée", "Preserve the certified desktop width"), value: { query: "(min-width: 760px)", selector: ".course-card", property: "max-width", value: "42rem" } },
+      { type: "notContains", label: T("N'utilise pas important", "Do not use important"), value: "!important" }
+    ],
+    hint: T(`Ajoute ${step.property}: ${step.value} dans ${step.selector}.`, `Add ${step.property}: ${step.value} inside ${step.selector}.`),
+    xp: 24 + order
+  };
+}
+
+function selectorsColorsQuiz(title, moduleIndex, profile) {
+  const quiz = quizFor("css-selectors-colors", title, moduleIndex, profile, ".course-card", selectorsSteps.map((step) => step.property));
+  const explanation = T("La réponse limite les effets de bord et conserve une preuve visible dans le composant.", "The answer limits side effects and preserves visible evidence in the component.");
+  quiz.questions = [
+    { id: "css-selectors-colors-quiz-single", type: "single", prompt: T("Quel sélecteur souligne uniquement le lien de la carte ?", "Which selector underlines only the card link?"), choices: [{ id: "action", label: T(".course-card .action", ".course-card .action") }, { id: "card", label: T(".course-card", ".course-card") }, { id: "all", label: T("a, p, article", "a, p, article") }], answer: "action", explanation },
+    { id: "css-selectors-colors-quiz-multiple", type: "multiple", prompt: T("Quelles preuves valident une paire de couleurs ?", "Which evidence validates a color pair?"), choices: [{ id: "values", label: T("Les valeurs actives de color et background", "The active color and background values") }, { id: "contrast", label: T("Un contraste vérifié sur le contenu réel", "Verified contrast on real content") }, { id: "taste", label: T("Une préférence personnelle", "A personal preference") }], answer: ["values", "contrast"], explanation },
+    { id: "css-selectors-colors-quiz-tf", type: "true-false", prompt: T("Vrai ou faux : un outline permanent sur article remplace :focus-visible sur le lien.", "True or false: a permanent outline on article replaces :focus-visible on the link."), choices: [{ id: "true", label: T("Vrai", "True") }, { id: "false", label: T("Faux", "False") }], answer: "false", explanation },
+    { id: "css-selectors-colors-quiz-order", type: "ordering", prompt: T("Ordonne une revue de cascade.", "Order a cascade review."), choices: [{ id: "scope", label: T("Identifier la portée utile", "Identify the useful scope") }, { id: "base", label: T("Lire la règle de base", "Read the base rule") }, { id: "variant", label: T("Ajouter la variante minimale", "Add the minimal variant") }, { id: "inspect", label: T("Inspecter la déclaration gagnante", "Inspect the winning declaration") }], answer: ["scope", "base", "variant", "inspect"], explanation },
+    { id: "css-selectors-colors-quiz-code", type: "code-reading", prompt: T("Entre .course-card et .hero-card.course-card, quelle règle de variante gagne à propriété égale ?", "Between .course-card and .hero-card.course-card, which variant rule wins for the same property?"), choices: [{ id: "variant", label: T(".hero-card.course-card", ".hero-card.course-card") }, { id: "base", label: T(".course-card", ".course-card") }, { id: "random", label: T("La couleur choisie au hasard", "The randomly chosen color") }], answer: "variant", explanation },
+    { id: "css-selectors-colors-quiz-open", type: "short-open", prompt: T("Cite trois preuves pour valider sélecteur, couleur et focus.", "Name three pieces of evidence validating selector, color, and focus."), choices: [], answer: T(["sélecteur", "contraste", "focus"], ["selector", "contrast", "focus"]), explanation }
+  ];
+  quiz.question = quiz.questions[0].prompt;
+  quiz.options = quiz.questions[0].choices;
+  quiz.answer = quiz.questions[0].answer;
+  quiz.explanation = explanation;
+  return quiz;
+}
+
+function selectorsColorsProject(title, solution, profile) {
+  const course = {
+    fr: { introduction: "Le lab rassemble les décisions de portée, variante, lien, focus et atténuation dans une seule feuille cumulative.", sections: [{ title: "Carte de base", paragraphs: ["Conserve les acquis de CSS 00 pour garder une base comparable avant chaque nouvelle décision visuelle.", "Ajoute les règles sans supprimer la media query, puis contrôle la largeur sur mobile et sur desktop."], example: ".notice { color: #334155; background: #fff; }" }, { title: "Variantes", paragraphs: ["Sépare la carte héro et la carte atténuée avec des classes de variante explicites qui complètent la règle de base.", "Évite les sélecteurs globaux afin qu'une correction locale ne modifie ni la navigation ni les autres composants."], example: ".featured.notice { border-color: #4338ca; }" }, { title: "États", paragraphs: ["Le lien reste souligné et son focus visible pour que le changement d'état ne dépende jamais uniquement de la couleur.", "Inspecte chaque déclaration active, puis navigue au clavier pour confirmer la cascade dans le rendu réel."], example: ".notice a:focus-visible { outline: 2px solid #4338ca; }" }], vocabulary: [["portée", "Périmètre du sélecteur."], ["variante", "Modification explicite du composant."], ["état", "Situation interactive ou éditoriale."]], check: ["La base reste intacte.", "Les variantes sont limitées.", "Le focus reste visible."] },
+    en: { introduction: "The lab combines scope, variant, link, focus, and de-emphasis decisions in one cumulative stylesheet.", sections: [{ title: "Base card", paragraphs: ["Preserve the CSS 00 outcomes so that every new visual decision starts from a stable, comparable baseline.", "Add rules without removing the media query, then check the card width on both mobile and desktop."], example: ".notice { color: #334155; background: #fff; }" }, { title: "Variants", paragraphs: ["Separate the hero and de-emphasized cards with explicit variant classes that complement the base rule.", "Avoid global selectors so that a local correction changes neither navigation nor unrelated components."], example: ".featured.notice { border-color: #4338ca; }" }, { title: "States", paragraphs: ["Keep the link underlined and its focus visible so that a state change never depends on color alone.", "Inspect every active declaration, then navigate by keyboard to confirm the cascade in the real output."], example: ".notice a:focus-visible { outline: 2px solid #4338ca; }" }], vocabulary: [["scope", "Selector perimeter."], ["variant", "Explicit component modification."], ["state", "Interactive or editorial situation."]], check: ["The base remains intact.", "Variants stay scoped.", "Focus remains visible."] }
+  };
+  const guide = guideFor(T("Lab sélecteurs et couleurs", "Selectors and colors lab"), title, 10, profile, "cascade", ".course-card");
+  return {
+    id: "css-selectors-colors-lab", type: "project", title: T("Lab sélecteurs, cascade et couleurs", "Selectors, cascade, and colors lab"),
+    brief: T("Livre le système visuel complet sans élargir les sélecteurs ni perdre focus et responsive.", "Ship the complete visual system without broadening selectors or losing focus and responsive behavior."),
+    theory: T("Assemble les huit décisions dans une feuille cumulative.", "Combine all eight decisions in one cumulative stylesheet."), course, guide,
+    pedagogy: createGeneratedCssPedagogy({ course, guide, title: T("Lab sélecteurs et couleurs", "Selectors and colors lab"), brief: T("Assemble le système de cartes.", "Assemble the card system."), solution: ".notice.is-featured { border-color: #4338ca; }", type: "project" }),
+    skills: ["css-selectors-colors", "lab"], difficulty: "project", durationMin: 95, starterCode: selectorsBase, solution, previewHtml: selectorsColorsPreview(),
+    tests: [...selectorsSteps.map((step) => ({ type: "cssDeclaration", label: T(`${step.property} reste sur la bonne cible`, `${step.property} remains on the correct target`), value: { selector: step.selector, property: step.property, value: step.value } })), { type: "cssMediaDeclaration", label: T("La largeur desktop reste conditionnelle", "Desktop width remains conditional"), value: { query: "(min-width: 760px)", selector: ".course-card", property: "max-width", value: "42rem" } }, { type: "notContains", label: T("Aucun important", "No important"), value: "!important" }],
+    rubric: T(["Les sélecteurs distinguent descendants, variantes et focus.", "Chaque valeur est exacte et inspectable.", "Le lien et le focus restent identifiables.", "La media query certifiée est conservée."], ["Selectors distinguish descendants, variants, and focus.", "Every value is exact and inspectable.", "The link and focus remain identifiable.", "The certified media query is preserved."]),
+    hint: T("Pars de la feuille CSS 00 et ajoute les huit règles sans modifier leur cible.", "Start from the CSS 00 stylesheet and add all eight rules without changing their targets."), xp: 90
+  };
+}
+
+function selectorsColorsPreview() {
+  return T(
+    `<main class="demo-surface"><p class="stylesheet-status">Feuille CSS chargée</p><section class="hero-card course-card"><p class="eyebrow">Atelier recommandé</p><h1>CSS PulsaConf</h1><p class="lead">Une carte complète pour tester portée, cascade et contraste.</p><a class="action" href="#details">Voir les détails</a></section><section class="course-card is-muted" id="details"><p class="eyebrow">Archive</p><p class="lead">Cette variante reste lisible malgré son atténuation.</p><a class="action" href="#details">Relire</a></section></main>`,
+    `<main class="demo-surface"><p class="stylesheet-status">CSS file loaded</p><section class="hero-card course-card"><p class="eyebrow">Recommended workshop</p><h1>PulsaConf CSS</h1><p class="lead">A complete card for testing scope, cascade, and contrast.</p><a class="action" href="#details">View details</a></section><section class="course-card is-muted" id="details"><p class="eyebrow">Archive</p><p class="lead">This variant remains readable despite de-emphasis.</p><a class="action" href="#details">Review</a></section></main>`
+  );
 }
 
 function lessonFor(moduleId, moduleTitle, selector, check, step, profile) {
@@ -47,7 +325,7 @@ function lessonFor(moduleId, moduleTitle, selector, check, step, profile) {
     skills: [moduleId, check],
     difficulty: step <= 3 ? "easy" : step <= 6 ? "medium" : "hard",
     durationMin: 18,
-    starterCode: `${selector} {\n  /* ajoute ${check} */\n}`,
+    starterCode: T(`${selector} {\n  /* Ajoute ${check}. */\n}`, `${selector} {\n  /* Add ${check}. */\n}`),
     solution,
     previewHtml: previewHtml(),
     tests: testsFor(selector, check, solution),
@@ -148,8 +426,8 @@ function projectFor(moduleId, title, selector, checks, index, profile) {
 
 function courseFor(title, brief, solution, check, selector, moduleTitle, step, profile) {
   return {
-    fr: { introduction: `${profile.scene[0]} ${title.fr} traite une partie précise du problème : ${profile.risk[0]}.`, sections: sections(title.fr, brief.fr, solution, check, selector, profile), vocabulary: vocab(check, selector, profile), check: [`Je sais appliquer ${check}.`, `Je prouve que ${profile.proof[0]}.`, "Je peux expliquer le choix."] },
-    en: { introduction: `${profile.scene[1]} ${title.en} handles a specific part of the problem: ${profile.risk[1]}.`, sections: sections(title.en, brief.en, solution, check, selector, profile, true), vocabulary: vocab(check, selector, profile, true), check: [`I can apply ${check}.`, `I prove that ${profile.proof[1]}.`, "I can explain the choice."] }
+    fr: { introduction: `${profile.scene[0]} ${title.fr} traite une partie précise du problème : ${profile.risk[0]}.`, sections: sections(title.fr, brief.fr, solution, check, selector, profile), vocabulary: vocab(check, selector), check: [`Je sais appliquer ${check}.`, `Je prouve que ${profile.proof[0]}.`, "Je peux expliquer le choix."] },
+    en: { introduction: `${profile.scene[1]} ${title.en} handles a specific part of the problem: ${profile.risk[1]}.`, sections: sections(title.en, brief.en, solution, check, selector, profile, true), vocabulary: vocab(check, selector, true), check: [`I can apply ${check}.`, `I prove that ${profile.proof[1]}.`, "I can explain the choice."] }
   };
 }
 
@@ -170,7 +448,7 @@ function guideFor(title, moduleTitle, step, profile, check, selector) {
 function createGeneratedCssPedagogy({ course, guide, title, brief, solution = "", type = "css" }) {
   const frTitle = title?.fr || "Atelier CSS";
   const enTitle = title?.en || "CSS workshop";
-  const fallbackSolution = solution || ".demo {\n  /* réponse attendue */\n}";
+  const fallbackSolution = solution && !solution.includes(".course-card") ? solution : ".example {\n  color: #334155;\n}";
 
   return {
     fr: createPedagogyLocale({
@@ -184,7 +462,8 @@ function createGeneratedCssPedagogy({ course, guide, title, brief, solution = ""
       goodExplanation: "La règle cible un composant précis, exprime l'intention CSS et reste facile à vérifier dans le rendu.",
       badExplanation: "La correction repose sur du hasard, masque parfois le focus ou ne prouve pas que le layout tient vraiment.",
       autonomousPrefix: "Refais cette étape sans regarder la solution, puis explique le lien entre la règle CSS et le rendu.",
-      next: type === "quiz" ? "Continue avec le module suivant en gardant cette logique de preuve." : "Passe à l'étape suivante et reutilise la même méthode de validation."
+      next: type === "quiz" ? "Continue avec le module suivant en gardant cette logique de preuve." : "Passe à l'étape suivante et reutilise la même méthode de validation.",
+      english: false
     }),
     en: createPedagogyLocale({
       title: enTitle,
@@ -197,12 +476,13 @@ function createGeneratedCssPedagogy({ course, guide, title, brief, solution = ""
       goodExplanation: "The rule targets a specific component, expresses the CSS intent, and remains easy to verify in the preview.",
       badExplanation: "The fix relies on guessing, may hide focus, or does not prove that the layout actually holds.",
       autonomousPrefix: "Repeat this step without opening the solution, then explain how the CSS rule changes the output.",
-      next: type === "quiz" ? "Continue with the next module while keeping this proof-based habit." : "Move to the next step and reuse the same validation method."
+      next: type === "quiz" ? "Continue with the next module while keeping this proof-based habit." : "Move to the next step and reuse the same validation method.",
+      english: true
     })
   };
 }
 
-function createPedagogyLocale({ title, brief, course = {}, guide = {}, solution, goodTitle, badTitle, goodExplanation, badExplanation, autonomousPrefix, next }) {
+function createPedagogyLocale({ title, brief, course = {}, guide = {}, solution, goodTitle, badTitle, goodExplanation, badExplanation, autonomousPrefix, next, english }) {
   const objectives = nonEmpty(guide.objectives, course.check, [
     `Comprendre le role de ${title}.`,
     "Appliquer une modification CSS courte.",
@@ -230,15 +510,13 @@ function createPedagogyLocale({ title, brief, course = {}, guide = {}, solution,
     guided: steps,
     autonomous: `${autonomousPrefix} (${title})`,
     hints: [
-      `Commence par cet objectif : ${objectives[0]}`,
-      "Si un test echoue, lis la propriété ou le sélecteur cite dans son message.",
-      "Évite les grands blocs : une declaration juste vaut mieux qu'une cascade confuse."
+      english ? `Start with this objective: ${objectives[0]}` : `Commence par cet objectif : ${objectives[0]}`,
+      english ? "If a test fails, read the property or selector named in its message." : "Si un test échoue, lis la propriété ou le sélecteur cité dans son message.",
+      english ? "Avoid large blocks: one correct declaration is better than a confusing cascade." : "Évite les grands blocs : une déclaration juste vaut mieux qu'une cascade confuse."
     ],
-    correction: [
-      "La solution cible le composant demandé.",
-      "La declaration ajoute une intention CSS observable.",
-      "Les tests confirment la propriété, la valeur et la stabilite du rendu."
-    ],
+    correction: english
+      ? ["The solution targets the requested component.", "The declaration adds an observable CSS intent.", "Tests confirm the property, value, and output stability."]
+      : ["La solution cible le composant demandé.", "La déclaration ajoute une intention CSS observable.", "Les tests confirment la propriété, la valeur et la stabilité du rendu."],
     summary: course.introduction || brief,
     next
   };
@@ -422,12 +700,16 @@ function declaration(check) {
   return map[check] || `${check}: initial;`;
 }
 
-function vocab(check, selector) {
-  return [[check, "Propriété ou motif CSS valide dans cette étape."], [selector, "Sélecteur cible pour limiter les effets de bord."], ["responsive", "Capacite à rester utilisable selon les contraintes d'écran et contenu."]];
+function vocab(check, selector, english = false) {
+  if (english) return [[check, "CSS property or pattern used in this step."], [selector, "Target selector limiting side effects."], ["responsive", "Ability to remain usable across screen and content constraints."]];
+  return [[check, "Propriété ou motif CSS valide dans cette étape."], [selector, "Sélecteur cible pour limiter les effets de bord."], ["responsive", "Capacité à rester utilisable selon les contraintes d'écran et de contenu."]];
 }
 
 function previewHtml() {
-  return `<main class="demo-surface"><nav class="toolbar"><button class="action">Start</button><button class="action">Review</button></nav><section class="panel"><article class="card course-card">Long responsive content for PulsaTeach</article><article class="card"><img alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" />Card</article></section><div class="gallery"><span>1</span><span>2</span><span>3</span></div></main>`;
+  return T(
+    `<main class="demo-surface"><nav class="toolbar"><button class="action">Commencer</button><button class="action">Relire</button></nav><section class="panel"><article class="card course-card">Contenu responsive long pour PulsaTeach</article><article class="card"><img alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" />Carte</article></section><div class="gallery"><span>1</span><span>2</span><span>3</span></div></main>`,
+    `<main class="demo-surface"><nav class="toolbar"><button class="action">Start</button><button class="action">Review</button></nav><section class="panel"><article class="card course-card">Long responsive content for PulsaTeach</article><article class="card"><img alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" />Card</article></section><div class="gallery"><span>1</span><span>2</span><span>3</span></div></main>`
+  );
 }
 
 function slug(value) {

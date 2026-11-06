@@ -1,7 +1,10 @@
 # PulsaTeach — Roadmap produit et technique complète
 
+> Document historique. Il decrit une cible et un etat initial ancien ; il n'est
+> plus la source de verite d'execution. Utiliser `docs/MASTER_EXECUTION_PLAN.md`.
+
 Version : 1.0  
-Statut : source de vérité pour la reprise du projet  
+Statut : archive de conception
 Horizon : plateforme pédagogique web bilingue, sécurisée, accessible et publiable
 
 ## 1. Vision

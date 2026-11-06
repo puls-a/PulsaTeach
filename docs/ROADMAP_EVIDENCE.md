@@ -1,5 +1,9 @@
 # Matrice de conformité PulsaTeach
 
+> Instantane historique, non valable comme attestation actuelle. Plusieurs
+> controles marques « conformes » ont ensuite laisse passer des defauts
+> pedagogiques et i18n. Voir `docs/MASTER_EXECUTION_PLAN.md`.
+
 État vérifié le 3 juillet 2026 sur la branche `codex/platform-roadmap-release`.
 
 | Phase | État | Preuves principales | Reste à faire |
@@ -27,7 +31,7 @@
 | --- | --- | --- |
 | Sécurité | Conforme | tests 401/403/inter-utilisateurs, CORS/CSP/rate limit, scan des secrets, Supabase réel |
 | Qualité | Conforme | `npm run validate`, `npm run smoke:full`, Playwright desktop/mobile, audits contenu/glossaire/i18n/migrations/Lighthouse |
-| Pédagogique | Conforme | 14 parcours, 878 leçons, quiz par module, projets finaux, examens, 586 termes reliés |
+| Pédagogique | Conforme | 14 parcours, 878 leçons, quiz par module, projets finaux, examens, 587 termes reliés |
 | UX | Conforme | tests responsive, clavier, focus, modales, reduced motion, absence de débordement |
 | Production | Conforme | alias `https://pulsateach.vercel.app` READY, Supabase strict, migrations alignées, monitoring et procédures d’exploitation |
 

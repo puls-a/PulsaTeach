@@ -5,7 +5,8 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const sourceRoots = ["src", "server"];
 const longContentFiles = new Set([
-  "src/content/htmlPulsaConfCurriculum.js"
+  "src/content/htmlPulsaConfCurriculum.js",
+  "src/content/cssModuleFactory.js"
 ]);
 const failures = [];
 

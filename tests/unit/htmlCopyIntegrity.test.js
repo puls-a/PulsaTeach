@@ -25,10 +25,10 @@ describe("HTML curriculum copy integrity", () => {
   test("keeps the corrected French onboarding sentences", async () => {
     const source = await readFile(curriculumPath, "utf8");
 
-    expect(source).toContain("chaque morceau de texte a une intention lisible");
+    expect(source).toContain("HTML donne un rôle à ces éléments");
     expect(source).toContain("Un manifeste plutôt qu'une installation simulée");
     expect(source).toContain("le navigateur a vraiment compris");
-    expect(source).toContain("PulsaTeach ne te demande pas de deviner");
+    expect(source).toContain("corrige une chose à la fois");
   });
 
   test("uses module-specific pedagogy instead of the legacy universal boilerplate", async () => {

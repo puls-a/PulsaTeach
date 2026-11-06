@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Award, BookOpen, Check, Clock3, Code2, Flag, GraduationCap, ArrowLeft, LayoutTemplate, ShieldCheck, Sparkles } from "lucide-react";
 import { useSupabaseSession } from "../../authState.js";
 import { useLearningTracks } from "../../useLearningTracks.js";
@@ -17,32 +17,51 @@ function readProgress() {
 export function TrackLandingPage({ locale = "fr", trackId }) {
   const { user } = useSupabaseSession();
   const { tracks, loading, error, loadTrack } = useLearningTracks({ remoteCatalog: Boolean(user), mode: "summary" });
-  const progress = useMemo(readProgress, []);
+  const [progress, setProgress] = useState(readProgress);
+  const [loadFailure, setLoadFailure] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  useEffect(() => {
+    const refresh = (event) => setProgress(event.detail || readProgress());
+    window.addEventListener("pulsateach-progress-synced", refresh);
+    return () => window.removeEventListener("pulsateach-progress-synced", refresh);
+  }, []);
 
   useEffect(() => {
     if (!trackId || !findPublicTrack(trackId)) return;
-    loadTrack(trackId).catch(() => {});
-  }, [trackId, loadTrack]);
+    let active = true;
+    setLoadFailure(null);
+    loadTrack(trackId).catch(() => {
+      if (active) setLoadFailure(trackId);
+    });
+    return () => { active = false; };
+  }, [trackId, loadTrack, retryCount]);
 
   const track = findPublicTrack(trackId) ? tracks.find(t => t.id === trackId) : null;
 
-  if (error && (!track || track.isSummary)) {
+  if (!findPublicTrack(trackId)) return <UnknownTrack locale={locale} trackId={trackId} />;
+
+  if ((loadFailure === trackId || error) && (!track || track.isSummary)) {
     return (
       <section className="app-page grid min-h-screen place-items-center bg-slate-50">
         <div className="surface max-w-xl text-center">
-          <p className="eyebrow">Erreur</p>
-          <h1 className="mt-3 font-display text-3xl font-black text-ink">Impossible de charger la formation</h1>
-          <p className="mt-3 leading-7 text-slate-600">{error.message}</p>
+          <p className="eyebrow">{locale === "fr" ? "Chargement interrompu" : "Loading interrupted"}</p>
+          <h1 className="mt-3 font-display text-3xl font-black text-ink">{locale === "fr" ? "Impossible de charger la formation" : "Unable to load this course"}</h1>
+          <p role="alert" className="mt-3 leading-7 text-slate-600">{locale === "fr" ? "Vérifie ta connexion puis réessaie. Ta progression enregistrée est conservée." : "Check your connection and try again. Your saved progress is preserved."}</p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <button type="button" className="primary-button" onClick={() => setRetryCount((count) => count + 1)}>{locale === "fr" ? "Réessayer" : "Try again"}</button>
+            <a href="/catalog" className="secondary-button">{locale === "fr" ? "Retour au catalogue" : "Back to catalog"}</a>
+          </div>
         </div>
       </section>
     );
   }
 
-  if (loading || track?.isSummary) {
+  if ((!track && loading) || track?.isSummary) {
     return (
       <section className="app-page grid min-h-screen place-items-center bg-slate-50">
         <div className="text-center text-slate-500">
-          <p>{locale === "fr" ? "Chargement de la formation..." : "Loading course..."}</p>
+          <p role="status">{locale === "fr" ? "Chargement de la formation..." : "Loading course..."}</p>
         </div>
       </section>
     );
@@ -96,15 +115,19 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
                 {primaryLabel}
                 <ArrowRight className="size-5" />
               </a>
-              <a href="#programme" className="secondary-button text-base">
+               <a href="#programme" className="secondary-button text-base">
                 {locale === "fr" ? "Voir le programme" : "View curriculum"}
               </a>
             </div>
+            {completed > 0 && <div className="mt-6" role="status" aria-live="polite">
+              <p className="text-sm font-semibold text-slate-600">{completed}/{lessonsCount} {locale === "fr" ? "leçons validées" : "lessons completed"}</p>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100" aria-hidden="true"><div className="h-full rounded-full bg-indigo-600" style={{ width: `${Math.round(completed / lessonsCount * 100)}%` }} /></div>
+            </div>}
           </div>
 
           <aside className="rounded-3xl border border-slate-200 bg-ink p-5 text-white shadow-2xl">
             <div className="rounded-3xl bg-white/10 p-5">
-              <p className="text-xs font-black uppercase tracking-widest text-indigo-100">{locale === "fr" ? "Preuve de parcours" : "Path proof"}</p>
+              <p className="text-xs font-black uppercase tracking-widest text-indigo-100">{locale === "fr" ? "La formation en bref" : "Course at a glance"}</p>
               <div className="mt-5 grid grid-cols-2 gap-3">
                 <ProofStat value={moduleCount} label={locale === "fr" ? "modules" : "modules"} />
                 <ProofStat value={lessonsCount} label={locale === "fr" ? "leçons" : "lessons"} />
@@ -113,7 +136,7 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
               </div>
               <div className="mt-5 grid gap-2 text-sm font-semibold text-indigo-50">
                 <ProofLine icon={ShieldCheck} text={locale === "fr" ? "Tests automatiques dans le navigateur" : "Browser-based automated checks"} />
-                <ProofLine icon={Award} text={locale === "fr" ? "Certification par preuves de progression" : "Certification through progress evidence"} />
+                <ProofLine icon={Award} text={locale === "fr" ? "Certification soumise aux évaluations requises" : "Certification requires passing the required assessments"} />
                 <ProofLine icon={Sparkles} text={locale === "fr" ? "Projet final présentable en portfolio" : "Portfolio-ready capstone project"} />
               </div>
             </div>
@@ -166,13 +189,14 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
           <div className="grid gap-3">
             {track.modules.map((module, index) => {
               const moduleCompleted = module.lessons.filter((lesson) => progress.completed?.[lesson.id]).length;
-              const first = module.lessons[0];
-              const moduleHref = first ? `/learn/${track.id}/${module.id}/${first.id}` : `/formations/${track.id}`;
+               const moduleTarget = getModuleResumeTarget(track.id, module, progress);
+               const moduleHref = moduleTarget.href;
+               const moduleComplete = module.lessons.length > 0 && moduleCompleted === module.lessons.length;
               const mastery = formatModuleField(module.mastery?.[locale]);
               return (
                 <a key={module.id} href={moduleHref} className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:border-indigo-300 hover:shadow-md sm:flex-row sm:items-center">
-                  <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl font-display text-lg font-bold transition-colors ${moduleCompleted === module.lessons.length ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600 group-hover:bg-indigo-50 group-hover:text-indigoPop"}`}>
-                    {moduleCompleted === module.lessons.length ? <Check className="size-6" /> : index + 1}
+                  <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl font-display text-lg font-bold transition-colors ${moduleComplete ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600 group-hover:bg-indigo-50 group-hover:text-indigoPop"}`}>
+                    {moduleComplete ? <Check className="size-6" aria-hidden="true" /> : index + 1}
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="font-bold text-ink sm:text-lg">{module.title[locale]}</h3>
@@ -185,6 +209,7 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
                   <div className="flex shrink-0 items-center justify-between sm:flex-col sm:items-end sm:justify-center">
                      <span className="text-sm font-semibold text-slate-500">{module.totalMinutes} min</span>
                      <span className="mt-1 text-xs font-medium text-slate-500">{moduleCompleted}/{module.lessons.length} {locale === "fr" ? "leçons" : "lessons"}</span>
+                     <span className="mt-2 text-sm font-bold text-indigo-700">{moduleComplete ? (locale === "fr" ? "Revoir le module" : "Review module") : moduleCompleted ? (locale === "fr" ? "Reprendre le module" : "Resume module") : (locale === "fr" ? "Découvrir le module" : "Explore module")}</span>
                   </div>
                 </a>
               );
@@ -195,7 +220,7 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
         <section className="mt-12 rounded-3xl bg-ink p-6 text-white sm:p-8 md:flex md:items-center md:justify-between md:gap-8">
           <div>
             <p className="text-xs font-black uppercase tracking-widest text-indigo-100">{locale === "fr" ? "Prêt à pratiquer" : "Ready to practice"}</p>
-            <h2 className="mt-3 font-display text-3xl font-black">{locale === "fr" ? "Commence par la première leçon, valide par les tests." : "Start with the first lesson, validate through tests."}</h2>
+            <h2 className="mt-3 font-display text-3xl font-black">{resumeTarget.complete ? (locale === "fr" ? "Leçons terminées : consulte les critères de certification." : "Lessons completed: check the certification requirements.") : completed ? (locale === "fr" ? "Reprends à la prochaine leçon à valider." : "Continue with your next unfinished lesson.") : (locale === "fr" ? "Ouvre la première leçon et suis les consignes." : "Open the first lesson and follow the instructions.")}</h2>
           </div>
           <a href={startHref} className="primary-button mt-6 shrink-0 md:mt-0">
             {resumeTarget.complete ? (locale === "fr" ? "Voir mes certificats" : "View certificates") : completed ? (locale === "fr" ? "Reprendre maintenant" : "Resume now") : (locale === "fr" ? "Démarrer maintenant" : "Start now")}
@@ -215,6 +240,12 @@ export function getTrackResumeTarget(track, progress) {
   }
   const hasLessons = (track.modules || []).some((module) => module.lessons?.length);
   return { href: hasLessons ? "/certification" : "/catalog", complete: hasLessons };
+}
+
+export function getModuleResumeTarget(trackId, module, progress) {
+  const lessons = module.lessons || [];
+  const next = lessons.find((lesson) => !progress.completed?.[lesson.id]) || lessons[0];
+  return { href: next ? `/learn/${trackId}/${module.id}/${next.id}` : `/formations/${trackId}` };
 }
 
 function ProofStat({ value, label }) {

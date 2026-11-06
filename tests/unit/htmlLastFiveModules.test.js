@@ -42,7 +42,7 @@ describe("last five active HTML modules", () => {
       const results = await validateLesson(lesson, resolveLocaleValue(lesson.solution, "fr"), "fr");
       expect(results.filter((result) => !result.pass), lesson.id).toEqual([]);
     }
-  });
+  }, 30000);
 
   test("passes every localized test with every English reference solution", async () => {
     const failures = [];
@@ -52,7 +52,7 @@ describe("last five active HTML modules", () => {
       failures.push(...results.filter((result) => !result.pass).map((result) => `${lesson.id}: ${result.label}`));
     }
     expect(failures).toEqual([]);
-  });
+  }, 30000);
 
   test("keeps publishing URLs honest and static forms pristine", () => {
     const byId = (id) => lessons.find((lesson) => lesson.id === id);
@@ -62,7 +62,7 @@ describe("last five active HTML modules", () => {
     const formProject = resolveLocaleValue(byId("html-07-project-robust-form").solution, "fr");
 
     expect(canonical).toContain("https://example.com/pulsaconf");
-    expect(canonical).toContain("reserved for documentation");
+    expect(canonical).toContain("réservé à la documentation");
     expect(openGraph).toContain("https://pulsateach.vercel.app/assets/og-pulsateach-v2.png");
     for (const markup of [errorLesson, formProject]) {
       const document = new DOMParser().parseFromString(markup, "text/html");

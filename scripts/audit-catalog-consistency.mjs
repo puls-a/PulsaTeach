@@ -3,6 +3,7 @@ import { extname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { learningTracks } from "../src/content/allTrackRegistry.js";
 import { publicTrackCatalog } from "../src/content/publicTrackCatalog.js";
+import { buildGlossaryIndex } from "../src/features/glossary/glossaryIndex.js";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const expectedTrackIds = [
@@ -27,6 +28,7 @@ const failures = [];
 const actualTrackIds = learningTracks.map((track) => track.id);
 const lessonCount = learningTracks.reduce((total, track) => total + track.modules.reduce((sum, module) => sum + (module.lessons?.length || 0), 0), 0);
 const publicLessonCount = publicTrackCatalog.reduce((total, track) => total + Number(track.lessons || 0), 0);
+const glossaryCount = buildGlossaryIndex(learningTracks).length;
 
 if (actualTrackIds.length !== expectedTrackIds.length) failures.push(`expected ${expectedTrackIds.length} tracks, found ${actualTrackIds.length}`);
 for (const id of expectedTrackIds) {
@@ -66,7 +68,7 @@ if (learningLayout.includes('trackId: "html"') && learningLayout.includes('track
 
 const roadmapEvidence = await read("docs/ROADMAP_EVIDENCE.md");
 if (!roadmapEvidence.includes("14 parcours, 878 leçons")) failures.push("ROADMAP_EVIDENCE must state 14 parcours, 878 lessons.");
-if (!roadmapEvidence.includes("586 termes")) failures.push("ROADMAP_EVIDENCE must state 586 linked terms.");
+if (!roadmapEvidence.includes(`${glossaryCount} termes`)) failures.push(`ROADMAP_EVIDENCE must state ${glossaryCount} linked terms.`);
 if (roadmapEvidence.includes("272 leçons") || roadmapEvidence.includes("357 termes")) failures.push("ROADMAP_EVIDENCE still contains obsolete curriculum numbers.");
 
 const legalPages = await read("src/LegalPages.jsx");

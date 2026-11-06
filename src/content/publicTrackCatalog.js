@@ -26,7 +26,7 @@ const allTrackCatalog = [
     summary: { fr: "Sélecteurs, box model, Flexbox, Grid, responsive et animations avec rendu visuel.", en: "Selectors, box model, Flexbox, Grid, responsive, and motion with visual output." },
     modules: 15,
     lessons: 123,
-    firstHref: "/learn/css/css-selectors-colors/css-selectors-colors-color"
+    firstHref: "/learn/css/css-getting-started/css-00-what-css-does"
   },
   {
     id: "javascript",
