@@ -160,7 +160,7 @@ Ces pourcentages sont des estimations de pilotage, pas des metriques marketing.
 | CSS public restant | Non certifie | profondeur automatique seulement | continuer avec `css-flex-layout` |
 | JavaScript public | Non certifie | profondeur automatique seulement | audit complet apres CSS |
 | Catalogue et reprise | Ameliore localement | tests composants ajoutes | E2E puis release |
-| Production | En retard sur le local | dernier commit deploye `cd9dcf8` | release controlee |
+| Production | Verifiee | commit produit `4b5358e`, smoke production et lab CSS 02 controles | poursuivre CSS puis prochaine release controlee |
 | Tests utilisateurs | Non effectues | aucune observation documentee | protocole puis sessions |
 
 ## Protocole de reprise automatique
@@ -272,3 +272,6 @@ correspondre au risque modifie, mais une release exige la chaine complete utile.
 - validation locale actuelle : 61 fichiers de tests et 364 tests reussis, tous les audits, build et 229 pages prerendues valides ;
 - limite restante : avertissement non bloquant du budget CSS, avec 3,9 kB disponibles ;
 - prochain chantier : module CSS `css-flex-layout`.
+- commit produit `4b5358e` pousse sur `origin/main` et deploye automatiquement sur `https://pulsateach.vercel.app` ;
+- verification production reussie : smoke sur 7 routes et 28 lecons a 375 px et 1440 px, puis controle direct de `css-box-type-lab` avec le nouveau contenu cumulatif ;
+- limite d'exploitation : le token local de la CLI Vercel est expire, mais l'integration Git de production reste operationnelle.
