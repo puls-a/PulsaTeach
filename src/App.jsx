@@ -249,8 +249,8 @@ function Header({ user, locale, route, onLanguageToggle }) {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3" data-navigation-root>
-      <nav className="relative z-0 mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white/95 px-4 shadow-lg shadow-slate-900/5 backdrop-blur-xl sm:h-[76px] sm:gap-4" aria-label={locale === "fr" ? "Navigation principale" : "Main navigation"}>
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-300 bg-[#f4f1ea]/95 backdrop-blur-xl" data-navigation-root>
+      <nav className="relative z-0 mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6" aria-label={locale === "fr" ? "Navigation principale" : "Main navigation"}>
         <a href="/" className="flex min-w-0 items-center rounded-xl py-2" aria-label={locale === "fr" ? "Accueil PulsaTeach" : "PulsaTeach home"}>
           <img src="/assets/logo-wordmark.webp" alt="PulsaTeach" className="h-9 w-auto sm:h-10" width="198" height="48" />
         </a>
@@ -284,11 +284,11 @@ function NavDropdown({ group, locale, route, open, active, onToggle, onClose }) 
   const Icon = group.icon;
   return (
     <div className="relative">
-      <button type="button" onClick={onToggle} className={`nav-trigger ${active || open ? "bg-indigo-50 text-indigoPop" : ""}`} aria-expanded={open} aria-controls={`menu-${group.id}`}>
+      <button type="button" onClick={onToggle} className={`nav-trigger ${active || open ? "bg-white text-indigoPop" : ""}`} aria-haspopup="true" aria-expanded={open} aria-controls={`menu-${group.id}`}>
         <Icon className="size-4" />{group.label[locale]}<ChevronDown className={`size-4 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div id={`menu-${group.id}`} className={`nav-dropdown ${group.align} ${group.items.length > 4 ? "w-[620px] grid-cols-2" : "w-[340px] grid-cols-1"}`} role="menu">
+        <div id={`menu-${group.id}`} className={`nav-dropdown ${group.align} ${group.items.length > 4 ? "w-[620px] grid-cols-2" : "w-[340px] grid-cols-1"}`}>
           <div className="col-span-full mb-1 border-b border-slate-100 px-2 pb-3">
             <p className="text-xs font-bold uppercase tracking-[.16em] text-indigoPop">{group.label[locale]}</p>
             <p className="mt-1 text-sm text-slate-500">{menuDescription(group.id, locale)}</p>
@@ -303,8 +303,8 @@ function NavDropdown({ group, locale, route, open, active, onToggle, onClose }) 
 function DropdownItem({ item, locale, active, onClick }) {
   const Icon = item.icon;
   return (
-    <a href={item.href} onClick={onClick} className={`group flex items-start gap-3 rounded-xl p-3 ${active ? "bg-indigo-50" : "hover:bg-slate-50"}`} role="menuitem" aria-current={active ? "page" : undefined}>
-      <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${active ? "bg-indigoPop text-white" : "bg-slate-100 text-slate-600 group-hover:bg-indigo-100 group-hover:text-indigoPop"}`}><Icon className="size-5" /></span>
+    <a href={item.href} onClick={onClick} className={`group flex items-start gap-3 rounded-md p-3 ${active ? "bg-indigo-50" : "hover:bg-slate-50"}`} aria-current={active ? "page" : undefined}>
+      <span className={`grid size-9 shrink-0 place-items-center rounded-md ${active ? "bg-indigoPop text-white" : "border border-slate-300 text-slate-600 group-hover:border-indigo-300 group-hover:text-indigoPop"}`}><Icon className="size-4" /></span>
       <span><span className="block text-sm font-bold text-ink">{item.title[locale]}</span><span className="mt-1 block text-xs leading-5 text-slate-500">{item.text[locale]}</span></span>
     </a>
   );

@@ -25,7 +25,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
   const [executionError, setExecutionError] = useState("");
   const [note, setNote] = useState("");
   const [copied, setCopied] = useState(false);
-  const [focusPanel, setFocusPanel] = useState("code");
+  const [focusPanel, setFocusPanel] = useState("learn");
   const [workspacePanel, setWorkspacePanel] = useState("preview");
   const [saveState, setSaveState] = useState("saved");
   const [executionStatus, setExecutionStatus] = useState("idle");
@@ -42,10 +42,14 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
 
   useEffect(() => {
     const legacyCode = locale === "fr" ? getLearnerItem(`pulsateach-code-${lesson.id}`) : null;
+    const savedProjectDocument = lesson.projectThreadId ? loadProjectThreadDocument(lesson.projectThreadId, locale) : null;
     const projectDocument = lesson.projectThreadId
-      ? loadProjectThreadDocument(lesson.projectThreadId, locale) || initializeProjectThreadDocument(lesson.projectThreadId, locale, starterCode)
+      ? savedProjectDocument || initializeProjectThreadDocument(lesson.projectThreadId, locale, starterCode)
       : null;
-    const initialCode = projectDocument?.code ?? getLearnerItem(`pulsateach-code-${lesson.id}-${locale}`) ?? legacyCode ?? starterCode;
+    const savedCode = getLearnerItem(`pulsateach-code-${lesson.id}-${locale}`);
+    const initialCode = projectDocument?.code ?? savedCode ?? legacyCode ?? starterCode;
+    const hasSavedWork = Boolean((savedProjectDocument && (savedProjectDocument.code !== starterCode || savedProjectDocument.checkpoints?.length))
+      || (savedCode !== null && savedCode !== starterCode) || (legacyCode !== null && legacyCode !== starterCode));
     initialCodeRef.current = initialCode;
     setCode(initialCode);
     setProjectVersion(projectDocument?.version ?? null);
@@ -55,7 +59,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
     setConsoleOutput("");
     setExecutionError("");
     setNote(getLearnerItem(`pulsateach-note-${lesson.id}`) || "");
-    setFocusPanel("code");
+    setFocusPanel(hasSavedWork ? "code" : "learn");
     setWorkspacePanel("preview");
     setSaveState("saved");
     setExecutionStatus("idle");
@@ -236,15 +240,15 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
       <StudioToolbar locale={locale} executionStatus={executionStatus} fontSize={fontSize} lineWrapping={lineWrapping} isFullscreen={isFullscreen} fullscreenButtonRef={fullscreenButtonRef} onFontSizeChange={setFontSize} onLineWrappingChange={setLineWrapping} onToggleFullscreen={() => setIsFullscreen((current) => !current)} />
       <FocusTabs locale={locale} active={focusPanel} onChange={setFocusPanel} />
       <div ref={panelsRef} className="xl:grid xl:min-h-0 xl:flex-1" style={{ gridTemplateColumns: `${panelWidths[0]}fr 0.5rem ${panelWidths[1]}fr 0.5rem ${panelWidths[2]}fr` }}>
-        <section id="lesson-panel-learn" role="tabpanel" aria-labelledby="lesson-tab-learn" tabIndex={0} className={`${focusPanel === "learn" ? "flex" : "hidden"} min-h-[600px] min-w-0 flex-col border-r border-white/15 xl:flex xl:min-h-0`}>
+        <section id="lesson-panel-learn" role="tabpanel" aria-labelledby="lesson-tab-learn" tabIndex={0} className={`${focusPanel === "learn" ? "flex" : "hidden"} min-h-[calc(100dvh-9rem)] min-w-0 flex-col border-r border-white/15 xl:flex xl:min-h-0`}>
           <InstructionsPanel lesson={lesson} locale={locale} hintLevel={hintLevel} hintsCount={hintsCount} note={note} setNote={setNote} copied={copied} isBookmarked={isBookmarked} isCompleted={isCompleted} showCorrection={showCorrection} onHint={() => setHintLevel((value) => Math.min(value + 1, hintsCount))} onCopy={() => { copyLessonLink(); setCopied(true); window.setTimeout(() => setCopied(false), 1600); }} onToggleBookmark={onToggleBookmark} onCorrection={() => { setShowCorrection(true); setWorkspacePanel("tests"); setFocusPanel("results"); }} />
         </section>
         <ResizeHandle index={0} locale={locale} position={panelWidths[0]} min={18} max={100 - 28 - panelWidths[2]} onPointerDown={beginResize} onPointerMove={resizePanels} onPointerUp={endResize} onPositionChange={setDividerPosition} />
-        <section id="lesson-panel-code" role="tabpanel" aria-labelledby="lesson-tab-code" tabIndex={0} className={`${focusPanel === "code" ? "flex" : "hidden"} min-h-[600px] min-w-0 flex-col border-r border-white/15 xl:flex xl:min-h-0`}>
-          <EditorWorkbench code={code} documentKey={`${lesson.projectThreadId || lesson.id}:${locale}`} editorRef={editorRef} fileName={lesson.projectDocument?.fileName || defaultFileName(lesson)} fontSize={fontSize} languageKind={previewKind} lineWrapping={lineWrapping} locale={locale} isRunning={executionStatus === "running"} onChange={setCode} onReset={resetCode} onRunCode={previewKind === "javascript" ? runCode : null} onRunTests={runTests} onSave={saveCode} onCheckpoint={lesson.projectThreadId ? checkpointProject : null} onExport={lesson.projectThreadId ? exportProject : null} onOpenPreview={() => { setWorkspacePanel("preview"); setFocusPanel("results"); }} previewKind={previewKind} saveState={saveState} projectVersion={projectVersion} />
+        <section id="lesson-panel-code" role="tabpanel" aria-labelledby="lesson-tab-code" tabIndex={0} className={`${focusPanel === "code" ? "flex" : "hidden"} min-h-[calc(100dvh-9rem)] min-w-0 flex-col border-r border-white/15 xl:flex xl:min-h-0`}>
+          <EditorWorkbench code={code} documentKey={`${lesson.projectThreadId || lesson.id}:${locale}`} editorRef={editorRef} fileName={lesson.projectDocument?.fileName || defaultFileName(lesson)} fontSize={fontSize} languageKind={previewKind} lineWrapping={lineWrapping} locale={locale} isRunning={executionStatus === "running"} taskTitle={lesson.title[locale]} taskBrief={lesson.brief[locale]} onChange={setCode} onReset={resetCode} onRunCode={previewKind === "javascript" ? runCode : null} onRunTests={runTests} onSave={saveCode} onCheckpoint={lesson.projectThreadId ? checkpointProject : null} onExport={lesson.projectThreadId ? exportProject : null} onOpenPreview={() => { setWorkspacePanel("preview"); setFocusPanel("results"); }} previewKind={previewKind} saveState={saveState} projectVersion={projectVersion} />
         </section>
         <ResizeHandle index={1} locale={locale} position={panelWidths[0] + panelWidths[1]} min={panelWidths[0] + 28} max={80} onPointerDown={beginResize} onPointerMove={resizePanels} onPointerUp={endResize} onPositionChange={setDividerPosition} />
-        <section id="lesson-panel-results" role="tabpanel" aria-labelledby="lesson-tab-results" tabIndex={0} className={`${focusPanel === "results" ? "flex" : "hidden"} min-h-[600px] min-w-0 flex-col bg-[#f7f7fc] xl:flex xl:min-h-0`}>
+        <section id="lesson-panel-results" role="tabpanel" aria-labelledby="lesson-tab-results" tabIndex={0} className={`${focusPanel === "results" ? "flex" : "hidden"} min-h-[calc(100dvh-9rem)] min-w-0 flex-col bg-[#f7f7fc] xl:flex xl:min-h-0`}>
           <OutputWorkbench lesson={lesson} locale={locale} code={code} preview={preview} previewKind={previewKind} previewFrameRef={previewFrameRef} consoleOutput={consoleOutput} executionError={executionError} result={result} tests={lesson.tests} total={total} passed={passed} allPassed={allPassed} showCorrection={showCorrection} selectedPanel={workspacePanel} isRunning={executionStatus === "running"} onSelectPanel={setWorkspacePanel} onRunTests={runTests} onNext={onNext} hasNext={hasNext} onLoadSolution={() => { setCode(solution); setFocusPanel("code"); }} />
         </section>
       </div>
@@ -295,7 +299,8 @@ function InstructionsPanel({ lesson, locale, hintLevel, hintsCount, note, setNot
     <div className="flex h-full min-h-0 flex-col bg-[#1b1b3a] text-white">
       <div className="min-h-0 flex-1 overflow-y-auto p-5">
         <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[.1em] text-indigo-200"><span>{lesson.type}</span><span aria-hidden="true">·</span><span>{difficultyLabel(lesson.difficulty, locale)}</span><span aria-hidden="true">·</span><span>{lesson.durationMin} min</span><span aria-hidden="true">·</span><span>{lesson.xp} XP</span>{isCompleted && <span className="text-emerald-300">{locale === "fr" ? "Validé" : "Passed"}</span>}</div>
-        <h2 className="mt-4 font-display text-xl font-bold">{lesson.stepNumber ? `${locale === "fr" ? "Étape" : "Step"} ${lesson.stepNumber}${lesson.stepCount ? `/${lesson.stepCount}` : ""}` : lesson.title[locale]}</h2>
+        <h2 className="mt-4 font-display text-2xl font-semibold">{lesson.title[locale]}</h2>
+        {lesson.stepNumber && <p className="mt-2 font-mono text-xs text-indigo-200">{locale === "fr" ? "Étape" : "Step"} {lesson.stepNumber}{lesson.stepCount ? `/${lesson.stepCount}` : ""}</p>}
         <p className="mt-4 text-base font-semibold leading-7 text-slate-100">{lesson.brief[locale]}</p>
         {course?.introduction && <InstructionText className="mt-5 leading-7 text-slate-200" value={course.introduction} />}
         {lesson.projectThreadId && <p className="mt-5 border-l-4 border-indigo-400 bg-white/5 px-4 py-3 text-sm leading-6 text-indigo-100">{lesson.stepCount ? (locale === "fr" ? `Étape ${lesson.stepNumber} sur ${lesson.stepCount} du projet fil rouge. Tu travailles dans le document PulsaConf partagé : fusionne l'étape pour créer une version avant de continuer.` : `Step ${lesson.stepNumber} of ${lesson.stepCount} in the flagship project. You are working in the shared PulsaConf document: merge the step to create a version before continuing.`) : (locale === "fr" ? "Chaque étape ajoute une pièce au projet PulsaConf." : "Each step adds one piece to the PulsaConf project.")}</p>}
@@ -319,7 +324,7 @@ function InstructionsPanel({ lesson, locale, hintLevel, hintsCount, note, setNot
   );
 }
 
-function EditorWorkbench({ code, documentKey, editorRef, fileName, fontSize, languageKind, lineWrapping, locale, isRunning, onChange, onReset, onRunCode, onRunTests, onSave, onCheckpoint, onExport, onOpenPreview, previewKind, saveState, projectVersion }) {
+function EditorWorkbench({ code, documentKey, editorRef, fileName, fontSize, languageKind, lineWrapping, locale, isRunning, taskTitle, taskBrief, onChange, onReset, onRunCode, onRunTests, onSave, onCheckpoint, onExport, onOpenPreview, previewKind, saveState, projectVersion }) {
   const currentCode = () => editorRef.current?.state.doc.toString() ?? code;
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-[#070716]" aria-label={locale === "fr" ? "Atelier de code" : "Code workshop"}>
@@ -327,12 +332,16 @@ function EditorWorkbench({ code, documentKey, editorRef, fileName, fontSize, lan
         <span className="inline-flex items-center gap-2 font-mono text-xs font-bold text-indigo-100"><FileCode2 className="size-4 text-indigo-400" />{fileName}{projectVersion && <span className="rounded bg-indigo-400/20 px-1.5 py-0.5 text-[10px]">v{projectVersion}</span>}</span>
         <span className={`px-2 text-[11px] font-bold uppercase tracking-[.1em] ${saveState === "saved" ? "text-emerald-300" : "text-slate-300"}`} role="status">{saveState === "saved" ? (locale === "fr" ? "Sauvegardé" : "Saved") : (locale === "fr" ? "Sauvegarde…" : "Saving…")}</span>
       </div>
+      <div className="border-b border-white/15 bg-[#10102b] px-4 py-3 text-white xl:hidden">
+        <p className="font-display text-lg font-semibold">{taskTitle}</p>
+        <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-300">{taskBrief}</p>
+      </div>
       <div className="min-h-0 flex-1 overflow-hidden">
         <Suspense fallback={<div className="grid h-full min-h-[520px] place-items-center bg-slate-950 font-bold text-slate-300" role="status">{locale === "fr" ? "Chargement de l’éditeur..." : "Loading editor..."}</div>}>
           <CodeMirrorEditor value={code} documentKey={documentKey} languageKind={languageKind} locale={locale} editorRef={editorRef} fontSize={fontSize} lineWrapping={lineWrapping} onChange={onChange} onRun={previewKind === "javascript" ? onRunCode : onRunTests} onSave={onSave} />
         </Suspense>
       </div>
-      <div className="flex flex-wrap items-center gap-2 border-t border-white/15 bg-[#171733] p-3">
+      <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 border-t border-white/15 bg-[#171733] p-3 shadow-[0_-8px_24px_rgba(0,0,0,.28)]">
         <WorkbenchButton disabled={isRunning} onClick={() => onRunTests(currentCode())} icon={Play} primary ariaLabel={locale === "fr" ? "Vérifier mon code · Lancer les tests" : "Check my code · Run tests"}>{locale === "fr" ? "Vérifier mon code" : "Check my code"}</WorkbenchButton>
         {onRunCode && <WorkbenchButton disabled={isRunning} onClick={() => onRunCode(currentCode())} icon={Terminal}>{locale === "fr" ? "Exécuter" : "Run"}</WorkbenchButton>}
         {onCheckpoint && <WorkbenchButton disabled={isRunning} onClick={() => onCheckpoint(currentCode())} icon={GitMerge}>{locale === "fr" ? "Fusionner l'étape" : "Merge step"}</WorkbenchButton>}
@@ -458,7 +467,7 @@ function FocusTabs({ locale, active, onChange }) {
     selectTab((index + offset + tabs.length) % tabs.length);
   };
   return (
-    <div className="grid grid-cols-3 border-b border-white/15 bg-[#1b1b32] p-2 xl:hidden" role="tablist" aria-label={locale === "fr" ? "Mode focus de la leçon" : "Lesson focus mode"}>
+    <div className="sticky top-0 z-20 grid grid-cols-3 border-b border-white/15 bg-[#1b1b32] p-2 xl:hidden" role="tablist" aria-label={locale === "fr" ? "Mode focus de la leçon" : "Lesson focus mode"}>
       {tabs.map(([id, label, Icon], index) => (
         <button id={`lesson-tab-${id}`} key={id} type="button" role="tab" aria-controls={`lesson-panel-${id}`} aria-selected={active === id} tabIndex={active === id ? 0 : -1} onKeyDown={(event) => handleKeyDown(event, index)} onClick={() => onChange(id)} className={`inline-flex min-h-11 items-center justify-center gap-2 px-2 text-sm font-black transition-none ${active === id ? "bg-white text-[#0a0a23]" : "border border-white/20 text-slate-200"}`}>
           <Icon className="size-4" />{label}

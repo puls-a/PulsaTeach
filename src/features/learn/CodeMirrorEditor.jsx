@@ -6,7 +6,7 @@ import { EditorView, keymap, lineNumbers } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 
 const editorTheme = EditorView.theme({
-  "&": { height: "100%", minHeight: "480px", backgroundColor: "#020617", color: "#e0e7ff" },
+  "&": { height: "100%", minHeight: "min(480px, 52dvh)", backgroundColor: "#020617", color: "#e0e7ff" },
   "&.cm-focused": { outline: "2px solid #818cf8", outlineOffset: "-2px" },
   ".cm-scroller": { overflow: "auto", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", lineHeight: "1.75" },
   ".cm-content": { minHeight: "100%", padding: "16px 0", caretColor: "#6ee7b7" },
@@ -137,7 +137,7 @@ export default function CodeMirrorEditor({ value, documentKey, languageKind, loc
     };
   }, [documentKey, languageKind]);
 
-  return <div ref={hostRef} className="h-full min-h-[480px] overflow-hidden bg-slate-950" />;
+  return <div ref={hostRef} className="h-full min-h-[360px] overflow-hidden bg-slate-950 xl:min-h-[480px]" />;
 }
 
 function editorPreferences(fontSize, lineWrapping) {

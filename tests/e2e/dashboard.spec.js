@@ -45,5 +45,7 @@ test("dashboard resumes the active lesson and exposes today's personalized plan"
 
   await resume.click();
   await expect(page).toHaveURL(/\/learn\/html\/html-getting-started\/html-00-install-toolkit$/);
+  const codeTab = page.getByRole("tab", { name: /Coder|Code/ });
+  if (page.viewportSize()?.width < 1280) await codeTab.click();
   await expect(page.getByRole("textbox", { name: /Éditeur de code PulsaTeach|PulsaTeach code editor/ })).toBeVisible();
 });

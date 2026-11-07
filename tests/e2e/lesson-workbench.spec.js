@@ -9,9 +9,12 @@ test("lesson modes and CodeMirror support keyboard work without trapping focus",
   const codeTab = page.getByRole("tab", { name: /Coder|Code/ });
   const resultsTab = page.getByRole("tab", { name: /Résultats|Results/ });
 
+  await expect(learnTab).toHaveAttribute("aria-selected", "true");
+  await expect(learnTab).toHaveAttribute("tabindex", "0");
+  await learnTab.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(codeTab).toBeFocused();
   await expect(codeTab).toHaveAttribute("aria-selected", "true");
-  await expect(codeTab).toHaveAttribute("tabindex", "0");
-  await codeTab.focus();
   await page.keyboard.press("ArrowLeft");
   await expect(learnTab).toBeFocused();
   await expect(learnTab).toHaveAttribute("aria-selected", "true");
@@ -38,6 +41,10 @@ test("lesson modes and CodeMirror support keyboard work without trapping focus",
   await page.keyboard.press("Home");
   await expect(learnTab).toBeFocused();
   await expect(learnTab).toHaveAttribute("aria-selected", "true");
+
+  await page.reload({ waitUntil: "networkidle" });
+  await expect(codeTab).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#lesson-panel-code")).toBeVisible();
 });
 
 test("curriculum lesson links open the editor and preserve browser history", async ({ page }, testInfo) => {
@@ -46,16 +53,16 @@ test("curriculum lesson links open the editor and preserve browser history", asy
   await expect(page.getByRole("textbox", { name: /Éditeur de code PulsaTeach|PulsaTeach code editor/ })).toBeVisible();
   await page.getByRole("button", { name: /Programme|Curriculum/ }).click();
 
-  const nextLesson = page.getByRole("link", { name: /2\. Distinguer la carte par son fond|2\. Distinguish the card with its background/ });
+  const nextLesson = page.getByRole("link", { name: /2\. Définir la surface de carte|2\. Define the card surface/ });
   await expect(nextLesson).toHaveAttribute("href", "/learn/css/css-selectors-colors/css-selectors-colors-background");
   await nextLesson.click();
   await expect(page).toHaveURL(/css-selectors-colors-background$/);
-  await expect(page.getByRole("heading", { level: 1, name: /2\. Distinguer la carte par son fond|2\. Distinguish the card with its background/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /2\. Définir la surface de carte|2\. Define the card surface/ })).toBeVisible();
   await expect(page.getByRole("textbox", { name: /Éditeur de code PulsaTeach|PulsaTeach code editor/ })).toBeVisible();
 
   await page.goBack();
   await expect(page).toHaveURL(/css-selectors-colors-color$/);
-  await expect(page.getByRole("heading", { level: 1, name: /1\. Choisir une couleur de texte lisible|1\. Choose a readable text color/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /1\. Cibler le texte secondaire|1\. Target secondary text/ })).toBeVisible();
 });
 
 test("an intentionally empty project remains empty after reload", async ({ page }, testInfo) => {
@@ -75,7 +82,7 @@ test("an intentionally empty project remains empty after reload", async ({ page 
 test("the JavaScript flagship exposes continuity and common traps", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "chromium");
   await page.goto(pilotRoute, { waitUntil: "networkidle" });
-  await expect(page.getByRole("heading", { name: /Étape 1\/10|Step 1\/10/ })).toBeVisible();
+  await expect(page.getByText(/Étape 1\/10|Step 1\/10/)).toBeVisible();
   await expect(page.getByText(/Étape 1 sur 10 du projet fil rouge|Step 1 of 10 in the flagship project/)).toBeVisible();
   await page.getByText(/Préparer l’exercice et éviter les pièges|Prepare the exercise and avoid traps/).click();
   await expect(page.getByText(/Erreurs fréquentes|Common mistakes/)).toBeVisible();
@@ -86,6 +93,7 @@ test("the JavaScript flagship exposes continuity and common traps", async ({ pag
 
 test("the functions pilot starts with a real failure and ends with behavioral proof", async ({ page }, testInfo) => {
   await page.goto(pilotRoute, { waitUntil: "networkidle" });
+  if (testInfo.project.name === "mobile-chromium") await page.getByRole("tab", { name: /Coder|Code/ }).click();
   const editor = page.getByRole("textbox", { name: /Éditeur de code PulsaTeach|PulsaTeach code editor/ });
 
   await page.getByRole("button", { name: /Lancer les tests|Run tests/ }).click();
@@ -111,6 +119,7 @@ test("the functions pilot starts with a real failure and ends with behavioral pr
 test("the mobile code mode keeps editor and preview inside the viewport", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile-chromium");
   await page.goto(pilotRoute, { waitUntil: "networkidle" });
+  await page.getByRole("tab", { name: /Coder|Code/ }).click();
   const editor = page.getByRole("textbox", { name: /Éditeur de code PulsaTeach|PulsaTeach code editor/ });
   await expect(editor).toBeVisible();
   const bounds = await page.locator(".cm-editor").boundingBox();

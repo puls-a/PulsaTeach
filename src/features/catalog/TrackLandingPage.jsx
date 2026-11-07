@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, Award, BookOpen, Check, Clock3, Code2, Flag, GraduationCap, ArrowLeft, LayoutTemplate, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Award, BookOpen, Check, GraduationCap, ArrowLeft, LayoutTemplate, ShieldCheck, Sparkles } from "lucide-react";
 import { useSupabaseSession } from "../../authState.js";
 import { useLearningTracks } from "../../useLearningTracks.js";
 import { getLearnerItem } from "../../learnerStorage.js";
@@ -85,7 +85,7 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
       : (locale === "fr" ? "Commencer gratuitement" : "Start for free");
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 pt-20 sm:pt-24">
+    <div className="min-h-screen bg-cloud pb-24 pt-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <nav className="mb-8" aria-label={locale === "fr" ? "Fil d'Ariane" : "Breadcrumb"}>
           <ol className="flex items-center gap-2 text-sm text-slate-500">
@@ -93,20 +93,20 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
           </ol>
         </nav>
 
-        <header className="grid gap-8 lg:grid-cols-3 lg:items-start">
-          <div className="rounded-3xl border border-indigo-100 bg-white p-6 shadow-xl shadow-indigo-950/5 sm:p-8 lg:col-span-2">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-black uppercase tracking-wider text-indigoPop">
+        <header className="grid gap-8 border-b border-slate-400 pb-10 lg:grid-cols-3 lg:items-end">
+          <div className="lg:col-span-2">
+            <div className="mb-5 inline-flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider text-indigoPop">
               <LayoutTemplate className="size-3" />
               {locale === "fr" ? "Formation complète" : "Complete course"}
             </div>
-            <h1 className="font-display text-4xl font-black tracking-tight text-ink sm:text-5xl lg:text-6xl">
+            <h1 className="font-display text-5xl font-semibold leading-[1.02] tracking-tight text-ink sm:text-6xl lg:text-7xl">
               {localize(track.title, locale)}
             </h1>
             <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-600 sm:text-xl">
               {localize(track.summary, locale)}
             </p>
             {track.profession?.[locale] && (
-              <p className="mt-6 rounded-2xl border border-indigo-100 bg-indigo-50 p-5 text-sm font-semibold leading-7 text-indigo-950 sm:text-base">
+              <p className="mt-6 max-w-3xl border-l-2 border-indigo-400 pl-4 text-sm leading-7 text-indigo-950 sm:text-base">
                 {track.profession[locale]}
               </p>
             )}
@@ -125,16 +125,16 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
             </div>}
           </div>
 
-          <aside className="rounded-3xl border border-slate-200 bg-ink p-5 text-white shadow-2xl">
-            <div className="rounded-3xl bg-white/10 p-5">
-              <p className="text-xs font-black uppercase tracking-widest text-indigo-100">{locale === "fr" ? "La formation en bref" : "Course at a glance"}</p>
+          <aside className="border-t border-slate-400 pt-5 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
+            <div>
+              <p className="eyebrow">{locale === "fr" ? "La formation en bref" : "Course at a glance"}</p>
               <div className="mt-5 grid grid-cols-2 gap-3">
                 <ProofStat value={moduleCount} label={locale === "fr" ? "modules" : "modules"} />
                 <ProofStat value={lessonsCount} label={locale === "fr" ? "leçons" : "lessons"} />
                 <ProofStat value={`${Math.ceil(totalMinutes / 60)} h`} label={locale === "fr" ? "guidées" : "guided"} />
                 <ProofStat value={projects} label={locale === "fr" ? "projets" : "projects"} />
               </div>
-              <div className="mt-5 grid gap-2 text-sm font-semibold text-indigo-50">
+              <div className="mt-5 grid gap-2 text-sm text-slate-600">
                 <ProofLine icon={ShieldCheck} text={locale === "fr" ? "Tests automatiques dans le navigateur" : "Browser-based automated checks"} />
                 <ProofLine icon={Award} text={locale === "fr" ? "Certification soumise aux évaluations requises" : "Certification requires passing the required assessments"} />
                 <ProofLine icon={Sparkles} text={locale === "fr" ? "Projet final présentable en portfolio" : "Portfolio-ready capstone project"} />
@@ -143,18 +143,12 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
           </aside>
         </header>
 
-        <section className="mt-8 grid gap-4 sm:grid-cols-3">
-          <CourseFact icon={Clock3} value={`${Math.ceil(totalMinutes / 60)} h`} label={locale === "fr" ? "de pratique guidée" : "guided practice"} />
-          <CourseFact icon={Code2} value={lessonsCount} label={locale === "fr" ? "leçons interactives" : "interactive lessons"} />
-          <CourseFact icon={Flag} value={projects} label={locale === "fr" ? "projets évalués" : "assessed projects"} />
-        </section>
-
         <section className="mt-12 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="border-t border-slate-400 pt-6">
             <p className="eyebrow">{locale === "fr" ? "Résultats" : "Outcomes"}</p>
-            <h2 className="mt-3 font-display text-3xl font-black text-ink">{locale === "fr" ? "Ce que tu sauras faire concrètement" : "What you will concretely be able to do"}</h2>
+            <h2 className="mt-3 font-display text-3xl font-semibold text-ink">{locale === "fr" ? "Ce que tu sauras construire" : "What you will be able to build"}</h2>
             <ul className="mt-6 grid gap-3 text-slate-600">
-              {(track.outcomes?.[locale] || []).map((item) => <li className="flex gap-3 rounded-xl bg-slate-50 p-3" key={item}><Check className="mt-0.5 size-5 shrink-0 text-green-600" />{item}</li>)}
+              {(track.outcomes?.[locale] || []).map((item) => <li className="flex gap-3 border-b border-slate-300 pb-3" key={item}><Check className="mt-0.5 size-5 shrink-0 text-green-700" />{item}</li>)}
             </ul>
           </div>
           <div className="grid gap-4">
@@ -164,16 +158,16 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
         </section>
 
         {certification.length > 0 && (
-          <section className="mt-8 rounded-3xl border border-indigo-100 bg-indigo-50 p-6 sm:p-8">
+          <section className="mt-12 border-y border-slate-400 py-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="eyebrow">{locale === "fr" ? "Certification" : "Certification"}</p>
-                <h2 className="mt-3 font-display text-3xl font-black text-ink">{locale === "fr" ? "Validation par preuves, pas par présence" : "Evidence-based validation, not attendance"}</h2>
+                <h2 className="mt-3 font-display text-3xl font-semibold text-ink">{locale === "fr" ? "Les critères sont visibles avant l’évaluation" : "Criteria are visible before assessment"}</h2>
               </div>
               <Award className="size-10 shrink-0 text-indigoPop" />
             </div>
             <div className="mt-6 grid gap-3 md:grid-cols-2">
-              {certification.map((item) => <p key={item} className="flex gap-3 rounded-2xl bg-white p-4 text-sm font-semibold leading-6 text-indigo-950"><Check className="mt-0.5 size-5 shrink-0 text-green-600" />{item}</p>)}
+              {certification.map((item) => <p key={item} className="flex gap-3 border-l-2 border-indigo-300 bg-white p-4 text-sm leading-6 text-indigo-950"><Check className="mt-0.5 size-5 shrink-0 text-green-700" />{item}</p>)}
             </div>
           </section>
         )}
@@ -182,11 +176,11 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="eyebrow">{locale === "fr" ? "Programme" : "Curriculum"}</p>
-              <h2 className="mt-2 font-display text-3xl font-black text-ink">{locale === "fr" ? "Un parcours lisible, module par module" : "A clear path, module by module"}</h2>
+              <h2 className="mt-2 font-display text-4xl font-semibold text-ink">{locale === "fr" ? "Le travail, module par module" : "The work, module by module"}</h2>
             </div>
             <p className="text-sm font-semibold text-slate-500">{moduleCount} {locale === "fr" ? "modules" : "modules"} · {lessonsCount} {locale === "fr" ? "leçons" : "lessons"}</p>
           </div>
-          <div className="grid gap-3">
+          <div className="divide-y divide-slate-300 border-y border-slate-300">
             {track.modules.map((module, index) => {
               const moduleCompleted = module.lessons.filter((lesson) => progress.completed?.[lesson.id]).length;
                const moduleTarget = getModuleResumeTarget(track.id, module, progress);
@@ -194,8 +188,8 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
                const moduleComplete = module.lessons.length > 0 && moduleCompleted === module.lessons.length;
               const mastery = formatModuleField(module.mastery?.[locale]);
               return (
-                <a key={module.id} href={moduleHref} className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:border-indigo-300 hover:shadow-md sm:flex-row sm:items-center">
-                  <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl font-display text-lg font-bold transition-colors ${moduleComplete ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600 group-hover:bg-indigo-50 group-hover:text-indigoPop"}`}>
+                <a key={module.id} href={moduleHref} className="group relative flex flex-col gap-4 bg-white p-5 transition-colors hover:bg-slate-50 sm:flex-row sm:items-center">
+                  <div className={`flex size-11 shrink-0 items-center justify-center rounded-md font-mono text-sm font-semibold ${moduleComplete ? "bg-green-100 text-green-700" : "border border-slate-300 text-slate-600 group-hover:border-indigo-300 group-hover:text-indigoPop"}`}>
                     {moduleComplete ? <Check className="size-6" aria-hidden="true" /> : index + 1}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -217,10 +211,10 @@ export function TrackLandingPage({ locale = "fr", trackId }) {
           </div>
         </section>
 
-        <section className="mt-12 rounded-3xl bg-ink p-6 text-white sm:p-8 md:flex md:items-center md:justify-between md:gap-8">
+        <section className="mt-12 border-t border-ink pt-8 md:flex md:items-center md:justify-between md:gap-8">
           <div>
-            <p className="text-xs font-black uppercase tracking-widest text-indigo-100">{locale === "fr" ? "Prêt à pratiquer" : "Ready to practice"}</p>
-            <h2 className="mt-3 font-display text-3xl font-black">{resumeTarget.complete ? (locale === "fr" ? "Leçons terminées : consulte les critères de certification." : "Lessons completed: check the certification requirements.") : completed ? (locale === "fr" ? "Reprends à la prochaine leçon à valider." : "Continue with your next unfinished lesson.") : (locale === "fr" ? "Ouvre la première leçon et suis les consignes." : "Open the first lesson and follow the instructions.")}</h2>
+            <p className="eyebrow">{locale === "fr" ? "Prêt à pratiquer" : "Ready to practice"}</p>
+            <h2 className="mt-3 font-display text-3xl font-semibold text-ink">{resumeTarget.complete ? (locale === "fr" ? "Leçons terminées : consulte les critères de certification." : "Lessons completed: check the certification requirements.") : completed ? (locale === "fr" ? "Reprends à la prochaine leçon à valider." : "Continue with your next unfinished lesson.") : (locale === "fr" ? "Ouvre la première leçon et suis les consignes." : "Open the first lesson and follow the instructions.")}</h2>
           </div>
           <a href={startHref} className="primary-button mt-6 shrink-0 md:mt-0">
             {resumeTarget.complete ? (locale === "fr" ? "Voir mes certificats" : "View certificates") : completed ? (locale === "fr" ? "Reprendre maintenant" : "Resume now") : (locale === "fr" ? "Démarrer maintenant" : "Start now")}
@@ -249,7 +243,7 @@ export function getModuleResumeTarget(trackId, module, progress) {
 }
 
 function ProofStat({ value, label }) {
-  return <div className="rounded-2xl border border-white/10 bg-white/10 p-3"><p className="font-display text-2xl font-black">{value}</p><p className="mt-1 text-xs font-bold uppercase tracking-wider text-indigo-100">{label}</p></div>;
+  return <div className="border-l-2 border-slate-300 pl-3"><p className="font-display text-2xl font-semibold text-ink">{value}</p><p className="mt-1 font-mono text-xs uppercase tracking-wider text-slate-500">{label}</p></div>;
 }
 
 function formatModuleField(value) {
@@ -258,23 +252,11 @@ function formatModuleField(value) {
 }
 
 function ProofLine({ icon: Icon, text }) {
-  return <p className="flex items-center gap-2"><Icon className="size-4 shrink-0 text-mint" />{text}</p>;
+  return <p className="flex items-center gap-2"><Icon className="size-4 shrink-0 text-emerald-700" />{text}</p>;
 }
 
 function InfoCard({ icon: Icon, title, text }) {
-  return <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"><Icon className="size-6 text-indigoPop" /><h2 className="mt-4 text-lg font-black text-ink">{title}</h2><p className="mt-2 leading-7 text-slate-600">{text}</p></article>;
-}
-
-function CourseFact({ icon: Icon, value, label }) {
-  return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-      <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-indigo-50">
-         <Icon className="size-6 text-indigoPop" />
-      </div>
-      <p className="font-display text-3xl font-black text-ink">{value}</p>
-      <p className="mt-1 text-sm font-semibold text-slate-500">{label}</p>
-    </div>
-  );
+  return <article className="border-t border-slate-400 pt-5"><Icon className="size-5 text-indigoPop" /><h2 className="mt-4 text-lg font-semibold text-ink">{title}</h2><p className="mt-2 leading-7 text-slate-600">{text}</p></article>;
 }
 
 function UnknownTrack({ locale, trackId }) {

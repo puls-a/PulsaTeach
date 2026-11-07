@@ -101,7 +101,7 @@ async function warmupBrowser(port) {
     await client.send("Network.setCacheDisabled", { cacheDisabled: true });
     await retryWarmup(async () => {
       await page.goto(`http://127.0.0.1:${port}/catalog`);
-      await page.getByRole("heading", { name: /Formations disponibles|Available courses/ }).waitFor({ timeout: 20_000 });
+      await page.getByRole("region", { name: /Formations disponibles|Available courses/ }).waitFor({ timeout: 20_000 });
     });
     await retryWarmup(async () => {
       await page.goto(`http://127.0.0.1:${port}/learn/javascript/js-functions-scope/js-functions-scope-declare-function`);

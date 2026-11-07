@@ -36,7 +36,10 @@ test("account, onboarding, lesson and progress dashboard", async ({ page }, test
 
   await page.goto("/learn/html/html-getting-started/html-00-what-html-does");
   await expect(page.getByText(/Ce que HTML fait vraiment|What HTML really does/).first()).toBeVisible();
-  if (testInfo.project.name === "mobile-chromium") await expect(page.getByRole("tab", { name: /Coder|Code/ })).toHaveAttribute("aria-selected", "true");
+  if (testInfo.project.name === "mobile-chromium") {
+    await expect(page.getByRole("tab", { name: /Comprendre|Learn/ })).toHaveAttribute("aria-selected", "true");
+    await page.getByRole("tab", { name: /Coder|Code/ }).click();
+  }
   await expect(page.getByLabel(/Éditeur de code|Code editor/)).toBeVisible();
   if (testInfo.project.name === "mobile-chromium") await page.getByRole("button", { name: /Aperçu|Preview/ }).click();
   await expect(page.getByText(/Aperçu live|Live preview/).first()).toBeVisible();
@@ -80,7 +83,7 @@ test("legacy hash links migrate to clean URLs", async ({ page }) => {
   await page.goto("/#/catalog");
   await acceptPrivacy(page);
   await expect(page).toHaveURL(/\/catalog$/);
-  await expect(page.getByRole("heading", { name: /Choisis une formation|Choose a course/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Choisis selon ce que tu veux faire|Choose based on what you want to do/ })).toBeVisible();
 });
 
 test("tools lesson opens without workstation rendering errors", async ({ page }) => {

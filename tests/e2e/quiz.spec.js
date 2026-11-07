@@ -5,28 +5,30 @@ test("quiz scores a focused answer and completes the lesson", async ({ page }) =
   const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await consent.isVisible()) await consent.click();
 
-  await page.getByRole("button", { name: /livrable final mélange|final deliverable mixes/ }).click();
+  await page.getByRole("button", { name: /présence du menu ne prouve pas|menu's presence does not prove/ }).click();
   await page.getByRole("button", { name: /Valider|Check/ }).click();
   await page.getByRole("button", { name: /Question suivante|Next question/ }).click();
-  await page.getByRole("button", { name: /Auditer landmarks|Audit landmarks/ }).click();
+  await page.getByRole("button", { name: /Choisir les informations réelles|Choose the real visible-content facts/ }).click();
   await page.getByRole("button", { name: /Valider|Check/ }).click();
   await page.getByRole("button", { name: /Question suivante|Next question/ }).click();
-  await page.getByRole("button", { name: /projet final réussi|successful final project/ }).click();
-  await page.getByRole("button", { name: /impact concret|concrete impact/ }).click();
+  await page.getByRole("button", { name: /Chaque fragment vise un id|Every fragment targets/ }).click();
+  await page.getByRole("button", { name: /Caption, th scope, time et data|Caption, th scope, time, and data/ }).click();
+  await page.getByRole("button", { name: /Labels, name et aria-describedby|Labels, name, and aria-describedby/ }).click();
   await page.getByRole("button", { name: /Valider|Check/ }).click();
   await page.getByRole("button", { name: /Question suivante|Next question/ }).click();
   await page.getByRole("button", { name: /Faux|False/, exact: true }).click();
   await page.getByRole("button", { name: /Valider|Check/ }).click();
   await page.getByRole("button", { name: /Question suivante|Next question/ }).click();
   await orderChoices(page, [
-    /Identifier le contenu|Identify the content/,
-    /Appliquer|Apply/,
-    /Inspecter la preuve|Inspect the evidence/,
-    /Expliquer l['’]impact|Explain the user impact/
+    /Lire le livrable comme une personne|Read the deliverable as a person/,
+    /Parcourir les actions au clavier|Navigate actions with the keyboard/,
+    /Inspecter les relations dans le DOM|Inspect relationships in the DOM/,
+    /Exécuter les tests automatiques|Run automated tests/,
+    /Comparer les métadonnées au contenu|Compare metadata with content/
   ]);
   await page.getByRole("button", { name: /Valider|Check/ }).click();
   await page.getByRole("button", { name: /Question suivante|Next question/ }).click();
-  await page.getByLabel(/Ta réponse|Your answer/).fill("Le DOM fournit une preuve observable.");
+  await page.getByLabel(/Ta réponse|Your answer/).fill("Le clavier réel reste à tester dans le navigateur.");
   await page.getByRole("button", { name: /Valider|Check/ }).click();
   await page.getByRole("button", { name: /Question suivante|Next question/ }).click();
   await page.getByRole("button", { name: /Tester la navigation réelle au clavier|Test real keyboard navigation/ }).click();

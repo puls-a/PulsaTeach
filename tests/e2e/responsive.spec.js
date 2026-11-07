@@ -62,11 +62,11 @@ test("homepage and footer stay composed at 390px", async ({ page }, testInfo) =>
   if (await consent.isVisible()) await consent.click();
 
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Choisir une formation|Choose a course/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Comparer les formations|Compare courses/ })).toBeVisible();
   const constrainedElements = [
     page.locator("header nav"),
     page.getByRole("heading", { level: 1 }),
-    page.locator("main dl"),
+    page.locator('[aria-labelledby="starting-points-title"]'),
     page.locator("footer")
   ];
   for (const element of constrainedElements) {
@@ -113,7 +113,7 @@ test("learner dashboard stays actionable at 390px and uses the reward accent", a
   expect(rewardColor).toBe("rgb(110, 231, 183)");
 });
 
-test("learner tools share the premium mobile frame", async ({ page }, testInfo) => {
+test("learner tools share the editorial mobile frame", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "chromium");
   await page.setViewportSize({ width: 390, height: 844 });
   for (const route of ["/catalog", "/path", "/profile", "/review", "/projects", "/certification"]) {
@@ -124,7 +124,7 @@ test("learner tools share the premium mobile frame", async ({ page }, testInfo) 
     await heading.waitFor({ state: "visible", timeout: 8_000 }).catch(() => page.reload());
     await expect(heading).toBeVisible({ timeout: 20_000 });
     const heroColor = await heading.evaluate((element) => getComputedStyle(element.closest("header")).backgroundColor);
-    expect(heroColor, `${route} should use the shared learner hero`).toBe("rgb(2, 6, 23)");
+    expect(heroColor, `${route} should use the shared learner hero`).toBe("rgba(0, 0, 0, 0)");
     const dimensions = await page.evaluate(() => ({ clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));
     expect(dimensions.scrollWidth, `${route} overflows at 390px`).toBeLessThanOrEqual(dimensions.clientWidth);
   }

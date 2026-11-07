@@ -6,9 +6,10 @@
   html { scroll-behavior: smooth; }
   body {
     margin: 0;
-    background: #f8fafc;
-    color: #172033;
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: #f4f1ea;
+    color: #18201f;
+    font-family: Aptos, "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.55;
   }
   * { box-sizing: border-box; }
   h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd { margin: 0; }
@@ -17,34 +18,34 @@
   button { background: transparent; border: 0; color: inherit; cursor: pointer; padding: 0; }
   a { color: inherit; text-decoration: none; }
   img, svg, video, canvas { display: block; max-width: 100%; }
-  a, button { transition: color .18s ease, background-color .18s ease, border-color .18s ease, opacity .18s ease, transform .18s ease; }
+  a, button { transition: color .16s ease, background-color .16s ease, border-color .16s ease, opacity .16s ease; }
   /* Switching selected tabs must not pass through low-contrast color pairs. */
   button[role="tab"] { transition: border-color .18s ease, transform .18s ease; }
-  :focus-visible { outline: 3px solid rgba(79, 70, 229, .35); outline-offset: 3px; }
+  :focus-visible { outline: 3px solid #4338ca; outline-offset: 3px; }
 }
 
 @layer components {
-  .nav-item { @apply inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 hover:text-ink; }
-  .skip-link { @apply fixed left-4 top-4 z-[100] -translate-y-20 rounded-xl bg-ink px-4 py-3 text-sm font-bold text-white shadow-xl focus:translate-y-0; }
-  .icon-button { @apply inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-ink; }
-  .primary-button { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-indigoPop px-5 py-3 font-bold text-white hover:bg-indigo-700; }
-  .secondary-button { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 font-bold text-ink hover:border-slate-400 hover:bg-slate-50; }
-  .eyebrow { @apply text-sm font-bold uppercase tracking-[.16em] text-indigoPop; }
-  .nav-trigger { @apply inline-flex min-h-10 items-center gap-2 rounded-xl px-3.5 text-sm font-bold text-slate-600 hover:bg-slate-100 hover:text-ink; }
-  .nav-icon-button { @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigoPop; }
-  .nav-account-button { @apply inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-2 pr-3 text-sm font-bold text-slate-700 hover:border-indigo-200 hover:bg-indigo-50; }
-  .nav-dropdown { @apply absolute top-[calc(100%+12px)] grid gap-1 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl shadow-slate-900/10; }
-  .app-page { @apply px-4 pb-16 pt-28 sm:px-6 lg:px-8; }
-  .page-heading { @apply mt-2 max-w-4xl font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl; }
-  .surface { @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm; }
-  .muted-surface { @apply rounded-xl border border-slate-200 bg-slate-50 p-4; }
-  .form-control { @apply min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-ink outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100; }
-  .lab-shell { @apply overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm; }
+  .nav-item { @apply inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-ink; }
+  .skip-link { @apply fixed left-4 top-4 z-[100] -translate-y-20 rounded-md bg-ink px-4 py-3 text-sm font-semibold text-white shadow-xl focus:translate-y-0; }
+  .icon-button { @apply inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-600 hover:border-slate-500 hover:text-ink; }
+  .primary-button { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-indigoPop px-5 py-3 font-semibold text-white hover:bg-indigo-800; }
+  .secondary-button { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-md border border-slate-400 bg-transparent px-5 py-3 font-semibold text-ink hover:border-ink hover:bg-white; }
+  .eyebrow { @apply font-mono text-xs font-semibold uppercase tracking-[.14em] text-indigoPop; }
+  .nav-trigger { @apply inline-flex min-h-10 items-center gap-2 rounded-md px-3.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-ink; }
+  .nav-icon-button { @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-transparent px-3 text-sm font-semibold text-slate-600 hover:border-slate-300 hover:bg-white hover:text-indigoPop; }
+  .nav-account-button { @apply inline-flex min-h-11 items-center gap-2 rounded-md border border-slate-300 bg-white px-2 pr-3 text-sm font-semibold text-slate-700 hover:border-indigo-300; }
+  .nav-dropdown { @apply absolute top-[calc(100%+10px)] grid gap-1 rounded-lg border border-slate-300 bg-white p-3 shadow-xl shadow-slate-900/10; }
+  .app-page { @apply px-4 pb-20 pt-24 sm:px-6 lg:px-8; }
+  .page-heading { @apply mt-2 max-w-4xl font-display text-4xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl; }
+  .surface { @apply rounded-lg border border-slate-300 bg-white p-5; }
+  .muted-surface { @apply rounded-md border border-slate-300 bg-slate-50 p-4; }
+  .form-control { @apply min-h-12 w-full rounded-md border border-slate-400 bg-white px-4 text-ink outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200; }
+  .lab-shell { @apply overflow-hidden rounded-lg border border-slate-300 bg-white; }
   .lab-toolbar-button { @apply inline-flex min-h-10 items-center gap-2 rounded-lg bg-white/10 px-3 text-sm font-bold text-white hover:bg-white/20; }
   .lab-primary-button { @apply inline-flex min-h-10 items-center gap-2 rounded-lg bg-indigo-700 px-4 text-sm font-bold text-white hover:bg-indigo-800; }
   .code-editor { @apply flex-1 resize-y rounded-xl border border-white/15 bg-slate-950 p-4 font-mono text-sm leading-7 text-indigo-100 outline-none focus:border-indigo-400; }
   .test-row { @apply flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold; }
-  .empty-state { @apply rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm font-semibold text-slate-600; }
+  .empty-state { @apply rounded-md border border-dashed border-slate-400 bg-slate-50 p-4 text-sm font-semibold text-slate-600; }
   .status-badge { @apply inline-flex rounded-full px-3 py-1 text-xs font-bold; }
   .status-success { @apply border border-green-200 bg-green-50 text-green-700; }
   .status-warning { @apply border border-amber-200 bg-amber-50 text-amber-800; }
@@ -54,7 +55,7 @@
     border: 1px solid #e2e8f0;
     box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
   }
-  .hero-stage { background: #f8fafc; }
+  .hero-stage { background: #f4f1ea; }
 }
 
 @media (prefers-reduced-motion: reduce) {

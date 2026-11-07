@@ -26,7 +26,7 @@ describe("App bootstrap", () => {
   test("renders public content while authentication is still loading", () => {
     render(<App />);
 
-    expect(screen.getByRole("heading", { name: /Apprends le web en construisant des preuves/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Construis une vraie page web/i })).toBeInTheDocument();
     expect(screen.queryByText("Chargement de la page…")).not.toBeInTheDocument();
   });
 
@@ -36,7 +36,7 @@ describe("App bootstrap", () => {
 
     render(<App />);
 
-    expect(screen.getByRole("heading", { name: /Apprends le web en construisant des preuves/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Construis une vraie page web/i })).toBeInTheDocument();
     expect(document.documentElement).toHaveAttribute("lang", "fr");
   });
 
@@ -48,7 +48,7 @@ describe("App bootstrap", () => {
 
     render(<App />);
 
-    expect(screen.getByRole("heading", { name: /Apprends le web en construisant des preuves/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Construis une vraie page web/i })).toBeInTheDocument();
     expect(document.documentElement).toHaveAttribute("lang", "fr");
   });
 });

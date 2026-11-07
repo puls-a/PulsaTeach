@@ -7,15 +7,15 @@ test("a failed protected exam does not expose questions in spaced review", async
   const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
   if (await consent.isVisible()) await consent.click();
 
-  await page.getByRole("button", { name: /code est prêt|code is ready/ }).click();
+  await page.getByRole("button", { name: /menu manque uniquement de couleur|menu only lacks color/ }).click();
   await page.getByRole("button", { name: /Valider|Check/ }).click();
   await page.getByRole("button", { name: /Question suivante|Next question/ }).click();
 
-  await page.getByRole("button", { name: /balises au hasard|random tags/ }).click();
+  await page.getByRole("button", { name: /Masquer le h1|Hide the h1/ }).click();
   await page.getByRole("button", { name: /Valider|Check/ }).click();
   await page.getByRole("button", { name: /Question suivante|Next question/ }).click();
 
-  await page.getByRole("button", { name: /rendu qui semble correct|rendering that looks right/ }).click();
+  await page.getByRole("button", { name: /simple présence d'un nav|mere presence of nav/ }).click();
   await page.getByRole("button", { name: /Valider|Check/ }).click();
   await page.getByRole("button", { name: /Question suivante|Next question/ }).click();
 

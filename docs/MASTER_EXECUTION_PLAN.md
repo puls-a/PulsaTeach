@@ -1,7 +1,7 @@
 # PulsaTeach - plan directeur d'achevement
 
 Statut : source de verite active
-Derniere mise a jour : 2026-11-06
+Derniere mise a jour : 2026-11-07
 Objectif : transformer PulsaTeach en produit educatif public fiable, utile et honnete.
 
 ## Mandat
@@ -159,7 +159,8 @@ Ces pourcentages sont des estimations de pilotage, pas des metriques marketing.
 | Box model et typographie CSS 02 | Relu localement | huit etapes cumulatives, contenu extreme, valeurs exactes, quiz et lab public alignes | conserver sous regression |
 | CSS public restant | Non certifie | profondeur automatique seulement | continuer avec `css-flex-layout` |
 | JavaScript public | Non certifie | profondeur automatique seulement | audit complet apres CSS |
-| Catalogue et reprise | Ameliore localement | tests composants ajoutes | E2E puis release |
+| Catalogue et reprise | Revu localement | aide au choix preservee, recherche bilingue et reprise mobile testees | prochaine release controlee |
+| Interface publique | Revue localement | accueil, catalogue, formation et workspace controles en desktop/mobile ; axe et E2E verts | verifier la production apres prochaine release |
 | Production | Verifiee | commit produit `4b5358e`, smoke production et lab CSS 02 controles | poursuivre CSS puis prochaine release controlee |
 | Tests utilisateurs | Non effectues | aucune observation documentee | protocole puis sessions |
 
@@ -275,3 +276,17 @@ correspondre au risque modifie, mais une release exige la chaine complete utile.
 - commit produit `4b5358e` pousse sur `origin/main` et deploye automatiquement sur `https://pulsateach.vercel.app` ;
 - verification production reussie : smoke sur 7 routes et 28 lecons a 375 px et 1440 px, puis controle direct de `css-box-type-lab` avec le nouveau contenu cumulatif ;
 - limite d'exploitation : le token local de la CLI Vercel est expire, mais l'integration Git de production reste operationnelle.
+
+### 2026-11-07
+
+- direction visuelle publique reprise comme un atelier editorial : fond papier chaud, typographie serif de titre, surfaces plus plates, separateurs nets et indigo reserve aux actions ;
+- accueil reecrit autour d'une preuve concrete consigne, code et tests, sans statistiques decoratives ni promesse abstraite ;
+- catalogue transforme en liste lisible de formations, avec recherche, acces direct aux programmes et aide au choix conservee apres la liste ;
+- page formation simplifiee autour des acquis, criteres, prerequis et modules, avec criteres de certification visibles avant evaluation ;
+- workspace mobile corrige : premiere visite sur la consigne, reprise dans l'editeur seulement apres un travail reel, onglets et actions sticky, rappel de tache et hauteur CodeMirror adaptee ;
+- contraste AA restaure pour les textes secondaires sur le nouveau fond et landmark `main` imbrique retire de l'accueil ;
+- tests E2E realignes sur les contenus HTML certifies et sur le nouveau flux mobile, sans relacher les controles clavier, reprise, examen ou accessibilite ;
+- controle visuel local effectue sur accueil, catalogue, formation HTML et lecon JavaScript, en desktop et mobile Chromium ;
+- validation navigateur : 150 tests E2E reussis, 44 ignores intentionnellement selon projet ou disponibilite des parcours prives ;
+- validation locale : 61 fichiers de tests et 364 tests reussis, tous les audits, build et 229 pages prerendues valides ;
+- limite de release : les changements sociaux et video presents dans le worktree restent exclus de ce lot.

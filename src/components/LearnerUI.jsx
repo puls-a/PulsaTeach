@@ -2,16 +2,16 @@ import { ArrowRight, LoaderCircle } from "lucide-react";
 
 export function LearnerPageHero({ icon: Icon, eyebrow, title, description, status, action, children }) {
   return (
-    <header className="rounded-3xl bg-slate-950 p-5 text-white shadow-xl sm:p-8">
+    <header className="border-b border-slate-400 pb-8 text-ink sm:pb-10">
       <div className="grid gap-7 lg:grid-cols-[1fr_auto] lg:items-end">
         <div className="max-w-3xl">
           <div className="flex flex-wrap items-center gap-3">
-            {Icon && <span className="grid size-10 place-items-center rounded-2xl bg-white/10"><Icon className="size-5 text-emerald-300" /></span>}
-            <p className="text-xs font-black uppercase tracking-[.18em] text-indigo-200">{eyebrow}</p>
-            {status && <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-emerald-300" role="status">{status}</span>}
+            {Icon && <span className="grid size-9 place-items-center rounded-md border border-slate-300 bg-white"><Icon className="size-4 text-indigoPop" /></span>}
+            <p className="eyebrow">{eyebrow}</p>
+            {status && <span className="border-l border-slate-400 pl-3 font-mono text-xs text-emerald-700" role="status">{status}</span>}
           </div>
-          <h1 className="mt-5 font-display text-3xl font-black tracking-tight sm:text-5xl">{title}</h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">{description}</p>
+          <h1 className="mt-5 font-display text-4xl font-semibold leading-tight tracking-tight sm:text-6xl">{title}</h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">{description}</p>
         </div>
         {action && <a href={action.href} onClick={(event) => scrollToAction(event, action.href)} className="primary-button w-fit shrink-0">{action.label}<ArrowRight className="size-4" /></a>}
       </div>
@@ -23,13 +23,13 @@ export function LearnerPageHero({ icon: Icon, eyebrow, title, description, statu
 export function MetricCard({ icon: Icon, label, value, detail, tone = "default" }) {
   const reward = tone === "reward";
   return (
-    <div className={`rounded-2xl border p-4 ${reward ? "border-slate-700 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-950"}`}>
+    <div className={`border-l-2 p-4 ${reward ? "border-emerald-500 bg-emerald-50 text-ink" : "border-slate-400 bg-transparent text-slate-950"}`}>
       <div className="flex items-center justify-between gap-3">
-        <p className={`text-sm font-semibold ${reward ? "text-slate-300" : "text-slate-500"}`}>{label}</p>
-        {Icon && <Icon className={`size-5 ${reward ? "text-emerald-300" : "text-indigoPop"}`} />}
+        <p className="text-sm text-slate-500">{label}</p>
+        {Icon && <Icon className={`size-5 ${reward ? "text-emerald-700" : "text-indigoPop"}`} />}
       </div>
-      <p className={`mt-3 font-display text-3xl font-black ${reward ? "text-emerald-300" : ""}`}>{value}</p>
-      {detail && <p className={`mt-1 text-xs font-semibold ${reward ? "text-slate-400" : "text-slate-500"}`}>{detail}</p>}
+      <p className={`mt-3 font-display text-3xl font-semibold ${reward ? "text-emerald-800" : ""}`}>{value}</p>
+      {detail && <p className="mt-1 text-xs text-slate-500">{detail}</p>}
     </div>
   );
 }
@@ -46,7 +46,7 @@ export function ProgressMeter({ label, value = 0, detail, tone = "indigo" }) {
       <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label={label} aria-valuemin="0" aria-valuemax="100" aria-valuenow={percent}>
         <div className={`h-full rounded-full ${fill}`} style={{ width: `${percent}%` }} />
       </div>
-      {detail && <p className={`mt-2 text-xs font-semibold ${tone === "emerald" ? "text-slate-300" : "text-slate-500"}`}>{detail}</p>}
+      {detail && <p className="mt-2 text-xs font-semibold text-slate-500">{detail}</p>}
     </div>
   );
 }
@@ -72,7 +72,7 @@ export function StatusBadge({ status, locale = "fr" }) {
 }
 
 export function LoadingState({ label }) {
-  return <p className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 font-semibold text-slate-600" role="status"><LoaderCircle className="size-5 animate-spin text-indigoPop" />{label}</p>;
+  return <p className="flex items-center gap-3 border-y border-slate-300 bg-white p-5 font-semibold text-slate-600" role="status"><LoaderCircle className="size-5 animate-spin text-indigoPop" />{label}</p>;
 }
 
 function scrollToAction(event, href) {

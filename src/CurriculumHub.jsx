@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Accessibility, ArrowRight, BookOpen, Check, Code2, Database, Gauge, GitBranch, Laptop, Plus, Search, Server, ShieldCheck } from "lucide-react";
 import { useSupabaseSession } from "./authState.js";
 import { canManageContent } from "./authRoles.js";
-import { LearnerPageHero, MetricCard, ProgressMeter } from "./components/LearnerUI.jsx";
+import { ProgressMeter } from "./components/LearnerUI.jsx";
 import { useLearningTracks } from "./useLearningTracks.js";
 import { getLearnerItem } from "./learnerStorage.js";
 import CatalogStartGuide from "./components/CatalogStartGuide.jsx";
@@ -46,36 +46,31 @@ export default function CurriculumHub({ locale = "fr" }) {
   }, []);
 
   return (
-    <section className="app-page bg-slate-50">
+    <section className="app-page bg-cloud">
       <div className="mx-auto max-w-7xl">
-        <LearnerPageHero
-          icon={BookOpen}
-          eyebrow={locale === "fr" ? "Catalogue PulsaTeach" : "PulsaTeach catalog"}
-          title={user ? (locale === "fr" ? "Reprends là où tu t’es arrêté." : "Continue where you left off.") : (locale === "fr" ? "Choisis une formation et commence à coder." : "Choose a course and start coding.")}
-          description={locale === "fr" ? "Prépare tes outils, découvre HTML pour structurer une page, puis CSS pour la mettre en forme. Chaque formation présente son programme et ses prérequis." : "Set up your tools, explore HTML to structure a page, then CSS to style it. Each course explains its curriculum and prerequisites."}
-          action={{ href: user ? "/dashboard" : "/signup", label: user ? (locale === "fr" ? "Voir ma progression" : "View my progress") : (locale === "fr" ? "Créer mon compte" : "Create my account") }}
-        >
-          <div className="grid grid-cols-2 gap-3 lg:max-w-2xl lg:grid-cols-3">
-            <MetricCard label={locale === "fr" ? "Formations" : "Courses"} value={tracks.length} />
-            <MetricCard label={locale === "fr" ? "Leçons" : "Lessons"} value={totalLessons} />
-            <MetricCard label={locale === "fr" ? "Validées" : "Completed"} value={completedCount} tone={completedCount ? "reward" : "default"} />
+        <header className="grid gap-8 border-b border-slate-400 pb-10 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div>
+            <p className="eyebrow">{locale === "fr" ? "Catalogue PulsaTeach" : "PulsaTeach catalog"}</p>
+            <h1 className="mt-4 max-w-4xl font-display text-5xl font-semibold leading-[1.02] tracking-tight sm:text-6xl">
+              {user ? (locale === "fr" ? "Reprends le prochain travail utile." : "Continue with the next useful task.") : (locale === "fr" ? "Trois chemins pour construire ta première page." : "Three routes to build your first page.")}
+            </h1>
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">{locale === "fr" ? "Prépare ton poste, structure une page en HTML, puis travaille sa présentation avec CSS. Chaque formation montre son programme avant de commencer." : "Set up your workstation, structure a page with HTML, then shape its presentation with CSS. Every course shows its curriculum before you begin."}</p>
           </div>
-        </LearnerPageHero>
-
-        <CatalogStartGuide tracks={tracks} locale={locale} />
+          <a href={user ? "/dashboard" : "/learn/html/html-getting-started/html-00-what-html-does"} className="primary-button w-fit">{user ? (locale === "fr" ? "Voir ma prochaine leçon" : "View my next lesson") : (locale === "fr" ? "Essayer HTML · 10 min" : "Try HTML · 10 min")}<ArrowRight className="size-4" /></a>
+        </header>
 
         {user && (
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="mt-8 border-b border-slate-300 pb-8">
             <ProgressMeter label={locale === "fr" ? "Progression globale" : "Overall progress"} value={totalLessons ? Math.round((completedCount / totalLessons) * 100) : 0} detail={`${completedCount}/${totalLessons} ${locale === "fr" ? "leçons validées" : "lessons passed"}`} />
           </div>
         )}
 
-        <section className="mt-10" aria-labelledby="catalog-title">
+        <section className="mt-12" aria-label={locale === "fr" ? "Formations disponibles" : "Available courses"}>
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="eyebrow">{locale === "fr" ? "Explorer" : "Explore"}</p>
-              <h2 id="catalog-title" className="mt-3 font-display text-3xl font-black sm:text-4xl">{locale === "fr" ? "Formations disponibles" : "Available courses"}</h2>
-              <p role="status" aria-live="polite" aria-atomic="true" className="mt-2 text-slate-600">{filteredTracks.length} {locale === "fr" ? "parcours pour progresser à ton rythme" : "paths to learn at your pace"}</p>
+              <p className="eyebrow">{locale === "fr" ? "Points de départ" : "Starting points"}</p>
+              <h2 id="catalog-title" className="mt-3 font-display text-4xl font-semibold sm:text-5xl">{locale === "fr" ? "Choisis selon ce que tu veux faire maintenant." : "Choose based on what you want to do now."}</h2>
+              <p role="status" aria-live="polite" aria-atomic="true" className="mt-2 text-slate-600">{filteredTracks.length} {locale === "fr" ? "formations affichées" : "courses shown"}</p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <label className="relative block">
@@ -89,7 +84,7 @@ export default function CurriculumHub({ locale = "fr" }) {
 
           {loading && <p className="empty-state mt-6" role="status">{locale === "fr" ? "Chargement du catalogue..." : "Loading catalog..."}</p>}
           {error && <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900" role="status"><span>{locale === "fr" ? "Le catalogue distant est indisponible. Les formations intégrées restent accessibles." : "Remote catalog unavailable. Built-in courses remain accessible."}</span><button type="button" onClick={reload} className="rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-black hover:bg-amber-100">{locale === "fr" ? "Réessayer" : "Try again"}</button></div>}
-          <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-8 divide-y divide-slate-300 border-y border-slate-300">
             {filteredTracks.map((track) => <CourseCard key={track.id} track={track} locale={locale} />)}
           </div>
           {!loading && filteredTracks.length === 0 && <div className="empty-state mt-6">
@@ -97,6 +92,8 @@ export default function CurriculumHub({ locale = "fr" }) {
             {query && <button type="button" onClick={() => setQuery("")} className="secondary-button mt-4">{locale === "fr" ? "Effacer la recherche" : "Clear search"}</button>}
           </div>}
         </section>
+
+        <CatalogStartGuide tracks={tracks} locale={locale} />
 
         {canCreateCourses && courseDrafts.length > 0 && (
           <section className="mt-12 rounded-3xl border border-dashed border-slate-300 bg-white p-5 sm:p-6">
@@ -114,19 +111,15 @@ function CourseCard({ track, locale }) {
   const modules = track.isSummary ? Number(track.moduleCount || 0) : Array.isArray(track.modules) ? track.modules.length : Number(track.modules || 0);
   const lessons = countLessons(track);
   return (
-    <article className="group flex min-h-full flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-indigo-200 hover:shadow-xl sm:p-6">
-      <div className="flex items-start justify-between gap-4">
-        <span className={`grid size-12 place-items-center rounded-2xl ${presentation.tone}`}><Icon className="size-6" /></span>
-        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">{localize(track.level, locale)}</span>
+    <article className="group grid gap-5 bg-white px-4 py-7 transition-colors hover:bg-slate-50 sm:px-6 lg:grid-cols-[4rem_1fr_auto] lg:items-center">
+      <span className={`grid size-12 place-items-center rounded-md ${presentation.tone}`}><Icon className="size-6" /></span>
+      <div>
+        <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-slate-500"><span>{localize(track.level, locale)}</span><span aria-hidden="true">·</span><span>{modules} {modules === 1 ? (locale === "fr" ? "module" : "module") : "modules"}</span><span aria-hidden="true">·</span><span>{lessons} {locale === "fr" ? "leçons" : "lessons"}</span></div>
+        <h3 className="mt-3 font-display text-3xl font-semibold text-slate-950">{localize(track.title, locale)}</h3>
+        <p className="mt-2 max-w-3xl leading-7 text-slate-600">{localize(track.summary, locale)}</p>
       </div>
-      <h3 className="mt-5 font-display text-2xl font-black text-slate-950">{localize(track.title, locale)}</h3>
-      <p className="mt-3 flex-1 leading-7 text-slate-600">{localize(track.summary, locale)}</p>
-      <dl className="mt-5 grid grid-cols-2 gap-3 border-y border-slate-100 py-4 text-sm">
-        <div><dt className="text-slate-500">{locale === "fr" ? "Modules" : "Modules"}</dt><dd className="mt-1 font-black text-slate-900">{modules}</dd></div>
-        <div><dt className="text-slate-500">{locale === "fr" ? "Leçons" : "Lessons"}</dt><dd className="mt-1 font-black text-slate-900">{lessons}</dd></div>
-      </dl>
-      <a href={`/formations/${track.id}`} className="mt-5 inline-flex min-h-12 items-center justify-between rounded-xl bg-slate-950 px-4 py-3 font-bold text-white transition group-hover:bg-indigo-700">
-        {locale === "fr" ? "Découvrir la formation" : "Explore course"}<ArrowRight className="size-4" />
+      <a href={`/formations/${track.id}`} className="inline-flex min-h-11 items-center gap-2 font-semibold text-indigoPop underline decoration-indigo-300 underline-offset-4 hover:text-indigo-800">
+        {locale === "fr" ? "Voir le programme" : "View curriculum"}<ArrowRight className="size-4" />
       </a>
     </article>
   );
