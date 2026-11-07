@@ -160,8 +160,8 @@ Ces pourcentages sont des estimations de pilotage, pas des metriques marketing.
 | CSS public restant | Non certifie | profondeur automatique seulement | continuer avec `css-flex-layout` |
 | JavaScript public | Non certifie | profondeur automatique seulement | audit complet apres CSS |
 | Catalogue et reprise | Revu localement | aide au choix preservee, recherche bilingue et reprise mobile testees | prochaine release controlee |
-| Interface publique | Revue localement | accueil, catalogue, formation et workspace controles en desktop/mobile ; axe et E2E verts | verifier la production apres prochaine release |
-| Production | Verifiee | commit produit `4b5358e`, smoke production et lab CSS 02 controles | poursuivre CSS puis prochaine release controlee |
+| Interface publique | Verifiee en production | accueil, catalogue, formation et workspace controles en desktop/mobile ; axe et E2E verts | conserver sous regression |
+| Production | Verifiee | commit produit `34ded0d`, statut Vercel reussi et smoke production sur 7 routes et 28 lecons | poursuivre CSS puis prochaine release controlee |
 | Tests utilisateurs | Non effectues | aucune observation documentee | protocole puis sessions |
 
 ## Protocole de reprise automatique
@@ -290,3 +290,6 @@ correspondre au risque modifie, mais une release exige la chaine complete utile.
 - validation navigateur : 150 tests E2E reussis, 44 ignores intentionnellement selon projet ou disponibilite des parcours prives ;
 - validation locale : 61 fichiers de tests et 364 tests reussis, tous les audits, build et 229 pages prerendues valides ;
 - limite de release : les changements sociaux et video presents dans le worktree restent exclus de ce lot.
+- commit produit `34ded0d` pousse sur `origin/main` et deploye automatiquement par Vercel ;
+- verification production reussie : nouvelle interface hydratee controlee visuellement, puis smoke sur 7 routes et 28 lecons a 375 px et 1440 px ;
+- limites CI independantes du lot : `npm audit` bloque sur les dependances deja signalees et le job Supabase refuse encore l'ancienne section `[inbucket]` de `supabase/config.toml`.
