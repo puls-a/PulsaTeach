@@ -1,4 +1,6 @@
 import { cssModuleProfile } from "./cssModuleProfiles.js";
+import { buildFlexLayoutCss, createFlexLayoutModule } from "./cssFlexLayoutModule.js";
+import { createGridLayoutModule } from "./cssGridLayoutModule.js";
 
 export function createCssModuleGroup(entries, startIndex = 0, projectModuleIds = []) {
   const projectModules = new Set(projectModuleIds);
@@ -6,6 +8,16 @@ export function createCssModuleGroup(entries, startIndex = 0, projectModuleIds =
     const moduleIndex = startIndex + offset;
     if (id === "css-selectors-colors") return selectorsColorsModule(title, moduleIndex, projectModules.has(id));
     if (id === "css-box-type") return boxTypeModule(title, moduleIndex, projectModules.has(id));
+    if (id === "css-flex-layout") {
+      const selectorsCss = selectorsSteps.reduce((css, step) => `${css}\n\n${step.rule}`, selectorsBase);
+      const boxTypeCss = boxTypeSteps.reduce((css, step) => `${css}\n\n${step.selector} {\n  ${step.property}: ${step.value};\n}`, selectorsCss);
+      return createFlexLayoutModule(title, moduleIndex, projectModules.has(id), boxTypeCss, createGeneratedCssPedagogy);
+    }
+    if (id === "css-grid-layout") {
+      const selectorsCss = selectorsSteps.reduce((css, step) => `${css}\n\n${step.rule}`, selectorsBase);
+      const boxTypeCss = boxTypeSteps.reduce((css, step) => `${css}\n\n${step.selector} {\n  ${step.property}: ${step.value};\n}`, selectorsCss);
+      return createGridLayoutModule(title, moduleIndex, projectModules.has(id), buildFlexLayoutCss(boxTypeCss), createGeneratedCssPedagogy);
+    }
     const profile = cssModuleProfile(id, title);
     const lessons = checks.map((check, index) => lessonFor(id, title, selector, check, index + 1, profile));
     lessons.push(quizFor(id, title, moduleIndex, profile, selector, checks));

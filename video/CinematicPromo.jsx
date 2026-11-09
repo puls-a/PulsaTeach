@@ -39,7 +39,7 @@ export const CinematicPromo = ({ story }) => {
     {scene === 3 && <div style={{ position: 'absolute', top: 400, left: 74, right: 74, transform: `scale(${move(local, 0, 45, 0.9, 1)})`, opacity: entrance }}>
       <div style={{ ...label, color: story.accent }}>{story.title}</div>
       <div style={{ fontSize: 116, fontWeight: 900, lineHeight: 0.98, letterSpacing: -7, marginTop: 55 }}>À toi<br />de <span style={{ color: story.accent }}>jouer.</span></div>
-      <div style={{ marginTop: 90, padding: '32px 35px', borderRadius: 22, background: story.accent, color: '#08090f', fontSize: 36, fontWeight: 800, display: 'flex', justifyContent: 'space-between' }}><span>pulsateach.vercel.app</span><span>↗</span></div>
+      <div style={{ marginTop: 90, padding: '32px 35px', borderRadius: 22, background: story.accent, color: '#08090f', fontSize: 36, fontWeight: 800, display: 'flex', justifyContent: 'space-between' }}><span>pulsateach.com</span><span>↗</span></div>
       <div style={{ marginTop: 35, fontSize: 26, color: '#b9bdce' }}>Apprends. Pratique. Construis.</div>
     </div>}
     <div style={{ position: 'absolute', inset: 0, background: story.accent, opacity: local < 8 && scene > 0 ? move(local, 0, 8, 0.25, 0) : 0, pointerEvents: 'none' }} />

@@ -63,7 +63,7 @@ describe("last five active HTML modules", () => {
 
     expect(canonical).toContain("https://example.com/pulsaconf");
     expect(canonical).toContain("réservé à la documentation");
-    expect(openGraph).toContain("https://pulsateach.vercel.app/assets/og-pulsateach-v2.png");
+    expect(openGraph).toContain("https://pulsateach.com/assets/og-pulsateach-v2.png");
     for (const markup of [errorLesson, formProject]) {
       const document = new DOMParser().parseFromString(markup, "text/html");
       expect(document.querySelector("form [aria-invalid]")).toBeNull();

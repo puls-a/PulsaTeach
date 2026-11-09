@@ -17,4 +17,4 @@ Disallow: /settings
 Disallow: /signup
 Disallow: /studio
 
-Sitemap: https://pulsateach.vercel.app/sitemap.xml
+Sitemap: https://pulsateach.com/sitemap.xml

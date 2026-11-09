@@ -22,12 +22,12 @@ export const htmlProductionHardeningModules = [
       solution: page(`    <title>Apprendre HTML gratuitement | PulsaTeach</title>
     <meta name="description" content="Cours HTML gratuit avec exercices interactifs, accessibilité, SEO et projet PulsaConf." />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="canonical" href="https://pulsateach.vercel.app/learn/html" />
+    <link rel="canonical" href="https://pulsateach.com/learn/html" />
     <link rel="icon" href="/assets/favicon.ico" />
     <meta property="og:title" content="Apprendre HTML gratuitement | PulsaTeach" />
     <meta property="og:description" content="Construis des pages HTML accessibles avec des tests guidés." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://pulsateach.vercel.app/learn/html" />`, "    <main><h1>Cours HTML</h1></main>"),
+    <meta property="og:url" content="https://pulsateach.com/learn/html" />`, "    <main><h1>Cours HTML</h1></main>"),
       tests: [test("doctype", "doctype", "<!doctype html>"), test("contains", "lang fr", "lang=\"fr\""), test("contains", "charset", "charset=\"UTF-8\""), test("contains", "specific title", "Apprendre HTML gratuitement"), test("contains", "meta description", "meta name=\"description\""), test("contains", "viewport", "name=\"viewport\""), test("contains", "canonical", "rel=\"canonical\""), test("contains", "favicon", "rel=\"icon\""), test("contains", "og title", "property=\"og:title\""), test("contains", "og url", "property=\"og:url\"")],
       hint: ["Le head décrit la page pour le navigateur, les moteurs et le partage social.", "The head describes the page for browsers, search engines, and social sharing."],
       xp: 45
@@ -132,7 +132,7 @@ export const htmlProductionHardeningModules = [
       solution: page(`    <title>Cours HTML publiable | PulsaTeach</title>
     <meta name="description" content="Page de cours HTML avec SEO, accessibilité, formulaire, médias et données." />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="canonical" href="https://pulsateach.vercel.app/learn/html/html-14-production-audit-project" />
+    <link rel="canonical" href="https://pulsateach.com/learn/html/html-14-production-audit-project" />
     <meta property="og:title" content="Cours HTML publiable | PulsaTeach" />`, `    <a href="#main-content">Aller au contenu principal</a>
     <header><h1>Cours HTML publiable</h1></header>
     <nav aria-label="Navigation du cours"><a href="#form">Inscription</a><a href="#progress">Progression</a><a href="#media">Média</a></nav>

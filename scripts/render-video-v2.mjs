@@ -41,7 +41,7 @@ if (!args.includes('--stills')) {
 }
 
 function subtitles(story) {
-  const cues = [{ at: 0, text: `${story.title}\n${story.subtitle}` }, ...story.markers.map(m => ({ at: m.at + 48, text: m.text })), { at: story.frames + 48, text: 'Passe à la pratique.\npulsateach.vercel.app' }];
+  const cues = [{ at: 0, text: `${story.title}\n${story.subtitle}` }, ...story.markers.map(m => ({ at: m.at + 48, text: m.text })), { at: story.frames + 48, text: 'Passe à la pratique.\npulsateach.com' }];
   const time = frame => { const ms = Math.round(frame / 30 * 1000); return `${String(Math.floor(ms / 3600000)).padStart(2, '0')}:${String(Math.floor(ms / 60000) % 60).padStart(2, '0')}:${String(Math.floor(ms / 1000) % 60).padStart(2, '0')},${String(ms % 1000).padStart(3, '0')}`; };
   return cues.map((c, i) => `${i + 1}\n${time(c.at)} --> ${time(cues[i + 1]?.at ?? story.frames + 132)}\n${c.text}\n`).join('\n');
 }

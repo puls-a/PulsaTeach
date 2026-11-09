@@ -3,7 +3,7 @@ import { learningTracks } from "../src/content/allTrackRegistry.js";
 import { publicTrackCatalog } from "../src/content/publicTrackCatalog.js";
 import { buildGlossaryIndex } from "../src/features/glossary/glossaryIndex.js";
 
-const siteUrl = "https://pulsateach.vercel.app";
+const siteUrl = "https://pulsateach.com";
 const distUrl = new URL("../dist/", import.meta.url);
 const template = await readFile(new URL("index.html", distUrl), "utf8");
 const publicTrackIds = new Set(publicTrackCatalog.map((track) => track.id));

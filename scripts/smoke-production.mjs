@@ -3,7 +3,9 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { learningTracks } from "../src/content/allTrackRegistry.js";
 
-const baseUrl = String(process.env.PULSATEACH_PRODUCTION_URL || "https://pulsateach.vercel.app").replace(/\/$/, "");
+const productionOrigin = "https://pulsateach.com";
+const baseUrl = String(process.env.PULSATEACH_PRODUCTION_URL || productionOrigin).replace(/\/$/, "");
+const fallbackUrl = String(process.env.PULSATEACH_FALLBACK_URL || "https://pulsateach.vercel.app").replace(/\/$/, "");
 const captureDir = process.env.PULSATEACH_CAPTURE_DIR ? path.resolve(process.env.PULSATEACH_CAPTURE_DIR) : null;
 const coreRoutes = [
   "/",
@@ -22,6 +24,22 @@ const home = await fetch(baseUrl);
 assert(home.ok, `Homepage returned ${home.status}`);
 assert(home.headers.get("content-security-policy"), "Homepage is missing CSP");
 assert(home.headers.get("x-content-type-options") === "nosniff", "Homepage is missing nosniff");
+const homeHtml = await home.text();
+assert(homeHtml.includes(`rel="canonical" href="${productionOrigin}/"`), "Homepage canonical does not use pulsateach.com");
+
+const callback = await fetch(`${baseUrl}/auth/callback`, { redirect: "manual" });
+assert(callback.ok, `Auth callback route returned ${callback.status}`);
+
+const allowedCors = await fetch(`${baseUrl}/api/catalog`, { headers: { Origin: productionOrigin } });
+assert(allowedCors.ok, `Production CORS origin returned ${allowedCors.status}`);
+assert(allowedCors.headers.get("access-control-allow-origin") === productionOrigin, "Production CORS origin is not echoed");
+
+if (fallbackUrl !== baseUrl) {
+  const fallbackHome = await fetch(fallbackUrl);
+  assert(fallbackHome.ok, `Fallback homepage returned ${fallbackHome.status}`);
+  const fallbackHtml = await fallbackHome.text();
+  assert(fallbackHtml.includes(`rel="canonical" href="${productionOrigin}/"`), "Fallback canonical does not point to pulsateach.com");
+}
 
 const health = await json("/api/health");
 assert(health.storage === "supabase-strict", `Expected supabase-strict, received ${health.storage}`);

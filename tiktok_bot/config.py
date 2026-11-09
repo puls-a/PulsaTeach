@@ -8,4 +8,4 @@ PROXY_URL = os.getenv("PROXY_URL")
 COOKIES_FILE = os.getenv("COOKIES_FILE", "cookies/tiktok_cookies.txt")
 
 # Configuration de base
-URL_PULSATEACH = "https://pulsateach.vercel.app"
+URL_PULSATEACH = os.getenv("URL_PULSATEACH", "https://pulsateach.com")

@@ -43,7 +43,7 @@ TikTok demande de la **quantité** au début pour comprendre à qui montrer ton 
 
 - **Jours 21 à 30 (Conversion & Trafic)** : 
   - 3 vidéos par jour.
-  - *Sujets* : Des challenges ("Essaie de coder ça"), et tu pointes intensément vers `pulsateach.vercel.app` dans les vidéos.
+  - *Sujets* : Des challenges ("Essaie de coder ça"), et tu pointes intensément vers `pulsateach.com` dans les vidéos.
   - *Call-to-action* : "J'ai créé une formation gratuite 100% interactive. Le lien est sur mon profil."
 
 ## ☁️ Hébergement 24/7 (Botting TikTok)

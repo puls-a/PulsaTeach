@@ -31,7 +31,7 @@ Variables principales :
 ```env
 DRY_RUN=True
 GEMINI_API_KEY=...
-URL_PULSATEACH=https://pulsateach.vercel.app
+URL_PULSATEACH=https://pulsateach.com
 
 X_ENABLED=True
 X_COOKIES_FILE=data/x_cookies.json

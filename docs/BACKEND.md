@@ -67,9 +67,10 @@ Enable providers in Supabase Dashboard:
 2. Enable GitHub, Apple, Google, Discord, or any provider you want to expose.
 3. Add the provider client ID/secret from each provider dashboard.
 4. Authentication > URL Configuration:
-   - Site URL: `http://127.0.0.1:5173`
-   - Redirect URLs: `http://127.0.0.1:5173/**`
-   - OAuth callback page: `http://127.0.0.1:5173/auth/callback`
+   - Production Site URL: `https://pulsateach.com`
+   - Production callback: `https://pulsateach.com/auth/callback`
+   - Fallback callback: `https://pulsateach.vercel.app/auth/callback`
+   - Local callback: `http://127.0.0.1:5173/auth/callback`
 
 PulsaTeach exposes auth at `/auth`. Legacy `#/auth` links are migrated automatically.
 
@@ -77,9 +78,9 @@ Discord OAuth uses the Supabase Discord provider. In Supabase, enable Discord
 under **Authentication > Providers** and set the Discord application Client ID
 and Client Secret. Add the Supabase callback URL shown on that screen to the
 Discord Developer Portal OAuth2 redirects (it ends in `/auth/v1/callback`). In
-**Authentication > URL Configuration**, allow
-`https://pulsateach.vercel.app/auth/callback` and the corresponding local and
-preview callback URLs. A valid `/teach lien` then resumes after OAuth, creates a
+**Authentication > URL Configuration**, allow `https://pulsateach.com/auth/callback`,
+the Vercel fallback callback and the corresponding local callback URLs. A valid
+`/teach lien` then resumes after OAuth, creates a
 Supabase user when needed, and verifies that the authenticated Discord identity
 owns the signed Discord link.
 

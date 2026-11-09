@@ -21,12 +21,15 @@ une description et une URL canonique propres.
 
 Après un déploiement stable :
 
-1. ajouter `https://pulsateach.vercel.app` dans Google Search Console ;
+1. ajouter et vérifier la propriété de domaine `pulsateach.com` dans Google Search Console ;
 2. valider la propriété avec la méthode proposée par Google ;
-3. soumettre `https://pulsateach.vercel.app/sitemap.xml` ;
+3. soumettre `https://pulsateach.com/sitemap.xml` ;
 4. inspecter `/`, `/catalog` et plusieurs leçons de parcours différents ;
 5. demander l’indexation uniquement après vérification du rendu ;
 6. surveiller les pages indexées, Core Web Vitals et erreurs de données structurées.
+
+L'alias `https://pulsateach.vercel.app` reste un secours technique, mais ses pages
+doivent toujours déclarer une URL canonique sur `https://pulsateach.com`.
 
 La vérification Search Console nécessite un compte propriétaire et ne peut pas
 être automatisée depuis le dépôt sans jeton fourni explicitement.

@@ -1,7 +1,7 @@
 # PulsaTeach - plan directeur d'achevement
 
 Statut : source de verite active
-Derniere mise a jour : 2026-11-07
+Derniere mise a jour : 2026-11-09
 Objectif : transformer PulsaTeach en produit educatif public fiable, utile et honnete.
 
 ## Mandat
@@ -157,10 +157,14 @@ Ces pourcentages sont des estimations de pilotage, pas des metriques marketing.
 | Introduction CSS 00 | Relu localement | progression cumulative, preview bilingue, declarations et media queries semantiques, quiz et projet alignes | conserver sous regression |
 | Selecteurs, cascade et couleurs CSS 01 | Relu localement | huit etapes cumulatives, valeurs exactes, preview bilingue, quiz et projet alignes | conserver sous regression |
 | Box model et typographie CSS 02 | Relu localement | huit etapes cumulatives, contenu extreme, valeurs exactes, quiz et lab public alignes | conserver sous regression |
-| CSS public restant | Non certifie | profondeur automatique seulement | continuer avec `css-flex-layout` |
+| Flexbox et mise en page CSS 03 | Relu localement | huit etapes cumulatives depuis CSS 02, preview mobile/desktop, ordre clavier, quiz et lab specialises | conserver sous regression |
+| Grid et compositions CSS 04 | Relu localement | huit etapes cumulatives depuis CSS 03, pistes intrinseques, ordre source, quiz et lab specialises | conserver sous regression |
+| CSS public restant | Non certifie | profondeur automatique seulement | continuer avec `css-selectors` |
 | JavaScript public | Non certifie | profondeur automatique seulement | audit complet apres CSS |
 | Catalogue et reprise | Revu localement | aide au choix preservee, recherche bilingue et reprise mobile testees | prochaine release controlee |
-| Interface publique | Verifiee en production | accueil, catalogue, formation et workspace controles en desktop/mobile ; axe et E2E verts | conserver sous regression |
+| Interface publique | Corrigee localement | tiroir mobile plein viewport, focus, scroll et breakpoint desktop couverts par E2E | livrer puis verifier sur telephone reel |
+| Anciens Reels | Retires localement | sources V3/V4, rendus, voix, campagne et publisher dedie supprimes ; videos produit V2 preservees | repartir d'un storyboard et d'une direction visuelle neufs |
+| Domaine `pulsateach.com` | DNS actif | domaines Vercel verifies, `www` redirige en 308, DNS Cloudflare non proxifie et CORS production configure | deployer le build canonique puis executer le smoke complet |
 | Production | Verifiee | commit produit `34ded0d`, statut Vercel reussi et smoke production sur 7 routes et 28 lecons | poursuivre CSS puis prochaine release controlee |
 | Tests utilisateurs | Non effectues | aucune observation documentee | protocole puis sessions |
 
@@ -293,3 +297,28 @@ correspondre au risque modifie, mais une release exige la chaine complete utile.
 - commit produit `34ded0d` pousse sur `origin/main` et deploye automatiquement par Vercel ;
 - verification production reussie : nouvelle interface hydratee controlee visuellement, puis smoke sur 7 routes et 28 lecons a 375 px et 1440 px ;
 - limites CI independantes du lot : `npm audit` bloque sur les dependances deja signalees et le job Supabase refuse encore l'ancienne section `[inbucket]` de `supabase/config.toml`.
+
+### 2026-11-09
+
+- module CSS 03 `css-flex-layout` remplace par huit etapes cumulatives depuis le lab CSS 02 : conteneur flex, gap, axe transversal, distribution, wrap, axe responsive, ordre visuel limite au statut et largeur minimale du libelle ;
+- starter, solutions, cours, indices, erreurs frequentes et exemples rediges en francais et en anglais autour d'une barre d'actions PulsaConf avec contenu long ;
+- quiz specialise sur axes, wrap, ordre clavier et largeur minimale, puis lab public couvrant les huit decisions sans perdre les acquis CSS 00 a 02 ;
+- ajout de `tests/unit/cssFlexLayoutModule.test.js` couvrant continuite, echec utile, solutions bilingues, mauvaises valeurs, mauvais breakpoint, mauvaise cible, preview, quiz, lab et parite statique/runtime ;
+- controle Chromium direct de la solution a 375 px et 1440 px : aucun debordement horizontal, colonne sur mobile, ligne sur desktop, statut visuellement deplace sans changer l'ordre des boutons ;
+- compteurs documentaires realignes sur 589 termes bilingues ; validation locale actuelle : 62 fichiers de tests et 372 tests reussis, audits, build et 229 pages prerendues valides ;
+- les anciens Reels V3/V4, prototypes, rendus, voix, briefs et campagne Instagram automatisee ont ete retires afin de repartir d'une direction plus travaillee ; les demonstrations produit V2 et promos generiques restent disponibles ;
+- regression du menu mobile reproduite : `backdrop-filter` sur le header limitait les descendants fixes a 72 px de haut ; blur retire du contenant et fermeture ajoutee au passage au breakpoint desktop ;
+- tests E2E renforces sur couverture du viewport, backdrop, verrouillage/restauration du scroll, focus et redimensionnement ; controles responsive et accessibilite valides sur Chromium desktop/mobile ;
+- `pulsateach.com` prepare comme origine canonique dans SEO, sitemap, robots, emails, contenus, videos et bots, avec alias Vercel conserve comme secours et callbacks Supabase doubles ;
+- runbook `docs/CLOUDFLARE_DOMAIN_CUTOVER.md` ajoute ; la zone Cloudflare repond avec ses nameservers mais ne publie encore aucun A, AAAA ou CNAME, la cible DNS exacte doit etre obtenue apres ajout du domaine dans Vercel ;
+- validation locale finale : 61 fichiers de tests et 364 tests reussis, audits, build, SEO, bundle et 229 pages prerendered valides ; 54 controles responsive/accessibilite reussis et 12 ignores selon projet ;
+- module CSS 04 `css-grid-layout` repris en huit etapes cumulatives depuis CSS 03 : activation de Grid, pistes explicites, repeat, auto-fit/minmax, gap, flux par ligne, alignement des cellules et ancrage des pistes ;
+- `grid-auto-flow: dense` remplace par un flux qui preserve l'ordre source ; starters, solutions, cours, quiz et lab rediges en francais et en anglais autour d'une galerie avec contenus variables ;
+- ajout de `tests/unit/cssGridLayoutModule.test.js` couvrant continuite, echec utile, solutions bilingues, token soup, valeurs rigides, mauvaise cible, remplissage dense, preview, quiz, lab et parite statique/runtime ;
+- controle Chromium direct de la solution a 375 px et 1440 px : une puis cinq colonnes, aucun debordement horizontal, alignement attendu et ordre source inchange ;
+- validation locale actuelle : 62 fichiers de tests et 372 tests reussis, tous les audits, build et 229 pages prerendered valides ;
+- MCP officiels Vercel et Cloudflare ajoutes a la configuration globale OpenCode et authentifies par OAuth, sans jeton stocke dans le projet ;
+- `pulsateach.com` et `www.pulsateach.com` attaches au projet Vercel `pulsateach`, avec redirection permanente de `www` vers l'apex ;
+- zone Cloudflare activee avec deux A d'apex et un CNAME `www` fournis par Vercel, en mode DNS only et TTL automatique ; propagation publique, HTTPS et certificat verifies ;
+- variable Vercel Production `PULSATEACH_ALLOWED_ORIGINS` alignee sur le domaine principal et l'alias de secours ; le smoke pre-release confirme que le build precedent doit encore etre remplace pour publier le canonical ;
+- prochain chantier produit : module CSS `css-selectors` ; les nouveaux formats sociaux repartiront ensuite d'un storyboard et d'une validation visuelle neufs.

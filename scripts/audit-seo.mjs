@@ -13,11 +13,13 @@ const prerenderedLesson = await readFile(new URL("../dist/learn/html/html-modern
 const prerenderedNotFound = await readFile(new URL("../dist/404.html", import.meta.url), "utf8").catch(() => "");
 
 const publicTrackIds = new Set(publicTrackCatalog.map((track) => track.id));
+const productionOrigin = "https://pulsateach.com";
 const expectedLessonCount = learningTracks.filter((track) => publicTrackIds.has(track.id)).reduce(
   (total, track) => total + track.modules.reduce((sum, module) => sum + module.lessons.length, 0),
   0
 );
-const sitemapPaths = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => new URL(match[1]).pathname);
+const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => new URL(match[1]));
+const sitemapPaths = sitemapUrls.map((url) => url.pathname);
 const missingPrerenders = [];
 const emptyLessonObjectives = [];
 for (const path of sitemapPaths) {
@@ -33,7 +35,11 @@ const checks = [
   [indexHtml.includes('property="og:image"'), "Open Graph image"],
   [indexHtml.includes('name="twitter:card"'), "Twitter card"],
   [indexHtml.includes('rel="canonical"'), "base canonical"],
-  [robots.includes("Sitemap: https://pulsateach.vercel.app/sitemap.xml"), "robots sitemap declaration"],
+  [robots.includes(`Sitemap: ${productionOrigin}/sitemap.xml`), "robots sitemap declaration"],
+  [sitemapUrls.every((url) => url.origin === productionOrigin), "sitemap uses the production origin"],
+  [indexHtml.includes(`rel="canonical" href="${productionOrigin}/"`), "base canonical uses the production origin"],
+  [indexHtml.includes(`property="og:url" content="${productionOrigin}/"`), "Open Graph URL uses the production origin"],
+  [![indexHtml, sitemap, metadata, prerenderedCatalog, prerenderedLesson].some((value) => value.includes("pulsateach.vercel.app")), "SEO artifacts do not expose the fallback origin"],
   [metadata.includes('"BreadcrumbList"'), "breadcrumb structured data"],
   [metadata.includes('"LearningResource"'), "lesson structured data"],
   [metadata.includes('"EducationalOrganization"'), "educational organization structured data"],

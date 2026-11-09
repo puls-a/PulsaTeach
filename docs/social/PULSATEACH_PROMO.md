@@ -40,7 +40,7 @@ et projets. La démo est dans la réponse.
 
 Réponse au post :
 
-Découvre la plateforme : https://pulsateach.vercel.app/?utm_source=x&utm_medium=social&utm_campaign=promo_01
+Découvre la plateforme : https://pulsateach.com/?utm_source=x&utm_medium=social&utm_campaign=promo_01
 
 ## Checklist manuelle
 

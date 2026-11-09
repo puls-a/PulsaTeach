@@ -30,7 +30,7 @@ TIKTOK_ENABLED = os.getenv("TIKTOK_ENABLED", "False").lower() in ("true", "1", "
 TIKTOK_DAILY_LIMIT = int(os.getenv("TIKTOK_DAILY_LIMIT", "2"))
 
 # Global
-URL_PULSATEACH = os.getenv("URL_PULSATEACH", "https://pulsateach.vercel.app")
+URL_PULSATEACH = os.getenv("URL_PULSATEACH", "https://pulsateach.com")
 UTM_SOURCE = os.getenv("UTM_SOURCE", "x")
 UTM_MEDIUM = os.getenv("UTM_MEDIUM", "social")
 UTM_CAMPAIGN = os.getenv("UTM_CAMPAIGN", "organic_growth")

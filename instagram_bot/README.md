@@ -5,7 +5,7 @@ Un bot complet en Python pour automatiser et faire grandir le compte Instagram �
 ## ✨ Fonctionnalités
 - Publication automatique via `instagrapi`.
 - Support complet pour les **Reels**, **Carrousels**, et **Photos**.
-- Légendes (captions) générées par IA avec appels à l'action vers `https://pulsateach.vercel.app`.
+- Légendes (captions) générées par IA avec appels à l'action vers `https://pulsateach.com`.
 - Session persistante pour éviter les blocages Instagram (anti-spam).
 - Délais aléatoires entre les actions pour simuler le comportement humain.
 - Système de logs détaillé.

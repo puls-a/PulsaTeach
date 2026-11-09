@@ -75,7 +75,7 @@ describe("HTML SEO and publishing module", () => {
       [byId("html-08-seo-title"), ["en", "Accessible HTML workshops", "Home"]],
       [byId("html-08-meta-description"), ["en", "semantic HTML", "cooking"]],
       [byId("html-08-canonical"), ["en", "https://example.com/en/pulsaconf", "/en/pulsaconf"]],
-      [byId("html-08-open-graph"), ["en", "https://pulsateach.vercel.app/assets/og-pulsateach-v2.png", "/assets/share.png"]],
+      [byId("html-08-open-graph"), ["en", "https://pulsateach.com/assets/og-pulsateach-v2.png", "/assets/share.png"]],
       [byId("html-08-favicon-hreflang"), ["en", 'hreflang="en" href="https://example.com/en/pulsaconf"', 'hreflang="en" href="/en/pulsaconf"']],
       [byId("html-08-json-ld"), ["en", "OfflineEventAttendanceMode", "OnlineEventAttendanceMode"]]
     ];

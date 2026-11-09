@@ -1,6 +1,6 @@
 import { findPublicTrack } from "./content/publicTrackCatalog.js";
 
-const SITE_URL = "https://pulsateach.vercel.app";
+const SITE_URL = "https://pulsateach.com";
 const SOCIAL_IMAGE = `${SITE_URL}/assets/cardx-v2.png`;
 const BRAND_ICON = `${SITE_URL}/assets/logo_horizontale_optimized.webp`;
 

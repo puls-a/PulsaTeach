@@ -2,7 +2,7 @@ TRACKS = [
     {
         "id": "html",
         "name": "HTML",
-        "url": "https://pulsateach.vercel.app/formations/html",
+        "url": "https://pulsateach.com/formations/html",
         "hashtags": ["#HTML", "#DevWeb", "#ApprendreAProgrammer"],
         "tips": [
             {
@@ -22,7 +22,7 @@ TRACKS = [
     {
         "id": "css",
         "name": "CSS",
-        "url": "https://pulsateach.vercel.app/formations/css",
+        "url": "https://pulsateach.com/formations/css",
         "hashtags": ["#CSS", "#DevWeb", "#Frontend"],
         "tips": [
             {
@@ -42,7 +42,7 @@ TRACKS = [
     {
         "id": "javascript",
         "name": "JavaScript",
-        "url": "https://pulsateach.vercel.app/formations/javascript",
+        "url": "https://pulsateach.com/formations/javascript",
         "hashtags": ["#JavaScript", "#DevWeb", "#ApprendreAProgrammer"],
         "tips": [
             {
@@ -62,7 +62,7 @@ TRACKS = [
     {
         "id": "react",
         "name": "React",
-        "url": "https://pulsateach.vercel.app/formations/react",
+        "url": "https://pulsateach.com/formations/react",
         "hashtags": ["#React", "#JavaScript", "#Frontend"],
         "tips": [
             {
@@ -82,7 +82,7 @@ TRACKS = [
     {
         "id": "typescript",
         "name": "TypeScript",
-        "url": "https://pulsateach.vercel.app/formations/typescript",
+        "url": "https://pulsateach.com/formations/typescript",
         "hashtags": ["#TypeScript", "#JavaScript", "#DevWeb"],
         "tips": [
             {
@@ -102,7 +102,7 @@ TRACKS = [
     {
         "id": "git",
         "name": "Git",
-        "url": "https://pulsateach.vercel.app/formations/git",
+        "url": "https://pulsateach.com/formations/git",
         "hashtags": ["#Git", "#GitHub", "#DevWeb"],
         "tips": [
             {
@@ -122,7 +122,7 @@ TRACKS = [
     {
         "id": "accessibility",
         "name": "Accessibilité",
-        "url": "https://pulsateach.vercel.app/formations/accessibility",
+        "url": "https://pulsateach.com/formations/accessibility",
         "hashtags": ["#Accessibilite", "#A11y", "#Frontend"],
         "tips": [
             {
@@ -142,7 +142,7 @@ TRACKS = [
     {
         "id": "web-performance",
         "name": "Performance web",
-        "url": "https://pulsateach.vercel.app/formations/web-performance",
+        "url": "https://pulsateach.com/formations/web-performance",
         "hashtags": ["#WebPerf", "#Performance", "#DevWeb"],
         "tips": [
             {

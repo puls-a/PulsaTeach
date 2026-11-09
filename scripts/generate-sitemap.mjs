@@ -2,7 +2,7 @@ import { writeFile } from "node:fs/promises";
 import { learningTracks } from "../src/content/allTrackRegistry.js";
 import { publicTrackCatalog } from "../src/content/publicTrackCatalog.js";
 
-const siteUrl = "https://pulsateach.vercel.app";
+const siteUrl = "https://pulsateach.com";
 const today = new Date().toISOString().slice(0, 10);
 
 // Priority mapping for static routes

@@ -62,13 +62,13 @@ def generate_thread() -> list[GeneratedPost]:
 def generate_reply(mention_text: str) -> GeneratedPost:
     text = mention_text.lower()
     if "react" in text:
-        reply = "Pour React, commence par composants, props, état minimal et formulaires. Parcours gratuit : https://pulsateach.vercel.app/formations/react"
+        reply = "Pour React, commence par composants, props, état minimal et formulaires. Parcours gratuit : https://pulsateach.com/formations/react"
     elif "javascript" in text or "js" in text:
-        reply = "Pour JavaScript, vise une notion courte par jour : fonctions, tableaux, DOM, puis API. Parcours gratuit : https://pulsateach.vercel.app/formations/javascript"
+        reply = "Pour JavaScript, vise une notion courte par jour : fonctions, tableaux, DOM, puis API. Parcours gratuit : https://pulsateach.com/formations/javascript"
     elif "css" in text:
-        reply = "Pour CSS, travaille box model, Flexbox, Grid et responsive avec rendu visuel. Parcours gratuit : https://pulsateach.vercel.app/formations/css"
+        reply = "Pour CSS, travaille box model, Flexbox, Grid et responsive avec rendu visuel. Parcours gratuit : https://pulsateach.com/formations/css"
     elif "html" in text:
-        reply = "Pour HTML, commence par structure, sémantique, formulaires et accessibilité. Parcours gratuit : https://pulsateach.vercel.app/formations/html"
+        reply = "Pour HTML, commence par structure, sémantique, formulaires et accessibilité. Parcours gratuit : https://pulsateach.com/formations/html"
     else:
         reply = random.choice(REPLY_TEMPLATES)
     return GeneratedPost(kind="reply", text=_fit_tweet(reply), metadata={})

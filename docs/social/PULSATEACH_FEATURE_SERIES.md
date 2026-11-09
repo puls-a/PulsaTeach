@@ -51,7 +51,7 @@ choix. C'est exactement ce que tu pratiques sur PulsaTeach. Lien dans la bio.
 
 Poster le hook sans lien, puis répondre avec :
 
-`https://pulsateach.vercel.app/?utm_source=x&utm_medium=social&utm_campaign=feature_series`
+`https://pulsateach.com/?utm_source=x&utm_medium=social&utm_campaign=feature_series`
 
 Ne pas automatiser l'upload via cookies ou navigateur. Utiliser l'interface native
 ou les API officielles des plateformes.

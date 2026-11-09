@@ -13,4 +13,4 @@ Construis une réalisation que tu peux expliquer.
 4
 00:00:15,000 --> 00:00:20,000
 Passe de l'exercice au projet.
-pulsateach.vercel.app
+pulsateach.com

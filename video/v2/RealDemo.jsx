@@ -38,12 +38,12 @@ export function RealDemo({ story }) {
         <div key={current.at} style={{ marginTop: portrait ? 18 : 25, fontSize: portrait ? 30 : 28, lineHeight: 1.4, fontWeight: 600, opacity: ease(local - current.at, 0, 7) }}>{current.text}</div>
         <div style={{ display: 'flex', gap: 10, marginTop: portrait ? 20 : 38 }}>{story.markers.map((m, i) => <div key={m.at} style={{ height: 4, flex: 1, background: i <= index ? accent : '#253047' }} />)}</div>
       </div>
-      <div style={{ position: 'absolute', left: portrait ? 56 : 52, bottom: portrait ? 40 : 47, width: portrait ? 960 : 380, color: '#aeb9cd', fontSize: 16, lineHeight: 1.6 }}>{story.demo ? 'Exercice de démonstration • actions réelles' : 'Interface réelle • actions enregistrées'}<br />pulsateach.vercel.app</div>
+      <div style={{ position: 'absolute', left: portrait ? 56 : 52, bottom: portrait ? 40 : 47, width: portrait ? 960 : 380, color: '#aeb9cd', fontSize: 16, lineHeight: 1.6 }}>{story.demo ? 'Exercice de démonstration • actions réelles' : 'Interface réelle • actions enregistrées'}<br />pulsateach.com</div>
     </>}
     {!inDemo && <div style={{ position: 'absolute', left: portrait ? 64 : 100, right: portrait ? 64 : 100, top: portrait ? 480 : 300, opacity: ease(f < INTRO ? f : f - end, 0, 12) }}>
       <div style={{ fontSize: portrait ? 24 : 20, letterSpacing: 4, color: accent, fontWeight: 800 }}>{f < INTRO ? 'PULSATEACH / EN ACTION' : 'À TON TOUR'}</div>
       <div style={{ fontSize: portrait ? 91 : 102, lineHeight: 1.06, letterSpacing: -4, fontWeight: 900, marginTop: 30, maxWidth: portrait ? 950 : 1650 }}>{f < INTRO ? story.title : 'Passe à la pratique.'}</div>
-      <div style={{ marginTop: 40, maxWidth: 1100, fontSize: portrait ? 33 : 32, lineHeight: 1.45, color: '#bdc9dc' }}>{f < INTRO ? story.subtitle : 'pulsateach.vercel.app'}</div>
+      <div style={{ marginTop: 40, maxWidth: 1100, fontSize: portrait ? 33 : 32, lineHeight: 1.45, color: '#bdc9dc' }}>{f < INTRO ? story.subtitle : 'pulsateach.com'}</div>
       {f >= end && <div style={{ display: 'inline-block', marginTop: 65, background: accent, color: '#080c15', padding: '23px 35px', fontWeight: 800, fontSize: 27, borderRadius: 14 }}>Essaie par toi-même ↗</div>}
     </div>}
   </AbsoluteFill>;

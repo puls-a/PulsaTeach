@@ -10,8 +10,8 @@ QUESTION_TEMPLATES = [
 ]
 
 MOTIVATION_TEMPLATES = [
-    "Progresser en dev web, ce n'est pas tout mémoriser.\n\nC'est pratiquer, casser, lire l'erreur, corriger, recommencer.\n\nPulsaTeach est fait pour ça, gratuitement :\nhttps://pulsateach.vercel.app\n\n#DevWeb #ApprendreAProgrammer #FormationGratuite",
-    "Une bonne journée d'apprentissage :\n\n1. Une notion précise\n2. Un exercice court\n3. Un test qui valide\n4. Une correction comprise\n\nC'est exactement l'approche PulsaTeach.\nhttps://pulsateach.vercel.app\n\n#DevWeb #FormationGratuite",
+    "Progresser en dev web, ce n'est pas tout mémoriser.\n\nC'est pratiquer, casser, lire l'erreur, corriger, recommencer.\n\nPulsaTeach est fait pour ça, gratuitement :\nhttps://pulsateach.com\n\n#DevWeb #ApprendreAProgrammer #FormationGratuite",
+    "Une bonne journée d'apprentissage :\n\n1. Une notion précise\n2. Un exercice court\n3. Un test qui valide\n4. Une correction comprise\n\nC'est exactement l'approche PulsaTeach.\nhttps://pulsateach.com\n\n#DevWeb #FormationGratuite",
 ]
 
 THREADS = [
@@ -24,7 +24,7 @@ THREADS = [
             "Jours 11 à 18 : composants React.\n\nProps, état minimal, rendu conditionnel, listes, formulaires et événements. Objectif : comprendre le flux de données.",
             "Jours 19 à 24 : application réelle.\n\nRouting, chargement de données, états loading/error, accessibilité et tests comportementaux.",
             "Jours 25 à 30 : projet portfolio.\n\nConstruis, teste, corrige, documente. Le but n'est pas juste de finir : c'est de pouvoir expliquer tes choix.",
-            "Tu peux suivre ce chemin gratuitement sur PulsaTeach :\nhttps://pulsateach.vercel.app/formations/react\n\n#React #JavaScript #DevWeb #FormationGratuite",
+            "Tu peux suivre ce chemin gratuitement sur PulsaTeach :\nhttps://pulsateach.com/formations/react\n\n#React #JavaScript #DevWeb #FormationGratuite",
         ],
     },
     {
@@ -35,13 +35,13 @@ THREADS = [
             "2. CSS : interface.\n\nCommence mobile-first, maîtrise box model, Flexbox, Grid, responsive et focus visible.",
             "3. JavaScript : comportement.\n\nVariables, fonctions, conditions, tableaux, DOM, événements, API et erreurs.",
             "4. Projets : preuve.\n\nUn projet terminé, testé et expliquable vaut mieux que dix tutoriels regardés en accéléré.",
-            "PulsaTeach propose ce parcours gratuitement, en français, avec exercices et tests :\nhttps://pulsateach.vercel.app\n\n#DevWeb #JavaScript #FormationGratuite",
+            "PulsaTeach propose ce parcours gratuitement, en français, avec exercices et tests :\nhttps://pulsateach.com\n\n#DevWeb #JavaScript #FormationGratuite",
         ],
     },
 ]
 
 REPLY_TEMPLATES = [
-    "Merci pour ton message. Si tu veux pratiquer gratuitement, le catalogue PulsaTeach est ici : https://pulsateach.vercel.app/catalog",
-    "Bonne question. Le plus efficace est de pratiquer une notion courte puis de la valider avec un test. Tu peux commencer ici : https://pulsateach.vercel.app",
-    "Si tu débutes, commence par HTML puis CSS avant JavaScript. Le parcours gratuit est ici : https://pulsateach.vercel.app/catalog",
+    "Merci pour ton message. Si tu veux pratiquer gratuitement, le catalogue PulsaTeach est ici : https://pulsateach.com/catalog",
+    "Bonne question. Le plus efficace est de pratiquer une notion courte puis de la valider avec un test. Tu peux commencer ici : https://pulsateach.com",
+    "Si tu débutes, commence par HTML puis CSS avant JavaScript. Le parcours gratuit est ici : https://pulsateach.com/catalog",
 ]

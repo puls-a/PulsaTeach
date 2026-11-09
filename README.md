@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://pulsateach.vercel.app">
+  <a href="https://pulsateach.com">
     <img src="public/assets/logo_horizontale_optimized.webp" alt="PulsaTeach" width="380" />
   </a>
 </p>
@@ -11,9 +11,9 @@
 </p>
 
 <p align="center">
-  <a href="https://pulsateach.vercel.app"><strong>Ouvrir la production</strong></a>
+  <a href="https://pulsateach.com"><strong>Ouvrir la production</strong></a>
   ·
-  <a href="https://pulsateach.vercel.app/catalog">Catalogue</a>
+  <a href="https://pulsateach.com/catalog">Catalogue</a>
   ·
   <a href="https://discord.gg/pnAdQQggUg">Discord</a>
   ·
@@ -25,7 +25,7 @@
 <p align="center">
   <a href="https://github.com/puls-a/PulsaTeach/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/puls-a/PulsaTeach/actions/workflows/ci.yml/badge.svg?branch=main" /></a>
   <a href="https://github.com/puls-a/PulsaTeach/actions/workflows/uptime.yml"><img alt="Production uptime" src="https://github.com/puls-a/PulsaTeach/actions/workflows/uptime.yml/badge.svg?branch=main" /></a>
-  <a href="https://pulsateach.vercel.app/api/health/ready"><img alt="Production ready" src="https://img.shields.io/badge/production-ready-16a34a?style=flat" /></a>
+  <a href="https://pulsateach.com/api/health/ready"><img alt="Production ready" src="https://img.shields.io/badge/production-ready-16a34a?style=flat" /></a>
   <img alt="React" src="https://img.shields.io/badge/React-19-61dafb?style=flat&logo=react&logoColor=111827" />
   <img alt="Vite" src="https://img.shields.io/badge/Vite-8-646cff?style=flat&logo=vite&logoColor=white" />
   <img alt="Supabase" src="https://img.shields.io/badge/Supabase-strict-3ecf8e?style=flat&logo=supabase&logoColor=white" />
@@ -49,7 +49,7 @@ Le produit combine une expérience apprenant publique, un catalogue pédagogique
 | Catalogue public | 3 parcours, 212 leçons pré-rendues et indexées |
 | URLs publiques | 229 URLs dans le sitemap |
 | Tests automatisés | Vitest, Supertest, Playwright, Supabase E2E, Lighthouse |
-| Glossaire | 587 termes bilingues reliés au catalogue |
+| Glossaire | 589 termes bilingues reliés au catalogue |
 | Qualité | `npm run validate` bloque lint, tests, audits, build, SEO et bundle |
 
 ## Expérience Produit

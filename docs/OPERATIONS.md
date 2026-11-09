@@ -6,13 +6,15 @@
 Navigateur
    │ HTTPS
    ▼
-Vercel (React/Vite + fonctions API Express)
+Cloudflare DNS → Vercel (React/Vite + fonctions API Express)
    │ JWT utilisateur / clé serveur uniquement côté API
    ▼
 Supabase (Auth + PostgreSQL)
 ```
 
 La production refuse de démarrer sans `PULSATEACH_STORAGE=supabase-strict`.
+`https://pulsateach.com` est l'origine publique canonique ;
+`https://pulsateach.vercel.app` reste l'alias de secours.
 Les migrations versionnées de `supabase/migrations/` sont la source de vérité et
 sont appliquées avant la release applicative. `supabase/schema.sql` ne sert pas
 à initialiser un environnement.
@@ -90,7 +92,7 @@ sauvegarde de base complète.
 8. `npm run audit:lighthouse`
 9. appliquer les migrations sur un environnement isolé, puis en production ;
 10. déployer l’artefact validé ;
-11. `npm run smoke:production`.
+11. `npm run smoke:production` sur `pulsateach.com` et vérifier l'alias Vercel.
 
 En cas de régression, restaurer le déploiement Vercel précédent. Si une migration
 est impliquée, restaurer d’abord une sauvegarde dans un projet isolé, vérifier

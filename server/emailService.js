@@ -37,7 +37,7 @@ function welcomeTemplate({ displayName, fr }) {
             <p style="margin:0 0 10px;color:#4f46e5;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">${fr ? "Bienvenue" : "Welcome"}</p>
             <h1 style="margin:0 0 16px;font-size:28px;line-height:1.2">${fr ? `Ton parcours est prêt, ${name}` : `Your path is ready, ${name}`}</h1>
             <p style="margin:0 0 24px;color:#526075;font-size:16px;line-height:1.7">${fr ? "Tes préférences sont enregistrées. Commence par la prochaine leçon recommandée et avance à ton rythme." : "Your preferences are saved. Start with the recommended lesson and learn at your own pace."}</p>
-            <a href="https://pulsateach.vercel.app/#/path" style="display:inline-block;padding:14px 22px;border-radius:12px;background:#22c55e;color:#fff;text-decoration:none;font-weight:700">${fr ? "Voir mon parcours" : "View my path"}</a>
+            <a href="https://pulsateach.com/path" style="display:inline-block;padding:14px 22px;border-radius:12px;background:#22c55e;color:#fff;text-decoration:none;font-weight:700">${fr ? "Voir mon parcours" : "View my path"}</a>
           </td></tr>
         </table>
       </td></tr>

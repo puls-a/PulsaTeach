@@ -35,10 +35,17 @@ test("mobile menu traps focus and restores it when closed", async ({ page }, tes
   const dialog = page.getByRole("dialog", { name: /Menu mobile|Mobile menu/ });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("button", { name: /Fermer le menu|Close menu/ })).toBeFocused();
+  const viewport = page.viewportSize();
+  const dialogBounds = await dialog.boundingBox();
+  const backdropBounds = await page.locator("header > button.fixed.inset-0").boundingBox();
+  expect(dialogBounds).toMatchObject({ x: 0, y: 0, width: viewport.width, height: viewport.height });
+  expect(backdropBounds).toMatchObject({ x: 0, y: 0, width: viewport.width, height: viewport.height });
+  await expect(page.locator("body")).toHaveCSS("overflow", "hidden");
 
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
   await expect(trigger).toBeFocused();
+  await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
 });
 
 test("iPhone Pro Max displays the quiz as a centered, closable dialog", async ({ page }) => {
@@ -80,13 +87,29 @@ test("homepage and footer stay composed at 390px", async ({ page }, testInfo) =>
   const dialog = page.getByRole("dialog", { name: /Menu mobile|Mobile menu/ });
   const dialogBounds = await dialog.boundingBox();
   expect(dialogBounds.x).toBe(0);
+  expect(dialogBounds.y).toBe(0);
   expect(dialogBounds.width).toBe(390);
+  expect(dialogBounds.height).toBe(844);
   await page.keyboard.press("Escape");
 
   await page.locator("footer").scrollIntoViewIfNeeded();
   await expect(page.getByRole("navigation", { name: /Réseaux sociaux PulsaTeach|PulsaTeach social media/ })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("homepage-390.png"), fullPage: true });
   await testInfo.attach("homepage-390", { path: testInfo.outputPath("homepage-390.png"), contentType: "image/png" });
+});
+
+test("mobile menu closes when the viewport reaches desktop navigation", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const consent = page.getByRole("button", { name: /Tout accepter|Accept all/ });
+  if (await consent.isVisible()) await consent.click();
+
+  await page.getByRole("button", { name: "Menu" }).click();
+  await expect(page.getByRole("dialog", { name: /Menu mobile|Mobile menu/ })).toBeVisible();
+  await page.setViewportSize({ width: 1100, height: 844 });
+  await expect(page.getByRole("dialog", { name: /Menu mobile|Mobile menu/ })).toBeHidden();
+  await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
 });
 
 test("learner dashboard stays actionable at 390px and uses the reward accent", async ({ page }, testInfo) => {

@@ -16,7 +16,7 @@ def generate_caption(topic: str, content_type: str = "post") -> str:
     """
     if not model:
         # Fallback si l'IA n'est pas configurée
-        return f"🔥 Astuce du jour : {topic}\n\n🚀 Apprends à coder de 0 à pro sur https://pulsateach.vercel.app\n\n#webdev #programmation #pulsateach"
+        return f"🔥 Astuce du jour : {topic}\n\n🚀 Apprends à coder de 0 à pro sur https://pulsateach.com\n\n#webdev #programmation #pulsateach"
 
     prompt = f"""
     Tu es un expert en growth Instagram tech et tu gères le compte éducatif @pulsateach.
@@ -26,7 +26,7 @@ def generate_caption(topic: str, content_type: str = "post") -> str:
     1. Ton : éducatif, motivant, proche des étudiants, moderne (tech).
     2. Langue : Français uniquement.
     3. Style : Ajoute des emojis pertinents. Fais des sauts de ligne pour aérer le texte (pas de gros blocs).
-    4. Call-to-action (OBLIGATOIRE) : Incite à visiter le lien "https://pulsateach.vercel.app" pour apprendre le dev web.
+    4. Call-to-action (OBLIGATOIRE) : Incite à visiter le lien "https://pulsateach.com" pour apprendre le dev web.
     5. Hashtags : Ajoute exactement 12 à 15 hashtags très ciblés à la fin (ex: #webdev #javascript #htmlcss #apprendreacoder #pulsateach).
     6. Ne mets JAMAIS de texte d'introduction (ex: "Voici votre légende :"). Donne-moi UNIQUEMENT le texte final à copier-coller.
     """
@@ -38,7 +38,7 @@ def generate_caption(topic: str, content_type: str = "post") -> str:
         return caption
     except Exception as e:
         logger.error(f"❌ Erreur lors de la génération IA : {e}")
-        return f"🚀 {topic}\n\nRejoins-nous sur https://pulsateach.vercel.app ! #webdev #pulsateach"
+        return f"🚀 {topic}\n\nRejoins-nous sur https://pulsateach.com ! #webdev #pulsateach"
 
 def generate_hook_ideas(topic: str) -> list:
     """

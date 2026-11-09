@@ -21,7 +21,7 @@ export const PulsaTeachPromo = () => {
     {scene === 4 && <Learning frame={sceneProgress} fps={fps} />}
     {scene === 5 && <Closing frame={sceneProgress} fps={fps} />}
     <div style={{ position: "absolute", bottom: 74, left: 70, right: 70, display: "flex", justifyContent: "space-between", fontSize: 22, letterSpacing: 2, color: "#cbd5e1" }}>
-      <span>pulsateach.vercel.app</span><span style={{ color: COLORS.mint, transform: `scale(${pulse})` }}>● GRATUIT</span>
+      <span>pulsateach.com</span><span style={{ color: COLORS.mint, transform: `scale(${pulse})` }}>● GRATUIT</span>
     </div>
   </AbsoluteFill>;
 };
@@ -83,7 +83,7 @@ const Learning = ({ frame, fps }) => <>
 </>;
 
 const Closing = ({ frame, fps }) => <>
-  <div style={{ position: "absolute", top: 350, left: 70, right: 70, textAlign: "center", opacity: enter(frame, fps, 10), transform: `scale(${interpolate(enter(frame, fps, 10), [0, 1], [0.92, 1])})` }}><Img src={staticFile("assets/logo_horizontale_optimized.webp")} style={{ width: 470, filter: "brightness(0) invert(1)" }} /><div style={{ marginTop: 70, fontSize: 76, lineHeight: 0.98, fontWeight: 900 }}>Arrête de<br /><span style={{ color: COLORS.mint }}>regarder.</span><br />Commence à faire.</div><div style={{ marginTop: 55, fontSize: 32, color: "#dbeafe" }}>HTML, CSS et projets interactifs.<br />Gratuitement.</div><div style={{ margin: "65px auto 0", width: 590, borderRadius: 22, padding: "28px 36px", background: COLORS.mint, color: COLORS.ink, fontSize: 30, fontWeight: 900 }}>pulsateach.vercel.app</div></div>
+  <div style={{ position: "absolute", top: 350, left: 70, right: 70, textAlign: "center", opacity: enter(frame, fps, 10), transform: `scale(${interpolate(enter(frame, fps, 10), [0, 1], [0.92, 1])})` }}><Img src={staticFile("assets/logo_horizontale_optimized.webp")} style={{ width: 470, filter: "brightness(0) invert(1)" }} /><div style={{ marginTop: 70, fontSize: 76, lineHeight: 0.98, fontWeight: 900 }}>Arrête de<br /><span style={{ color: COLORS.mint }}>regarder.</span><br />Commence à faire.</div><div style={{ marginTop: 55, fontSize: 32, color: "#dbeafe" }}>HTML, CSS et projets interactifs.<br />Gratuitement.</div><div style={{ margin: "65px auto 0", width: 590, borderRadius: 22, padding: "28px 36px", background: COLORS.mint, color: COLORS.ink, fontSize: 30, fontWeight: 900 }}>pulsateach.com</div></div>
 </>;
 
 const Phone = ({ children, frame, fps }) => <div style={{ position: "absolute", top: 650, left: 142, width: 796, height: 950, overflow: "hidden", borderRadius: 54, background: "#f8fafc", color: COLORS.ink, border: "14px solid #111827", boxShadow: "0 42px 100px #000b", transform: `perspective(1400px) rotateY(${interpolate(enter(frame, fps, 25), [0, 1], [-14, 0])}deg) rotateX(${interpolate(enter(frame, fps, 25), [0, 1], [7, 0])}deg)` }}>{children}</div>;
