@@ -19,7 +19,31 @@
       ]
     },
     {
-      "source": "/assets/(.*\\.(vtt|webm|wav))",
+      "source": "/assets/pulsaconf-captions-fr.vtt",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/assets/pulsaconf-captions-en.vtt",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/assets/pulsaconf-demo.webm",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/assets/pulsaconf-intro-fr.wav",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/assets/pulsaconf-intro-en.wav",
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
