@@ -36,7 +36,7 @@ export const jsPedagogy = {
     "Un programme utile ne répond pas toujours de la même façon : il choisit un chemin selon les données reçues.",
     ["Comparer une valeur", "Retourner un booléen", "Écrire une condition lisible dans une fonction"],
     [["condition", "Expression évaluée comme vraie ou fausse."], ["booléen", "Valeur true ou false."], ["opérateur >=", "Compare si la valeur de gauche est supérieure ou égale."]],
-    "function canStart(age) {\n  return age >= 13;\n}", "La comparaison produit déjà le booléen attendu.",
+    "function isFreeShipping(total) {\n  return total >= 50;\n}", "La comparaison produit directement le booléen attendu.",
     "function canStart(age) {\n  if (age >= 13) return true;\n  else return false;\n}", "Le résultat est correct mais la structure répète inutilement ce que produit la comparaison.",
     ["Teste mentalement 12, 13 et 14.", "Écris la comparaison age >= 13.", "Retourne directement son résultat."],
     "Crée isFreeShipping(total) qui retourne true à partir de 50 euros.",

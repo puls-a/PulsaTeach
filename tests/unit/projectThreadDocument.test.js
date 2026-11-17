@@ -32,6 +32,17 @@ describe("project thread documents", () => {
     setLearnerStorageOwner("learner-b");
     expect(loadProjectThreadDocument("pulsaconf", "fr")).toBeNull();
   });
+
+  test("repeating the same merge preserves one version while a later edit creates a new checkpoint", () => {
+    const first = checkpointProjectThreadDocument("pulsaconf", "fr", "<h1>Draft</h1>", "html-00");
+    const repeated = checkpointProjectThreadDocument("pulsaconf", "fr", "<h1>Draft</h1>", "html-00");
+    expect(repeated.version).toBe(first.version);
+    expect(repeated.checkpoints).toHaveLength(1);
+    saveProjectThreadDocument("pulsaconf", "fr", "<h1>Updated</h1>");
+    const updated = checkpointProjectThreadDocument("pulsaconf", "fr", "<h1>Updated</h1>", "html-00");
+    expect(updated.version).toBe(first.version + 1);
+    expect(updated.checkpoints).toHaveLength(2);
+  });
 });
 
 function createStorage() {

@@ -56,7 +56,7 @@ export default function CurriculumHub({ locale = "fr" }) {
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">{locale === "fr" ? "Prépare ton poste, structure une page en HTML, puis travaille sa présentation avec CSS. Chaque formation montre son programme avant de commencer." : "Set up your workstation, structure a page with HTML, then shape its presentation with CSS. Every course shows its curriculum before you begin."}</p>
           </div>
-          <a href={user ? "/dashboard" : "/learn/html/html-getting-started/html-00-what-html-does"} className="primary-button w-fit">{user ? (locale === "fr" ? "Voir ma prochaine leçon" : "View my next lesson") : (locale === "fr" ? "Essayer HTML · 10 min" : "Try HTML · 10 min")}<ArrowRight className="size-4" /></a>
+           <a href={user ? "/dashboard" : "/learn/html/html-getting-started/html-00-what-html-does"} className="primary-button w-fit">{user ? (locale === "fr" ? "Voir ma prochaine leçon" : "View my next lesson") : (locale === "fr" ? "Premier exercice HTML · ~15 min" : "First HTML exercise · ~15 min")}<ArrowRight className="size-4" /></a>
         </header>
 
         {user && (
@@ -118,7 +118,7 @@ function CourseCard({ track, locale }) {
         <h3 className="mt-3 font-display text-3xl font-semibold text-slate-950">{localize(track.title, locale)}</h3>
         <p className="mt-2 max-w-3xl leading-7 text-slate-600">{localize(track.summary, locale)}</p>
       </div>
-      <a href={`/formations/${track.id}`} className="inline-flex min-h-11 items-center gap-2 font-semibold text-indigoPop underline decoration-indigo-300 underline-offset-4 hover:text-indigo-800">
+       <a href={`/formations/${track.id}`} aria-label={locale === "fr" ? `Voir le programme : ${localize(track.title, locale)}` : `View curriculum: ${localize(track.title, locale)}`} className="inline-flex min-h-11 items-center gap-2 font-semibold text-indigoPop underline decoration-indigo-300 underline-offset-4 hover:text-indigo-800">
         {locale === "fr" ? "Voir le programme" : "View curriculum"}<ArrowRight className="size-4" />
       </a>
     </article>

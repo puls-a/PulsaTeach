@@ -45,13 +45,13 @@ const moduleSpecs = [
   ]],
   ["js-dom-forms", ["DOM, événements et formulaires", "DOM, events, and forms"], "Relier état, interface et actions utilisateur.", "Connect state, interface, and user actions.", [
     ["select-title", "Sélection DOM", "DOM selection", "Sélectionne un titre et change son texte.", "Select a heading and change its text.", "const title = document.querySelector('#title');\ntitle.textContent = 'PulsaTeach JS';", ["querySelector", "textContent", "#title"]],
-    ["click-count", "Clic compteur", "Click counter", "Augmente un état au clic.", "Increase state on click.", "let count = 0;\ndocument.querySelector('#plus').addEventListener('click', () => {\n  count += 1;\n});", ["addEventListener", "click", "count +="]],
+     ["click-count", "Clic compteur", "Click counter", "Augmente un état au clic et rends la nouvelle valeur visible.", "Increase state on click and render the new value.", "let count = 0;\nconst output = document.querySelector('#count');\ndocument.querySelector('#plus').addEventListener('click', () => {\n  count += 1;\n  output.textContent = String(count);\n});", ["addEventListener", "click", "count +=", "textContent"]],
     ["render-list", "Rendu de liste", "List render", "Rends une liste avec innerHTML depuis un tableau.", "Render a list with innerHTML from an array.", "const items = ['HTML', 'CSS'];\nconst list = document.querySelector('#list');\nlist.innerHTML = items.map((item) => `<li>${item}</li>`).join('');", ["innerHTML", "map", "join"]],
-    ["form-prevent", "Submit contrôlé", "Controlled submit", "Empêche le rechargement d’un formulaire.", "Prevent a form reload.", "const form = document.querySelector('#form');\nform.addEventListener('submit', (event) => {\n  event.preventDefault();\n});", ["submit", "preventDefault", "form"]],
-    ["input-value", "Lire input", "Read input", "Lis et nettoie une valeur de champ.", "Read and clean an input value.", "const field = document.querySelector('#task');\nconst value = field.value.trim();", ["field.value", "trim", "#task"]],
+    ["form-prevent", "Submit contrôlé", "Controlled submit", "Empêche le rechargement d’un formulaire et confirme le traitement.", "Prevent a form reload and confirm handling.", "const form = document.querySelector('#form');\nconst status = document.querySelector('[role=\"status\"]');\nfunction handleSubmit(event) {\n  event.preventDefault();\n  status.textContent = 'Submitted without reload';\n}\nform.addEventListener('submit', handleSubmit);\nform.querySelector('button').addEventListener('click', handleSubmit);", ["submit", "preventDefault", "form"]],
+    ["input-value", "Lire input", "Read input", "Lis et nettoie une valeur de champ.", "Read and clean an input value.", "const field = document.querySelector('#task');\nconst status = document.querySelector('[role=\"status\"]');\nconst value = field.value.trim();\nstatus.textContent = value;", ["field.value", "trim", "#task"]],
     ["status-region", "Statut accessible", "Accessible status", "Écris un message dans une région de statut.", "Write a message into a status region.", "const status = document.querySelector('[role=\"status\"]');\nstatus.textContent = 'Task added';", ["role=\"status\"", "textContent", "status"]],
-    ["toggle-invalid", "Classe d’erreur", "Error class", "Bascule une classe selon la validité.", "Toggle a class based on validity.", "const input = document.querySelector('#email');\ninput.classList.toggle('is-invalid', !input.value.includes('@'));", ["classList.toggle", "is-invalid", "includes"]],
-    ["delegation", "Délégation", "Delegation", "Utilise closest pour gérer un bouton dans une liste.", "Use closest to handle a button inside a list.", "document.querySelector('#tasks').addEventListener('click', (event) => {\n  const button = event.target.closest('button');\n});", ["closest", "event.target", "#tasks"]]
+    ["toggle-invalid", "Classe d’erreur", "Error class", "Bascule une classe selon la validité de l’adresse saisie.", "Toggle an error class according to the entered address.", "const input = document.querySelector('#email');\nfunction updateValidity() {\n  input.classList.toggle('is-invalid', !input.value.includes('@'));\n}\ninput.addEventListener('input', updateValidity);\nupdateValidity();", ["classList.toggle", "is-invalid", "includes"]],
+    ["delegation", "Délégation", "Delegation", "Utilise closest pour gérer un bouton dans une liste.", "Use closest to handle a button inside a list.", "const tasks = document.querySelector('#tasks');\nconst status = document.querySelector('[role=\"status\"]');\ntasks.addEventListener('click', (event) => {\n  const button = event.target.closest('button');\n  if (button) status.textContent = 'Task selected';\n});", ["closest", "event.target", "#tasks"]]
   ]],
   ["js-strings-regex-errors", ["Strings avancées, regex et erreurs", "Advanced strings, regex, and errors"], "Nettoyer, rechercher et protéger les entrées.", "Clean, search, and protect inputs.", [
     ["slice-code", "Extraire segment", "Slice segment", "Extrait un préfixe de certificat.", "Extract a certificate prefix.", "const code = 'JS-2026-ALPHA';\nconst prefix = code.slice(0, 2);", ["slice", "prefix", "0, 2"]],
@@ -79,9 +79,9 @@ const moduleSpecs = [
     ["save-json", "Sauver JSON", "Save JSON", "Sérialise une progression.", "Serialize progress.", "const progress = { lessons: 4 };\nlocalStorage.setItem('progress', JSON.stringify(progress));", ["JSON.stringify", "localStorage.setItem", "progress"]],
     ["read-json", "Relire JSON", "Read JSON", "Relis une progression JSON.", "Read JSON progress.", "const raw = localStorage.getItem('progress');\nconst progress = raw ? JSON.parse(raw) : { lessons: 0 };", ["JSON.parse", "raw ?", "lessons"]],
     ["state-source", "Source de vérité", "Source of truth", "Centralise tasks dans un objet state.", "Centralize tasks in a state object.", "const state = { tasks: [], filter: 'all' };", ["const state", "tasks", "filter"]],
-    ["immutable-add", "Ajout immuable", "Immutable add", "Ajoute une tâche sans modifier l’ancien tableau.", "Add a task without mutating the previous array.", "const nextTasks = [...state.tasks, { title: 'Review' }];", ["...", "state.tasks", "nextTasks"]],
+     ["immutable-add", "Ajout immuable", "Immutable add", "Ajoute une tâche sans modifier l’ancien tableau.", "Add a task without mutating the previous array.", "const state = { tasks: [] };\nconst nextTasks = [...state.tasks, { title: 'Review' }];", ["...", "state.tasks", "nextTasks"]],
     ["remove-storage", "Effacer stockage", "Remove storage", "Supprime une clé devenue inutile.", "Remove an obsolete key.", "localStorage.removeItem('draft-task');", ["removeItem", "draft-task", "localStorage"]],
-    ["storage-event", "Événement storage", "Storage event", "Écoute les changements entre onglets.", "Listen to changes across tabs.", "window.addEventListener('storage', (event) => {\n  console.log(event.key);\n});", ["addEventListener", "storage", "event.key"]]
+     ["storage-event", "Événement storage", "Storage event", "Écoute les changements entre onglets et annonce la clé modifiée.", "Listen for changes across tabs and announce the changed key.", "window.addEventListener('storage', (event) => {\n  document.querySelector('[role=\"status\"]').textContent = event.key || 'cleared';\n});", ["addEventListener", "storage", "event.key", "role=\"status\"", "textContent"]]
   ]],
   ["js-debugging", ["Debugging et modèles mentaux", "Debugging and mental models"], "Rendre une erreur observable puis la réduire.", "Make an error observable then reduce it.", [
     ["trace-value", "Tracer valeur", "Trace value", "Log une valeur avec son contexte.", "Log a value with context.", "const xp = 80;\nconsole.log('xp before bonus', xp);", ["console.log", "xp before bonus", "xp"]],
@@ -110,6 +110,7 @@ const projectModuleIndexes = new Set([0, 1, 2, 3, 4, 6, 7, 9]);
 export const javascriptModules = moduleSpecs.map((spec, index) => spec[0] === "js-functions-scope" ? javascriptFunctionsScopeModule : makeModule(spec, index));
 
 function makeModule([id, title, frSummary, enSummary, topics], moduleIndex) {
+  const profile = jsModuleProfile(id, title);
   const lessons = topics.map((topic, index) => makeLesson(id, title, topic, index + 1));
   lessons.push(makeQuiz(id, title, moduleIndex));
   if (projectModuleIndexes.has(moduleIndex)) lessons.push(makeProject(id, title, moduleIndex));
@@ -118,12 +119,12 @@ function makeModule([id, title, frSummary, enSummary, topics], moduleIndex) {
     id,
     title: { fr: title[0], en: title[1] },
     description: { fr: frSummary, en: enSummary },
-    deliverable: { fr: `Un atelier ${title[0]} validé`, en: `A validated ${title[1]} workshop` },
-    importance: { fr: `${title[0]} transforme une notion JavaScript en preuve courte et testable.`, en: `${title[1]} turns one JavaScript concept into short, testable proof.` },
+    deliverable: { fr: profile.project[0], en: profile.project[1] },
+    importance: { fr: `${profile.scene[0]} Le risque à éviter est que ${profile.risk[0]}.`, en: `${profile.scene[1]} The risk to avoid is that ${profile.risk[1]}.` },
     prerequisites: { fr: moduleIndex ? ["Avoir terminé les modules JS précédents", "Savoir lire un test qui échoue"] : ["Savoir utiliser le lab", "Aucun prérequis JS avancé"], en: moduleIndex ? ["Complete the previous JS modules", "Know how to read a failing test"] : ["Know how to use the lab", "No advanced JS prerequisite"] },
-    outcomes: { fr: ["Coder une étape courte", "Lancer les tests", "Expliquer la décision"], en: ["Code one short step", "Run the tests", "Explain the decision"] },
+    outcomes: { fr: [`Prouver que ${profile.proof[0]}.`, "Tester une valeur nominale et une limite.", `Assembler ${profile.project[0]} dans un livrable.`], en: [`Prove that ${profile.proof[1]}.`, "Test a nominal value and a boundary.", `Assemble ${profile.project[1]} into a deliverable.`] },
     vocabulary: topics.slice(0, 6).map((topic) => topic[0].replaceAll("-", " ")),
-    mastery: { fr: ["Chaque micro-étape passe ses tests", "Le vocabulaire est réutilisé dans un projet", "La solution reste originale"], en: ["Each micro-step passes its tests", "Vocabulary is reused in a project", "The solution remains original"] },
+    mastery: { fr: [profile.proof[0], `Le risque « ${profile.risk[0]} » est écarté.`, `Le livrable réutilise ${profile.project[0]}.`], en: [profile.proof[1], `The risk of ${profile.risk[1]} is addressed.`, `The deliverable reuses ${profile.project[1]}.`] },
     lessons,
     totalMinutes: lessons.reduce((sum, lesson) => sum + lesson.durationMin, 0)
   };
@@ -137,7 +138,7 @@ function makeLesson(moduleId, moduleTitle, [slug, frTitle, enTitle, frBrief, enB
   const guide = guideFor(title, moduleTitle, stepNumber);
   return {
     id,
-    type: moduleId.includes("dom") || moduleId.includes("capstone") ? "dom" : "js",
+    type: moduleId.includes("dom") || moduleId.includes("capstone") || id.endsWith("storage-event") ? "dom" : "js",
     title,
     brief,
     course,
@@ -149,10 +150,82 @@ function makeLesson(moduleId, moduleTitle, [slug, frTitle, enTitle, frBrief, enB
     durationMin: 18,
     starterCode: starterFrom(code),
     solution: code,
-    tests: checks.map((check) => ({ type: "contains", label: { fr: `Le code contient ${check}`, en: `The code contains ${check}` }, value: check })),
+    tests: [...checks.map((check) => ({ type: "contains", label: { fr: `Le code contient ${check}`, en: `The code contains ${check}` }, value: check })), ...behaviorTestsFor(id)],
     hint: { fr: `Cherche ${checks[0]} puis valide la micro-étape.`, en: `Look for ${checks[0]}, then validate the micro-step.` },
     xp: 25 + stepNumber
   };
+}
+
+function behaviorTestsFor(id) {
+  const expressions = {
+    "js-variables-strings-runtime-map": "return purpose === 'JavaScript runs in the browser';",
+    "js-variables-strings-type-tags": "return titleType === 'string' && lessonsType === 'number' && typeof published === 'boolean';",
+    "js-variables-strings-safe-names": "return learnerName === 'Maya' && completedLessons === 3 && dailyGoalMinutes === 25;",
+    "js-variables-strings-let-const-contract": "return dailyTarget === 4 && completedToday === 1;",
+    "js-variables-strings-string-ticket": "return ticket === 'JS / starter';",
+    "js-variables-strings-template-badge": "return badge === 'Noa · 140 XP';",
+    "js-variables-strings-comment-intent": "return certificateVersion === '2026.06';",
+    "js-booleans-numbers-number-score": "return score === 73;",
+    "js-booleans-numbers-modulo-review": "return shouldReview === true;",
+    "js-booleans-numbers-boolean-gate": "return canTakeExam === true;",
+    "js-booleans-numbers-comparison-threshold": "return passed === true;",
+    "js-booleans-numbers-if-feedback": "return feedback === 'passed';",
+    "js-booleans-numbers-ternary-label": "return label === 'active';",
+    "js-booleans-numbers-switch-track": "return color === 'mint';",
+    "js-booleans-numbers-truthy-empty": "return cleanTitle === '' && isValid === false;",
+    "js-collections-loops-array-create": "return tracks.length === 3 && tracks[2] === 'javascript';",
+    "js-collections-loops-array-push": "return tasks.length === 1 && count === 1;",
+    "js-collections-loops-object-card": "return lesson.title === 'Collections' && lesson.xp === 40;",
+    "js-collections-loops-for-of-total": "return total === 60;",
+    "js-collections-loops-map-labels": "return labels.length === 2 && labels[1] === 'Fetch';",
+    "js-collections-loops-filter-open": "return openTickets.length === 1 && openTickets[0].done === false;",
+    "js-collections-loops-reduce-minutes": "return totalMinutes === 40;",
+    "js-collections-loops-destructure-user": "return name === 'Lina' && role === 'mentor';",
+    "js-strings-regex-errors-slice-code": "return prefix === 'JS';",
+    "js-strings-regex-errors-includes-keyword": "return hasAsync === true;",
+    "js-strings-regex-errors-replace-label": "return label === 'js-v9 published';",
+    "js-strings-regex-errors-regex-email": "return isEmail === true;",
+    "js-strings-regex-errors-match-tags": "return tags.length === 2 && tags[0] === '#js';",
+    "js-strings-regex-errors-date-stamp": "return stamp.startsWith('2026-06-30');",
+    "js-strings-regex-errors-throw-error": "let rejected = false; try { requireTitle(' '); } catch { rejected = true; } return rejected && requireTitle('JS') === 'JS';",
+    "js-strings-regex-errors-try-parse": "return safeParse('{\"ready\":true}').ready === true && safeParse('{') === null;",
+    "js-async-fetch-promise-model": "return loadMock().then((items) => items[0] === 'lesson');",
+    "js-async-fetch-async-loader": "return loadCourses().then((courses) => courses.length === 2 && courses[1] === 'JS');",
+    "js-async-fetch-await-fetch": "return requestCatalog().then((response) => response.ok === true);",
+    "js-async-fetch-json-body": "return readJson({ async json() { return { items: [1, 2] }; } }).then((data) => data.items.length === 2);",
+    "js-async-fetch-http-ok": "let rejected = false; try { await ensureOk({ ok: false, status: 503, async json() { return {}; } }); } catch { rejected = true; } return rejected;",
+    "js-async-fetch-loading-state": "return state.loading === false && state.data === null && state.error === null;",
+    "js-async-fetch-try-fetch": "return safeLoad().then((response) => response.ok === true);",
+    "js-async-fetch-finally-cleanup": "return loading === false;",
+    "js-storage-state-save-string": "return localStorage.getItem('pulsa-theme') === theme;",
+    "js-storage-state-read-string": "return theme === 'system';",
+    "js-storage-state-save-json": "return JSON.parse(localStorage.getItem('progress')).lessons === 4;",
+    "js-storage-state-read-json": "return progress.lessons === 0;",
+    "js-storage-state-state-source": "return state.tasks.length === 0 && state.filter === 'all';",
+    "js-storage-state-immutable-add": "return nextTasks.length === 1 && state.tasks.length === 0;",
+    "js-storage-state-remove-storage": "return localStorage.getItem('draft-task') === null;",
+    "js-debugging-console-table": "return rows.length === 1 && rows[0].track === 'js';",
+    "js-debugging-call-stack-array": "return callStack.length === 0;",
+    "js-debugging-guard-clause": "return renderUser(null) === 'missing' && renderUser({ name: 'Maya' }) === 'Maya';",
+    "js-debugging-minimal-repro": "return expected === null && actual === null;",
+    "js-debugging-assert-helper": "let rejected = false; try { assert(false, 'expected failure'); } catch { rejected = true; } return rejected;",
+    "js-debugging-fix-loop": "return isPassing(70) && !isPassing(69) && testResult === true;",
+    "js-capstone-app-state": "return appState.cards.length === 0 && appState.currentIndex === 0 && appState.score === 0;",
+    "js-capstone-card-factory": "const card = createCard('Question', 'Answer'); return card.question === 'Question' && card.answer === 'Answer' && card.done === false;",
+    "js-capstone-answer-check": "return checkAnswer('Pulsa', ' pulsa ') === true && checkAnswer('Pulsa', 'Teach') === false;",
+    "js-capstone-score-update": "const appState = { cards: [], currentIndex: 0, score: 0 }; return updateScore(true) === 1 && updateScore(false) === 1;",
+    "js-capstone-render-card": "return typeof renderCard === 'function';",
+    "js-capstone-persist-app": "const appState = { cards: [], currentIndex: 0, score: 0 }; saveApp(); return JSON.parse(localStorage.getItem('pulsa-js-capstone')).score === 0;",
+    "js-capstone-restore-app": "const appState = { cards: [], currentIndex: 0, score: 0 }; return restoreApp().score === 0;",
+    "js-capstone-ship-summary": "const appState = { cards: [], currentIndex: 0, score: 0 }; return scoreSummary() === 'Score final: 0/0';"
+  };
+  const consoleChecks = {
+    "js-variables-strings-console-signals": ["lesson loaded", "check the edge case", "demo error"],
+    "js-debugging-trace-value": ["xp before bonus"],
+    "js-debugging-console-table": ["track", "js"]
+  };
+  if (expressions[id]) return [{ type: "jsExpression", label: { fr: "Le scénario produit le résultat métier attendu", en: "The scenario produces the expected business result" }, value: expressions[id] }];
+  return consoleChecks[id] ? [{ type: "consoleIncludes", label: { fr: "La console expose les signaux utiles", en: "The console exposes useful signals" }, value: consoleChecks[id] }] : [];
 }
 
 function makeQuiz(moduleId, moduleTitle, moduleIndex) {
@@ -230,10 +303,52 @@ function courseFor(id, title, brief, code, checks, moduleTitle, stepNumber, prof
 }
 
 function sections(title, brief, code, checks, profile, english) {
+  const examples = courseExamples(code, checks);
   return [
-    { title: english ? "Intent" : "Intention", paragraphs: [brief, english ? `The risk to avoid is: ${profile.risk[1]}.` : `Le risque à éviter est : ${profile.risk[0]}.`], example: code.slice(0, 240) },
+    { title: english ? "Intent" : "Intention", paragraphs: [brief, english ? `The risk to avoid is: ${profile.risk[1]}.` : `Le risque à éviter est : ${profile.risk[0]}.`], example: examples[0] },
     { title: english ? "Reasoning" : "Raisonnement", paragraphs: [english ? "Read the starter, change a single responsibility, then run tests." : "Lis le starter, modifie une seule responsabilité, puis lance les tests.", english ? "If a test fails, fix the cause named in its label." : "Si un test échoue, corrige la cause nommée dans son libellé."], example: checks.join(" · ") },
-    { title: english ? "Validation" : "Validation", paragraphs: [english ? `The step is successful when assertions pass and ${profile.proof[1]}.` : `L'étape est réussie quand les assertions passent et que ${profile.proof[0]}.`], example: code.slice(0, 160) }
+    { title: english ? "Validation" : "Validation", paragraphs: [english ? `The step is successful when assertions pass and ${profile.proof[1]}.` : `L'étape est réussie quand les assertions passent et que ${profile.proof[0]}.`], example: examples[1] }
+  ];
+}
+
+function courseExamples(code, checks) {
+  const source = String(code);
+  const markers = checks.join(" ").toLowerCase();
+  if (/querySelector|addEventListener|textContent|classList/.test(source)) return [
+    "const heading = document.querySelector('h1');\nheading.textContent = 'Programme';",
+    "const button = document.querySelector('button');\nbutton.disabled = false;"
+  ];
+  if (/localStorage|JSON\.parse|JSON\.stringify/.test(source)) return [
+    "const displayMode = localStorage.getItem('display-mode') || 'system';",
+    "const preferences = JSON.parse('{\"density\":\"compact\"}');"
+  ];
+  if (/fetch\(|Promise|async function|await /.test(source)) return [
+    "async function readStatus(request) {\n  const response = await request('/api/status');\n  return response.ok;\n}",
+    "const state = { loading: false, data: [], error: null };"
+  ];
+  if (/\.reduce|reduce/.test(markers)) return [
+    "const minutes = [15, 20, 25];\nconst totalMinutes = minutes.reduce((sum, value) => sum + value, 0);",
+    "const total = [1, 2, 3].reduce((sum, value) => sum + value, 0);"
+  ];
+  if (/\.filter|filter/.test(markers)) return [
+    "const active = records.filter((record) => record.active);",
+    "const available = ['open', 'closed'].filter((state) => state === 'open');"
+  ];
+  if (/\.map|map/.test(markers)) return [
+    "const labels = records.map((record) => record.title);",
+    "const doubled = [2, 4].map((value) => value * 2);"
+  ];
+  if (/function|=>|return/.test(source)) return [
+    "function normalizeLabel(value) {\n  return String(value).trim();\n}",
+    "const isAvailable = (count) => count > 0;"
+  ];
+  if (/typeof|boolean|number|>=|<=|===|&&|\?/.test(markers)) return [
+    "const hasCapacity = seats > 0 && registrationOpen;",
+    "const kind = typeof score;"
+  ];
+  return [
+    "const sampleName = 'PulsaConf';\nconsole.log(typeof sampleName);",
+    "const cleanLabel = String(' review ').trim();"
   ];
 }
 
@@ -284,5 +399,14 @@ function vocab(checks) {
 }
 
 function starterFrom(code) {
-  return code.split("\n").slice(0, 2).join("\n") + "\n// complète la preuve ici";
+  const lines = code.split("\n");
+  const firstCodeLine = lines.find((line) => line.trim() && !line.trim().startsWith("//"));
+  if (!firstCodeLine) return "// Complète le comportement demandé et vérifie son résultat.";
+
+  const functionSignature = firstCodeLine.match(/^(\s*(?:async\s+)?function\s+[\w$]+\s*\([^)]*\)\s*)\{/);
+  if (functionSignature) return `${functionSignature[1]}{\n  // complète le comportement demandé\n}`;
+
+  const declaration = firstCodeLine.replace(/^(\s*(?:const|let|var)\s+.+?\s*=\s*).+;\s*$/, "$1undefined;");
+  if (declaration !== firstCodeLine) return `${declaration}\n// complète la preuve ici`;
+  return "// Écris la transformation demandée sans recopier la solution.";
 }

@@ -1,7 +1,7 @@
 # PulsaTeach - plan directeur d'achevement
 
 Statut : source de verite active
-Derniere mise a jour : 2026-11-09
+Derniere mise a jour : 2026-11-17
 Objectif : transformer PulsaTeach en produit educatif public fiable, utile et honnete.
 
 ## Mandat
@@ -25,6 +25,8 @@ lecture humaine, un test comportemental ou une mesure de production adaptee.
   mixtes, des quiz desalignees et des exercices pre-resolus existaient encore.
 
 Ces pourcentages sont des estimations de pilotage, pas des metriques marketing.
+
+Un audit expert externe du 17 novembre 2026 (`PulsaTeach-Audit.md`, fourni par l'utilisateur hors dépôt) note **7/10 le seul premier parcours HTML public observé**. Cette note ne mesure ni la qualité du site entier, ni une réussite d'apprenants ; elle ne remplace pas ces estimations et les modifications locales ci-dessous ne sont pas encore en production.
 
 ## Regles non negociables
 
@@ -159,14 +161,34 @@ Ces pourcentages sont des estimations de pilotage, pas des metriques marketing.
 | Box model et typographie CSS 02 | Relu localement | huit etapes cumulatives, contenu extreme, valeurs exactes, quiz et lab public alignes | conserver sous regression |
 | Flexbox et mise en page CSS 03 | Relu localement | huit etapes cumulatives depuis CSS 02, preview mobile/desktop, ordre clavier, quiz et lab specialises | conserver sous regression |
 | Grid et compositions CSS 04 | Relu localement | huit etapes cumulatives depuis CSS 03, pistes intrinseques, ordre source, quiz et lab specialises | conserver sous regression |
-| CSS public restant | Non certifie | profondeur automatique seulement | continuer avec `css-selectors` |
-| JavaScript public | Non certifie | profondeur automatique seulement | audit complet apres CSS |
+| Architecture de selecteurs CSS 05 | Relu localement | huit etapes cumulatives depuis CSS 04, portee et contre-exemples, quiz, projet et preuve navigateur mobile/desktop | conserver sous regression |
+| Box model avance CSS 06 | Relu localement | huit etapes cumulatives depuis CSS 05, axes logiques, tokens, contenu extreme, quiz, projet et preuve navigateur | conserver sous regression |
+| Navigation Flexbox CSS 07 | Relu localement | huit etapes cumulatives depuis CSS 06, sizing des groupes, repli responsive, quiz et projet avec ordre clavier | conserver sous regression |
+| Zones et placement Grid CSS 08 | Relu localement | huit etapes cumulatives depuis CSS 07, zones nommees, placement sans reordonner le DOM, empilement responsive et preuve navigateur | conserver sous regression |
+| Responsive mobile-first CSS 09 | Relu localement | huit etapes cumulatives depuis CSS 08, breakpoints, clamp, conteneurs, medias stables et preuve navigateur desktop/mobile | conserver sous regression |
+| États interactifs accessibles CSS 10 | Relu localement | huit etapes cumulatives depuis CSS 09, focus clavier, hover, disabled, cibles de 44px et forced-colors | conserver sous regression |
+| Mouvement responsable CSS 11 | Relu localement | huit etapes cumulatives depuis CSS 10, transitions et animations bornées, mouvement réduit sans perte d'information et preuve navigateur | conserver sous regression |
+| Capstone CSS 12 | Relu localement | huit decisions cumulatives depuis CSS 11, integration viewport/conteneur/media, forced-colors, reduced motion et audit desktop/mobile | conserver sous regression |
+| CSS public restant | Audité transversalement localement | 15 modules dans l'ordre publié ; chargeurs complets et par module alignés ; 20 E2E CSS desktop/mobile réussis | conserver sous regression |
+| JavaScript public | Audité localement | solutions/starters bilingues, exemples distincts, quiz, 16 projets exécutables, previews DOM et 18 routes de module vérifiés ; E2E desktop/mobile | conserver sous régression et préparer l'observation par de vrais apprenants |
+| P1 — qualité des contrôles pédagogiques | En cours | module JS Validation robuste repris sans tests de présence : scénarios métier, refus de données invalides et seuil de score réel | étendre aux autres modules, mesurer les faux positifs et documenter les preuves |
+| Parcours d’apprentissage public de bout en bout | Vérifié localement | catalogue → programme → première leçon réussie → progression réellement sauvegardée → reprise au dashboard ; résultat d'examen persistant et soumission de projet depuis la leçon | conserver sous régression ; prolonger avec observation apprenant réelle |
+| Premier exercice HTML — audit expert externe PT-01 à PT-06 | Lot technique terminé localement ; PT-06 non reproduit | CTA et durée à ~15 min, 5 tests précis FR/EN, solution vierge, sauvegarde et fusion facultative, liens programme nommés ; E2E desktop/mobile | retester en production après release autorisée ; observer 5 vrais utilisateurs selon `docs/USER_TEST_PROTOCOL.md` |
 | Catalogue et reprise | Revu localement | aide au choix preservee, recherche bilingue et reprise mobile testees | prochaine release controlee |
 | Interface publique | Corrigee localement | tiroir mobile plein viewport, focus, scroll et breakpoint desktop couverts par E2E | livrer puis verifier sur telephone reel |
 | Anciens Reels | Retires localement | sources V3/V4, rendus, voix, campagne et publisher dedie supprimes ; videos produit V2 preservees | repartir d'un storyboard et d'une direction visuelle neufs |
-| Domaine `pulsateach.com` | DNS actif | domaines Vercel verifies, `www` redirige en 308, DNS Cloudflare non proxifie et CORS production configure | deployer le build canonique puis executer le smoke complet |
+| Reel HTML | Rendu localement | capture mobile reelle, doctype saisi, 5 checks valides, master vertical et SRT controles | verifier sur telephone puis publier manuellement |
+| Reel nouvelle UI | Rendu localement | recit en huit actes depuis les captures accueil, catalogue et atelier ; master vertical de 41 secondes, 1 230 images decodees, SRT et quatorze images cles controlees | verifier sur telephone puis publier manuellement |
+| Reel Flexbox | Brouillon non retenu | sujet écarté suite au retour utilisateur (« déjà fait ») ; master local conservé, non utilisé comme livrable de cette reprise | ne pas réutiliser pour la prochaine publication |
+| Reel Sandbox | Rendu local vérifié | capture réelle : CSS change la carte, JavaScript monte à 20 XP, validation de mission ; carton de marque avec logo, URL Playground et contenu maintenu dans la zone sûre verticale | revue humaine sur téléphone avant publication manuelle |
+| Reel JavaScript | Rendu local vérifié | récit réel échec→correction→2 cas réussis ; master 1080 × 1920, SRT, sept images clés, logo/CTA dans la zone centrale | revue humaine sur téléphone avant publication manuelle |
+| Reel Révision active | Rendu local vérifié | session de démonstration : question, réponse vérifiée, évaluation et prochaine révision planifiée ; carton logo/CTA et zones sûres | revue humaine sur téléphone avant publication manuelle |
+| Reel Défi label HTML | Prêt pour publication manuelle | hook puzzle 3 s ; interaction réelle dans `html-06-label-input-text`, mismatch `for`/`id` délibéré détecté, correction et checks 5/5 ; master 17,26 s en 1080 × 1920, SRT, logo/CTA et safe zones | placer l'URL exacte en bio, vérifier sur téléphone puis publier manuellement |
+| Domaine `pulsateach.com` | Verifie en production | domaines Vercel et HTTPS valides, `www` en 308, DNS Cloudflare non proxifie, CORS et Auth Supabase alignes | conserver sous monitoring et regression |
+| Securite Supabase | Verifiee en production | 15 tables serveur sans privilege client, politiques RLS explicites et TOTP actif ; advisors RLS/MFA resolus | conserver sous regression ; HaveIBeenPwned exige le plan Pro |
 | Production | Verifiee | commit produit `34ded0d`, statut Vercel reussi et smoke production sur 7 routes et 28 lecons | poursuivre CSS puis prochaine release controlee |
-| Tests utilisateurs | Non effectues | aucune observation documentee | protocole puis sessions |
+| Tests utilisateurs | Protocole prêt, sessions non effectuées | `docs/USER_TEST_PROTOCOL.md` adapté du document externe fourni ; aucune personne recrutée ni observée | cinq séances (3 débutants, 2 avec notions HTML), puis revue des blocages |
+| Release publique HTML/CSS/JavaScript | Contrôles locaux réussis ; livraison à vérifier | 211 E2E réussis / 45 ignorés, 468 unitaires, 31 API et smoke 23 routes / 12 endpoints ; aperçus médias et sous-titres vérifiés desktop/mobile | commit produit ciblé, déploiement et contrôle du domaine canonique |
 
 ## Protocole de reprise automatique
 
@@ -321,4 +343,146 @@ correspondre au risque modifie, mais une release exige la chaine complete utile.
 - `pulsateach.com` et `www.pulsateach.com` attaches au projet Vercel `pulsateach`, avec redirection permanente de `www` vers l'apex ;
 - zone Cloudflare activee avec deux A d'apex et un CNAME `www` fournis par Vercel, en mode DNS only et TTL automatique ; propagation publique, HTTPS et certificat verifies ;
 - variable Vercel Production `PULSATEACH_ALLOWED_ORIGINS` alignee sur le domaine principal et l'alias de secours ; le smoke pre-release confirme que le build precedent doit encore etre remplace pour publier le canonical ;
-- prochain chantier produit : module CSS `css-selectors` ; les nouveaux formats sociaux repartiront ensuite d'un storyboard et d'une validation visuelle neufs.
+- release `a8182b4` poussee sur `main` et deployee avec succes par Vercel ; canonical principal servi aussi depuis l'alias de secours ;
+- smoke production reussi sur 7 routes et 28 lecons, a 375 px et 1440 px, avec callback Auth, CORS, HTTPS et redirection `www` verifies ;
+- configuration Auth Supabase distante alignee sur `https://pulsateach.com` et ses callbacks sans modifier Discord, OAuth Server, SMS ni pooler ; section locale obsolete `[inbucket]` renommee `[local_smtp]` ;
+- migration RLS testee par deux reconstructions locales completes puis appliquee en production : 15 politiques de refus explicites, aucun privilege `anon`/`authenticated`, acces `service_role` preserve et advisor RLS vide ;
+- MFA TOTP active sans SMS ni cout additionnel et advisor MFA resolu ; protection HaveIBeenPwned non activable sur le plan Supabase Free, maintien du plan confirme par l'utilisateur ;
+- trois index peu utilises restent sous observation : leur suppression sur une production encore peu chargee ne serait pas justifiee par le seul advisor informatif ;
+- nouveau Reel HTML produit depuis une capture responsive actuelle : hook anti-tutoriel passif, saisie reelle du doctype, preuve `Tests 5/5`, CTA `Montre ton essai`, master 1080 x 1920 de 17 secondes et SRT ;
+- Reel de presentation de la nouvelle UI reconstruit apres un second retour sur sa duree et sa finition : huit actes distincts sur le probleme, les principes, l'accueil, la recherche, le programme, l'atelier, la preuve 5/5 et le feedback ; bande-son stereo arrangee par sequence, master 1080 x 1920 de 41 secondes, SRT et quatorze images cles controlees ;
+- pipeline UI renforce : le rendu est refuse si `ffprobe` ne decode pas exactement les 1 230 images attendues ;
+- master UI lu jusqu'a la fin dans Chromium en 1080 x 1920 ; validation locale finale : 62 fichiers de tests et 372 tests reussis, tous les audits, build et 229 pages prerendered valides ;
+- module `css-selectors` repris en huit etapes cumulatives depuis le lab Grid : portee de composant, enfant direct, variante, attribut, regroupement, exclusion, focus visible et faible specificite ;
+- anciennes definitions statique et runtime divergentes supprimees au profit d'une source partagee, d'un chunk public dedie, d'un quiz bilingue de six questions et d'un projet couvrant les huit decisions ;
+- validation CSS durcie contre les proprietes prefixees factices ; starters en echec utile, solutions FR/EN, mauvaises cibles, token soup, focus masque, continuite Grid et parite statique/runtime couverts par huit tests unitaires ;
+- preuve Chromium desktop et mobile reussie : portee locale, enfant direct, carte partenaire intacte, focus clavier visible et absence de debordement ;
+- compteurs publics realignes sur 883 lecons totales, 217 lecons publiques, 234 URLs et 588 termes bilingues ; validation locale actuelle : 63 fichiers et 380 tests reussis, tous les audits, build et 234 pages prerendered valides ;
+- module `css-box-model` repris en huit etapes cumulatives depuis le projet Selecteurs : border-box, interligne, token d'espace, inline-size, contenu sans espace, padding logique, taille intrinseque et rayon ;
+- anciennes definitions statique et runtime divergentes supprimees au profit d'une source partagee et d'un chunk public dedie ; cinq IDs publics conserves, trois pratiques ajoutees, quiz bilingue de six questions et projet transversal ;
+- huit tests unitaires couvrent continuite CSS 05, starters en echec utile, solutions FR/EN, mauvaises cibles et valeurs, token soup, masquage interdit, quiz, projet et parite statique/runtime ;
+- preuve Chromium desktop et mobile reussie : token calcule, padding logique, taille bornee, identifiant complet, carte partenaire intacte, Grid, focus clavier et absence de debordement ;
+- compteurs publics realignes sur 886 lecons totales, 220 lecons publiques, 237 URLs et 585 termes bilingues ; validation locale actuelle : 64 fichiers et 388 tests reussis, tous les audits, build et 237 pages prerendered valides ;
+- module `css-flexbox` repris comme navigation PulsaConf cumulative depuis le projet Box Model : conteneur, gap, alignement, distribution, repli, flex sizing des groupes et axe mobile/desktop ;
+- definitions statique/runtime dupliquees retirees et route dediee creee ; trois IDs d'exercices existants conserves, cinq pratiques ajoutees, quiz bilingue specialise et projet avec rubric a quatre preuves ;
+- huit tests unitaires couvrent continuite, echec utile, solutions localisees, valeurs et cibles, quiz, projet et parite runtime ; E2E Chromium desktop/mobile confirme axe responsive, label complet, controles non compresses et ordre Tab ;
+- compteurs publics realignes sur 891 lecons totales, 225 lecons publiques, 242 URLs et 578 termes bilingues ; validation locale actuelle : 65 fichiers et 396 tests reussis, tous les audits, build et 242 pages prerendered valides ;
+- module `css-grid` repris après `css-grid-layout` comme parcours de placement éditorial : zones nommées, colonnes utiles, placement de régions, alignement et template mobile à une colonne ;
+- ancien module statique/runtime réduit à trois exercices supprimé au profit d'une source partagée et d'un chunk dédié ; trois IDs historiques conservés, cinq pratiques ajoutées, quiz bilingue et projet final ;
+- huit tests unitaires vérifient continuité CSS 07, solutions FR/EN, starters en échec utile, mutations de zones et valeurs, ordre source, quiz, projet et parité runtime ; Playwright desktop/mobile valide template calculé, placement, DOM et tabulation ;
+- compteurs publics recalculés : 896 leçons totales, 230 leçons publiques, 247 URLs et 578 termes bilingues ; validation locale actuelle : 66 fichiers et 404 tests réussis, tous les audits, build et 247 pages prérendues valides ;
+- module `css-responsive` repris en huit étapes cumulatives depuis le projet Grid : largeur bornée avec box-sizing, mesure de texte et image robuste, breakpoint, fallback mobile, clamp, container-type/query et auto-fit ;
+- validation runtime `cssContainerDeclaration` ajoutée pour vérifier le sélecteur, la propriété et la condition dans le bon conteneur ; le script d'audit pédagogique vérifie aussi ce test dans les solutions ;
+- huit tests unitaires couvrent IDs publics, chaîne cumulative CSS 08, starters FR/EN, mutations de breakpoint et conteneur, quiz, lab et parité ; Playwright desktop/mobile confirme absence de débordement, ratio média et reflow quand la largeur de carte change ;
+- compteurs publics confirmés à 896 leçons totales, 230 leçons publiques, 247 URLs et 580 termes bilingues ; validation locale actuelle : 67 fichiers et 412 tests réussis, tous les audits, build et 247 pages prérendues valides ;
+- module `css-a11y-states` repris en huit étapes cumulatives depuis Responsive : focus-visible, contour et offset, hover sans reflow, état disabled explicite, cible minimale, contraste lisible et forced-colors ;
+- définition générée remplacée par un module spécialisé dans le chunk responsive, en gardant les huit IDs de pratique et le quiz public ; les nouvelles règles utilisent une classe d'exercice dédiée pour laisser le focus certifié précédent vérifiable ;
+- huit tests unitaires vérifient la chaîne CSS 09, solutions bilingues, starters en échec utile, mauvais état/cible, quiz, lab et parité ; Playwright Chromium desktop/mobile teste hover, focus visible, action disabled non tabulable et focus en forced-colors ;
+- compteurs publics confirmés à 896 leçons totales, 230 leçons publiques, 247 URLs et 580 termes bilingues ; validation locale actuelle : 68 fichiers et 420 tests réussis, tous les audits, build et 247 pages prérendues valides ;
+- module `css-motion` repris en huit étapes cumulatives depuis États accessibles : transition ciblée, transform sans reflow, hover informatif, reduced-motion, animation finie, origine, will-change prudent et réduction du mouvement des actions ;
+- ancien contenu générique remplacé par une source partagée dans le chunk responsive ; huit IDs de pratique préservés, quiz spécialisé et lab qui conserve le statut et le focus ;
+- huit tests unitaires couvrent progression, starters bilingues, mauvaises propriétés, animation infinie, désactivation du mouvement et parité statique/runtime ; Playwright desktop/mobile vérifie hover normal, animation bornée, préférence réduite et absence de débordement ;
+- audit dupliqué du registre CSS corrigé en retirant l'entrée Motion ajoutée au mauvais groupe ; les statistiques restent à 896 leçons totales, 230 publiques, 247 URLs et 580 termes ;
+- budget bundle spécialisé pour le contenu CSS ajouté : 300 Ko brut et 100 Ko gzip, tout en maintenant les budgets globaux et de routes ; `npm run validate` passe avec 69 fichiers et 428 tests, tous les audits et build ;
+- `css-capstone` repris comme projet de fin de parcours au lieu de huit tests de présence : système intégrant tokens, pistes fluides, container queries, médias, focus, forced-colors et reduced-motion ; IDs d'exercices et `css-capstone-lab` conservés ;
+- ajout de huit tests unitaires de progression, mutations ciblées, quiz, contenu et parité runtime ; Playwright desktop/mobile vérifie 375px, composition, dimensionnement du conteneur, média, tabulation, forced-colors et reduced motion ;
+- métadonnées pédagogiques dédiées ; `npm run validate` réussi : 70 fichiers, 436 tests, tous les audits et build de 247 pages ; les compteurs catalogue et glossaire restent inchangés ;
+- prochain chantier produit : module CSS `css-responsive-motion` ; un troisième format social attendra les premiers résultats observés des deux Reels.
+
+### 2026-11-14
+
+- reprise du pipeline Reels après inspection du worktree : changements préexistants Supabase, CSS, scripts, briefs et médias laissés en place ; aucun artefact ignoré n'a été supprimé ;
+- le plan demandait d'attendre des retours observés sur les deux premiers Reels ; aucun résultat de publication n'étant présent dans le dépôt, le nouveau lot reste une démonstration produit vérifiable et ne formule aucune affirmation d'audience ;
+- concept proposé à partir des captures réelles disponibles : « Deux axes. Une cible. », démonstration verticale de l'arène Flexbox avec saisie de `justify-content` et `align-items`, niveau 1 validé et niveau 2 ouvert ;
+- ajout de `video/reels/FlexboxProof.jsx`, `scripts/render-reel-flexbox-proof.mjs`, commande `video:reel:flexbox` et brief `docs/social/PULSATEACH_REEL_FLEXBOX.md` ; le rendu est configuré en 1080 × 1920, 30 i/s, H.264/AAC stéréo, 1 050 images, SRT et sept images clés ;
+- rendu vérifié avec ffprobe : 35,05 s, 1 050 images H.264 1080 × 1920 à 30 i/s, AAC 48 kHz stéréo ; sept images clés contrôlées visuellement, SRT aligné sur les repères de capture ;
+- master lu jusqu'au marqueur `ended` dans Chromium (35,05 s, 1080 × 1920) ; reflet du titre partiellement coupé masqué dans le cadre de capture et texte de repère maintenu visible ;
+- vérification restante avant diffusion : revue humaine sur un téléphone réel et collecte de retours ; publication Instagram manuelle uniquement.
+- retour utilisateur sur la première proposition : le sujet Flexbox avait déjà été traité et le carton final manquait de marge Instagram et du logo ; le brouillon Flexbox reste localement conservé mais n'est pas retenu pour ce livrable ;
+- remplacement du sujet par le Playground Sandbox, à partir de la capture verticale source : modification CSS observée, compteur XP à 20 après deux clics et mission effectivement validée ;
+- nouveau master `pulsateach-sandbox-proof.mp4` : 1 097 images, 36,63 s, 1080 × 1920 à 30 i/s, H.264 et AAC stéréo 48 kHz ; SRT, sept images clés et musique originale générée ;
+- direction et fin retravaillées : logo couleur en plaque claire, cartouche code/rendu, CTA `Essaie le Playground`, URL `pulsateach.com/playground` ; textes et actions clés entre y=250 et y=1580 pour garder les marges haut/bas des Reels ;
+- ffprobe confirme l'export ; lecture complète Chromium jusqu'à `ended` à 36,63 s et sept captures de lecture inspectées, dont la dernière frame avec logo et URL CTA ;
+- `npm run validate` réussi après cette reprise : 70 fichiers/436 tests, audits, build et pré-rendu de 247 pages ; vérifications de syntaxe vidéo et lecture Chromium terminées ;
+- seule vérification avant diffusion : revue humaine sur un téléphone réel ; publication Instagram manuelle uniquement.
+- demande de qualité sur le prochain Reel : construire un vrai arc narratif échec→correction→preuve, conserver davantage de marge Instagram et améliorer le carton final de marque ; sujet choisi à partir de la vraie capture JS Arena, distinct du Reel Sandbox ;
+- nouvelle composition `video/reels/JavaScriptProof.jsx` : hook « Toujours right ? », échec observable, correction de `target.x > 50`, validation réelle des deux coordonnées et carton final avec logo, code corrigé, cas gauche/droite, CTA et URL `/js-arena` ; éléments importants composés dans la zone centrale verticale ;
+- nouveau pipeline `scripts/render-reel-javascript-proof.mjs` et commande `video:reel:javascript` ; master `pulsateach-javascript-proof.mp4` de 1 014 images, 33,86 s, 1080 × 1920 à 30 i/s, H.264/AAC stéréo ; SRT et sept images clés ;
+- scènes inspectées : état initial avec alerte de test, logique corrigée, test vert des deux cas et dernier écran de marque ; lecture Chromium jusqu'à `ended`, durée 33,856 s et sept captures de lecture revues ;
+- `npm run validate` réussi après le Reel JavaScript : 70 fichiers de tests, 436 tests, audits, build et pré-rendu 247 pages ; vérifications de syntaxe des scripts vidéo réussies ;
+- vérification restante : revue humaine sur téléphone avant toute diffusion ; publication Instagram manuelle uniquement.
+- nouveau sujet demandé ensuite : révision active, avec une narration courte et sans reprendre Sandbox, JavaScript ou Flexbox ; la session source est signalée comme démonstration pour ne pas la présenter comme un résultat apprenant réel ;
+- nouvelle composition `video/reels/ReviewProof.jsx` : hook par question, carte à réviser, réponse sélectionnée puis vérifiée, évaluation du rappel et planification de la prochaine révision ; carton final distinct avec logo, trois étapes et URL `/review` ;
+- ajout de `scripts/render-reel-review-proof.mjs`, commande `video:reel:review` et brief `docs/social/PULSATEACH_REEL_REVIEW.md` ; master `pulsateach-review-proof.mp4`, 754 images, 25,19 s, 1080 × 1920 à 30 i/s, H.264/AAC stéréo, SRT et sept images clés ;
+- vérification ffprobe réussie ; lecture Chromium jusqu'à `ended` à 25,195 s, résolution 1080 × 1920 et sept captures Chromium inspectées, dont la fin avec logo et URL CTA ;
+- `scripts/verify-reel-chromium.mjs` accepte maintenant des Reels courts dès 20 s afin de vérifier le master Révision ;
+- `npm run validate` réussi après cette composition : 70 fichiers de tests, 436 tests, audits, build et pré-rendu de 247 pages ; lecture Chromium et captures de scène complètes ;
+- revue humaine sur téléphone avant diffusion ; publication Instagram manuelle uniquement.
+- reprise après demande de carte blanche pour un Reel orienté clics : format défi pour débutants, hook « Le label ne fait rien ? », énigme `for`/`id`, clic réel, échec des checks puis réussite 5/5 après correction ; le défaut est injecté uniquement dans la démonstration, il ne décrit pas un bug de production ;
+- capture dédiée de la leçon `/learn/html/html-native-forms/html-06-label-input-text` générée par `scripts/capture-reel-label-challenge.mjs` ; le script vérifie dans Chromium que le mauvais couple ne transfère pas le focus, que la correction passe les tests et produit 5/5 ;
+- composition `video/reels/LabelChallengeProof.jsx` et pipeline `scripts/render-reel-label-challenge.mjs`, commande `npm run video:reel:label-challenge` ; master `pulsateach-label-challenge.mp4`, 516 images, 17,26 s, 1080 × 1920 à 30 i/s, H.264/AAC stéréo, SRT et huit images clés ;
+- la légende invite à répondre avant la révélation ; commentaire de correction prêt à épingler ; URL bio documentée : `https://pulsateach.com/learn/html/html-native-forms/html-06-label-input-text` ;
+- ffprobe confirme les caractéristiques ; Chromium lit le master jusqu'à `ended` à 17,258 s, puis les sept captures de lecture sont inspectées, notamment le hook, l'échec, la réussite et la dernière image ;
+- limite de diffusion : le bio link doit être mis à jour et la publication doit être effectuée manuellement par l'utilisateur ; cette session n'a pas d'accès Instagram ; aucune publication n'a été faite.
+- module CSS `css-responsive-motion` repris comme intégration finale responsive et mouvement : huit étapes cumulatives depuis les acquis du capstone, conteneur distinct du viewport, médias stables, identifiant extrême, hover sans reflow et préférence reduced-motion ; IDs d'exercices, quiz et projet final conservés ; ancienne définition concurrente retirée du chunk public ;
+- ajout de tests unitaires bilingues sur starters non résolus, solutions, mutations de breakpoint/conteneur/média/mouvement, alignement des six questions, rubric du projet et parité du chargeur ; E2E Chromium desktop/mobile confirme reflow de carte à 20/30rem, ratio média, visibilité du statut, hover réduit et absence de débordement ;
+- l'audit CSS exécute désormais les tests runtime des solutions en français et anglais ; cette vérification a révélé que le starter du premier exercice Capstone contenait déjà toutes les corrections : limité au scaffold initial pour rétablir une progression réellement cumulative ;
+- compteurs recalculés : 900 leçons totales, 145 leçons CSS, 234 leçons publiques, 251 URLs et 579 termes bilingues ; `npm run validate` réussi : 71 fichiers et 444 tests, tous les audits et build/prérendu de 251 pages ;
+- prochain chantier : `css-advanced-responsive`, puis audit transversal des routes CSS avant JavaScript public.
+- module CSS `css-advanced-responsive` réécrit en cinq exercices cumulatifs depuis le projet Responsive-Motion : échelles fluides, token d'espacement, cadrage média, conteneur nommé et navigation défilable ; IDs historiques des exercices, quiz et projet conservés ; ancienne définition générique retirée ; route dédiée au module ajoutée ;
+- tests unitaires bilingues vérifient les starters non résolus, la continuité, les mutations sémantiques, les choix du quiz, les preuves du projet et le chargeur ; E2E Chromium desktop/mobile vérifie ratio/cadrage image, reflow de la carte à 16/20rem, overflow contenu et navigation clavier ;
+- le remplacement de contenu change le glossaire courant de 579 à 573 termes; README et `ROADMAP_EVIDENCE.md` réalignés ; les compteurs restent à 900 leçons globales, 145 CSS, 234 leçons publiques et 251 URLs ;
+- le nouveau contenu CSS pousse le chunk brut à 318,2 kB avec 86,5 kB gzip ; plafond brut du chunk de contenu avancé porté de 300 à 330 kB, en conservant la limite de transfert gzip à 100 kB ; bundle, route maximale gzip à 277,9 kB et toutes les validations passent ;
+- `npm run validate` réussi : 72 fichiers, 451 tests, tous les audits, build et pré-rendu de 251 pages ;
+- prochain chantier : audit CSS transversal de toutes les routes publiques avant la reprise complète du parcours JavaScript.
+- audit CSS transversal effectué : registre, ordre publié, chargement complet, chargeur direct des 15 modules, ID de départ catalogue et séquences de leçons concordent ; smoke complet : 23 routes et 12 endpoints API ; 20 E2E CSS réussis sur Chromium desktop/mobile ;
+- `npm run validate` réussi après ajout du contrôle transversal : 73 fichiers et 454 tests, tous les audits, build et pré-rendu de 251 pages ;
+- prochain chantier prioritaire : audit complet du parcours JavaScript public.
+- première passe de l'audit JavaScript : le helper `starterFrom` livrait la solution entière pour les snippets courts ; les 39 starters exacts ont été convertis en vrais points de départ, les cinq projets manuels complétés et le comportement testé ;
+- les modules JavaScript générés couvrent maintenant les résultats d'exécution pour variables, conditions, collections, chaînes, async, stockage et capstone ; exemples de cours vérifiés distincts des solutions ; examen des quiz confirme prompts bilingues, réponses valides et types variés ;
+- false positives corrigés : retrait des checklists de tokens ajoutées aux solutions des modules de hardening, contrôles recentrés sur les contrats réels, solutions du dashboard API et du lab final complétées avec données et états nécessaires ; rubrics anglaises des projets étendues à quatre critères ;
+- le worker JavaScript attend maintenant les assertions asynchrones, restreint `fetch` aux routes de mock locales et prend en charge les signaux console ; E2E réels vérifient client API, compteur, modale clavier/Escape, renderer, formulaires, événements storage et preview capstone : 22 tests desktop/mobile réussis ;
+- `npm run validate` réussi : 74 fichiers, 459 tests, tous les audits, build et pré-rendu de 251 pages ; `npm run smoke:full` réussit sur 23 routes et 12 endpoints API ;
+- audit local JavaScript terminé pour cette passe : 18 routes d'ouverture vérifiées desktop/mobile, solutions bilingues et starters en échec utile vérifiés pour les 141 leçons, quiz alignés, exemples distincts et 16 projets munis d'assertions comportementales ;
+- P0 parcours public vérifié localement par scénarios complémentaires ; prochaine priorité : P1, remplacer les tests de présence restants par des assertions comportementales et des validations de contenu plus précises.
+- le test `learner-flow.spec.js` ne sème plus artificiellement une progression : il part du catalogue HTML, ouvre le programme, réussit réellement les cinq assertions de la première leçon, confirme le stockage de la progression puis reprend la leçon suivante depuis le dashboard ;
+- `quiz.spec.js` vérifie la persistance locale du score et de l'évidence de réussite sans exposer le score dans le payload d'examen ; `project-review.spec.js` suit le CTA depuis un projet réellement passé et vérifie le préremplissage de son ID canonique ;
+- les parcours catalogue→leçon→reprise, examen et soumission de projet passent sur Chromium desktop/mobile ; smoke complet : 23 routes et 12 endpoints API ;
+- `npm run validate` réussi après les scénarios : 74 fichiers de tests, 459 tests, tous les audits, build et pré-rendu de 251 pages ; les prochains retours qualité devront venir d'observations avec de vrais apprenants.
+
+### 2026-11-17 — retour d'audit externe sur l'entrée HTML
+
+- Trois documents fournis dans Téléchargements ont été lus : `PulsaTeach-Audit.md` (navigation expert Chrome FR sans compte, avis 7/10 limité au premier parcours), `PulsaTeach-Brief-Agents.md` (PT-01 à PT-06) et `PulsaTeach-Tests-Utilisateurs.md` (protocole proposé, aucune session menée). Leur diagnostic est confronté au code local plutôt que traité comme une conformité établie.
+- PT-01 confirmé : les deux CTA annonçaient 10 min alors que le premier exercice durait 40 min. Les deux désignent désormais explicitement le **premier exercice** estimé à ~15 min, durée du contenu alignée ; les compteurs « 1/79 étapes du projet PulsaConf » et « 0/83 leçons de la formation » sont distingués dans l'atelier FR/EN.
+- PT-02/PT-04 confirmés : le test h1 n'imposait pas `main` contrairement au libellé « Contrôle main titre » ; premier exercice et retour reformulés autour des balises h1/p et de leurs textes exacts. Le starter échoue 3/5, les cas avec/sans `main` réussissent 5/5, les mauvaises cibles ou style/script sont refusés. Les exemples ne reprennent plus la solution, la correction décrit ces deux rôles et l'aide d'échec indique l'action minimale FR/EN.
+- PT-03 confirmé et corrigé dans la consigne : sauvegarde automatique locale, validation des tests et fusion facultative de version sont désormais distinguées. E2E : code sauvegardé et repris sans fusion après navigation/rechargement, XP stable après deuxième validation, double fusion identique sans nouvelle version ; une modification ultérieure garde la possibilité d'un nouveau jalon (test unitaire).
+- PT-05 confirmé et corrigé : chaque lien « Voir le programme / View curriculum » expose maintenant le nom de sa formation. PT-06 : le HTML pré-rendu local contient d'emblée le bon titre et la bonne description, et les titres hydratés FR/EN sont corrects en navigateur ; le flash transitoire rapporté en production n'est pas reproduit par ces tests et reste à recontrôler sur la version publiée.
+- Tests : `npx vitest run tests/unit/htmlFirstEntryAudit.test.js tests/unit/projectThreadDocument.test.js`, 7 tests réussis ; `npx playwright test tests/e2e/html-first-entry-audit.spec.js --workers=2`, 8 réussis desktop/mobile FR/EN ; `npm run validate`, 75 fichiers/464 tests, audits et build de 251 pages réussis. Deux avertissements ESLint non bloquants concernent un script de Reel tiers préexistant au lot. `docs/USER_TEST_PROTOCOL.md` décrit les cinq séances et les métriques de première modification/test après modification, sans revendiquer d'observation humaine.
+- Clôture du lot technique : la validation d'un code fraîchement saisi sauvegarde maintenant immédiatement la version courante avant la navigation (indépendamment du délai d'autosauvegarde) ; scénario de sortie rapide et retour après rechargement ajouté sur desktop/mobile. `npx playwright test tests/e2e/html-first-entry-audit.spec.js --workers=2` : 10 réussites ; `npm run validate` : 75 fichiers, 464 tests, audits et build réussis sans avertissement ESLint. Le comportement utilisateur réel et le flash transitoire signalé en production ne peuvent être conclus depuis ces seuls contrôles locaux ; release et tests humains restent des étapes distinctes.
+
+### 2026-11-17 — Reel défi HTML orienté interaction
+
+- format choisi en autonomie après autorisation « carte blanche » : mini-défi « Le label ne fait rien ? », conçu pour susciter une réponse avant la révélation, plutôt qu'une visite de fonctionnalités ;
+- sujet audité dans la leçon réelle `html-06-label-input-text` : `label[for]` doit référencer l'`input[id]` ; capture produite par clic Playwright dans l'aperçu et par les tests natifs de la leçon ; le mismatch est volontairement injecté pour le défi, pas issu de la production ;
+- état faux : clic du label sans transfert de focus, 0/5 checks ; correction du seul `id` puis validation 5/5 ; la démo vérifie ces états et s'arrête si la preuve n'apparaît pas ;
+- master `docs/media/reels/pulsateach-label-challenge.mp4` : 516 images, 17,258 s, 1080 × 1920 à 30 i/s, H.264/AAC stéréo, SRT et huit images de contrôle ; carton final avant/après, logo, CTA « Trouve le bug · lien en bio » et marges Instagram ;
+- légende, commentaire épinglé, texte alternatif et destination du lien de bio préparés dans `docs/social/PULSATEACH_REEL_LABEL_CHALLENGE.md` ;
+- ffprobe confirme la vidéo ; Chromium termine la lecture à 17,258 s et sept captures de lecture ont été inspectées ; `npm run validate` réussi : 75 fichiers/464 tests, audits et build de 251 pages ; `npm run lint` relancé sans avertissement après retrait de deux variables inutilisées du renderer ;
+- aucune publication effectuée : placer la leçon `/learn/html/html-native-forms/html-06-label-input-text` dans la bio, prévisualiser sur un téléphone puis publier manuellement ; aucun accès Instagram n'est disponible dans cette session.
+- hook enrichi pour un puzzle de 3 secondes : les snippets `for="full-name"` et `id="display-name"` sont visibles ensemble avant que la démo produit montre le défaut ;
+- dernière passe ffprobe/Chromium : source native 864 × 1152 de 9,2 s ; master 516 images, 17,258667 s, 1080 × 1920 à 30 i/s, H.264/AAC stéréo ; lecture jusqu'à `ended` et sept captures Chromium inspectées ;
+- `npm run validate` réussi sans avertissements ESLint : 75 fichiers/464 tests, audits et build de 251 pages ; aucune publication distante effectuée.
+
+### 2026-11-17 — P1 : validation robuste JavaScript
+
+- Après l'audit P0, `js-validation-hardening` restait vérifié principalement par une liste de mots-clés ; le score acceptait notamment des valeurs impossibles et confondait un taux réel de 69,5 % avec son affichage arrondi à 70 %. Trois exercices, le projet et le quiz conservent leurs IDs et sont repris dans `src/content/jsValidationModule.js` avec contrats explicites et sorties testées, sans exiger l'emploi artificiel de `map`, `filter` ou `structuredClone`.
+- Scénarios nominaux et négatifs en FR/EN : nom/email nettoyés sans mutation, XP numérique non négatif, titre/slug/niveau normalisés, scores entiers dans `[0, total]`, seuil de passage sur la proportion brute et blocage de toute inscription dont l'un des trois contrôles échoue. Les starters FR/EN restent non résolus et les exemples ne recopient pas les solutions. Les anciennes implémentations de validation non utilisées ont été retirées du générateur.
+- `tests/unit/jsValidationModule.test.js` refuse aussi les mutations qui laissent passer XP négatif, slug invalide, scores au-delà du total, seuil arrondi et inscription invalide ; `tests/e2e/js-validation-hardening.spec.js` rejoue score et projet sur Chromium desktop/mobile (4 réussites). Les métadonnées du module reflètent le seuil 69,5/70/100 % ; le glossaire courant compte 574 termes bilingues.
+- `npm run validate` réussi : 76 fichiers, 468 tests, audits, build et 251 pages pré-rendues. `docs/QUALITY_EVIDENCE.md` sépare maintenant inventaire, preuves automatiques, relectures locales, production et apprentissage humain ; il ne présente pas ces chiffres comme un pourcentage de maturité. Le reste du P1, les sessions avec de vrais utilisateurs et une release contrôlée restent des chantiers distincts.
+
+### 2026-11-17 — préparation de la release publique
+
+- Suite E2E exhaustive sous deux workers : 211 réussites, 45 scénarios ignorés selon projet ou disponibilité, aucun échec ; correction de la synchronisation éditeur/état, tests mobile et validation d'un code saisi immédiatement.
+- Aperçu HTML isolé : images et vidéo chargées depuis l'origine applicative ; les pistes VTT dans `about:srcdoc` exigeaient en outre CORS. Les vidéos avec piste sont chargées en mode anonyme, et seuls les médias statiques `.vtt`, `.webm`, `.wav` ont un en-tête CORS en développement et dans la configuration de livraison. E2E vérifie le chargement réel de la piste sur desktop et mobile ; la CSP continue de refuser les connexions réseau du code utilisateur et l'iframe garde une origine opaque.
+- `npm run validate` réussi : 76 fichiers, 468 tests, audits d'architecture/sécurité/contenu, build et 251 pages pré-rendues ; `npm run test:api` : 31 réussites ; `npm run smoke:full` : 23 routes et 12 endpoints API. Ces contrôles ne constituent pas une observation d'apprenants réels.
+- Reste à isoler les fichiers produit de la campagne Reels et des changements Supabase locaux, livrer la version autorisée et vérifier le site en production.

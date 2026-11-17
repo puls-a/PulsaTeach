@@ -25,7 +25,7 @@ const allTrackCatalog = [
     title: { fr: "CSS interactif", en: "Interactive CSS" },
     summary: { fr: "Sélecteurs, box model, Flexbox, Grid, responsive et animations avec rendu visuel.", en: "Selectors, box model, Flexbox, Grid, responsive, and motion with visual output." },
     modules: 15,
-    lessons: 123,
+    lessons: 145,
     firstHref: "/learn/css/css-getting-started/css-00-what-css-does"
   },
   {

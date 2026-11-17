@@ -1,32 +1,91 @@
 import { module, quizLesson, test } from "./trackBuilders.js";
 import { getPedagogy } from "./pedagogy.js";
 import { jsModuleProfile } from "./jsModuleProfiles.js";
+import { jsValidationHardeningModule } from "./jsValidationModule.js";
 
 const dense = {
-  validation: ["function", "return", "const", "let", "if", "else", "trim", "Number", "Number.isFinite", "Array.isArray", "throw new Error", "try", "catch", "map", "filter", "reduce", "includes", "every", "some", "structuredClone"],
   async: ["async", "await", "fetch", "response.ok", "response.status", "response.json", "try", "catch", "finally", "AbortController", "signal", "setTimeout", "clearTimeout", "Promise.all", "map", "filter", "throw new Error", "loading", "error", "data"],
   dom: ["querySelector", "addEventListener", "textContent", "classList.toggle", "setAttribute", "getAttribute", "dataset", "closest", "preventDefault", "FormData", "append", "createElement", "replaceChildren", "role=\"status\"", "aria-live", "disabled", "focus", "keydown", "Escape", "localStorage"],
   debug: ["console.group", "console.table", "performance.mark", "performance.measure", "debugger", "Error", "stack", "try", "catch", "finally", "JSON.stringify", "JSON.parse", "structuredClone", "Object.freeze", "Array.from", "typeof", "instanceof", "?.", "??", "return"]
 };
 
-const extraFinalChecks = ["validateTask", "render", "persist", "state", "tasks", "error", "submit", "currentTarget", "crypto.randomUUID", "is-done", "JSON.stringify", "JSON.parse", "??", "try", "catch", "replaceChildren", "dataset.id", "event", "message", "length", "querySelector('#tasks')", "querySelector('#task-form')", "FormData", "data.get", "String", "trim", "throw new Error", "role", "status", "setItem", "getItem", "classList", "createElement", "li", "ul", "button", "input", "main", "h1", "localStorage"];
+const modalChecks = ["querySelector", "addEventListener", "keydown", "Escape", "focus", "setAttribute", "role=\"dialog\"", "aria-live", "hidden"];
+const taskChecks = ["querySelector", "addEventListener", "FormData", "createElement", "replaceChildren", "dataset", "closest", "preventDefault", "aria-live", "disabled", "localStorage", "classList.toggle", "String", "trim", "throw new Error"];
+const finalChecks = ["validateTask", "initTaskApp", "state", "tasks", "error", "crypto.randomUUID", "JSON.stringify", "JSON.parse", "try", "catch", "replaceChildren", "dataset.id", "FormData", "data.get", "String", "trim", "throw new Error", "status", "localStorage.setItem", "localStorage.getItem", "classList.toggle", "createElement", "fetch", "response.ok", "response.json", "AbortController", "clearTimeout", "console.group", "console.table", "performance.mark", "structuredClone", "Object.freeze", "Array.from", "typeof", "instanceof"];
+
+const finalLabSolution = `const state = { tasks: JSON.parse(localStorage.getItem('tasks') ?? '[]'), data: null, loading: false, error: null };
+function validateTask(title) {
+  const clean = String(title ?? '').trim();
+  if (!clean) throw new Error('Task required');
+  return { id: crypto.randomUUID(), title: clean, done: false };
+}
+function persist() { try { localStorage.setItem('tasks', JSON.stringify(state.tasks)); } catch { /* Storage can be disabled in a sandboxed preview. */ } }
+function render(list, status) {
+  const fragment = document.createDocumentFragment();
+  const items = state.tasks.map((task) => {
+    const li = document.createElement('li');
+    li.dataset.id = task.id;
+    li.classList.toggle('is-done', task.done);
+    const label = document.createElement('span');
+    label.textContent = task.title;
+    const toggle = document.createElement('button');
+    toggle.type = 'button'; toggle.dataset.id = task.id; toggle.dataset.action = 'toggle'; toggle.textContent = 'Terminer';
+    const remove = document.createElement('button');
+    remove.type = 'button'; remove.dataset.id = task.id; remove.dataset.action = 'remove'; remove.textContent = 'Supprimer';
+    li.append(label, toggle, remove); fragment.append(li); return li;
+  });
+  list.replaceChildren(fragment);
+  status.textContent = String(state.tasks.length) + ' tâche(s)';
+}
+async function loadDashboard(request = fetch) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 4000);
+  state.loading = true; state.error = null;
+  try {
+    const response = await request('/api/catalog', { signal: controller.signal });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    const payload = await response.json();
+    state.data = Array.isArray(payload.items) ? payload.items.filter(Boolean).map((item) => String(item.title ?? '')) : [];
+    return state;
+  } catch (error) { state.error = error.message; return state; }
+  finally { clearTimeout(timer); state.loading = false; }
+}
+function traceScenario(name, callback) {
+  console.group(name); performance.mark(name + ':start');
+  try {
+    const frozen = Object.freeze(structuredClone({ name: name, values: Array.from([name]) }));
+    const result = callback(frozen) ?? null;
+    console.table([{ type: typeof result, object: result instanceof Object }]);
+    return JSON.parse(JSON.stringify(result));
+  } catch (error) { return { error: error?.message ?? String(error), stack: error?.stack ?? '' }; }
+  finally { performance.mark(name + ':end'); performance.measure(name, name + ':start', name + ':end'); console.groupEnd(); }
+}
+function initTaskApp() {
+  const form = document.querySelector('#task-form');
+  const input = form.querySelector('input');
+  const addButton = form.querySelector('button');
+  const list = document.querySelector('#tasks');
+  const status = document.querySelector('[role="status"]');
+  input.addEventListener('input', () => { addButton.disabled = !input.value.trim(); });
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    try { state.tasks = [...state.tasks, validateTask(data.get('title'))]; persist(); render(list, status); input.value = ''; addButton.disabled = true; }
+    catch (error) { status.textContent = error.message; }
+  });
+  list.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-action]'); if (!button) return;
+    const task = state.tasks.find((item) => item.id === button.dataset.id); if (!task) return;
+    if (button.dataset.action === 'toggle') task.done = !task.done;
+    else state.tasks = state.tasks.filter((item) => item.id !== button.dataset.id);
+    persist(); render(list, status);
+  });
+  render(list, status);
+}
+`;
 
 export const javascriptHardeningModules = [
-  module("js-validation-hardening", "Validation robuste et données sûres", "Robust validation and safe data", [
-    jsLesson("js-hardening-validate-profile", ["Valider un profil apprenant", "Validate a learner profile"], ["Crée validateProfile(profile) : nom non vide, email avec @, XP numérique positif et erreurs explicites.", "Build validateProfile(profile): require a non-empty name, an email containing @, non-negative numeric XP, and explicit errors."], starter("validateProfile"), dense.validation, 55),
-    jsLesson("js-hardening-normalize-course", ["Normaliser une carte de cours", "Normalize a course card"], ["Crée normalizeCourse(course) qui nettoie title, slug, level et retourne un objet stable.", "Build normalizeCourse(course) to clean title, slug, and level and return a stable object."], starter("normalizeCourse"), dense.validation, 55),
-    jsLesson("js-hardening-score-boundaries", ["Scoring aux limites", "Boundary scoring"], ["Crée computeQuizResult(correct, total) avec garde-fous, pourcentage arrondi et passed dès 70%.", "Build computeQuizResult(correct, total) with guards, a rounded percentage, and passing from 70%."], starter("computeQuizResult"), dense.validation, 60),
-    projectLesson({
-      id: "js-hardening-validation-lab",
-      title: ["Lab : moteur de validation PulsaTeach", "Lab: PulsaTeach validation engine"],
-      brief: ["Assemble validateProfile, normalizeCourse et computeQuizResult dans un flux testable.", "Assemble validateProfile, normalizeCourse, and computeQuizResult into a testable flow."],
-      starterCode: "const rawLearner = { name: ' Maya ', email: 'maya@pulsa.dev', xp: '120' };\nconst rawCourse = { title: ' JS ', slug: 'javascript-v9', level: 'starter' };\n\n// Ajoute validateProfile, normalizeCourse, computeQuizResult et buildEnrollment\n",
-      solution: "function validateProfile(profile) {\n  const name = String(profile.name ?? '').trim();\n  const email = String(profile.email ?? '').trim();\n  const xp = Number(profile.xp);\n  if (!name) throw new Error('Name required');\n  if (!email.includes('@')) throw new Error('Email invalid');\n  if (!Number.isFinite(xp) || xp < 0) throw new Error('XP invalid');\n  return { name, email, xp };\n}\nfunction normalizeCourse(course) {\n  return { title: String(course.title ?? '').trim(), slug: String(course.slug ?? '').trim(), level: course.level ?? 'starter' };\n}\nfunction computeQuizResult(correct, total) {\n  if (!Number.isFinite(correct) || !Number.isFinite(total) || total <= 0) throw new Error('Score invalid');\n  const percent = Math.round((correct / total) * 100);\n  return { percent, passed: percent >= 70 };\n}\nfunction buildEnrollment(profile, course, result) {\n  return { learner: validateProfile(profile), course: normalizeCourse(course), result };\n}",
-      tests: dense.validation.map((check) => test("contains", check, check)),
-      xp: 110
-    }),
-    quiz("js-hardening-validation-quiz", "Validation robuste", "Robust validation", "Pourquoi lever une erreur explicite sur une donnée invalide ?", "Why throw an explicit error for invalid data?", "Pour empêcher un état incohérent de continuer silencieusement", "To stop inconsistent state from continuing silently")
-  ]),
+  jsValidationHardeningModule,
   module("js-async-resilience", "Async, API et résilience", "Async, APIs, and resilience", [
     jsLesson("js-hardening-fetch-timeout", ["Fetch avec timeout", "Fetch with timeout"], ["Crée fetchWithTimeout(url, ms) avec AbortController, erreur HTTP et cleanup.", "Build fetchWithTimeout(url, ms) with AbortController, HTTP failure handling, and timer cleanup."], starter("fetchWithTimeout"), dense.async, 60),
     jsLesson("js-hardening-load-catalog-state", ["État réseau complet", "Complete network state"], ["Crée loadCatalog() qui retourne loading/data/error et distingue 200, 404, 500 et offline.", "Build loadCatalog() returning loading/data/error while distinguishing 200, 404, 500, and offline states."], starter("loadCatalog"), dense.async, 60),
@@ -36,23 +95,23 @@ export const javascriptHardeningModules = [
       title: ["Lab : client API résilient", "Lab: resilient API client"],
       brief: ["Livre un client API avec timeout, retry limité, état UI et erreurs lisibles.", "Ship an API client with timeout, limited retry, UI state, and readable errors."],
       starterCode: "const endpoints = ['/api/catalog', '/api/progress', '/api/recommendations'];\n\n// Ajoute fetchWithTimeout, readJson, loadDashboard et formatNetworkError\n",
-      solution: "async function fetchWithTimeout(url, ms = 4000) {\n  const controller = new AbortController();\n  const timer = setTimeout(() => controller.abort(), ms);\n  try {\n    const response = await fetch(url, { signal: controller.signal });\n    if (!response.ok) throw new Error(`HTTP ${response.status}`);\n    return response;\n  } catch (error) {\n    return { error };\n  } finally {\n    clearTimeout(timer);\n  }\n}\nasync function readJson(url) {\n  const response = await fetchWithTimeout(url);\n  if (response.error) throw response.error;\n  return response.json();\n}\nasync function loadDashboard() {\n  const state = { loading: true, data: null, error: null };\n  try { state.data = await Promise.all(endpoints.map(readJson)); }\n  catch (error) { state.error = error.message; }\n  finally { state.loading = false; }\n  return state;\n}",
-      tests: dense.async.map((check) => test("contains", check, check)),
+      solution: "const endpoints = ['/api/catalog', '/api/progress', '/api/recommendations'];\nasync function fetchWithTimeout(url, ms = 4000) {\n  const controller = new AbortController();\n  const timer = setTimeout(() => controller.abort(), ms);\n  try {\n    const response = await fetch(url, { signal: controller.signal });\n    if (!response.ok) throw new Error(`HTTP ${response.status}`);\n    return response;\n  } catch (error) {\n    return { error };\n  } finally {\n    clearTimeout(timer);\n  }\n}\nasync function readJson(url) {\n  const response = await fetchWithTimeout(url);\n  if (response.error) throw response.error;\n  return response.json();\n}\nasync function loadDashboard() {\n  const state = { loading: true, data: null, error: null };\n  try { state.data = (await Promise.all(endpoints.map(readJson))).filter(Boolean); }\n  catch (error) { state.error = error.message; }\n  finally { state.loading = false; }\n  return state;\n}",
+       tests: [...dense.async.map((check) => test("contains", check, check)), test("jsExpression", "Le dashboard termine le chargement et rend les trois réponses simulées", "return loadDashboard().then((state) => { if (state.loading === false && state.error === null && state.data.length === 3) return true; throw new Error(JSON.stringify(state)); });")],
       xp: 120
     }),
     quiz("js-hardening-async-quiz", "Résilience async", "Async resilience", "Pourquoi utiliser finally dans un chargement réseau ?", "Why use finally in network loading?", "Pour remettre l’état loading à false même en cas d’erreur", "To set loading back to false even when an error happens")
   ]),
   module("js-dom-production", "DOM production, accessibilité et debug", "Production DOM, accessibility, and debug", [
-    domLesson("js-hardening-accessible-modal", ["Modale accessible", "Accessible modal"], ["Crée une modale ouvrable/fermable au clavier avec focus, aria-live et Escape.", "Build a modal that opens and closes by keyboard, manages focus, announces status, and handles Escape."], "<button id=\"open\">Ouvrir</button><section id=\"modal\" hidden><button id=\"close\">Fermer</button><p role=\"status\" aria-live=\"polite\"></p></section><script>\n// Ajoute le JS de modale\n</script>", dense.dom, 65),
-    domLesson("js-hardening-task-renderer", ["Renderer de tâches", "Task renderer"], ["Rends une liste de tâches avec createElement, dataset, délégation, statut et stockage.", "Render tasks with createElement, dataset identifiers, event delegation, an announced status, and storage."], "<form id=\"task-form\"><input name=\"title\" /><button>Ajouter</button></form><ul id=\"tasks\"></ul><p role=\"status\" aria-live=\"polite\"></p><script>\n// Ajoute state, render, add, toggle et persist\n</script>", dense.dom, 70),
+    domLesson("js-hardening-accessible-modal", ["Modale accessible", "Accessible modal"], ["Crée une modale ouvrable/fermable au clavier avec focus, aria-live et Escape.", "Build a modal that opens and closes by keyboard, manages focus, announces status, and handles Escape."], "<button id=\"open\" aria-controls=\"modal\" aria-expanded=\"false\">Ouvrir</button><section id=\"modal\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"modal-title\" hidden><h2 id=\"modal-title\">Aide</h2><button id=\"close\">Fermer</button><p role=\"status\" aria-live=\"polite\"></p></section><script>\n// Ajoute le JS de modale\n</script>", modalChecks, 65),
+    domLesson("js-hardening-task-renderer", ["Renderer de tâches", "Task renderer"], ["Rends une liste de tâches avec createElement, dataset, délégation, statut et stockage.", "Render tasks with createElement, dataset identifiers, event delegation, an announced status, and storage."], "<form id=\"task-form\"><input id=\"task-title\" name=\"title\" /><button id=\"add-task\" disabled>Ajouter</button></form><ul id=\"tasks\"></ul><p role=\"status\" aria-live=\"polite\"></p><script>\n// Ajoute state, render, add, toggle et persist\n</script>", taskChecks, 70),
     jsLesson("js-hardening-debug-trace", ["Trace de debug", "Debug trace"], ["Crée traceScenario(name, callback) avec performance.mark, group, table, stack et retour sécurisé.", "Build traceScenario(name, callback) with performance marks, grouped tables, stack capture, and a safe return value."], starter("traceScenario"), dense.debug, 55),
     projectLesson({
       id: "js-hardening-final-lab",
       title: ["Lab final : mini-dashboard JS fiable", "Final lab: reliable JS mini-dashboard"],
       brief: ["Assemble validation, API, DOM accessible, stockage et traces dans une mini-app maintenable.", "Assemble validation, API, accessible DOM, storage, and traces into a maintainable mini-app."],
       starterCode: "<main><h1>Dashboard JS</h1><form id=\"task-form\"><input name=\"title\" /><button>Ajouter</button></form><ul id=\"tasks\"></ul><p role=\"status\" aria-live=\"polite\"></p></main><script>\n// state, validateTask, render, persist, load, traceScenario\n</script>",
-      solution: "const state = { tasks: JSON.parse(localStorage.getItem('tasks') ?? '[]'), loading: false, error: null };\nfunction validateTask(title) {\n  const clean = String(title ?? '').trim();\n  if (!clean) throw new Error('Task required');\n  return { id: crypto.randomUUID(), title: clean, done: false };\n}\nfunction render() {\n  const list = document.querySelector('#tasks');\n  const items = state.tasks.map((task) => {\n    const li = document.createElement('li');\n    li.dataset.id = task.id;\n    li.textContent = task.title;\n    li.classList.toggle('is-done', task.done);\n    return li;\n  });\n  list.replaceChildren(...items);\n  document.querySelector('[role=\"status\"]').textContent = `${state.tasks.length} tâches`;\n}\nfunction persist() { localStorage.setItem('tasks', JSON.stringify(state.tasks)); }\ndocument.querySelector('#task-form').addEventListener('submit', (event) => {\n  event.preventDefault();\n  const data = new FormData(event.currentTarget);\n  try { state.tasks = [...state.tasks, validateTask(data.get('title'))]; persist(); render(); }\n  catch (error) { document.querySelector('[role=\"status\"]').textContent = error.message; }\n});\nrender();",
-      tests: [...dense.dom, ...dense.validation.slice(0, 10), ...dense.debug.slice(0, 8), ...extraFinalChecks].map((check) => test("contains", check, check)),
+        solution: finalLabSolution,
+       tests: finalChecks.map((check) => test("contains", check, check)).concat(test("jsExpression", "La tâche, le chargement API et la trace produisent des preuves", "const before = state.tasks.length; const task = validateTask(' Review '); state.tasks = [...state.tasks, task]; persist(); let rejected = false; try { validateTask(' '); } catch { rejected = true; } const dashboard = await loadDashboard(async () => ({ ok: true, status: 200, async json() { return { items: [{ title: 'API task' }] }; } })); const trace = traceScenario('test', () => ({ ok: true })); return task.title === 'Review' && state.tasks.length === before + 1 && JSON.parse(localStorage.getItem('tasks')).length === before + 1 && rejected && dashboard.data[0] === 'API task' && trace.ok === true;")),
       xp: 150
     }),
     quiz("js-hardening-production-quiz", "DOM production", "Production DOM", "Quel signal rend une action DOM compréhensible au lecteur d’écran ?", "Which signal makes a DOM action understandable to a screen reader?", "Un message dans une région role=\"status\" ou aria-live", "A message in a role=\"status\" or aria-live region")
@@ -74,7 +133,7 @@ function domLesson(id, title, brief, starterCode, checks, xp) {
 function projectLesson({ id, title, brief, starterCode, solution, tests, xp }) {
   const checks = tests.map((item) => item.value);
   return {
-    ...hardLesson(id, "project", title, brief, starterCode, `${solution}\n\nconst projectChecklist = ${JSON.stringify(checks)};\n`, checks, xp),
+    ...hardLesson(id, "project", title, brief, starterCode, solution, checks, xp),
     tests,
     project: true,
     rubric: {
@@ -111,10 +170,7 @@ function hardLesson(id, type, title, brief, starterCode, solution, checks, xp) {
 
 function behaviorTestsFor(id) {
   const expressions = {
-    "js-hardening-validate-profile": "const valid = validateProfile({ name: ' Maya ', email: 'm@p.dev', xp: '4', tags: ['js'] }); const invalid = validateProfile({ name: '', email: 'bad', xp: 'x' }); return valid.ok && valid.name === 'Maya' && invalid.ok === false;",
-    "js-hardening-normalize-course": "const valid = normalizeCourse({ title: ' JS ', duration: '30', modules: [] }); const invalid = normalizeCourse({ title: ' ', duration: 'x' }); return valid.ok && valid.title === 'JS' && invalid.ok === false;",
-    "js-hardening-score-boundaries": "return computeQuizResult(7, 10).passed === true && computeQuizResult(6, 10).passed === false && computeQuizResult(1, 0).ok === false;",
-    "js-hardening-fetch-timeout": "return fetchWithTimeout('/ok', 50).then((state) => state.loading === false && state.data?.ok === true);",
+    "js-hardening-fetch-timeout": "return fetchWithTimeout('/api/catalog', 50).then((state) => state.loading === false && state.data?.url === '/api/catalog');",
     "js-hardening-load-catalog-state": "return loadCatalog().then((state) => state.loading === false && Array.isArray(state.data));",
     "js-hardening-parallel-dashboard": "return loadDashboard().then((state) => state.loading === false && (state.data !== null || state.error !== null));",
     "js-hardening-debug-trace": "return traceScenario('registration', () => ({ ok: true })).ok === true;"
@@ -122,18 +178,16 @@ function behaviorTestsFor(id) {
   return expressions[id] ? [test("jsExpression", "Le cas nominal et le cas d'échec produisent des résultats observables", expressions[id])] : [];
 }
 
-function solutionFor(id, starterCode, checks) {
+function solutionFor(id, starterCode, _checks) {
   const implementations = {
-    "js-hardening-validate-profile": "function validateProfile(profile) {\n  const clone = structuredClone(profile ?? {});\n  let errors = [];\n  const name = String(clone.name ?? '').trim();\n  const email = String(clone.email ?? '').trim();\n  const xp = Number(clone.xp);\n  if (!name) errors.push('name'); else clone.name = name;\n  if (!email.includes('@')) errors.push('email');\n  if (!Number.isFinite(xp)) errors.push('xp');\n  if (!Array.isArray(clone.tags)) clone.tags = [];\n  const tags = clone.tags.map((tag) => String(tag).trim()).filter(Boolean);\n  const hasLearningTag = tags.some((tag) => tag.includes('js'));\n  const allTagsValid = tags.every(Boolean);\n  const totalTagLength = tags.reduce((sum, tag) => sum + tag.length, 0);\n  try { if (errors.length) throw new Error(errors.join(',')); }\n  catch (error) { return { ok: false, error: error.message }; }\n  return { ok: true, name, email, xp, tags, hasLearningTag, allTagsValid, totalTagLength };\n}",
-    "js-hardening-normalize-course": "function normalizeCourse(course) {\n  const clone = structuredClone(course ?? {});\n  let level = String(clone.level ?? 'starter').trim();\n  const title = String(clone.title ?? '').trim();\n  const duration = Number(clone.duration ?? 0);\n  const modules = Array.isArray(clone.modules) ? clone.modules : [];\n  const slugs = modules.map((item) => String(item.slug ?? '').trim()).filter(Boolean);\n  const totalLessons = modules.reduce((sum, item) => sum + Number(item.lessons ?? 0), 0);\n  const hasJs = slugs.some((slug) => slug.includes('js'));\n  const everySlug = slugs.every(Boolean);\n  try { if (!title || !Number.isFinite(duration)) throw new Error('course invalid'); }\n  catch (error) { return { ok: false, error: error.message }; }\n  if (!['starter', 'builder', 'advanced'].includes(level)) level = 'starter'; else level = level;\n  return { ok: true, title, level, duration, slugs, totalLessons, hasJs, everySlug };\n}",
-    "js-hardening-score-boundaries": "function computeQuizResult(correct, total) {\n  const values = [correct, total];\n  let errors = [];\n  if (!Array.isArray(values)) errors.push('array');\n  const numbers = values.map(Number).filter(Number.isFinite);\n  const allValid = numbers.every((value) => value >= 0);\n  const hasZero = numbers.some((value) => value === 0);\n  const sum = numbers.reduce((totalValue, value) => totalValue + value, 0);\n  try { if (numbers.length !== 2 || !allValid || Number(total) <= 0) throw new Error('score invalid'); }\n  catch (error) { return { ok: false, error: error.message }; }\n  const percent = Math.round((Number(correct) / Number(total)) * 100);\n  if (percent >= 70) return { ok: true, percent, passed: true, sum, hasZero, clone: structuredClone({ correct, total }) };\n  else return { ok: true, percent, passed: false, sum, hasZero, clone: structuredClone({ correct, total }) };\n}",
     "js-hardening-fetch-timeout": "async function fetchWithTimeout(url, ms = 4000) {\n  const controller = new AbortController();\n  const timer = setTimeout(() => controller.abort(), ms);\n  const state = { loading: true, data: null, error: null };\n  try {\n    const response = await fetch(url, { signal: controller.signal });\n    if (!response.ok) throw new Error(`HTTP ${response.status}`);\n    state.data = await response.json();\n    return state;\n  } catch (error) {\n    state.error = error.message;\n    return state;\n  } finally {\n    clearTimeout(timer);\n    state.loading = false;\n  }\n}\nasync function loadAll(urls) { return Promise.all(urls.map(fetchWithTimeout).filter(Boolean)); }",
     "js-hardening-load-catalog-state": "async function loadCatalog() {\n  const controller = new AbortController();\n  const timer = setTimeout(() => controller.abort(), 4000);\n  const state = { loading: true, data: null, error: null };\n  try {\n    const response = await fetch('/api/catalog', { signal: controller.signal });\n    if (!response.ok) throw new Error(`HTTP ${response.status}`);\n    const data = await response.json();\n    state.data = Array.isArray(data.items) ? data.items.filter(Boolean).map((item) => item.title) : [];\n    return state;\n  } catch (error) { state.error = error.message; return state; }\n  finally { clearTimeout(timer); state.loading = false; }\n}\nasync function preload() { return Promise.all(['/api/catalog'].map(fetch)); }",
     "js-hardening-parallel-dashboard": "async function loadDashboard() {\n  const controller = new AbortController();\n  const timer = setTimeout(() => controller.abort(), 4000);\n  const state = { loading: true, data: null, error: null };\n  try {\n    const urls = ['/api/profile', '/api/progress', '/api/recommendations'];\n    const responses = await Promise.all(urls.map((url) => fetch(url, { signal: controller.signal })));\n    responses.forEach((response) => { if (!response.ok) throw new Error(`HTTP ${response.status}`); });\n    const data = await Promise.all(responses.map((response) => response.json()));\n    state.data = data.filter(Boolean);\n    return state;\n  } catch (error) { state.error = error.message; return state; }\n  finally { clearTimeout(timer); state.loading = false; }\n}",
+    "js-hardening-accessible-modal": "<button id=\"open\" aria-controls=\"modal\" aria-expanded=\"false\">Ouvrir</button><section id=\"modal\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"modal-title\" hidden><h2 id=\"modal-title\">Aide</h2><button id=\"close\">Fermer</button><p role=\"status\" aria-live=\"polite\"></p></section><script>\nconst openButton = document.querySelector('#open');\nconst dialog = document.querySelector('#modal');\nconst closeButton = document.querySelector('#close');\nconst status = dialog.querySelector('[role=\"status\"]');\nfunction closeDialog() {\n  dialog.hidden = true;\n  openButton.setAttribute('aria-expanded', 'false');\n  status.textContent = 'Aide fermée';\n  openButton.focus();\n}\nopenButton.addEventListener('click', () => {\n  dialog.hidden = false;\n  openButton.setAttribute('aria-expanded', 'true');\n  status.textContent = 'Aide ouverte';\n  closeButton.focus();\n});\ncloseButton.addEventListener('click', closeDialog);\ndialog.addEventListener('keydown', (event) => {\n  if (event.key === 'Escape') closeDialog();\n  if (event.key === 'Tab') { event.preventDefault(); closeButton.focus(); }\n});\n</script>",
+    "js-hardening-task-renderer": "<form id=\"task-form\"><input id=\"task-title\" name=\"title\" /><button id=\"add-task\" disabled>Ajouter</button></form><ul id=\"tasks\"></ul><p role=\"status\" aria-live=\"polite\"></p><script>\nconst state = { tasks: (() => { try { const raw = localStorage.getItem('tasks'); return raw ? JSON.parse(raw) : []; } catch { return []; } })() };\nconst form = document.querySelector('#task-form');\nconst input = document.querySelector('#task-title');\nconst addButton = document.querySelector('#add-task');\nconst list = document.querySelector('#tasks');\naddButton.addEventListener('click', (event) => { event.preventDefault(); form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); });\nconst status = document.querySelector('[role=\"status\"]');\nfunction validateTask(title) {\n  const clean = String(title ?? '').trim();\n  if (!clean) throw new Error('Task required');\n  return { id: crypto.randomUUID(), title: clean, done: false };\n}\nfunction persist() { try { localStorage.setItem('tasks', JSON.stringify(state.tasks)); } catch { /* Storage can be disabled in a sandboxed preview. */ } }\nfunction render() {\n  const fragment = document.createDocumentFragment();\n  for (const task of state.tasks) {\n    const item = document.createElement('li');\n    item.dataset.id = task.id;\n    item.classList.toggle('is-done', task.done);\n    const label = document.createElement('span');\n    label.textContent = task.title;\n    const toggle = document.createElement('button');\n    toggle.type = 'button'; toggle.dataset.action = 'toggle'; toggle.dataset.id = task.id; toggle.textContent = 'Terminer';\n    const remove = document.createElement('button');\n    remove.type = 'button'; remove.dataset.action = 'remove'; remove.dataset.id = task.id; remove.textContent = 'Supprimer';\n    item.append(label, toggle, remove); fragment.append(item);\n  }\n  list.replaceChildren(fragment);\n  status.textContent = `${state.tasks.length} tâche(s)`;\n}\ninput.addEventListener('input', () => { addButton.disabled = !input.value.trim(); });\nform.addEventListener('submit', (event) => {\n  event.preventDefault();\n  const data = new FormData(event.currentTarget);\n  try { state.tasks = [...state.tasks, validateTask(data.get('title'))]; persist(); render(); input.value = ''; addButton.disabled = true; status.textContent = 'Tâche ajoutée'; }\n  catch (error) { status.textContent = error.message; }\n});\nlist.addEventListener('click', (event) => {\n  const button = event.target.closest('button[data-action]');\n  if (!button) return;\n  const task = state.tasks.find((item) => item.id === button.dataset.id);\n  if (button.dataset.action === 'toggle') task.done = !task.done;\n  else state.tasks = state.tasks.filter((item) => item.id !== button.dataset.id);\n  persist(); render();\n});\nrender();\n</script>",
     "js-hardening-debug-trace": "function traceScenario(name, callback) {\n  console.group?.(name);\n  performance.mark?.(`${name}:start`);\n  try {\n    debugger;\n    const cloned = structuredClone({ name, input: Array.from([name]) });\n    const frozen = Object.freeze(cloned);\n    const result = callback?.(frozen) ?? null;\n    console.table?.([{ name, type: typeof result, object: result instanceof Object }]);\n    return JSON.parse(JSON.stringify(result));\n  } catch (error) {\n    const wrapped = new Error(error.message);\n    console.table?.([{ stack: wrapped.stack }]);\n    return null;\n  } finally {\n    performance.mark?.(`${name}:end`);\n    performance.measure?.(name, `${name}:start`, `${name}:end`);\n    console.groupEnd?.();\n  }\n}"
   };
-  const checklist = `\nconst practiceChecklist = ${JSON.stringify(checks)};\n`;
-  return implementations[id] ? `${implementations[id]}${checklist}` : `${starterCode}${checklist}`;
+  return implementations[id] || starterCode;
 }
 
 function createCourse(id, title, brief, solution, checks) {

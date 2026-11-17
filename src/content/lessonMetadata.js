@@ -26,6 +26,7 @@ function difficultyFor(id) {
 }
 
 function durationFor(id) {
+  if (id === "html-00-what-html-does") return 15;
   const difficulty = difficultyFor(id);
   if (difficulty === "quick") return 15;
   if (difficulty === "starter") return 30;
@@ -322,7 +323,7 @@ function guideFor(id, type) {
 }
 
 function projectRubricFor(id) {
-  const commonEn = ["Every required test passes.", "The code remains readable and organized.", "The result can be explained without the solution."];
+  const commonEn = ["Every required test passes.", "The code remains readable and organized.", "The result can be explained without the solution.", "A normal case and a meaningful boundary are verified."];
   const rubrics = {
     "html-05-mini-project-profile": ["La navigation atteint chaque section annoncée.", "La hiérarchie des titres reste logique.", "Images, listes et liens transmettent un sens clair.", "La page reste compréhensible sans CSS."],
     "html-11-accessibility-audit": ["Chaque problème est relié à un impact utilisateur.", "Les corrections privilégient les éléments HTML natifs.", "La page est utilisable au clavier.", "Chaque correction est vérifiée, pas seulement écrite."],

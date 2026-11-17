@@ -28,16 +28,16 @@ const cssModuleLoaders = {
   "css-box-type": () => import("./cssTrackBoxTypeChunk.js").then((module) => module.cssTrackBoxTypeChunk),
   "css-flex-layout": () => import("./cssTrackFlexLayoutChunk.js").then((module) => module.cssTrackFlexLayoutChunk),
   "css-grid-layout": () => import("./cssTrackGridLayoutChunk.js").then((module) => module.cssTrackGridLayoutChunk),
-  "css-selectors": () => import("./cssTrackLegacyFoundationChunk.js").then((module) => module.cssTrackLegacyFoundationChunk),
-  "css-box-model": () => import("./cssTrackLegacyFoundationChunk.js").then((module) => module.cssTrackLegacyFoundationChunk),
-  "css-flexbox": () => import("./cssTrackLegacyFoundationChunk.js").then((module) => module.cssTrackLegacyFoundationChunk),
-  "css-grid": () => import("./cssTrackLegacyFoundationChunk.js").then((module) => module.cssTrackLegacyFoundationChunk),
+  "css-selectors": () => import("./cssTrackSelectorsChunk.js").then((module) => module.cssTrackSelectorsChunk),
+  "css-box-model": () => import("./cssTrackBoxModelChunk.js").then((module) => module.cssTrackBoxModelChunk),
+  "css-flexbox": () => import("./cssTrackFlexboxChunk.js").then((module) => module.cssTrackFlexboxChunk),
+  "css-grid": () => import("./cssTrackGridChunk.js").then((module) => module.cssTrackGridChunk),
   "css-responsive": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackResponsiveChunk),
-  "css-a11y-states": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackResponsiveChunk),
-  "css-motion": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackResponsiveChunk),
+  "css-a11y-states": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackAccessibleStatesChunk),
+  "css-motion": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackMotionChunk),
   "css-capstone": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackResponsiveChunk),
-  "css-responsive-motion": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackResponsiveChunk),
-  "css-advanced-responsive": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackResponsiveChunk)
+  "css-responsive-motion": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackResponsiveMotionChunk),
+  "css-advanced-responsive": () => import("./cssTrackResponsiveChunk.js").then((module) => module.cssTrackAdvancedResponsiveChunk)
 };
 
 export async function loadLocalTrack(trackId, options = {}) {
@@ -84,6 +84,9 @@ async function loadFullCssTrack() {
     cssModuleLoaders["css-flex-layout"](),
     cssModuleLoaders["css-grid-layout"](),
     cssModuleLoaders["css-selectors"](),
+    cssModuleLoaders["css-box-model"](),
+    cssModuleLoaders["css-flexbox"](),
+    cssModuleLoaders["css-grid"](),
     cssModuleLoaders["css-responsive"]()
   ]);
   return tracks.reduce((merged, track) => mergeLoadedTrack(merged, track), null);

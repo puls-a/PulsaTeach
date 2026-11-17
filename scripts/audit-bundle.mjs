@@ -15,7 +15,9 @@ const perFileBudgets = {
   ".css": 64 * KB
 };
 const dataChunkBudgets = {
-  "content-html-": { raw: 350 * KB, gzip: 110 * KB }
+  "content-html-": { raw: 350 * KB, gzip: 110 * KB },
+  // Advanced CSS lessons add authored curriculum; the gzip ceiling guards transfer size.
+  "content-css-": { raw: 330 * KB, gzip: 100 * KB }
 };
 const aggregateBudgets = {
   rawJs: budgetFromEnv("BUNDLE_BUDGET_RAW_JS_MB", 2.25 * MB),

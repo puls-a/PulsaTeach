@@ -28,7 +28,7 @@ const pulsaHighlightStyle = HighlightStyle.define([
   { tag: [tags.operator, tags.punctuation], color: "#e2e8f0" }
 ]);
 
-export default function CodeMirrorEditor({ value, documentKey, languageKind, locale, editorRef, fontSize, lineWrapping, onChange, onRun, onSave }) {
+export default function CodeMirrorEditor({ value, externalRevision, documentKey, languageKind, locale, editorRef, fontSize, lineWrapping, onChange, onRun, onSave }) {
   const hostRef = useRef(null);
   const viewRef = useRef(null);
   const valueRef = useRef(value);
@@ -97,9 +97,9 @@ export default function CodeMirrorEditor({ value, documentKey, languageKind, loc
             },
             ...historyKeymap
           ]),
-          EditorView.updateListener.of((update) => {
-            if (update.docChanged) callbacksRef.current.onChange(update.state.doc.toString());
-          })
+           EditorView.updateListener.of((update) => {
+             if (update.docChanged) callbacksRef.current.onChange(update.state.doc.toString());
+           })
         ]
       })
     });
@@ -114,12 +114,15 @@ export default function CodeMirrorEditor({ value, documentKey, languageKind, loc
 
   useEffect(() => {
     const view = viewRef.current;
-    if (!view || view.state.doc.toString() === value) return;
+    const externalValue = valueRef.current;
+    if (!view || view.state.doc.toString() === externalValue) return;
     view.dispatch({
-      changes: { from: 0, to: view.state.doc.length, insert: value },
+      changes: { from: 0, to: view.state.doc.length, insert: externalValue },
       annotations: Transaction.addToHistory.of(false)
     });
-  }, [value]);
+    // Typing updates the React state but must never replay a stale value into CodeMirror.
+    // Only explicit reset/solution actions increment externalRevision.
+  }, [externalRevision]);
 
   useEffect(() => {
     const view = viewRef.current;

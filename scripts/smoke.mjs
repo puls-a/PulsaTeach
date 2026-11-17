@@ -6,7 +6,7 @@ const routes = [
   "",
   "catalog",
   "learn/html/html-getting-started/html-00-what-html-does",
-  "learn/css/css-selectors/css-01-selectors",
+  "learn/css/css-getting-started/css-00-what-css-does",
   "learn/css/css-advanced-responsive/css-07-container-queries",
   "learn/javascript/js-basics/js-01-variables",
   "path",

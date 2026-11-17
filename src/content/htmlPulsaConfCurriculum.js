@@ -361,8 +361,8 @@ const customGuides = {
 
 const onboardingExamples = {
   "html-00-what-html-does": {
-    decision: T("<h1>PulsaConf 2026</h1>\n<p>Une journée pour apprendre le web.</p>", "<h1>PulsaConf 2026</h1>\n<p>A day to learn the web.</p>"),
-    validation: T("<h1>PulsaConf 2026</h1>\n<p>Une journée pour apprendre le web.</p>", "<h1>PulsaConf 2026</h1>\n<p>A day to learn the web.</p>")
+    decision: T("<h1>Atelier découverte</h1>\n<p>Un premier rendez-vous pour apprendre.</p>", "<h1>Discovery workshop</h1>\n<p>A first meeting to learn together.</p>"),
+    validation: T("<h1>Atelier découverte</h1>\n<p>La description est dans un paragraphe.</p>", "<h1>Discovery workshop</h1>\n<p>The description belongs in a paragraph.</p>")
   },
   "html-00-install-toolkit": {
     decision: T("<dl>\n  <dt>Navigateur</dt>\n  <dd>Afficher la page et ouvrir les DevTools.</dd>\n</dl>", "<dl>\n  <dt>Browser</dt>\n  <dd>Display the page and open DevTools.</dd>\n</dl>"),
@@ -942,7 +942,7 @@ function courseForStep(id, title, focus, example, vocabulary, brief) {
           title: narrative.fr.validationTitle,
           paragraphs: [
             narrative.fr.validation,
-            `Pour ${id}, commence par le premier test en échec et relie son message à l'élément, l'attribut ou la relation concernée.`
+             id === "html-00-what-html-does" ? "Si le titre échoue, entoure le nom de la conférence avec h1. Si le paragraphe échoue, entoure la phrase de présentation avec p." : `Pour ${id}, commence par le premier test en échec et relie son message à l'élément, l'attribut ou la relation concernée.`
           ],
           example: customExample?.validation.fr || "<section aria-labelledby=\"section-title\">\n  <h2 id=\"section-title\">Titre</h2>\n</section>"
         }
@@ -977,7 +977,7 @@ function courseForStep(id, title, focus, example, vocabulary, brief) {
           title: narrative.en.validationTitle,
           paragraphs: [
             narrative.en.validation,
-            `For ${id}, start with the first failing test and connect its message to the relevant element, attribute, or relationship.`
+             id === "html-00-what-html-does" ? "If the heading fails, wrap the conference name in h1. If the paragraph fails, wrap the introductory sentence in p." : `For ${id}, start with the first failing test and connect its message to the relevant element, attribute, or relationship.`
           ],
           example: customExample?.validation.en || "<section aria-labelledby=\"section-title\">\n  <h2 id=\"section-title\">Title</h2>\n</section>"
         }
@@ -1194,6 +1194,24 @@ function enrich(item, stepNumber, buildsOn, focus, example, vocabulary) {
     stepNumber,
     buildsOn: buildsOn || null
   };
+  if (item.id === "html-00-what-html-does") {
+    enriched.durationMin = 15;
+    enriched.pedagogy = {
+      fr: {
+        ...enriched.pedagogy.fr,
+        comparison: { ...enriched.pedagogy.fr.comparison, good: { ...enriched.pedagogy.fr.comparison.good, code: "<h1>Atelier découverte</h1>\n<p>Une présentation brève.</p>" } },
+        correction: ["Le nom de la conférence devient un titre h1 : il annonce le sujet principal.", "La phrase de présentation devient un paragraphe p : elle décrit l'événement.", "Les tests relient chaque texte à sa balise et refusent style et script. Aucun main n'est demandé ici."],
+        summary: "Deux lignes de texte ont désormais des rôles HTML distincts : titre et paragraphe."
+      },
+      en: {
+        ...enriched.pedagogy.en,
+        prerequisites: guide.en.prerequisites,
+        comparison: { ...enriched.pedagogy.en.comparison, good: { ...enriched.pedagogy.en.comparison.good, code: "<h1>Discovery workshop</h1>\n<p>A short introduction.</p>" } },
+        correction: ["The conference name becomes an h1 heading: it names the main topic.", "The introductory sentence becomes a p paragraph: it describes the event.", "The checks connect each text to its element and reject style and script. A main element is not required yet."],
+        summary: "Two lines of text now have distinct HTML roles: heading and paragraph."
+      }
+    };
+  }
   if (item.type === "project") {
     enriched.rubric = {
       fr: [
@@ -1587,11 +1605,17 @@ const modules = [
       {
         id: "html-00-what-html-does",
         title: P("Ce que HTML fait vraiment", "What HTML really does"),
-        brief: P("Distingue structure HTML, style CSS et comportement JavaScript avant d'écrire PulsaConf.", "Separate HTML structure, CSS style, and JavaScript behavior before writing PulsaConf."),
+        brief: P("Transforme « PulsaConf 2026 » en titre h1 et sa phrase de présentation en paragraphe p. Garde le texte intact.", "Turn ‘PulsaConf 2026’ into an h1 heading and its introductory sentence into a p paragraph. Keep the text unchanged."),
         focus: T("le rôle exact de HTML", "the exact role of HTML"),
         starter: `PulsaConf 2026\nUne journée pour apprendre le web.`,
         solution: `<h1>PulsaConf 2026</h1>\n<p>Une journée pour apprendre le web.</p>`,
-        tests: [test("selector", "main heading", "h1"), test("selector", "paragraph", "p"), test("contains", "event name", "PulsaConf 2026"), test("notContains", "no style tag", "<style"), test("notContains", "no script tag", "<script")]
+        tests: [
+          { ...test("elementText", T("Le titre h1 contient le nom PulsaConf 2026", "The h1 heading contains the PulsaConf 2026 name"), { selector: "h1", expected: "PulsaConf 2026" }), help: T("Entoure « PulsaConf 2026 » avec <h1> et </h1>.", "Wrap ‘PulsaConf 2026’ in <h1> and </h1>.") },
+          { ...test("elementText", T("Le paragraphe p contient la présentation", "The p paragraph contains the introduction"), { selector: "p", expected: T("Une journée pour apprendre le web.", "A day to learn the web.") }), help: T("Entoure la phrase de présentation avec <p> et </p>.", "Wrap the introductory sentence in <p> and </p>.") },
+          test("contains", T("Le nom PulsaConf 2026 reste visible", "The PulsaConf 2026 name remains visible"), "PulsaConf 2026"),
+          test("notContains", T("Pas de balise style dans cet exercice", "No style tag in this exercise"), "<style"),
+          test("notContains", T("Pas de balise script dans cet exercice", "No script tag in this exercise"), "<script")
+        ]
       },
       {
         id: "html-00-install-toolkit",

@@ -120,32 +120,53 @@ function moduleLearningMeta(id) {
       mastery: { fr: ["Chaque règle à une intention", "La feuille de style reste séparée du HTML", "Le rendu est vérifié dans DevTools et sur plusieurs largeurs"], en: ["Every rule has intent", "The stylesheet remains separate from HTML", "The output is checked in DevTools and across widths"] }
     },
     "css-selectors": {
-      importance: { fr: "Des sélecteurs prévisibles permettent de faire évoluer une interface sans modifier accidentellement d'autres composants.", en: "Predictable selectors let an interface evolve without accidentally changing other components." },
-      prerequisites: { fr: ["Lire une structure HTML simple", "Reconnaître balises, classes et identifiants"], en: ["Read simple HTML structure", "Recognize tags, classes, and identifiers"] },
-      outcomes: { fr: ["Cibler selon un nom ou une relation", "Styliser les états interactifs", "Raisonner sur la cascade"], en: ["Target by name or relationship", "Style interactive states", "Reason about the cascade"] },
-      vocabulary: ["sélecteur", "classe", "combinateur", "pseudo-classe", "cascade", "spécificité"],
-      mastery: { fr: ["Prédire les éléments ciblés", "Conserver un focus clavier visible", "Expliquer quelle règle gagne et pourquoi"], en: ["Predict targeted éléments", "Keep keyboard focus visible", "Explain which rule wins and why"] }
+      importance: { fr: "Après le layout, des sélecteurs prévisibles permettent de faire évoluer un composant sans modifier accidentellement ses voisins.", en: "After layout, predictable selectors let a component evolve without accidentally changing its neighbors." },
+      prerequisites: { fr: ["Avoir terminé Grid", "Reconnaître classes, attributs et relations HTML"], en: ["Complete Grid", "Recognize classes, attributes, and HTML relationships"] },
+      outcomes: { fr: ["Limiter la portée d'une règle", "Composer variantes, attributs et états", "Raisonner sur la spécificité sans escalade"], en: ["Limit rule scope", "Compose variants, attributes, and states", "Reason about specificity without escalation"] },
+      vocabulary: ["portée", "combinateur", "attribut", ":is", ":not", ":where", "focus-visible", "spécificité"],
+      mastery: { fr: ["Prédire les éléments ciblés et exclus", "Conserver un focus clavier visible", "Permettre une surcharge sans important"], en: ["Predict targeted and excluded elements", "Keep keyboard focus visible", "Allow overrides without important"] }
     },
     "css-box-model": {
-      importance: { fr: "Le modèle de boîte, la typographie et les dimensions fluides constituent la base de toute interface stable et lisible.", en: "The box model, typography, and fluid sizing form the base of every stable readable interface." },
-      prerequisites: { fr: ["Module Sélecteurs"], en: ["Selectors module"] },
-      outcomes: { fr: ["Construire des surfaces cohérentes", "Rendre le texte confortable", "Créer des dimensions fluides et robustes"], en: ["Build coherent surfaces", "Make text comfortable", "Create fluid robust sizing"] },
-      vocabulary: ["contenu", "padding", "bordure", "margin", "line-height", "variable CSS", "overflow"],
-      mastery: { fr: ["Distinguer espace intérieur et extérieur", "Centraliser les valeurs partagées", "Absorber un contenu long sans casser le layout"], en: ["Distinguish internal and external spacing", "Centralize shared values", "Handle long content without breaking layout"] }
+      importance: { fr: "Après les sélecteurs, les boîtes doivent résister aux pistes étroites, aux langues et aux identifiants réels sans masquer l'information.", en: "After selectors, boxes must withstand narrow tracks, languages, and real identifiers without hiding information." },
+      prerequisites: { fr: ["Architecture de sélecteurs", "Grid et axes logiques"], en: ["Selector architecture", "Grid and logical axes"] },
+      outcomes: { fr: ["Stabiliser une boîte dans Grid", "Partager les dimensions avec des tokens", "Préserver les contenus extrêmes"], en: ["Stabilize a box in Grid", "Share dimensions with tokens", "Preserve extreme content"] },
+      vocabulary: ["border-box", "line-height", "custom property", "inline-size", "overflow-wrap", "padding-inline", "min-inline-size"],
+      mastery: { fr: ["La carte reste dans sa piste", "Le contenu long reste visible", "Les dimensions suivent les axes logiques"], en: ["The card stays in its track", "Long content remains visible", "Dimensions follow logical axes"] }
     },
     "css-flexbox": {
-      importance: { fr: "Flexbox organise les composants sur un axe et résout les alignements courants des navigations, barres d'actions et listes.", en: "Flexbox organizes components on one axis and solves common navigation, action bar, and list alignment needs." },
-      prerequisites: { fr: ["Sélecteurs", "Modèle de boîte"], en: ["Selectors", "Box model"] },
-      outcomes: { fr: ["Aligner et distribuer des groupes", "Gérer le repli sans débordement", "Livrer une navbar responsive"], en: ["Align and distribute groups", "Handle wrapping without overflow", "Ship à responsive navbar"] },
-      vocabulary: ["conteneur flex", "axe principal", "axe secondaire", "gap", "flex-wrap", "justify-content"],
-      mastery: { fr: ["Expliquer les deux axes", "Choisir la bonne propriété d'alignement", "La navbar reste utilisable sur petit écran"], en: ["Explain both axes", "Choose the right alignment property", "Keep the navbar usable on small screens"] }
+      importance: { fr: "Une navigation regroupe identité, statut et actions ; Flexbox doit répartir l'espace sans compresser les contrôles ni brouiller l'ordre clavier.", en: "Navigation combines identity, status, and actions; Flexbox must distribute space without compressing controls or confusing keyboard order." },
+      prerequisites: { fr: ["Avoir terminé Box Model avancé", "Distinguer axe principal et axe transversal"], en: ["Complete the advanced box model", "Distinguish main and cross axes"] },
+      outcomes: { fr: ["Composer et espacer des groupes de navigation", "Contrôler base, croissance et réduction", "Replier la barre sans réordonner les actions"], en: ["Compose and space navigation groups", "Control basis, growth, and shrinkage", "Wrap the bar without reordering actions"] },
+      vocabulary: ["conteneur flex", "axe principal", "axe transversal", "gap", "flex-basis", "flex-wrap", "ordre clavier"],
+      mastery: { fr: ["Les actions ne se compriment pas", "La barre se replie avant le débordement", "Ordre visuel, source et clavier restent cohérents"], en: ["Actions do not compress", "The bar wraps before overflow", "Visual, source, and keyboard order remain aligned"] }
     },
     "css-grid": {
-      importance: { fr: "Grid permet de composer des structures bidimensionnelles adaptatives sans calculs de largeur fragiles.", en: "Grid composes adaptive two-dimensional structures without fragile width calculations." },
-      prerequisites: { fr: ["Tailles fluides", "Espacements cohérents"], en: ["Fluid sizing", "Consistent spacing"] },
-      outcomes: { fr: ["Définir lignes et colonnes", "Créer une galerie auto-adaptative", "Aligner le contenu dans les cellules"], en: ["Define rows and columns", "Create an auto-adaptive gallery", "Align content inside cells"] },
-      vocabulary: ["grille", "piste", "fr", "repeat", "minmax", "auto-fit", "place-items"],
-      mastery: { fr: ["Choisir Grid pour un besoin bidimensionnel", "Construire une galerie sans largeur fixe", "Expliquer chaque piste et gouttière"], en: ["Choose Grid for à two-dimensional need", "Build à gallery without fixed width", "Explain every track and gutter"] }
+      importance: { fr: "Les zones nommées rendent les compositions éditoriales lisibles dans le CSS tout en préservant l'ordre du document.", en: "Named areas make editorial compositions readable in CSS while preserving document order." },
+      prerequisites: { fr: ["Avoir terminé Grid et compositions", "Reconnaître pistes, cellules et ordre source"], en: ["Complete Grid and compositions", "Recognize tracks, cells, and source order"] },
+      outcomes: { fr: ["Décrire un plan avec grid-template-areas", "Placer un élément sans déplacer son HTML", "Adapter les zones à une colonne sur mobile"], en: ["Describe a template with grid-template-areas", "Place an item without moving its HTML", "Adapt areas to one column on mobile"] },
+      vocabulary: ["named area", "grid-area", "grid-template-areas", "grid item", "align-self", "source order"],
+      mastery: { fr: ["Chaque enfant occupe la zone prévue", "Les rangées ont une structure valide", "Rendu et ordre clavier restent cohérents"], en: ["Each child occupies its intended area", "Rows use a valid structure", "Visual and keyboard order remain consistent"] }
+    },
+    "css-a11y-states": {
+      importance: { fr: "Un état interactif doit rester perceptible au clavier et au pointeur, y compris quand les couleurs sont forcées par le système.", en: "An interactive state must remain perceivable by keyboard and pointer, including when the system forces its colors." },
+      prerequisites: { fr: ["Avoir terminé Responsive mobile-first", "Connaître focus-visible, hover et disabled"], en: ["Complete mobile-first responsive design", "Know focus-visible, hover, and disabled states"] },
+      outcomes: { fr: ["Distinguer le focus clavier du survol", "Expliquer une action désactivée sans perdre le contraste", "Préserver le focus dans les couleurs forcées"], en: ["Distinguish keyboard focus from hover", "Explain disabled actions without losing contrast", "Preserve focus in forced colors"] },
+      vocabulary: ["focus-visible", "outline", "hover", "disabled", "forced-colors", "target size", "system colors"],
+      mastery: { fr: ["Le focus reste visible et distinct du hover", "Les actions désactivées restent lisibles", "Le système garde la main sur ses couleurs"], en: ["Focus stays visible and distinct from hover", "Disabled actions remain readable", "The system retains control of its colors"] }
+    },
+    "css-motion": {
+      importance: { fr: "Le mouvement peut clarifier un changement, mais les effets décoratifs doivent rester courts, finis et désactivables selon les préférences.", en: "Motion can clarify a change, but decorative effects should be brief, finite, and removable according to user preferences." },
+      prerequisites: { fr: ["Avoir terminé États accessibles", "Connaître transform, transition et prefers-reduced-motion"], en: ["Complete accessible states", "Know transform, transition, and prefers-reduced-motion"] },
+      outcomes: { fr: ["Animer transform plutôt que la géométrie", "Borner les répétitions et le point d'ancrage", "Retirer le mouvement non essentiel sans cacher l'information"], en: ["Animate transform rather than geometry", "Bound iterations and transform origin", "Remove nonessential motion without hiding information"] },
+      vocabulary: ["transition", "transform", "animation", "keyframes", "will-change", "prefers-reduced-motion"],
+      mastery: { fr: ["Le layout ne reflow pas au survol", "Le statut animé garde un état final", "La préférence réduite retire les effets non essentiels"], en: ["Layout does not reflow on hover", "Animated status has a stable final state", "Reduced-motion preference removes nonessential effects"] }
+    },
+    "css-capstone": {
+      importance: { fr: "Le capstone vérifie que tokens, Grid, Flexbox, médias, conteneurs et états restent cohérents dans un livrable complet.", en: "The capstone verifies that tokens, Grid, Flexbox, media, containers, and states remain coherent in one complete deliverable." },
+      prerequisites: { fr: ["Avoir terminé Responsive, États accessibles et Motion", "Pouvoir justifier les choix Grid et Flexbox"], en: ["Complete Responsive, Accessible States, and Motion", "Be able to justify Grid and Flexbox choices"] },
+      outcomes: { fr: ["Assembler un système visuel mobile-first", "Prouver l'adaptation au viewport et au conteneur", "Préserver contenu, focus et mouvement réduit"], en: ["Assemble a mobile-first visual system", "Prove adaptation to viewport and container", "Preserve content, focus, and reduced motion"] },
+      vocabulary: ["design token", "auto-fit", "container query", "aspect ratio", "object-fit", "overflow-wrap", "reduced motion"],
+      mastery: { fr: ["Le contenu complet reste visible à 375px", "Les cartes s'adaptent à leur conteneur", "Les interactions restent utilisables au clavier"], en: ["Complete content remains visible at 375px", "Cards adapt to their container", "Interactions remain keyboard-usable"] }
     },
     "css-responsive-motion": {
       importance: { fr: "Une interface professionnelle doit fonctionner avec différents écrans, contenus, moyens d'interaction et préférences de mouvement.", en: "A professional interface must work across screens, content, interaction methods, and motion préférences." },
@@ -155,11 +176,11 @@ function moduleLearningMeta(id) {
       mastery: { fr: ["Aucun débordement aux largeurs testées", "Les actions clavier restent visibles", "Le mouvement respecte reduced-motion", "Le projet final utilise un système cohérent"], en: ["No overflow at tested widths", "Keyboard actions remain visible", "Motion respects reduced-motion", "Final project uses à coherent system"] }
     },
     "css-advanced-responsive": {
-      importance: { fr: "Les interfaces modernes ne s'adaptent pas seulement à la fenêtre : elles doivent réagir à leur conteneur, aux médias, aux textes longs et aux variations de densité.", en: "Modern interfaces adapt not only to the viewport but also to containers, media, long text, and density changes." },
-      prerequisites: { fr: ["Grid", "Flexbox", "mobile-first", "variables CSS"], en: ["Grid", "Flexbox", "mobile-first", "CSS variables"] },
-      outcomes: { fr: ["Créer une échelle fluide avec clamp", "Stabiliser images et médias", "Utiliser les container queries", "Auditer une interface à plusieurs breakpoints"], en: ["Create à fluid scale with clamp", "Stabilize images and media", "Use container queries", "Audit an interface across breakpoints"] },
-      vocabulary: ["clamp", "aspect-ratio", "object-fit", "container-type", "@container", "audit responsive"],
-      mastery: { fr: ["Le texte reste lisible sans saut brutal", "Les images ne déforment pas le layout", "Les cartes s'adaptent à leur conteneur", "L'audit couvre petit écran, grand écran et contenu extrême"], en: ["Text remains readable without abrupt jumps", "Images do not distort layout", "Cards adapt to their container", "The audit covers small screens, large screens, and extreme content"] }
+      importance: { fr: "Les composants avancés rencontrent des contraintes locales qui ne se déduisent pas d'une seule largeur de fenêtre.", en: "Advanced components face local constraints that cannot be inferred from one viewport width." },
+      prerequisites: { fr: ["Avoir terminé le capstone Responsive et Motion", "Savoir lire Grid, clamp et container queries"], en: ["Complete the Responsive Motion capstone", "Know how to read Grid, clamp, and container queries"] },
+      outcomes: { fr: ["Borner des échelles fluides", "Nommer puis tester un contexte de conteneur", "Garder médias et actions utilisables dans les espaces contraints"], en: ["Bound fluid scales", "Name and test a container context", "Keep media and actions usable in constrained spaces"] },
+      vocabulary: ["fluid scale", "object-position", "named container", "intrinsic layout", "local overflow", "responsive audit"],
+      mastery: { fr: ["Les valeurs fluides ont des bornes", "Une carte réagit à sa largeur propre", "Aucune action n'est masquée par le débordement"], en: ["Fluid values have bounds", "A card responds to its own width", "No action is hidden by overflow"] }
     },
     "js-basics": {
       importance: { fr: "Les valeurs, types et conditions forment le vocabulaire minimal nécessaire pour exprimer une règle dans un programme.", en: "Values, types, and conditions form the minimum vocabulary needed to express à program rule." },
@@ -200,8 +221,8 @@ function moduleLearningMeta(id) {
       importance: { fr: "La validation transforme un exercice JavaScript en code fiable : chaque entree douteuse devient un cas explicite.", en: "Validation turns a JavaScript exercise into reliable code: every doubtful input becomes an explicit case." },
       prerequisites: { fr: ["Fonctions", "conditions", "tableaux", "objets"], en: ["Functions", "conditionals", "arrays", "objects"] },
       outcomes: { fr: ["Valider une forme de donnees", "Normaliser sans mutation inutile", "Tester les seuils et cas limites"], en: ["Validate data shape", "Normalize without unnecessary mutation", "Test thresholds and edge cases"] },
-      vocabulary: ["validation", "normalisation", "cas limite", "erreur", "seuil", "clone"],
-      mastery: { fr: ["Les entrees invalides ne continuent pas silencieusement", "Les seuils 69/70/100 sont prouves", "La sortie est stable et explicable"], en: ["Invalid inputs do not continue silently", "69/70/100 thresholds are proven", "Output is stable and explainable"] }
+      vocabulary: ["validation", "normalisation", "cas limite", "erreur", "seuil", "sans mutation"],
+      mastery: { fr: ["Les entrées invalides ne continuent pas silencieusement", "Les seuils 69,5/70/100 % sont prouvés", "La sortie est stable et explicable"], en: ["Invalid inputs do not continue silently", "69.5/70/100% thresholds are proven", "Output is stable and explainable"] }
     },
     "js-async-resilience": {
       importance: { fr: "Les vraies applications echouent parfois : timeout, offline, 404 et 500 doivent rester comprehensibles.", en: "Real applications sometimes fail: timeout, offline, 404, and 500 must remain understandable." },
@@ -240,12 +261,15 @@ function moduleMeta(id) {
     "html-seo-publication": ["Préparer PulsaConf à l'indexation, au partage social et aux données structurées.", "Prepare PulsaConf for indexing, social sharing, and structured data.", "Un head SEO/social publiable", "A publishable SEO/social head"],
     "html-final-audit": ["Assembler, auditer et livrer PulsaConf comme projet final de certification HTML.", "Assemble, audit, and ship PulsaConf as the HTML certification final project.", "PulsaConf final auditable", "Auditable final PulsaConf"],
     "css-getting-started": ["Installer la méthode CSS : feuille séparée, lien HTML, DevTools, cascade et validation responsive.", "Install the CSS method: separate stylesheet, HTML link, DevTools, cascade, and responsive validation.", "Un setup CSS PulsaConf prêt", "A ready PulsaConf CSS setup"],
-    "css-selectors": ["Cibler précisément les éléments et gérer les états interactifs.", "Target éléments precisely and handle interactive states.", "Des composants ciblés sans effets de bord", "Targeted components without side effects"],
-    "css-box-model": ["Construire une base visuelle stable, lisible et fluide.", "Build à stable, readable, fluid visual foundation.", "Un système de cartes robuste", "A robust card system"],
-    "css-flexbox": ["Aligner et distribuer des composants sur un axe.", "Align and distribute components on one axis.", "Une navbar responsive", "A responsive navbar"],
-    "css-grid": ["Composer des mises en page bidimensionnelles adaptatives.", "Compose adaptive two-dimensional layouts.", "Une galerie responsive", "A responsive gallery"],
+    "css-selectors": ["Architecturer des sélecteurs précis après le layout.", "Architect precise selectors after layout.", "Une couche de sélecteurs sans effets de bord", "A selector layer without side effects"],
+    "css-box-model": ["Construire des boîtes logiques stables dans des pistes étroites.", "Build stable logical boxes inside narrow tracks.", "Un système de cartes robuste", "A robust card system"],
+    "css-flexbox": ["Composer une navigation responsive avec des groupes qui se replient sans perdre l'ordre clavier.", "Compose responsive navigation groups that wrap without losing keyboard order.", "Une navigation PulsaConf responsive", "A responsive PulsaConf navigation"],
+    "css-grid": ["Placer le programme dans des zones Grid nommées sans réordonner le document.", "Place the schedule in named Grid areas without reordering the document.", "Un programme PulsaConf en zones Grid", "A PulsaConf named-area schedule"],
+    "css-a11y-states": ["Rendre focus, hover, disabled et forced-colors perceptibles.", "Make focus, hover, disabled, and forced-colors perceivable.", "Des états interactifs accessibles", "Accessible interactive states"],
+    "css-motion": ["Ajouter un mouvement court et réversible qui respecte prefers-reduced-motion.", "Add brief, reversible motion that respects prefers-reduced-motion.", "Une micro-interaction responsable", "A responsible micro-interaction"],
+    "css-capstone": ["Assembler et auditer PulsaConf comme système CSS complet.", "Assemble and audit PulsaConf as a complete CSS system.", "Un système CSS PulsaConf intégré", "An integrated PulsaConf CSS system"],
     "css-responsive-motion": ["Adapter l'interface aux écrans et préférences utilisateur.", "Adapt the interface to screens and user préférences.", "Une landing page responsive", "A responsive landing page"],
-    "css-advanced-responsive": ["Maîtriser les techniques responsive modernes : clamp, médias fluides, container queries et audit multi-breakpoints.", "Master modern responsive techniques: clamp, fluid media, container queries, and multi-breakpoint audits.", "Un audit responsive complet", "A complète responsive audit"],
+    "css-advanced-responsive": ["Construire un audit de composants réutilisables avec échelles fluides, cadrage média, conteneurs nommés et navigation accessible.", "Build a reusable-component audit with fluid scales, media crop, named containers, and accessible navigation.", "Une galerie éditoriale auditée", "An audited editorial gallery"],
     "js-basics": ["Manipuler valeurs, conditions, chaînes et outils de debug.", "Work with values, conditions, strings, and debugging tools.", "Une logique simple et vérifiable", "Simple vérifiable logic"],
     "js-functions": ["Encapsuler la logique dans des fonctions et objets réutilisables.", "Encapsulate logic in reusable functions and objects.", "Une petite API métier", "A small domain API"],
     "js-arrays": ["Transformer, chercher et agréger des collections de données.", "Transform, search, and aggregate data collections.", "Un catalogue filtrable", "A filterable catalog"],

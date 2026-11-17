@@ -43,6 +43,15 @@ test("quiz scores a focused answer and completes the lesson", async ({ page }) =
   await expect(page.getByText(/Score final : 86|Final score: 86/)).toBeVisible();
   await expect(page.getByText(/6\/7 réponses correctes|6\/7 correct answers/)).toHaveCount(0);
   await expect(page.getByText(/C'est validé|Passed\. XP/)).toBeVisible();
+
+  const persistedEvidence = await page.evaluate((lessonId) => {
+    const owner = localStorage.getItem("pulsateach-user-id");
+    const key = `pulsateach-learning-progress:owner:${encodeURIComponent(owner)}`;
+    const progress = JSON.parse(localStorage.getItem(key) || "{}");
+    return { completed: progress.completed?.[lessonId], evidence: progress.quizEvidence?.[lessonId] };
+  }, "html-09-final-exam");
+  expect(persistedEvidence.completed?.passedTests).toBeGreaterThan(0);
+  expect(persistedEvidence.evidence).toMatchObject({ passed: true, percent: 86 });
 });
 
 async function orderChoices(page, labels) {

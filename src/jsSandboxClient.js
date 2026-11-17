@@ -1,7 +1,8 @@
 const defaultTimeoutMs = 3000;
+const expressionTimeoutMs = 8000;
 
 export function runJavaScriptExpressionSandbox(code, expression, timeoutMs = defaultTimeoutMs) {
-  return runSandboxTask({ type: "expression", code, expression }, timeoutMs);
+  return runSandboxTask({ type: "expression", code, expression }, Math.max(timeoutMs, expressionTimeoutMs));
 }
 
 export function runJavaScriptConsoleSandbox(code, timeoutMs = defaultTimeoutMs) {

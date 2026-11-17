@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { htmlTrack } from "../../src/content/htmlTrack.js";
+import { resolveLocaleValue } from "../../src/localeValue.js";
 
 test("learner resubmits a project after contextual review", async ({ page, request }) => {
   const stamp = Date.now();
@@ -62,8 +64,18 @@ test("learner resubmits a project after contextual review", async ({ page, reque
   }
 });
 
-test("a lesson project link prefills canonical submission evidence", async ({ page }) => {
-  await page.goto("/projects?projectId=html-09-final-project-pulsaconf#nouvelle-soumission");
+test("a passed lesson project carries its canonical identity into submission", async ({ page }, testInfo) => {
+  const lesson = htmlTrack.modules.flatMap((module) => module.lessons).find((item) => item.id === "html-09-final-project-pulsaconf");
+  await page.goto("/learn/html/html-final-audit/html-09-final-project-pulsaconf", { waitUntil: "networkidle" });
+  if (testInfo.project.name === "mobile-chromium") await page.getByRole("tab", { name: /Coder|Code/ }).click();
+  const editor = page.getByRole("textbox", { name: /Éditeur de code PulsaTeach|PulsaTeach code editor/ });
+  await editor.fill(resolveLocaleValue(lesson.solution, "fr"));
+  await page.getByRole("button", { name: /Vérifier mon code|Check my code/ }).click();
+  await expect(page.getByText(`${lesson.tests.length}/${lesson.tests.length}`, { exact: true })).toBeVisible();
+  const submit = page.getByRole("link", { name: /Soumettre|Submit/ });
+  await expect(submit).toHaveAttribute("href", "/projects?projectId=html-09-final-project-pulsaconf#nouvelle-soumission");
+  await submit.click();
+  await expect(page).toHaveURL(/\/projects\?projectId=html-09-final-project-pulsaconf#nouvelle-soumission$/);
   await expect(page.getByLabel(/Projet du parcours|Curriculum project/)).toHaveValue("html-09-final-project-pulsaconf");
 
   await page.getByLabel(/Titre|Title/).fill("PulsaConf");

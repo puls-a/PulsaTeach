@@ -49,6 +49,10 @@ export function createGridLayoutModule(title, moduleIndex, includeProject, baseC
   };
 }
 
+export function buildGridLayoutCss(baseCss) {
+  return steps.reduce((css, step) => `${css}\n\n${step.rule}`, `${baseCss}\n\n${scaffold}`);
+}
+
 function lessonFor(step, order, starterCode, solution, createPedagogy) {
   const course = courseFor(step);
   const guide = guideFor(step);

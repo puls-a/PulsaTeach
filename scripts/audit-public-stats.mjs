@@ -19,6 +19,9 @@ const expectedSitemapCount = 14 + trackCount + lessonCount;
 expectEqual(publicLearningStats.tracks, trackCount, "publicLearningStats.tracks");
 expectEqual(publicLearningStats.lessons, lessonCount, "publicLearningStats.lessons");
 expectEqual(sitemapCount, expectedSitemapCount, "sitemap public URL count");
+requireText(readme, `${trackCount} parcours`, "README public track count");
+requireText(readme, `${lessonCount} leçons`, "README public lesson count");
+requireText(readme, `${expectedSitemapCount} URLs`, "README sitemap count");
 requireText(readme, `${glossaryCount} termes`, "README glossary count");
 requireText(roadmap, `${glossaryCount} termes`, "roadmap glossary count");
 

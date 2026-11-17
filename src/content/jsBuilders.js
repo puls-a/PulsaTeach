@@ -103,6 +103,15 @@ console.log(total);`,
     "js-03-arrays": `const courses = [{ track: 'html' }, { track: 'css' }];
 const htmlCourses = courses.filter((course) => course.track === 'html');
 console.log(htmlCourses);`,
+    "js-03-filter-manual": `const courses = [{ passed: true }, { passed: false }];
+const passed = courses.filter((course) => course.passed);
+console.log(passed);`,
+    "js-04-dom-select-manual": "const app = document.querySelector('#app');\napp.textContent = 'PulsaTeach app';",
+    "js-04-events-manual": "const btn = document.querySelector('button');\nconst status = document.querySelector('[role=\"status\"]');\nbtn.addEventListener('click', () => {\n  status.textContent = 'Hello';\n});",
+    "js-04-update-dom-manual": "const title = document.querySelector('h1');\ntitle.textContent = 'PulsaTeach';",
+    "js-05-json-parse-manual": "const raw = '{\"theme\":\"dark\"}';\nconst config = JSON.parse(raw);",
+    "js-05-localstorage-manual": "const config = { theme: 'dark' };\nlocalStorage.setItem('config', JSON.stringify(config));\nconst savedConfig = localStorage.getItem('config');",
+    "js-05-fetch-manual": "async function loadData() {\n  const response = await fetch('/api/data');\n  return response.json();\n}",
     "js-04-dom-events": `<button id="plus">+1</button>
 <span id="count">0</span>
 <script>

@@ -34,7 +34,7 @@ export default function LandingPage({ locale = "fr" }) {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a href="/learn/html/html-getting-started/html-00-what-html-does" className="primary-button text-base">
-                <PlayCircle className="size-5" />{fr ? "Commencer HTML · 10 min" : "Start HTML · 10 min"}
+                <PlayCircle className="size-5" />{fr ? "Premier exercice HTML · ~15 min" : "First HTML exercise · ~15 min"}
               </a>
               <a href="/catalog" className="secondary-button text-base">
                 {fr ? "Comparer les formations" : "Compare courses"}<ArrowRight className="size-4" />

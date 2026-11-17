@@ -15,8 +15,17 @@ export const PREVIEW_CSP = [
   "worker-src 'none'"
 ].join("; ");
 
-export function createPreviewCspMeta() {
-  return `<meta http-equiv="Content-Security-Policy" content="${escapeHtmlAttribute(PREVIEW_CSP)}">`;
+export function createPreviewCspMeta(parentOrigin = globalThis.window?.location?.origin) {
+  let imageOrigin = "";
+  try {
+    const url = new URL(parentOrigin);
+    if (["http:", "https:"].includes(url.protocol)) imageOrigin = url.origin;
+  } catch { /* Previews generated outside a browser keep the base policy. */ }
+  // A srcdoc iframe has an opaque origin, so 'self' cannot load our own images or media.
+  const policy = imageOrigin
+    ? PREVIEW_CSP.replace("img-src data: blob:", `img-src data: blob: ${imageOrigin}`).replace("media-src 'none'", `media-src ${imageOrigin}`)
+    : PREVIEW_CSP;
+  return `<meta http-equiv="Content-Security-Policy" content="${escapeHtmlAttribute(policy)}">`;
 }
 
 export function createPreviewErrorBridge(parentOrigin) {

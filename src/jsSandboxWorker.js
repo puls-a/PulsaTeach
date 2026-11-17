@@ -21,7 +21,7 @@ self.onmessage = async (event) => {
 
   try {
     if (payload.type === "expression") {
-      self.postMessage({ ok: true, value: runExpression(payload.code, payload.expression) });
+      self.postMessage({ ok: true, value: await runExpression(payload.code, payload.expression) });
       return;
     }
 
@@ -42,10 +42,24 @@ self.onmessage = async (event) => {
   }
 };
 
-function runExpression(code, expression) {
+async function runExpression(code, expression) {
   storage.clear();
-  const silentConsole = { log() {}, info() {}, warn() {}, error() {} };
-  return Boolean(new Function("console", "localStorage", `"use strict";\n${code}\n${expression}`)(silentConsole, storage));
+  const silentConsole = { log() {}, info() {}, warn() {}, error() {}, table() {}, group() {}, groupEnd() {} };
+  const fakeFetch = async (url) => {
+    const normalizedUrl = String(url || "");
+    if (!["/api/catalog", "/api/courses", "/api/data", "/api/schedule", "/api/profile", "/api/progress", "/api/recommendations", "mock:catalog"].includes(normalizedUrl)) {
+      throw new Error("Network access is disabled inside PulsaTeach exercises.");
+    }
+    return {
+      ok: true,
+      status: 200,
+      async json() {
+        return { url: normalizedUrl, items: mockCatalogCourses, courses: mockCatalogCourses, tracks: mockCatalogCourses };
+      }
+    };
+  };
+  const execute = new Function("console", "localStorage", "fetch", `"use strict";\nreturn (async () => {\n${code}\n${expression}\n})();`);
+  return Boolean(await execute(silentConsole, storage, fakeFetch));
 }
 
 async function runConsole(code) {
@@ -56,11 +70,14 @@ async function runConsole(code) {
     log: (...items) => push("", items),
     info: (...items) => push("[info] ", items),
     warn: (...items) => push("[attention] ", items),
-    error: (...items) => push("[erreur] ", items)
+    error: (...items) => push("[erreur] ", items),
+    table: (...items) => push("[table] ", items),
+    group: (...items) => push("[group] ", items),
+    groupEnd() {}
   };
   const fakeFetch = async (url) => {
     const normalizedUrl = String(url || "");
-    if (!["/api/catalog", "/api/courses", "mock:catalog"].includes(normalizedUrl)) {
+    if (!["/api/catalog", "/api/courses", "/api/data", "/api/schedule", "/api/profile", "/api/progress", "/api/recommendations", "mock:catalog"].includes(normalizedUrl)) {
       throw new Error("Network access is disabled inside PulsaTeach exercises.");
     }
     return {

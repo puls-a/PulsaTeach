@@ -83,7 +83,7 @@ test("the JavaScript flagship exposes continuity and common traps", async ({ pag
   test.skip(testInfo.project.name !== "chromium");
   await page.goto(pilotRoute, { waitUntil: "networkidle" });
   await expect(page.getByText(/Étape 1\/10|Step 1\/10/)).toBeVisible();
-  await expect(page.getByText(/Étape 1 sur 10 du projet fil rouge|Step 1 of 10 in the flagship project/)).toBeVisible();
+  await expect(page.getByText(/Étape 1 sur 10 du projet PulsaConf|Step 1 of 10 in the PulsaConf project/)).toBeVisible();
   await page.getByText(/Préparer l’exercice et éviter les pièges|Prepare the exercise and avoid traps/).click();
   await expect(page.getByText(/Erreurs fréquentes|Common mistakes/)).toBeVisible();
   await expect(page.getByText(/Bon réflexe|Good practice/)).toBeVisible();

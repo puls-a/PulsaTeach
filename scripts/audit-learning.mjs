@@ -80,15 +80,18 @@ for (const trackId of richTracks) {
 
 const cssTrack = learningTracks.find((item) => item.id === "css");
 for (const lesson of cssTrack.modules.flatMap((module) => module.lessons).filter((item) => item.type !== "quiz")) {
-  for (const test of lesson.tests) {
-    if (!passesStaticCssTest(lesson.solution, test)) failures.push(`${lesson.id}: solution fails "${test.label}"`);
+  for (const locale of ["fr", "en"]) {
+    const results = await validateLesson(lesson, resolveLocaleValue(lesson.solution, locale), locale);
+    for (const result of results) {
+      if (!result.pass) failures.push(`${lesson.id} (${locale}): solution fails "${result.label}"`);
+    }
   }
 }
 
 const jsTrack = learningTracks.find((item) => item.id === "javascript");
 for (const lesson of jsTrack.modules.flatMap((module) => module.lessons).filter((item) => item.type !== "quiz")) {
   for (const test of lesson.tests) {
-    if (!passesJavaScriptTest(lesson.solution, test)) failures.push(`${lesson.id}: solution fails "${test.label}"`);
+    if (!await passesJavaScriptTest(lesson.solution, test)) failures.push(`${lesson.id}: solution fails "${test.label}"`);
   }
 }
 
@@ -118,31 +121,43 @@ const totals = richTracks.map((trackId) => {
 
 console.log(`Learning audit passed: ${totals.join(", ")}.`);
 
-function passesStaticCssTest(code, test) {
-  const activeCode = stripCodeComments(code);
-  if (test.type === "contains") return normalize(activeCode).includes(normalize(test.value));
-  if (test.type !== "cssDeclaration") return true;
-
-  const { selector, property } = test.value;
-  if (selector === "@media") return normalize(activeCode).includes(normalize(property));
-
-  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`${escaped}\\s*\\{[^}]*${property}\\s*:`, "i").test(activeCode);
-}
-
-function passesJavaScriptTest(code, test) {
+async function passesJavaScriptTest(code, test) {
   if (test.type === "contains") return normalize(stripCodeComments(code)).includes(normalize(test.value));
+  if (test.type === "consoleIncludes") return runConsoleIncludes(code, test.value);
   if (test.type !== "jsExpression") return true;
 
   try {
-    const silentConsole = { log() {}, warn() {}, error() {} };
+    const silentConsole = { log() {}, info() {}, warn() {}, error() {}, table() {}, group() {}, groupEnd() {} };
     const values = new Map();
     const localStorage = {
       getItem(key) { return values.has(key) ? values.get(key) : null; },
       setItem(key, value) { values.set(key, String(value)); },
-      removeItem(key) { values.delete(key); }
+      removeItem(key) { values.delete(key); },
+      clear() { values.clear(); }
     };
-    return Boolean(new Function("console", "localStorage", `${code}\n${test.value}`)(silentConsole, localStorage));
+    const mockCatalog = [{ id: "html", title: "HTML" }, { id: "css", title: "CSS" }, { id: "javascript", title: "JavaScript" }];
+    const fetch = async (url) => {
+      const normalizedUrl = String(url || "");
+      if (!["/api/catalog", "/api/courses", "/api/data", "/api/schedule", "/api/profile", "/api/progress", "/api/recommendations", "mock:catalog"].includes(normalizedUrl)) {
+        throw new Error("Network access is disabled inside PulsaTeach exercises.");
+      }
+      return { ok: true, status: 200, async json() { return { url: normalizedUrl, items: mockCatalog, courses: mockCatalog, tracks: mockCatalog }; } };
+    };
+    const execute = new Function("console", "localStorage", "fetch", `return (async () => {\n${code}\n${test.value}\n})();`);
+    return Boolean(await execute(silentConsole, localStorage, fetch));
+  } catch {
+    return false;
+  }
+}
+
+function runConsoleIncludes(code, expectedMessages) {
+  const logs = [];
+  const expected = (Array.isArray(expectedMessages) ? expectedMessages : Object.values(expectedMessages || {}).flat()).filter((item, index, values) => values.indexOf(item) === index);
+  const push = (level, values) => logs.push(`${level}${values.map((value) => typeof value === "string" ? value : JSON.stringify(value)).join(" ")}`);
+  const silentConsole = { log: (...values) => push("", values), info: (...values) => push("[info] ", values), warn: (...values) => push("[attention] ", values), error: (...values) => push("[error] ", values), table: (...values) => push("[table] ", values), group() {}, groupEnd() {} };
+  try {
+    new Function("console", code)(silentConsole);
+    return expected.every((message) => logs.some((line) => line.includes(message)));
   } catch {
     return false;
   }

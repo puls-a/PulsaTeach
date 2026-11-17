@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { htmlTrack } from "../../src/content/htmlTrack.js";
+import { resolveLocaleValue } from "../../src/localeValue.js";
 
-test("account, onboarding, lesson and progress dashboard", async ({ page }, testInfo) => {
+test("account creation and onboarding reach the learner dashboard", async ({ page }) => {
   await page.goto("/signup");
   await acceptPrivacy(page);
   await page.getByLabel(/Nom affiché|Display name/).fill("Learner E2E");
@@ -18,31 +20,47 @@ test("account, onboarding, lesson and progress dashboard", async ({ page }, test
   await page.getByRole("button", { name: /Commencer mon parcours|Start my path/ }).click();
 
   await expect(page).toHaveURL(/\/dashboard$/);
-  await page.evaluate(() => {
-    globalThis.localStorage.setItem("pulsateach-learning-progress", JSON.stringify({
-      xp: 25,
-      completed: {
-        "html-00-what-html-does": {
-          passedAt: new Date().toISOString(),
-          xp: 25,
-          passedTests: 5
-        }
-      },
-      activity: []
-    }));
-  });
-  await page.reload();
-  await expect(page.getByText("25", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: /voici ta prochaine étape|here is your next step/i })).toBeVisible();
+});
 
-  await page.goto("/learn/html/html-getting-started/html-00-what-html-does");
-  await expect(page.getByText(/Ce que HTML fait vraiment|What HTML really does/).first()).toBeVisible();
+test("catalog entry, first lesson completion, and dashboard resume use real learner progress", async ({ page }, testInfo) => {
+  const firstModule = htmlTrack.modules[0];
+  const firstLesson = firstModule.lessons[0];
+  const nextLesson = firstModule.lessons[1];
+  await page.goto("/catalog");
+  await acceptPrivacy(page);
+
+  const htmlCourse = page.locator("article").filter({ has: page.getByRole("heading", { name: /HTML interactif|Interactive HTML/ }) });
+  await htmlCourse.getByRole("link", { name: /Voir le programme|View curriculum/ }).click();
+  await expect(page).toHaveURL(/\/formations\/html$/);
+  await page.getByRole("link", { name: /Démarrer maintenant|Start now/ }).click();
+  await expect(page).toHaveURL(new RegExp(`/learn/html/${firstModule.id}/${firstLesson.id}$`));
+  await expect(page.getByRole("heading", { level: 1, name: firstLesson.title.fr })).toBeVisible();
+
   if (testInfo.project.name === "mobile-chromium") {
     await expect(page.getByRole("tab", { name: /Comprendre|Learn/ })).toHaveAttribute("aria-selected", "true");
     await page.getByRole("tab", { name: /Coder|Code/ }).click();
   }
-  await expect(page.getByLabel(/Éditeur de code|Code editor/)).toBeVisible();
-  if (testInfo.project.name === "mobile-chromium") await page.getByRole("button", { name: /Aperçu|Preview/ }).click();
-  await expect(page.getByText(/Aperçu live|Live preview/).first()).toBeVisible();
+  const editor = page.getByRole("textbox", { name: /Éditeur de code PulsaTeach|PulsaTeach code editor/ });
+  await expect(editor).toBeVisible();
+  await editor.fill(resolveLocaleValue(firstLesson.solution, "fr"));
+  await page.getByRole("button", { name: /Vérifier mon code|Check my code/ }).click();
+  await expect(page.getByText(`${firstLesson.tests.length}/${firstLesson.tests.length}`, { exact: true })).toBeVisible();
+  await expect(page.getByText(/C'est validé|Passed\. XP/)).toBeVisible();
+
+  const progressStored = await page.evaluate((lessonId) => {
+    const owner = localStorage.getItem("pulsateach-user-id");
+    const progress = JSON.parse(localStorage.getItem(`pulsateach-learning-progress:owner:${encodeURIComponent(owner)}`) || "{}");
+    return Boolean(progress.completed?.[lessonId]);
+  }, firstLesson.id);
+  expect(progressStored).toBe(true);
+
+  await page.goto("/dashboard");
+  const resume = page.locator(`a[href="/learn/html/${firstModule.id}/${nextLesson.id}"]`);
+  await expect(resume).toBeVisible();
+  await resume.click();
+  await expect(page).toHaveURL(new RegExp(`/learn/html/${firstModule.id}/${nextLesson.id}$`));
+  await expect(page.getByRole("heading", { level: 1, name: nextLesson.title.fr })).toBeVisible();
 });
 
 test("direct auth callback route loads the application instead of a 404", async ({ page }) => {

@@ -30,14 +30,23 @@ export function saveProjectThreadDocument(threadId, locale, code) {
 }
 
 export function checkpointProjectThreadDocument(threadId, locale, code, lessonId) {
+  const previous = initializeProjectThreadDocument(threadId, locale, code);
+  const fingerprint = codeFingerprint(code);
+  if (previous.checkpoints.at(-1)?.lessonId === lessonId && previous.checkpoints.at(-1)?.fingerprint === fingerprint) return previous;
   const current = saveProjectThreadDocument(threadId, locale, code);
   const document = {
     ...current,
     version: current.version + 1,
-    checkpoints: [...current.checkpoints, { lessonId, version: current.version + 1, savedAt: new Date().toISOString() }].slice(-maxCheckpoints)
+    checkpoints: [...current.checkpoints, { lessonId, version: current.version + 1, savedAt: new Date().toISOString(), fingerprint }].slice(-maxCheckpoints)
   };
   writeProject(threadId, { ...readProject(threadId), documents: { ...readProject(threadId).documents, [locale]: document } });
   return document;
+}
+
+function codeFingerprint(code) {
+  let hash = 2166136261;
+  for (const character of String(code)) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619);
+  return `${String(code).length}:${hash >>> 0}`;
 }
 
 function readProject(threadId) {

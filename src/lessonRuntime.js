@@ -19,11 +19,14 @@ export function createPreview(lesson, code, locale = "fr") {
   }
 
   if (kind === "dom") {
+    if (code.trimStart().startsWith("<")) return createHtmlPreview(code, locale);
     return `<!doctype html><html><head>${createPreviewCspMeta()}<style>
       body { font-family: system-ui, sans-serif; padding: 24px; background: #f8fafc; color: #172033; }
       button { border: 0; border-radius: 8px; background: #4f46e5; color: white; padding: 12px 18px; font-weight: 700; }
       span { display: inline-grid; place-items: center; min-width: 56px; margin-left: 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; padding: 12px; font-weight: 700; }
-    </style></head><body>${code}</body></html>`;
+      form, ul, .card { margin-block: 16px; }
+      [role="status"] { min-height: 1.5em; }
+    </style></head><body>${defaultDomPreview(locale)}<script>${escapeScriptContent(code)}</script></body></html>`;
   }
 
   if (kind === "html") return createHtmlPreview(code, locale);
@@ -60,6 +63,12 @@ function createHtmlPreview(code, locale) {
     : `<div class="pulsateach-empty-preview"><p><strong>Empty body</strong>Add a visible element inside &lt;body&gt; to see it here.</p></div>`;
 
   let preview = code.trim() || "<!doctype html><html><head></head><body></body></html>";
+  // A sandboxed srcdoc has an opaque origin. Tracks require CORS even when
+  // their video and captions live on the embedding application's origin.
+  preview = preview.replace(/<video\b([^>]*)>([\s\S]*?)<\/video>/gi, (video, attributes, contents) =>
+    /<track\b/i.test(contents) && !/\bcrossorigin\s*(?:=|(?=\s|$))/i.test(attributes)
+      ? `<video${attributes} crossorigin="anonymous">${contents}</video>`
+      : video);
   if (bodyIsEmpty) preview = preview.replace(/<body([^>]*)>\s*<\/body>/i, `<body$1>${emptyState}</body>`);
   if (!/<html[\s>]/i.test(preview)) return `<!doctype html><html><head>${helper}</head><body>${preview}</body></html>`;
   if (/<\/head>/i.test(preview)) return preview.replace(/<\/head>/i, `${helper}</head>`);
@@ -111,17 +120,25 @@ export async function validateLesson(lesson, code, locale = "fr", renderedStyles
     if (item.type === "notContainsAny") {
       pass = asValues(item.value).every((value) => !normalize(activeCode).includes(normalize(value)));
     }
-    if (["referenceExists", "nonEmptyAttribute", "attributeIncludes", "domOrder", "labelForControl", "allMatch", "noneMatch", "uniqueIds", "validFragmentTargets", "labelsAssociated", "formControlsNamed", "documentSanity", "meaningfulAlt", "validJsonLd", "safeBlankLinks", "templateSelector"].includes(item.type)) {
+    if (["referenceExists", "nonEmptyAttribute", "attributeIncludes", "domOrder", "labelForControl", "allMatch", "noneMatch", "uniqueIds", "validFragmentTargets", "labelsAssociated", "formControlsNamed", "documentSanity", "meaningfulAlt", "validJsonLd", "safeBlankLinks", "templateSelector", "elementText"].includes(item.type)) {
       pass = checkHtmlSemanticAssertion(code, item);
     }
     if (item.type === "jsExpression") {
       pass = await runJavaScriptExpression(code, item.value);
+    }
+    if (item.type === "consoleIncludes") {
+      const output = await runJavaScriptConsoleSandbox(code);
+      const expectedMessages = asValues(item.value).map(normalize);
+      pass = output.ok && !output.timedOut && expectedMessages.every((message) => output.logs.some((line) => normalize(line).includes(message)));
     }
     if (item.type === "cssDeclaration") {
       pass = hasCssDeclaration(code, item.value.selector, item.value.property, item.value.value);
     }
     if (item.type === "cssMediaDeclaration") {
       pass = hasCssMediaDeclaration(code, item.value);
+    }
+    if (item.type === "cssContainerDeclaration") {
+      pass = hasCssContainerDeclaration(code, item.value);
     }
     if (item.type === "computedStyle") {
       const result = renderedStyles.find((entry) => entry.selector === item.value.selector && entry.property === item.value.property);
@@ -134,6 +151,17 @@ export async function validateLesson(lesson, code, locale = "fr", renderedStyles
 
 function escapeStyleContent(value) {
   return String(value).replace(/<\/style/gi, "<\\/style");
+}
+
+function escapeScriptContent(value) {
+  return String(value).replace(/<\/script/gi, "<\\/script");
+}
+
+function defaultDomPreview(locale) {
+  const copy = locale === "fr"
+    ? { title: "Atelier PulsaConf", task: "Réviser JavaScript", toggle: "Terminer", submit: "Ajouter", status: "Prêt" }
+    : { title: "PulsaConf workshop", task: "Review JavaScript", toggle: "Complete", submit: "Add", status: "Ready" };
+  return `<main><h1 id="title">${copy.title}</h1><h2 id="question">${copy.task}</h2><div id="app"></div><button id="plus" type="button">+1</button><span id="count">0</span><button id="toggle" type="button">${copy.toggle}</button><article class="card">${copy.task}</article><form id="form"><label for="task">${copy.task}</label><input id="task" name="task" value="  draft  " /><button type="submit">${copy.submit}</button></form><form id="task-form"><label for="task-title">${copy.task}</label><input id="task-title" name="title" /><button type="submit">${copy.submit}</button></form><ul id="tasks"><li data-id="sample"><span>${copy.task}</span><button type="button">${copy.toggle}</button></li></ul><div id="list"></div><label for="email">Email</label><input id="email" value="" /><p id="status" role="status" aria-live="polite">${copy.status}</p></main>`;
 }
 
 function hasCssDeclaration(code, selector, property, value) {
@@ -158,8 +186,19 @@ function hasCssMediaDeclaration(code, { query, selector, property, value }) {
   return false;
 }
 
+function hasCssContainerDeclaration(code, { query, containerSelector, selector, property, value }) {
+  const activeCode = stripCodeComments(code);
+  if (!hasCssDeclaration(activeCode, containerSelector, "container-type", "inline-size")) return false;
+  const containerPattern = new RegExp(`@container\\s*${escapeRegex(query)}\\s*\\{`, "gi");
+  for (const match of activeCode.matchAll(containerPattern)) {
+    const block = extractCssBlock(activeCode, match.index + match[0].length - 1);
+    if (hasCssDeclaration(block, selector, property, value)) return true;
+  }
+  return false;
+}
+
 function hasDeclaration(block, property, value) {
-  const declaration = new RegExp(`${escapeRegex(property)}\\s*:\\s*([^;}]+)`, "gi");
+  const declaration = new RegExp(`(?:^|;)\\s*${escapeRegex(property)}\\s*:\\s*([^;}]+)`, "gi");
   for (const match of block.matchAll(declaration)) {
     if (value === undefined || normalize(match[1]) === normalize(value)) return true;
   }
@@ -193,9 +232,10 @@ async function runJavaScriptExpression(code, expression) {
 }
 
 export function testFailureHelp(check, locale) {
+  if (check.help) return resolveLocaleValue(check.help, locale);
   if (locale !== "fr") {
     if (check.type === "jsExpression") return "The code runs, but the produced result does not match this scenario.";
-    if (check.type === "cssDeclaration" || check.type === "cssMediaDeclaration") return "Check the selector, property, and expected CSS value.";
+    if (["cssDeclaration", "cssMediaDeclaration", "cssContainerDeclaration"].includes(check.type)) return "Check the selector, property, and expected CSS value.";
     if (check.type === "computedStyle") return "Check that the browser applies the requested style in the preview.";
     return "Check the requested syntax and make sure it is active code, not a comment.";
   }
@@ -212,6 +252,7 @@ export function displayTestLabel(check, locale) {
   check = localized;
   if (check.type === "cssDeclaration") return `La propriété « ${check.value.property} » est déclarée sur « ${check.value.selector} »`;
   if (check.type === "cssMediaDeclaration") return `La media query « ${check.value.query} » applique « ${check.value.property} » sur « ${check.value.selector} »`;
+  if (check.type === "cssContainerDeclaration") return `La container query « ${check.value.query} » adapte « ${check.value.selector} » dans « ${check.value.containerSelector} »`;
   if (check.type === "computedStyle") return `Le navigateur applique « ${check.value.property}: ${check.value.equals} » sur « ${check.value.selector} »`;
   if (check.type === "attributeEquals") return `L’attribut « ${check.value.attribute} » de « ${check.value.selector} » vaut « ${check.value.expected} »`;
   if (check.type === "exactSelector") return `Exactement ${check.amount || 1} élément(s) correspondent à « ${check.value} »`;
@@ -263,7 +304,7 @@ export const HTML_TEST_TYPES = new Set([
   "attributeEquals", "referenceExists", "nonEmptyAttribute", "attributeIncludes",
   "domOrder", "labelForControl", "allMatch", "noneMatch", "uniqueIds", "validFragmentTargets",
   "labelsAssociated", "formControlsNamed", "documentSanity", "meaningfulAlt", "validJsonLd", "safeBlankLinks",
-  "templateSelector"
+  "templateSelector", "elementText"
 ]);
 
 function checkHtmlSemanticAssertion(code, test) {
@@ -272,6 +313,10 @@ function checkHtmlSemanticAssertion(code, test) {
     const value = test.value || {};
 
     if (test.type === "documentSanity") return hasSaneDocument(code, doc);
+    if (test.type === "elementText") {
+      const elements = [...doc.querySelectorAll(value.selector)];
+      return elements.length === 1 && normalize(elements[0].textContent) === normalize(value.expected);
+    }
     if (test.type === "meaningfulAlt") {
       const images = [...doc.querySelectorAll(value.selector || "img")];
       return images.length > 0 && images.every((image) => {

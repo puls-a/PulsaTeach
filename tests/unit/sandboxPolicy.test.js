@@ -24,6 +24,14 @@ describe("preview sandbox policy", () => {
     const cssPreview = createPreview({ type: "css", previewHtml: "<main></main>" }, "main { color: red; }");
     expect(htmlPreview).toContain("connect-src 'none'");
     expect(cssPreview).toContain("connect-src 'none'");
+    expect(createPreviewCspMeta("https://pulsateach.com")).toContain("img-src data: blob: https://pulsateach.com");
+    expect(createPreviewCspMeta("https://pulsateach.com")).toContain("media-src https://pulsateach.com");
+    expect(createPreviewCspMeta("https://pulsateach.com")).toContain("connect-src 'none'");
+    expect(createPreviewCspMeta("javascript:alert(1)")).not.toContain("javascript:alert");
+    const videoPreview = createPreview({ type: "html" }, '<video controls><source src="/assets/demo.webm"><track src="/assets/captions.vtt"></video>');
+    expect(videoPreview).toContain('<video controls crossorigin="anonymous">');
+    expect(videoPreview).toContain('track src="/assets/captions.vtt"');
+    expect(createPreview({ type: "html" }, '<video controls><source src="/assets/demo.webm"></video>')).not.toContain('crossorigin="anonymous"');
   });
 
   test("accepts preview messages only from the controlled iframe window", () => {

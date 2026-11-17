@@ -19,6 +19,15 @@
       ]
     },
     {
+      "source": "/assets/(.*\\.(vtt|webm|wav))",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
       "source": "/sitemap.xml",
       "headers": [
         {

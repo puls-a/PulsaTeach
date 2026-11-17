@@ -28,7 +28,7 @@ export const worldZones = [
   },
   {
     id: "css-garden",
-    href: "/learn/css/css-selectors/css-01-selectors",
+    href: "/learn/css/css-getting-started/css-00-what-css-does",
     tone: "bg-mintPop",
     badge: { en: "Style Sprinter", fr: "Sprinteur du style" },
     levels: 16,

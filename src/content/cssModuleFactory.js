@@ -1,6 +1,17 @@
 import { cssModuleProfile } from "./cssModuleProfiles.js";
+import { buildAccessibleStatesModuleCss, createAccessibleStatesModule } from "./cssAccessibleStatesModule.js";
+import { buildBoxModelModuleCss, createBoxModelModule } from "./cssBoxModelModule.js";
+import { buildCapstoneModuleCss, createCapstoneModule } from "./cssCapstoneModule.js";
+import { buildFlexboxModuleCss, createFlexboxModule } from "./cssFlexboxModule.js";
+import { buildGridModuleCss, createGridModule } from "./cssGridModule.js";
+import { buildMotionModuleCss, createMotionModule } from "./cssMotionModule.js";
 import { buildFlexLayoutCss, createFlexLayoutModule } from "./cssFlexLayoutModule.js";
-import { createGridLayoutModule } from "./cssGridLayoutModule.js";
+import { buildGridLayoutCss, createGridLayoutModule } from "./cssGridLayoutModule.js";
+import { buildResponsiveModuleCss, createResponsiveModule } from "./cssResponsiveModule.js";
+import { createResponsiveMotionModule } from "./cssResponsiveMotionModule.js";
+import { buildResponsiveMotionModuleCss } from "./cssResponsiveMotionModule.js";
+import { createAdvancedResponsiveModule } from "./cssAdvancedResponsiveModule.js";
+import { buildSelectorsCss, createSelectorsModule } from "./cssSelectorsModule.js";
 
 export function createCssModuleGroup(entries, startIndex = 0, projectModuleIds = []) {
   const projectModules = new Set(projectModuleIds);
@@ -17,6 +28,100 @@ export function createCssModuleGroup(entries, startIndex = 0, projectModuleIds =
       const selectorsCss = selectorsSteps.reduce((css, step) => `${css}\n\n${step.rule}`, selectorsBase);
       const boxTypeCss = boxTypeSteps.reduce((css, step) => `${css}\n\n${step.selector} {\n  ${step.property}: ${step.value};\n}`, selectorsCss);
       return createGridLayoutModule(title, moduleIndex, projectModules.has(id), buildFlexLayoutCss(boxTypeCss), createGeneratedCssPedagogy);
+    }
+    if (id === "css-selectors") {
+      const selectorsCss = selectorsSteps.reduce((css, step) => `${css}\n\n${step.rule}`, selectorsBase);
+      const boxTypeCss = boxTypeSteps.reduce((css, step) => `${css}\n\n${step.selector} {\n  ${step.property}: ${step.value};\n}`, selectorsCss);
+      return createSelectorsModule(title, moduleIndex, projectModules.has(id), buildGridLayoutCss(buildFlexLayoutCss(boxTypeCss)), createGeneratedCssPedagogy);
+    }
+    if (id === "css-box-model") {
+      const selectorsCss = selectorsSteps.reduce((css, step) => `${css}\n\n${step.rule}`, selectorsBase);
+      const boxTypeCss = boxTypeSteps.reduce((css, step) => `${css}\n\n${step.selector} {\n  ${step.property}: ${step.value};\n}`, selectorsCss);
+      const gridCss = buildGridLayoutCss(buildFlexLayoutCss(boxTypeCss));
+      return createBoxModelModule(title, moduleIndex, projectModules.has(id), buildSelectorsCss(gridCss), createGeneratedCssPedagogy);
+    }
+    if (id === "css-flexbox") {
+      const selectorsCss = selectorsSteps.reduce((css, step) => `${css}\n\n${step.rule}`, selectorsBase);
+      const boxTypeCss = boxTypeSteps.reduce((css, step) => `${css}\n\n${step.selector} {\n  ${step.property}: ${step.value};\n}`, selectorsCss);
+      const gridCss = buildGridLayoutCss(buildFlexLayoutCss(boxTypeCss));
+      const selectorsAndBoxCss = buildSelectorsCss(gridCss);
+      return createFlexboxModule(title, moduleIndex, projectModules.has(id), buildBoxModelModuleCss(selectorsAndBoxCss), createGeneratedCssPedagogy);
+    }
+    if (id === "css-grid") {
+      const selectorsCss = selectorsSteps.reduce((css, step) => `${css}\n\n${step.rule}`, selectorsBase);
+      const boxTypeCss = boxTypeSteps.reduce((css, step) => `${css}\n\n${step.selector} {\n  ${step.property}: ${step.value};\n}`, selectorsCss);
+      const gridCss = buildGridLayoutCss(buildFlexLayoutCss(boxTypeCss));
+      const selectorsAndBoxCss = buildSelectorsCss(gridCss);
+      const flexboxCss = buildFlexboxModuleCss(buildBoxModelModuleCss(selectorsAndBoxCss));
+      return createGridModule(title, moduleIndex, projectModules.has(id), flexboxCss, createGeneratedCssPedagogy);
+    }
+    if (id === "css-responsive") {
+      const selectorsCss = selectorsSteps.reduce((css, step) => `${css}\n\n${step.rule}`, selectorsBase);
+      const boxTypeCss = boxTypeSteps.reduce((css, step) => `${css}\n\n${step.selector} {\n  ${step.property}: ${step.value};\n}`, selectorsCss);
+      const gridCss = buildGridLayoutCss(buildFlexLayoutCss(boxTypeCss));
+      const selectorsAndBoxCss = buildSelectorsCss(gridCss);
+      const flexboxCss = buildFlexboxModuleCss(buildBoxModelModuleCss(selectorsAndBoxCss));
+      const namedGridCss = buildGridModuleCss(flexboxCss);
+      return createResponsiveModule(title, moduleIndex, projectModules.has(id), namedGridCss, createGeneratedCssPedagogy);
+    }
+    if (id === "css-a11y-states") {
+      const selectorsCss = selectorsSteps.reduce((css, step) => `${css}\n\n${step.rule}`, selectorsBase);
+      const boxTypeCss = boxTypeSteps.reduce((css, step) => `${css}\n\n${step.selector} {\n  ${step.property}: ${step.value};\n}`, selectorsCss);
+      const gridCss = buildGridLayoutCss(buildFlexLayoutCss(boxTypeCss));
+      const selectorsAndBoxCss = buildSelectorsCss(gridCss);
+      const flexboxCss = buildFlexboxModuleCss(buildBoxModelModuleCss(selectorsAndBoxCss));
+      const namedGridCss = buildGridModuleCss(flexboxCss);
+      const responsiveCss = buildResponsiveModuleCss(namedGridCss);
+      return createAccessibleStatesModule(title, moduleIndex, projectModules.has(id), responsiveCss, createGeneratedCssPedagogy);
+    }
+    if (id === "css-motion") {
+      const selectorsCss = selectorsSteps.reduce((css, step) => `${css}\n\n${step.rule}`, selectorsBase);
+      const boxTypeCss = boxTypeSteps.reduce((css, step) => `${css}\n\n${step.selector} {\n  ${step.property}: ${step.value};\n}`, selectorsCss);
+      const gridCss = buildGridLayoutCss(buildFlexLayoutCss(boxTypeCss));
+      const selectorsAndBoxCss = buildSelectorsCss(gridCss);
+      const flexboxCss = buildFlexboxModuleCss(buildBoxModelModuleCss(selectorsAndBoxCss));
+      const namedGridCss = buildGridModuleCss(flexboxCss);
+      const responsiveCss = buildResponsiveModuleCss(namedGridCss);
+      return createMotionModule(title, moduleIndex, projectModules.has(id), buildAccessibleStatesModuleCss(responsiveCss), createGeneratedCssPedagogy);
+    }
+    if (id === "css-capstone") {
+      const selectorsCss = selectorsSteps.reduce((css, step) => `${css}\n\n${step.rule}`, selectorsBase);
+      const boxTypeCss = boxTypeSteps.reduce((css, step) => `${css}\n\n${step.selector} {\n  ${step.property}: ${step.value};\n}`, selectorsCss);
+      const gridCss = buildGridLayoutCss(buildFlexLayoutCss(boxTypeCss));
+      const selectorsAndBoxCss = buildSelectorsCss(gridCss);
+      const flexboxCss = buildFlexboxModuleCss(buildBoxModelModuleCss(selectorsAndBoxCss));
+      const namedGridCss = buildGridModuleCss(flexboxCss);
+      const responsiveCss = buildResponsiveModuleCss(namedGridCss);
+      const statesCss = buildAccessibleStatesModuleCss(responsiveCss);
+      const motionCss = buildMotionModuleCss(statesCss);
+      return createCapstoneModule(title, moduleIndex, projectModules.has(id), motionCss, createGeneratedCssPedagogy);
+    }
+    if (id === "css-responsive-motion") {
+      const selectorsCss = selectorsSteps.reduce((css, step) => `${css}\n\n${step.rule}`, selectorsBase);
+      const boxTypeCss = boxTypeSteps.reduce((css, step) => `${css}\n\n${step.selector} {\n  ${step.property}: ${step.value};\n}`, selectorsCss);
+      const gridCss = buildGridLayoutCss(buildFlexLayoutCss(boxTypeCss));
+      const selectorsAndBoxCss = buildSelectorsCss(gridCss);
+      const flexboxCss = buildFlexboxModuleCss(buildBoxModelModuleCss(selectorsAndBoxCss));
+      const namedGridCss = buildGridModuleCss(flexboxCss);
+      const responsiveCss = buildResponsiveModuleCss(namedGridCss);
+      const statesCss = buildAccessibleStatesModuleCss(responsiveCss);
+      const motionCss = buildMotionModuleCss(statesCss);
+      const capstoneCss = buildCapstoneModuleCss(motionCss);
+      return createResponsiveMotionModule(title, moduleIndex, projectModules.has(id), capstoneCss, createGeneratedCssPedagogy);
+    }
+    if (id === "css-advanced-responsive") {
+      const selectorsCss = selectorsSteps.reduce((css, step) => `${css}\n\n${step.rule}`, selectorsBase);
+      const boxTypeCss = boxTypeSteps.reduce((css, step) => `${css}\n\n${step.selector} {\n  ${step.property}: ${step.value};\n}`, selectorsCss);
+      const gridCss = buildGridLayoutCss(buildFlexLayoutCss(boxTypeCss));
+      const selectorsAndBoxCss = buildSelectorsCss(gridCss);
+      const flexboxCss = buildFlexboxModuleCss(buildBoxModelModuleCss(selectorsAndBoxCss));
+      const namedGridCss = buildGridModuleCss(flexboxCss);
+      const responsiveCss = buildResponsiveModuleCss(namedGridCss);
+      const statesCss = buildAccessibleStatesModuleCss(responsiveCss);
+      const motionCss = buildMotionModuleCss(statesCss);
+      const capstoneCss = buildCapstoneModuleCss(motionCss);
+      const responsiveMotionCss = buildResponsiveMotionModuleCss(capstoneCss);
+      return createAdvancedResponsiveModule(title, moduleIndex, projectModules.has(id), responsiveMotionCss, createGeneratedCssPedagogy);
     }
     const profile = cssModuleProfile(id, title);
     const lessons = checks.map((check, index) => lessonFor(id, title, selector, check, index + 1, profile));

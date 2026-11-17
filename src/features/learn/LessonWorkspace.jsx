@@ -13,11 +13,12 @@ import { getLearnerItem, setLearnerItem } from "../../learnerStorage.js";
 import { checkpointProjectThreadDocument, initializeProjectThreadDocument, loadProjectThreadDocument, saveProjectThreadDocument } from "./projectThreadDocument.js";
 
 const CodeMirrorEditor = lazy(() => import("./CodeMirrorEditor.jsx"));
-
 export default function LessonWorkspace({ QuizComponent, activeTrack, activeModule, lesson, locale, isCompleted, isBookmarked, onToggleBookmark, onComplete, onQuizResult, onCloseQuiz, onNext, hasNext }) {
   const starterCode = resolveLocaleValue(lesson.starterCode, locale) || "";
   const solution = resolveLocaleValue(lesson.solution, locale) || "";
   const [code, setCode] = useState(starterCode);
+  const [editorRevision, setEditorRevision] = useState(0);
+  const [hydratedLessonKey, setHydratedLessonKey] = useState(null);
   const [result, setResult] = useState(null);
   const [hintLevel, setHintLevel] = useState(0);
   const [showCorrection, setShowCorrection] = useState(false);
@@ -41,6 +42,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
   const { panelWidths, fontSize, lineWrapping, setDividerPosition, setFontSize, setLineWrapping } = useStudioPreferences();
 
   useEffect(() => {
+    setHydratedLessonKey(null);
     const legacyCode = locale === "fr" ? getLearnerItem(`pulsateach-code-${lesson.id}`) : null;
     const savedProjectDocument = lesson.projectThreadId ? loadProjectThreadDocument(lesson.projectThreadId, locale) : null;
     const projectDocument = lesson.projectThreadId
@@ -64,6 +66,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
     setSaveState("saved");
     setExecutionStatus("idle");
     executionRef.current = null;
+    setHydratedLessonKey(`${lesson.id}:${locale}`);
   }, [lesson, locale, starterCode]);
 
   useEffect(() => {
@@ -100,19 +103,16 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
   const passed = result?.filter((check) => check.pass).length ?? 0;
   const total = result?.length || lesson.tests.length;
   const allPassed = Boolean(result?.length) && result.every((check) => check.pass);
-
   const saveCode = (source = code) => {
     if (lesson.projectThreadId) saveProjectThreadDocument(lesson.projectThreadId, locale, source);
     else setLearnerItem(`pulsateach-code-${lesson.id}-${locale}`, source);
     setSaveState("saved");
   };
-
   const checkpointProject = (source = code) => {
     const document = checkpointProjectThreadDocument(lesson.projectThreadId, locale, source, lesson.id);
     setProjectVersion(document.version);
     setSaveState("saved");
   };
-
   const exportProject = (source = code) => {
     saveCode(source);
     const fileName = lesson.projectDocument?.fileName || "pulsaconf.html";
@@ -147,6 +147,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
     if (executionRef.current) return;
     const execution = {};
     executionRef.current = execution;
+    saveCode(source);
     setExecutionStatus("running");
     setResult(null);
     setExecutionError("");
@@ -206,6 +207,7 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
 
   const resetCode = () => {
     setCode(initialCodeRef.current);
+    setEditorRevision((revision) => revision + 1);
     setResult(null);
     setConsoleOutput("");
     setExecutionError("");
@@ -241,15 +243,15 @@ export default function LessonWorkspace({ QuizComponent, activeTrack, activeModu
       <FocusTabs locale={locale} active={focusPanel} onChange={setFocusPanel} />
       <div ref={panelsRef} className="xl:grid xl:min-h-0 xl:flex-1" style={{ gridTemplateColumns: `${panelWidths[0]}fr 0.5rem ${panelWidths[1]}fr 0.5rem ${panelWidths[2]}fr` }}>
         <section id="lesson-panel-learn" role="tabpanel" aria-labelledby="lesson-tab-learn" tabIndex={0} className={`${focusPanel === "learn" ? "flex" : "hidden"} min-h-[calc(100dvh-9rem)] min-w-0 flex-col border-r border-white/15 xl:flex xl:min-h-0`}>
-          <InstructionsPanel lesson={lesson} locale={locale} hintLevel={hintLevel} hintsCount={hintsCount} note={note} setNote={setNote} copied={copied} isBookmarked={isBookmarked} isCompleted={isCompleted} showCorrection={showCorrection} onHint={() => setHintLevel((value) => Math.min(value + 1, hintsCount))} onCopy={() => { copyLessonLink(); setCopied(true); window.setTimeout(() => setCopied(false), 1600); }} onToggleBookmark={onToggleBookmark} onCorrection={() => { setShowCorrection(true); setWorkspacePanel("tests"); setFocusPanel("results"); }} />
+           <InstructionsPanel lesson={lesson} locale={locale} trackLessonCount={activeTrack.modules.reduce((sum, module) => sum + module.lessons.length, 0)} hintLevel={hintLevel} hintsCount={hintsCount} note={note} setNote={setNote} copied={copied} isBookmarked={isBookmarked} isCompleted={isCompleted} showCorrection={showCorrection} onHint={() => setHintLevel((value) => Math.min(value + 1, hintsCount))} onCopy={() => { copyLessonLink(); setCopied(true); window.setTimeout(() => setCopied(false), 1600); }} onToggleBookmark={onToggleBookmark} onCorrection={() => { setShowCorrection(true); setWorkspacePanel("tests"); setFocusPanel("results"); }} />
         </section>
         <ResizeHandle index={0} locale={locale} position={panelWidths[0]} min={18} max={100 - 28 - panelWidths[2]} onPointerDown={beginResize} onPointerMove={resizePanels} onPointerUp={endResize} onPositionChange={setDividerPosition} />
         <section id="lesson-panel-code" role="tabpanel" aria-labelledby="lesson-tab-code" tabIndex={0} className={`${focusPanel === "code" ? "flex" : "hidden"} min-h-[calc(100dvh-9rem)] min-w-0 flex-col border-r border-white/15 xl:flex xl:min-h-0`}>
-          <EditorWorkbench code={code} documentKey={`${lesson.projectThreadId || lesson.id}:${locale}`} editorRef={editorRef} fileName={lesson.projectDocument?.fileName || defaultFileName(lesson)} fontSize={fontSize} languageKind={previewKind} lineWrapping={lineWrapping} locale={locale} isRunning={executionStatus === "running"} taskTitle={lesson.title[locale]} taskBrief={lesson.brief[locale]} onChange={setCode} onReset={resetCode} onRunCode={previewKind === "javascript" ? runCode : null} onRunTests={runTests} onSave={saveCode} onCheckpoint={lesson.projectThreadId ? checkpointProject : null} onExport={lesson.projectThreadId ? exportProject : null} onOpenPreview={() => { setWorkspacePanel("preview"); setFocusPanel("results"); }} previewKind={previewKind} saveState={saveState} projectVersion={projectVersion} />
+           <EditorWorkbench code={code} externalRevision={editorRevision} documentKey={`${lesson.projectThreadId || lesson.id}:${locale}`} editorReady={hydratedLessonKey === `${lesson.id}:${locale}`} editorRef={editorRef} fileName={lesson.projectDocument?.fileName || defaultFileName(lesson)} fontSize={fontSize} languageKind={previewKind} lineWrapping={lineWrapping} locale={locale} isRunning={executionStatus === "running"} taskTitle={lesson.title[locale]} taskBrief={lesson.brief[locale]} onChange={setCode} onReset={resetCode} onRunCode={previewKind === "javascript" ? runCode : null} onRunTests={runTests} onSave={saveCode} onCheckpoint={lesson.projectThreadId ? checkpointProject : null} onExport={lesson.projectThreadId ? exportProject : null} onOpenPreview={() => { setWorkspacePanel("preview"); setFocusPanel("results"); }} previewKind={previewKind} saveState={saveState} projectVersion={projectVersion} />
         </section>
         <ResizeHandle index={1} locale={locale} position={panelWidths[0] + panelWidths[1]} min={panelWidths[0] + 28} max={80} onPointerDown={beginResize} onPointerMove={resizePanels} onPointerUp={endResize} onPositionChange={setDividerPosition} />
         <section id="lesson-panel-results" role="tabpanel" aria-labelledby="lesson-tab-results" tabIndex={0} className={`${focusPanel === "results" ? "flex" : "hidden"} min-h-[calc(100dvh-9rem)] min-w-0 flex-col bg-[#f7f7fc] xl:flex xl:min-h-0`}>
-          <OutputWorkbench lesson={lesson} locale={locale} code={code} preview={preview} previewKind={previewKind} previewFrameRef={previewFrameRef} consoleOutput={consoleOutput} executionError={executionError} result={result} tests={lesson.tests} total={total} passed={passed} allPassed={allPassed} showCorrection={showCorrection} selectedPanel={workspacePanel} isRunning={executionStatus === "running"} onSelectPanel={setWorkspacePanel} onRunTests={runTests} onNext={onNext} hasNext={hasNext} onLoadSolution={() => { setCode(solution); setFocusPanel("code"); }} />
+           <OutputWorkbench lesson={lesson} locale={locale} code={code} preview={preview} previewKind={previewKind} previewFrameRef={previewFrameRef} consoleOutput={consoleOutput} executionError={executionError} result={result} tests={lesson.tests} total={total} passed={passed} allPassed={allPassed} showCorrection={showCorrection} selectedPanel={workspacePanel} isRunning={executionStatus === "running"} onSelectPanel={setWorkspacePanel} onRunTests={runTests} onNext={onNext} hasNext={hasNext} onLoadSolution={() => { setCode(solution); setEditorRevision((revision) => revision + 1); setFocusPanel("code"); }} />
         </section>
       </div>
     </section>
@@ -291,7 +293,7 @@ function ResizeHandle({ index, locale, position, min, max, onPointerDown, onPoin
   );
 }
 
-function InstructionsPanel({ lesson, locale, hintLevel, hintsCount, note, setNote, copied, isBookmarked, isCompleted, showCorrection, onHint, onCopy, onToggleBookmark, onCorrection }) {
+function InstructionsPanel({ lesson, locale, trackLessonCount, hintLevel, hintsCount, note, setNote, copied, isBookmarked, isCompleted, showCorrection, onHint, onCopy, onToggleBookmark, onCorrection }) {
   const course = lesson.course?.[locale] || lesson.course?.fr || lesson.course?.en;
   const guide = lesson.guide?.[locale] || lesson.guide?.fr || lesson.guide?.en;
   const pedagogy = lesson.pedagogy?.[locale] || lesson.pedagogy?.fr;
@@ -300,10 +302,10 @@ function InstructionsPanel({ lesson, locale, hintLevel, hintsCount, note, setNot
       <div className="min-h-0 flex-1 overflow-y-auto p-5">
         <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[.1em] text-indigo-200"><span>{lesson.type}</span><span aria-hidden="true">·</span><span>{difficultyLabel(lesson.difficulty, locale)}</span><span aria-hidden="true">·</span><span>{lesson.durationMin} min</span><span aria-hidden="true">·</span><span>{lesson.xp} XP</span>{isCompleted && <span className="text-emerald-300">{locale === "fr" ? "Validé" : "Passed"}</span>}</div>
         <h2 className="mt-4 font-display text-2xl font-semibold">{lesson.title[locale]}</h2>
-        {lesson.stepNumber && <p className="mt-2 font-mono text-xs text-indigo-200">{locale === "fr" ? "Étape" : "Step"} {lesson.stepNumber}{lesson.stepCount ? `/${lesson.stepCount}` : ""}</p>}
+         {lesson.stepNumber && <p className="mt-2 font-mono text-xs text-indigo-200">{locale === "fr" ? "Étape" : "Step"} {lesson.stepNumber}{lesson.stepCount ? `/${lesson.stepCount}` : ""}{lesson.projectThreadId && (locale === "fr" ? " du projet PulsaConf" : " of the PulsaConf project")}</p>}
         <p className="mt-4 text-base font-semibold leading-7 text-slate-100">{lesson.brief[locale]}</p>
         {course?.introduction && <InstructionText className="mt-5 leading-7 text-slate-200" value={course.introduction} />}
-        {lesson.projectThreadId && <p className="mt-5 border-l-4 border-indigo-400 bg-white/5 px-4 py-3 text-sm leading-6 text-indigo-100">{lesson.stepCount ? (locale === "fr" ? `Étape ${lesson.stepNumber} sur ${lesson.stepCount} du projet fil rouge. Tu travailles dans le document PulsaConf partagé : fusionne l'étape pour créer une version avant de continuer.` : `Step ${lesson.stepNumber} of ${lesson.stepCount} in the flagship project. You are working in the shared PulsaConf document: merge the step to create a version before continuing.`) : (locale === "fr" ? "Chaque étape ajoute une pièce au projet PulsaConf." : "Each step adds one piece to the PulsaConf project.")}</p>}
+         {lesson.projectThreadId && <p className="mt-5 border-l-4 border-indigo-400 bg-white/5 px-4 py-3 text-sm leading-6 text-indigo-100">{lesson.stepCount ? (locale === "fr" ? `Étape ${lesson.stepNumber} sur ${lesson.stepCount} du projet PulsaConf (distincte des ${trackLessonCount} leçons de la formation). Le code est sauvegardé automatiquement dans ce navigateur. Réussir les tests valide la leçon et débloque la suivante ; « Fusionner l'étape » crée une version du document si tu veux garder un jalon, sans être obligatoire pour continuer.` : `Step ${lesson.stepNumber} of ${lesson.stepCount} in the PulsaConf project (separate from the ${trackLessonCount} course lessons). Your code is saved automatically in this browser. Passing the checks completes the lesson and lets you continue; “Merge step” saves a document version if you want a checkpoint, but is not required to continue.`) : (locale === "fr" ? "Chaque étape ajoute une pièce au projet PulsaConf." : "Each step adds one piece to the PulsaConf project.")}</p>}
         <div className="mt-6 grid gap-6">
           {(course?.sections || []).map((section, index) => <section key={section.title}><h3 className="font-display text-base font-bold text-white">{index + 1}. {section.title}</h3><div className="mt-2 grid gap-3">{(section.paragraphs || []).map((paragraph) => <InstructionText key={paragraph} className="text-sm leading-6 text-slate-200" value={paragraph} />)}</div>{section.example && (showCorrection || section.example !== resolveLocaleValue(lesson.solution, locale)) && <pre tabIndex={0} className="mt-3 overflow-x-auto border border-white/15 bg-[#0a0a23] p-3 font-mono text-xs leading-6 text-indigo-100">{section.example}</pre>}</section>)}
         </div>
@@ -324,7 +326,7 @@ function InstructionsPanel({ lesson, locale, hintLevel, hintsCount, note, setNot
   );
 }
 
-function EditorWorkbench({ code, documentKey, editorRef, fileName, fontSize, languageKind, lineWrapping, locale, isRunning, taskTitle, taskBrief, onChange, onReset, onRunCode, onRunTests, onSave, onCheckpoint, onExport, onOpenPreview, previewKind, saveState, projectVersion }) {
+function EditorWorkbench({ code, externalRevision, documentKey, editorReady, editorRef, fileName, fontSize, languageKind, lineWrapping, locale, isRunning, taskTitle, taskBrief, onChange, onReset, onRunCode, onRunTests, onSave, onCheckpoint, onExport, onOpenPreview, previewKind, saveState, projectVersion }) {
   const currentCode = () => editorRef.current?.state.doc.toString() ?? code;
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-[#070716]" aria-label={locale === "fr" ? "Atelier de code" : "Code workshop"}>
@@ -338,14 +340,14 @@ function EditorWorkbench({ code, documentKey, editorRef, fileName, fontSize, lan
       </div>
       <div className="min-h-0 flex-1 overflow-hidden">
         <Suspense fallback={<div className="grid h-full min-h-[520px] place-items-center bg-slate-950 font-bold text-slate-300" role="status">{locale === "fr" ? "Chargement de l’éditeur..." : "Loading editor..."}</div>}>
-          <CodeMirrorEditor value={code} documentKey={documentKey} languageKind={languageKind} locale={locale} editorRef={editorRef} fontSize={fontSize} lineWrapping={lineWrapping} onChange={onChange} onRun={previewKind === "javascript" ? onRunCode : onRunTests} onSave={onSave} />
+           {editorReady ? <CodeMirrorEditor value={code} externalRevision={externalRevision} documentKey={documentKey} languageKind={languageKind} locale={locale} editorRef={editorRef} fontSize={fontSize} lineWrapping={lineWrapping} onChange={onChange} onRun={previewKind === "javascript" ? onRunCode : onRunTests} onSave={onSave} /> : <div className="grid min-h-[360px] place-items-center bg-slate-950 text-sm font-bold text-slate-300" role="status">{locale === "fr" ? "Préparation de l’éditeur..." : "Preparing editor..."}</div>}
         </Suspense>
       </div>
       <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 border-t border-white/15 bg-[#171733] p-3 shadow-[0_-8px_24px_rgba(0,0,0,.28)]">
-        <WorkbenchButton disabled={isRunning} onClick={() => onRunTests(currentCode())} icon={Play} primary ariaLabel={locale === "fr" ? "Vérifier mon code · Lancer les tests" : "Check my code · Run tests"}>{locale === "fr" ? "Vérifier mon code" : "Check my code"}</WorkbenchButton>
-        {onRunCode && <WorkbenchButton disabled={isRunning} onClick={() => onRunCode(currentCode())} icon={Terminal}>{locale === "fr" ? "Exécuter" : "Run"}</WorkbenchButton>}
-        {onCheckpoint && <WorkbenchButton disabled={isRunning} onClick={() => onCheckpoint(currentCode())} icon={GitMerge}>{locale === "fr" ? "Fusionner l'étape" : "Merge step"}</WorkbenchButton>}
-        {onExport && <WorkbenchButton disabled={isRunning} onClick={() => onExport(currentCode())} icon={Download}>{locale === "fr" ? "Exporter" : "Export"}</WorkbenchButton>}
+        <WorkbenchButton disabled={isRunning || !editorReady} onClick={() => onRunTests(currentCode())} icon={Play} primary ariaLabel={locale === "fr" ? "Vérifier mon code · Lancer les tests" : "Check my code · Run tests"}>{locale === "fr" ? "Vérifier mon code" : "Check my code"}</WorkbenchButton>
+        {onRunCode && <WorkbenchButton disabled={isRunning || !editorReady} onClick={() => onRunCode(currentCode())} icon={Terminal}>{locale === "fr" ? "Exécuter" : "Run"}</WorkbenchButton>}
+        {onCheckpoint && <WorkbenchButton disabled={isRunning || !editorReady} onClick={() => onCheckpoint(currentCode())} icon={GitMerge}>{locale === "fr" ? "Fusionner l'étape" : "Merge step"}</WorkbenchButton>}
+        {onExport && <WorkbenchButton disabled={isRunning || !editorReady} onClick={() => onExport(currentCode())} icon={Download}>{locale === "fr" ? "Exporter" : "Export"}</WorkbenchButton>}
         <WorkbenchButton onClick={onOpenPreview} icon={Eye} className="xl:hidden">{locale === "fr" ? "Aperçu" : "Preview"}</WorkbenchButton>
         <WorkbenchButton onClick={onReset} icon={RotateCcw}>{locale === "fr" ? "Recommencer" : "Reset"}</WorkbenchButton>
         <span className="ml-auto hidden text-[11px] font-bold text-slate-500 2xl:inline">Ctrl/⌘+Enter</span>
@@ -492,7 +494,6 @@ function codePreviewTitle(kind, locale) {
 }
 
 const fileNames = { css: "styles.css", sql: "exercise.sql", typescript: "script.ts", react: "script.jsx", terminal: "exercise.sh", text: "exercise.md", js: "script.js", node: "script.js" };
-
 function defaultFileName(lesson) {
   return fileNames[lesson.runtime] || fileNames[lesson.type] || "index.html";
 }

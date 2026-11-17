@@ -2,7 +2,15 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), {
+    name: "preview-media-cors",
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        if (/^\/assets\/[^?]+\.(?:vtt|webm|wav)(?:\?|$)/i.test(request.url || "")) response.setHeader("Access-Control-Allow-Origin", "*");
+        next();
+      });
+    }
+  }],
   optimizeDeps: {
     noDiscovery: true,
     include: [
@@ -41,7 +49,7 @@ export default defineConfig({
           if (id.includes("cssTrackBoxTypeChunk")) return "content-css-box";
           if (id.includes("cssTrackFlexLayoutChunk")) return "content-css-flex";
           if (id.includes("cssTrackGridLayoutChunk")) return "content-css-grid";
-          if (id.includes("cssTrackLegacyFoundationChunk")) return "content-css-legacy-foundation";
+          if (id.includes("cssResponsiveModule.js") || id.includes("cssAccessibleStatesModule.js") || id.includes("cssMotionModule.js")) return "content-css-responsive-patterns";
           if (id.includes("cssModulesFoundation") || id.includes("cssTrackFoundationChunk")) return "content-css-foundations";
           if (id.includes("cssModulesResponsive") || id.includes("cssTrackResponsiveChunk")) return "content-css-responsive";
           if (id.includes("cssTrackMetadata")) return "content-css-shared";
